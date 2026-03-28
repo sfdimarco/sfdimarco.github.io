@@ -12,7 +12,6 @@ function BreathingGrid() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     let raf;
-    let t = 0;
 
     const synColors = Object.values(SYN);
     const digits = "0123456789";
@@ -24,35 +23,63 @@ function BreathingGrid() {
     resize();
     window.addEventListener("resize", resize);
 
-    const cols = 22;
-    const rows = 10;
+    const cols = 36;
+    const rows = 18;
 
-    // Pre-assign stable digits and colors to each cell
-    const grid = Array.from({ length: rows }, () =>
-      Array.from({ length: cols }, () => ({
+    // Pre-assign stable properties to each cell
+    const grid = Array.from({ length: rows }, (_, r) =>
+      Array.from({ length: cols }, (_, c) => ({
         digit: digits[Math.floor(Math.random() * digits.length)],
         color: synColors[Math.floor(Math.random() * synColors.length)],
-        offset: Math.random() * Math.PI * 2, // phase offset for breathing
-        speed: 0.3 + Math.random() * 0.4,
+        phase:  Math.random() * Math.PI * 2,
+        speed:  0.5 + Math.random() * 1.2,      // faster individual breath
+        flipAt: Math.random() * 4,               // when to next flip digit (seconds)
+        // wave phase based on grid position for ripple effect
+        wavePhase: (r / rows + c / cols) * Math.PI * 2,
       }))
     );
+
     const draw = (now) => {
-      t = now * 0.001;
+      const t = now * 0.001;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const cellW = canvas.width / cols;
       const cellH = canvas.height / rows;
-      ctx.font = `${Math.min(cellW, cellH) * 0.55}px 'Space Mono', monospace`;
+      const fontSize = Math.min(cellW, cellH) * 0.58;
+      ctx.font = `${fontSize}px 'Space Mono', monospace`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+
+      // Sweeping diagonal pulse wave — crosses the grid every ~5s
+      const pulseX = (t * 0.18) % (cols + rows);
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const cell = grid[r][c];
-          // Slow organic breathing per cell — sin with unique phase & speed
-          const breath = (Math.sin(t * cell.speed + cell.offset) + 1) / 2; // 0→1
-          const alpha = 0.08 + breath * 0.22; // range 0.08–0.30
-          ctx.fillStyle = cell.color + Math.round(alpha * 255).toString(16).padStart(2, "0");
+
+          // Digit mutation — flip when flipAt timer hits
+          if (t > cell.flipAt) {
+            cell.digit = digits[Math.floor(Math.random() * digits.length)];
+            cell.color = synColors[Math.floor(Math.random() * synColors.length)];
+            cell.flipAt = t + 1.5 + Math.random() * 5;
+          }
+
+          // Individual organic breath
+          const breath = (Math.sin(t * cell.speed + cell.phase) + 1) / 2;
+
+          // Diagonal ripple wave adds extra brightness as it sweeps through
+          const distFromWave = Math.abs((c + r) - pulseX);
+          const waveBump = Math.max(0, 1 - distFromWave / 4) * 0.35;
+
+          // Distance from canvas center — brighter at edges, dimmer in center
+          const cx = c / cols - 0.5;
+          const cy = r / rows - 0.5;
+          const distCenter = Math.sqrt(cx * cx + cy * cy) * 2;
+          const edgeFactor = 0.5 + distCenter * 0.5;
+
+          const alpha = (0.06 + breath * 0.28 + waveBump) * edgeFactor;
+          const hex = Math.round(Math.min(alpha, 0.65) * 255).toString(16).padStart(2, "0");
+          ctx.fillStyle = cell.color + hex;
           ctx.fillText(cell.digit, (c + 0.5) * cellW, (r + 0.5) * cellH);
         }
       }
@@ -127,7 +154,7 @@ function Portal({ to, label, sub, color, delay }) {
           <div style={{
             fontFamily: "'DM Serif Display', Georgia, serif",
             fontSize: "clamp(11px, 1.5vw, 13px)",
-            color: "#444",
+            color: "var(--text-muted)",
             letterSpacing: 1,
           }}>
             {sub}
@@ -140,12 +167,10 @@ function Portal({ to, label, sub, color, delay }) {
 
 // ── Landing Page ─────────────────────────────────────────────────────────────
 export default function Landing() {
-  // Slow breathing pulse for the name
   const [breathScale, setBreathScale] = useState(1);
   useEffect(() => {
     let raf;
     const tick = (t) => {
-      // Very subtle — 1.000 to 1.004, 8-second cycle
       setBreathScale(1 + Math.sin(t * 0.001 * 0.8) * 0.004);
       raf = requestAnimationFrame(tick);
     };
@@ -174,7 +199,7 @@ export default function Landing() {
       {/* Radial gradient vignette so grid fades at edges */}
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse at center, transparent 30%, var(--bg) 80%)",
+        background: "radial-gradient(ellipse at center, transparent 20%, var(--bg) 72%)",
       }} />
 
       <div style={{
@@ -217,7 +242,6 @@ export default function Landing() {
             letterSpacing: "-0.02em",
           }}
         >
-          {/* MOOK spelled out in synesthetic color */}
           {"MOOK".split("").map((char, i) => (
             <span key={i} style={{ color: [SYN["3"], SYN["8"], SYN["8"], SYN["2"]][i] }}>
               {char}
