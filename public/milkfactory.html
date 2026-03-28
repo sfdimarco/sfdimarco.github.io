@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milk Carton Factory</title>
+    <style>
+        body {
+            background-color: #000000; color: #FFFFFF; font-family: 'Arial', sans-serif;
+            display: flex; flex-direction: column; align-items: center; margin: 0; padding-top: 15px;
+        }
+        canvas {
+            border: 1px solid #333; display: block; border-radius: 8px;
+        }
+        #game-container, #afk-mode-container {
+            display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%;
+        }
+        #afk-mode-container { display: none; } /* Hidden by default */
+        .stats { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .controls-container { width: 90%; max-width: 800px; padding: 10px; background-color: #181818; border-radius: 8px; }
+        .controls-section { margin-bottom: 15px; }
+        .controls-section h2 {
+            font-size: 18px; color: #DDDDDD; margin-bottom: 8px; text-align: center;
+            border-bottom: 1px solid #444444; padding-bottom: 5px;
+        }
+        .controls {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px;
+        }
+        .upgrade-info {
+            display: flex; flex-direction: column; align-items: center; background-color: #202020;
+            padding: 10px; border-radius: 6px; text-align: center;
+        }
+        button {
+            background-color: #333333; color: #FFFFFF; border: 1px solid #555555; padding: 8px 10px;
+            font-size: 13px; cursor: pointer; border-radius: 5px; transition: background-color 0.3s;
+            width: 100%; margin-bottom: 5px;
+        }
+        button:hover { background-color: #555555; }
+        button:disabled { background-color: #222222; color: #666666; cursor: not-allowed; }
+        button.special-button { /* For AFK Mode Button */
+            background-color: #1D4ED8; border-color: #2563EB; font-weight: bold; font-size: 16px; padding: 12px;
+        }
+        button.special-button:hover { background-color: #2563EB; }
+        h1 { margin-bottom: 10px; font-size: 28px; }
+        .upgrade-cost { font-size: 11px; color: #cccccc; }
+        #factory-naming {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        #factory-name-input {
+            background-color: #222;
+            border: 1px solid #555;
+            color: #FFF;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        #set-name-button {
+             width: auto; /* Override 100% width for this specific button */
+             flex-shrink: 0;
+        }
+        #message-box {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background-color: rgba(30, 150, 30, 0.9); color: white; padding: 12px 25px;
+            border-radius: 20px; z-index: 1000; display: none; font-size: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5); text-align: center;
+        }
+        #minigame-info {
+            color: #FFFFFF; font-size: 16px; text-align: center; margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1 id="factory-title">🍼 Milk Carton Factory 🏭</h1>
+        <div id="factory-naming">
+            <input type="text" id="factory-name-input" placeholder="Name Your Factory...">
+            <button id="set-name-button">Set Name</button>
+        </div>
+        <div class="stats">
+            <span id="money-display">Milk Money: $0</span>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="controls-container">
+             <div class="controls-section" id="special-section" style="display: none;">
+                <h2>Special</h2>
+                <div class="controls">
+                    <button id="afk-mode-button" class="special-button">[ AFK MODE ]</button>
+                </div>
+            </div>
+            <div class="controls-section">
+                <h2>Machine Upgrades</h2>
+                <div class="controls" id="machine-upgrades">
+                    <div class="upgrade-info"><button id="upgradeConveyor">Faster Conveyor</button><span class="upgrade-cost">Cost: $<span id="costConveyor">10</span> (Lvl <span id="levelConveyor">0</span>)</span></div>
+                    <div class="upgrade-info"><button id="upgradeFolding">Adv. Folding Arms</button><span class="upgrade-cost">Cost: $<span id="costFolding">20</span> (Lvl <span id="levelFolding">0</span>)</span></div>
+                    <div class="upgrade-info"><button id="upgradeFiller">Carton Fill Boost</button><span class="upgrade-cost">Cost: $<span id="costFiller">15</span> (Lvl <span id="levelFiller">0</span>)</span></div>
+                    <div class="upgrade-info"><button id="upgradeMoreCows">More Cows</button><span class="upgrade-cost">Cost: $<span id="costMoreCows">50</span> (Lvl <span id="levelMoreCows">0</span>)</span></div>
+                    <div class="upgrade-info"><button id="upgradePremiumCartons">Premium Cartons</button><span class="upgrade-cost">Cost: $<span id="costPremiumCartons">200</span> (Lvl <span id="levelPremiumCartons">0</span>)</span></div>
+                    <div class="upgrade-info"><button id="upgradeLoader">Efficient Loader</button><span class="upgrade-cost">Cost: $<span id="costLoader">75</span> (Lvl <span id="levelLoader">0</span>)</span></div>
+                    <div class="upgrade-info"><button id="upgradeAutoMilker">Auto-Milker</button><span class="upgrade-cost" id="auto-milker-cost-span"><span id="costAutoMilkerText">Cost: $</span><span id="costAutoMilkerVal">100</span>&nbsp;(<span id="statusAutoMilker">OFF</span>)</span></div>
+                </div>
+            </div>
+            <div class="controls-section">
+                <h2>Factory Decorations</h2>
+                <div class="controls" id="decoration-upgrades">
+                    <div class="upgrade-info"><button id="decoConveyorColor">Cooler Conveyor</button><span class="upgrade-cost">Cost: $<span id="costDecoConveyorColor">30</span></span></div>
+                    <div class="upgrade-info"><button id="decoWallPaintBlue">Blue Wall Paint</button><span class="upgrade-cost">Cost: $<span id="costDecoWallPaintBlue">40</span></span></div>
+                    <div class="upgrade-info"><button id="decoWallPaintGreen">Green Wall Paint</button><span class="upgrade-cost">Cost: $<span id="costDecoWallPaintGreen">40</span></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="afk-mode-container" style="display:none;">
+        <h1>🥛 Milk Dash 💨</h1>
+        <canvas id="miniGameCanvas"></canvas>
+        <div id="minigame-info">
+            Score: <span id="miniGameScore">0</span> | Press SPACE to Jump!
+        </div>
+        <button id="back-to-factory-button">Back to Factory</button>
+    </div>
+
+    <div id="message-box"></div>
+
+    <script>
+        // --- GAME SETUP ---
+        const gameCanvas = document.getElementById('gameCanvas');
+        const ctx = gameCanvas.getContext('2d');
+        gameCanvas.width = 800; gameCanvas.height = 400;
+
+        const miniGameCanvas = document.getElementById('miniGameCanvas');
+        const mgCtx = miniGameCanvas.getContext('2d');
+        miniGameCanvas.width = 800; miniGameCanvas.height = 400;
+
+        // --- GLOBAL STATE ---
+        let money = 0;
+        let factoryWallColor = '#0a0a0a';
+        let conveyorColor = '#444444';
+        
+        // --- MAIN FACTORY STATE ---
+        let cartons = [];
+        let nextCartonSpawnTime = 0;
+        const initialCartonSpawnInterval = 3000;
+        let currentCartonSpawnInterval = initialCartonSpawnInterval;
+        const baseMoneyPerCarton = 5;
+        let currentMoneyPerCarton = baseMoneyPerCarton;
+        const foldingArm = { x: gameCanvas.width * 0.3, y: gameCanvas.height * 0.65 - 110, width: 20, height: 70, color: '#666666', active: false, activeTime: 0 };
+        const cowVisual = { x: gameCanvas.width * 0.6 - 10, y: gameCanvas.height * 0.65 - 80 };
+
+        // --- UPGRADE SYSTEM ---
+        const upgrades = {
+            conveyorSpeed: { level: 0, cost: 10, costMultiplier: 1.5, maxLevel: 10, btn: 'upgradeConveyor', elCost: 'costConveyor', elLevel: 'levelConveyor', name: "Faster Conveyor" },
+            foldingSpeed: { level: 0, cost: 20, costMultiplier: 1.6, maxLevel: 5, btn: 'upgradeFolding', elCost: 'costFolding', elLevel: 'levelFolding', name: "Adv. Folding Arms" },
+            fillSpeed: { level: 0, cost: 15, costMultiplier: 1.5, maxLevel: 10, btn: 'upgradeFiller', elCost: 'costFiller', elLevel: 'levelFiller', name: "Carton Fill Boost" },
+            moreCows: { level: 0, cost: 50, costMultiplier: 1.8, maxLevel: 5, btn: 'upgradeMoreCows', elCost: 'costMoreCows', elLevel: 'levelMoreCows', name: "More Cows" },
+            premiumCartons: { level: 0, cost: 200, costMultiplier: 2, maxLevel: 5, btn: 'upgradePremiumCartons', elCost: 'costPremiumCartons', elLevel: 'levelPremiumCartons', name: "Premium Cartons" },
+            efficientLoader: { level: 0, cost: 75, costMultiplier: 1.7, maxLevel: 5, btn: 'upgradeLoader', elCost: 'costLoader', elLevel: 'levelLoader', name: "Efficient Loader" },
+            autoMilker: { active: false, cost: 100, purchased: false, btn: 'upgradeAutoMilker' },
+            decoConveyorColor: { cost: 30, purchased: false, btn: 'decoConveyorColor', elCost: 'costDecoConveyorColor', name: "Cooler Conveyor", apply: () => { conveyorColor = '#2E8B57'; } },
+            decoWallPaintBlue: { cost: 40, purchased: false, btn: 'decoWallPaintBlue', elCost: 'costDecoWallPaintBlue', name: "Blue Wall Paint", apply: () => { factoryWallColor = '#1E3A8A'; } },
+            decoWallPaintGreen: { cost: 40, purchased: false, btn: 'decoWallPaintGreen', elCost: 'costDecoWallPaintGreen', name: "Green Wall Paint", apply: () => { factoryWallColor = '#166534'; } },
+        };
+
+        // --- UI & MESSAGES ---
+        const moneyDisplay = document.getElementById('money-display');
+        const messageBox = document.getElementById('message-box');
+        let messageTimeout;
+        function showMessage(text, duration = 2500) {
+            messageBox.textContent = text;
+            messageBox.style.display = 'block';
+            clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => { messageBox.style.display = 'none'; }, duration);
+        }
+
+        // --- FACTORY DRAWING FUNCTIONS ---
+        function drawFactoryBackground() { ctx.fillStyle = factoryWallColor; ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height); }
+        function drawConveyor() {
+            const conveyorY = gameCanvas.height * 0.65;
+            ctx.fillStyle = conveyorColor; ctx.fillRect(0, conveyorY, gameCanvas.width, 10);
+            ctx.fillStyle = '#555555'; for (let i = 0; i < gameCanvas.width; i += 20) ctx.fillRect(i, conveyorY + 4, 10, 2);
+        }
+        function drawFoldingArm() {
+             ctx.fillStyle = foldingArm.color; ctx.fillRect(foldingArm.x, foldingArm.y, foldingArm.width, foldingArm.height);
+        }
+        function drawCow() {
+            const x = cowVisual.x;
+            const y = cowVisual.y;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + 10, y + 60, 10, 20);
+            ctx.fillRect(x + 50, y + 60, 10, 20);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x, y + 20, 70, 40);
+            ctx.beginPath(); ctx.arc(x + 70, y + 20, 20, 0, 2 * Math.PI); ctx.fill();
+            ctx.fillStyle = '#000000';
+            ctx.beginPath(); ctx.arc(x + 25, y + 40, 8, 0, 2 * Math.PI); ctx.fill();
+            ctx.beginPath(); ctx.arc(x + 50, y + 50, 5, 0, 2 * Math.PI); ctx.fill();
+            ctx.beginPath(); ctx.arc(x + 80, y + 18, 3, 0, 2 * Math.PI); ctx.fill();
+            ctx.fillStyle = '#FFC0CB';
+            ctx.fillRect(x + 30, y + 60, 20, 10);
+        }
+        function drawCarton(c) {
+            const conveyorY = gameCanvas.height * 0.65;
+            let cWidth = 50;
+            let cHeight = (c.state === 'cardboard') ? 30 : 70;
+            let cColor = (c.state === 'cardboard') ? '#FF0000' : ((c.state === 'folding' || c.state === 'empty_carton') ? '#A0A0A0' : '#E0E0E0');
+            ctx.fillStyle = cColor; ctx.fillRect(c.x, conveyorY - cHeight, cWidth, cHeight);
+            if (c.state === 'filling' || c.state === 'full') {
+                const fillHeight = cHeight * c.fillLevel;
+                ctx.fillStyle = '#007BFF'; ctx.fillRect(c.x + 2, conveyorY - fillHeight - 2, cWidth - 4, fillHeight);
+            }
+            if (c.isActivelyFilling) {
+                ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 3; ctx.beginPath();
+                ctx.moveTo(cowVisual.x + 40, cowVisual.y + 70);
+                ctx.lineTo(c.x + cWidth / 2, conveyorY - cHeight); ctx.stroke();
+                c.isActivelyFilling = false;
+            }
+        }
+
+        // --- FACTORY LOGIC ---
+        function updateFactory(deltaTime) {
+            const currentTime = Date.now();
+            if (currentTime > nextCartonSpawnTime) {
+                cartons.push({ x: -50, state: 'cardboard', fillLevel: 0, isActivelyFilling: false, clickCooldown: 0 });
+                nextCartonSpawnTime = currentTime + currentCartonSpawnInterval;
+            }
+            for (let i = cartons.length - 1; i >= 0; i--) {
+                let c = cartons[i];
+                 if(c.clickCooldown > 0) c.clickCooldown -= deltaTime;
+                let conveyorSpeed = 1 + (upgrades.conveyorSpeed.level * 0.2);
+                if (c.state !== 'filling' || c.fillLevel >= 1) {
+                    c.x += conveyorSpeed * (deltaTime / 16);
+                }
+                const foldZoneStart = gameCanvas.width * 0.25;
+                const fillZoneStart = gameCanvas.width * 0.55;
+                const fillZoneEnd = gameCanvas.width * 0.75;
+                if (c.state === 'cardboard' && c.x > foldZoneStart) { c.state = 'empty_carton'; }
+                if (c.state === 'empty_carton' && c.x > fillZoneStart && c.x < fillZoneEnd) { c.state = 'filling'; }
+                if (c.state === 'filling' && upgrades.autoMilker.active && c.fillLevel < 1) {
+                    let fillRate = (0.01 + upgrades.fillSpeed.level * 0.005) + (upgrades.moreCows.level * 0.003);
+                    c.fillLevel += fillRate * (deltaTime / 16);
+                    c.isActivelyFilling = true;
+                }
+                if (c.fillLevel >= 1) { 
+                    c.state = 'full'; 
+                }
+                if (c.state === 'full' && c.x > gameCanvas.width) {
+                    money += currentMoneyPerCarton; cartons.splice(i, 1);
+                }
+            }
+        }
+        
+        // --- UI UPDATE ---
+        function updateUIDisplays() {
+            moneyDisplay.textContent = `Milk Money: $${Math.floor(money)}`;
+            currentMoneyPerCarton = 5 + (upgrades.premiumCartons.level * 2);
+            currentCartonSpawnInterval = 3000 - (upgrades.efficientLoader.level * 250);
+            document.getElementById('special-section').style.display = upgrades.autoMilker.purchased ? 'block' : 'none';
+            for (const key in upgrades) {
+                const upg = upgrades[key];
+                const btnEl = document.getElementById(upg.btn);
+                if (!btnEl) continue;
+                if (key === 'autoMilker') {
+                    const costSpan = document.getElementById('auto-milker-cost-span');
+                    if (upg.purchased) {
+                        costSpan.textContent = `Status: ${upg.active ? "ON" : "OFF"}`;
+                        btnEl.textContent = `Toggle Auto-Milker`;
+                    } else {
+                        costSpan.innerHTML = `<span id="costAutoMilkerText">Cost: $</span><span id="costAutoMilkerVal">${upg.cost}</span>&nbsp;(<span id="statusAutoMilker">OFF</span>)`;
+                        btnEl.textContent = `Buy Auto-Milker`;
+                    }
+                    btnEl.disabled = money < upg.cost && !upg.purchased;
+                } else if (upg.hasOwnProperty('level')) { 
+                     const cost = Math.floor(upg.cost * Math.pow(upg.costMultiplier, upg.level));
+                    document.getElementById(upg.elCost).textContent = cost;
+                    document.getElementById(upg.elLevel).textContent = upg.level;
+                    btnEl.disabled = money < cost || upg.level >= upg.maxLevel;
+                    if(upg.level >= upg.maxLevel) {btnEl.textContent = `${upg.name} (MAX)`;} else { btnEl.textContent = upg.name;}
+                } else {
+                    document.getElementById(upg.elCost).textContent = upg.cost;
+                    btnEl.disabled = money < upg.cost || upg.purchased;
+                    if(upg.purchased) {btnEl.textContent = `${upg.name} (Owned)`;} else { btnEl.textContent = upg.name;}
+                }
+            }
+        }
+
+        // --- AFK MINI-GAME: MILK DASH ---
+        let miniGameActive = false;
+        const mgPlayer = { x: 50, y: 350, width: 30, height: 50, vy: 0, onGround: true };
+        const mgGravity = 0.8;
+        const mgGroundY = 350;
+        let mgObstacles = [];
+        let mgNextObstacleTime = 0;
+        let mgScore = 0;
+        const mgScoreEl = document.getElementById('miniGameScore');
+        
+        function startMiniGame() {
+            miniGameActive = true;
+            mgPlayer.y = mgGroundY; mgPlayer.vy = 0; mgPlayer.onGround = true;
+            mgObstacles = []; mgScore = 0;
+            mgScoreEl.textContent = 0;
+            mgNextObstacleTime = 0;
+        }
+
+        function stopMiniGame() {
+            miniGameActive = false;
+        }
+
+        function updateAndDrawMiniGame(deltaTime) {
+            mgCtx.fillStyle = '#000000'; mgCtx.fillRect(0, 0, miniGameCanvas.width, miniGameCanvas.height);
+            mgCtx.fillStyle = '#FFFFFF'; mgCtx.fillRect(0, mgGroundY, miniGameCanvas.width, 2);
+            if (!mgPlayer.onGround) mgPlayer.vy += mgGravity;
+            mgPlayer.y += mgPlayer.vy;
+            if (mgPlayer.y >= mgGroundY) {
+                mgPlayer.y = mgGroundY; mgPlayer.vy = 0; mgPlayer.onGround = true;
+            }
+            mgCtx.fillStyle = '#E0E0E0'; mgCtx.fillRect(mgPlayer.x, mgPlayer.y - mgPlayer.height, mgPlayer.width, mgPlayer.height);
+            if (Date.now() > mgNextObstacleTime) {
+                mgObstacles.push({ x: miniGameCanvas.width, width: 20, height: 40 });
+                mgNextObstacleTime = Date.now() + 1500 + Math.random() * 1500;
+            }
+            for (let i = mgObstacles.length - 1; i >= 0; i--) {
+                let obs = mgObstacles[i];
+                obs.x -= 5 * (deltaTime / 16); // Frame-rate independent speed
+                mgCtx.fillStyle = '#FF0000';
+                mgCtx.fillRect(obs.x, mgGroundY - obs.height, obs.width, obs.height);
+                if (obs.x + obs.width < 0) {
+                    mgObstacles.splice(i, 1);
+                    mgScore++;
+                    mgScoreEl.textContent = mgScore;
+                }
+                if (mgPlayer.x < obs.x + obs.width && mgPlayer.x + mgPlayer.width > obs.x && mgPlayer.y > mgGroundY - obs.height) {
+                    showMessage(`Game Over! Score: ${mgScore}. You earned $${mgScore} bonus!`);
+                    money += mgScore;
+                    stopMiniGame();
+                    document.getElementById('game-container').style.display = 'flex';
+                    document.getElementById('afk-mode-container').style.display = 'none';
+                }
+            }
+        }
+
+        // --- EVENT HANDLERS ---
+        function setupButtonListeners() {
+            for (const key in upgrades) {
+                const upg = upgrades[key];
+                const btnEl = document.getElementById(upg.btn);
+                if (!btnEl) continue;
+
+                btnEl.addEventListener('click', () => {
+                    if (key === 'autoMilker') {
+                        if (!upg.purchased) {
+                            if (money >= upg.cost) {
+                                money -= upg.cost;
+                                upg.purchased = true;
+                                upg.active = true;
+                                showMessage("Auto-Milker Purchased! AFK Mode Unlocked!");
+                            }
+                        } else {
+                            upg.active = !upg.active;
+                            showMessage(upg.active ? "Auto-Milker ENABLED" : "Auto-Milker DISABLED");
+                        }
+                    } else if (upg.hasOwnProperty('level')) {
+                        const cost = Math.floor(upg.cost * Math.pow(upg.costMultiplier, upg.level));
+                        if (money >= cost && upg.level < upg.maxLevel) {
+                            money -= cost;
+                            upg.level++;
+                            showMessage(`${upg.name} upgraded to Lvl ${upg.level}!`);
+                        }
+                    } else {
+                        if (money >= upg.cost && !upg.purchased) {
+                            money -= upg.cost;
+                            upg.purchased = true;
+                            if (upg.apply) upg.apply();
+                            showMessage(`${upg.name} purchased!`);
+                        }
+                    }
+                    updateUIDisplays();
+                });
+            }
+            
+            gameCanvas.addEventListener('click', (event) => {
+                if (upgrades.autoMilker.active) return;
+                const rect = gameCanvas.getBoundingClientRect();
+                const clickX = event.clientX - rect.left;
+                const clickY = event.clientY - rect.top;
+                const fillZoneStart = gameCanvas.width * 0.55;
+                const fillZoneEnd = gameCanvas.width * 0.75;
+                for (let c of cartons) {
+                    const conveyorY = gameCanvas.height * 0.65;
+                    const cHeight = (c.state === 'cardboard') ? 30 : 70;
+                    if (c.state === 'filling' && c.fillLevel < 1 && c.clickCooldown <= 0 &&
+                        clickX >= c.x && clickX <= c.x + 50 &&
+                        clickY >= conveyorY - cHeight && clickY <= conveyorY &&
+                        c.x > fillZoneStart && c.x < fillZoneEnd) {
+                        let fillBoost = 0.1 + upgrades.fillSpeed.level * 0.05;
+                        c.fillLevel += fillBoost;
+                        c.isActivelyFilling = true;
+                        c.clickCooldown = 100;
+                        if (c.fillLevel >= 1) c.fillLevel = 1;
+                        break;
+                    }
+                }
+            });
+
+            document.getElementById('afk-mode-button').addEventListener('click', () => {
+                document.getElementById('game-container').style.display = 'none';
+                document.getElementById('afk-mode-container').style.display = 'flex';
+                startMiniGame();
+            });
+            document.getElementById('back-to-factory-button').addEventListener('click', () => {
+                document.getElementById('game-container').style.display = 'flex';
+                document.getElementById('afk-mode-container').style.display = 'none';
+                stopMiniGame();
+            });
+            window.addEventListener('keydown', (e) => {
+                if (miniGameActive && e.code === 'Space' && mgPlayer.onGround) {
+                    mgPlayer.vy = -15;
+                    mgPlayer.onGround = false;
+                }
+            });
+
+            const factoryTitle = document.getElementById('factory-title');
+            const factoryNameInput = document.getElementById('factory-name-input');
+            const setNameButton = document.getElementById('set-name-button');
+            setNameButton.addEventListener('click', () => {
+                const newName = factoryNameInput.value.trim();
+                if (newName) {
+                    factoryTitle.innerHTML = `🍼 ${newName} 🏭`;
+                    if (newName.toLowerCase() === 'asivatt') {
+                        const upg = upgrades.autoMilker;
+                        if (!upg.purchased) {
+                            upg.purchased = true;
+                            upg.active = true;
+                            showMessage("SECRET UNLOCKED! Welcome, Creator. Auto-Milker and AFK Mode are now online.", 4000);
+                            updateUIDisplays();
+                        }
+                    } else {
+                        showMessage(`Factory name set to: ${newName}`);
+                    }
+                    document.getElementById('factory-naming').style.display = 'none';
+                }
+            });
+        }
+        
+        // --- GLOBAL GAME LOOP ---
+        let lastTime = 0;
+        function globalGameLoop(timestamp) {
+            const deltaTime = (timestamp - lastTime) || 0;
+            lastTime = timestamp;
+            
+            updateFactory(deltaTime);
+            updateUIDisplays();
+
+            if (miniGameActive) {
+                updateAndDrawMiniGame(deltaTime);
+            } else {
+                drawFactoryBackground();
+                drawConveyor();
+                drawFoldingArm();
+                drawCow();
+                cartons.forEach(drawCarton);
+            }
+            
+            requestAnimationFrame(globalGameLoop);
+        }
+
+        // --- INITIALIZE ---
+        setupButtonListeners();
+        updateUIDisplays();
+        requestAnimationFrame(globalGameLoop);
+    </script>
+</body>
+</html>

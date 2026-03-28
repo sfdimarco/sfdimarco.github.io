@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base 2: Game of Life — Mook DiMarco</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color:#1a202c; color:white; font-family:'Courier New',Courier,monospace; display:flex; flex-direction:column; align-items:center; padding:20px; }
+        canvas { background-color:#000000; border:4px solid #4ade80; border-radius:8px; box-shadow:0 0 20px rgba(74,222,128,0.2); cursor:pointer; touch-action:none; }
+        .back-btn { position:fixed; top:16px; left:16px; background:#1a202c; border:1px solid #4ade80; color:#4ade80; padding:8px 16px; border-radius:6px; text-decoration:none; font-family:'Courier New',monospace; font-size:12px; letter-spacing:2px; z-index:100; }
+        .back-btn:hover { background:#4ade8022; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← BACK</a>
+    <h1 class="text-4xl font-bold text-green-400 mb-2 mt-8">Base 2: Game of Life</h1>
+    <p class="mb-4 text-gray-300 text-center max-w-2xl">In computer language (Binary), <strong>0 means OFF</strong> and <strong>1 means ON</strong>.<br>Click the grid to flip switches, then press Play!</p>
+    <canvas id="gameCanvas"></canvas>
+    <div class="flex gap-4 mt-6 flex-wrap justify-center">
+        <button id="playBtn" class="px-6 py-2 bg-green-500 hover:bg-green-400 text-black font-bold rounded-full transition-colors text-lg">▶ Play</button>
+        <button id="stepBtn" class="px-6 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-full transition-colors text-lg">⏭ Next Step</button>
+        <button id="randomBtn" class="px-6 py-2 bg-purple-500 hover:bg-purple-400 text-white font-bold rounded-full transition-colors text-lg">🎲 Random</button>
+        <button id="clearBtn" class="px-6 py-2 bg-red-500 hover:bg-red-400 text-white font-bold rounded-full transition-colors text-lg">🗑 Clear</button>
+    </div>
+    <div class="mt-8 bg-gray-800 p-6 rounded-lg max-w-2xl border border-gray-700">
+        <h2 class="text-2xl font-bold text-blue-400 mb-2">The Rules</h2>
+        <ul class="list-disc pl-5 space-y-2 text-gray-300">
+            <li><strong>Lonely:</strong> A 1 with fewer than 2 neighbors becomes 0.</li>
+            <li><strong>Happy:</strong> A 1 with 2 or 3 neighbors stays 1.</li>
+            <li><strong>Crowded:</strong> A 1 with more than 3 neighbors becomes 0.</li>
+            <li><strong>New Friend:</strong> A 0 with exactly 3 neighbors becomes 1!</li>
+        </ul>
+    </div>
+    <script>
+        const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+        const cellSize=30,cols=25,rows=20;
+        canvas.width=cols*cellSize; canvas.height=rows*cellSize;
+        let grid=createEmpty(),isPlaying=false,gameTimer=null;
+        function createEmpty(){let g=[];for(let r=0;r<rows;r++){let row=[];for(let c=0;c<cols;c++)row.push(0);g.push(row);}return g;}
+        function draw(){ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.font=`bold 20px "Courier New"`;ctx.textAlign='center';ctx.textBaseline='middle';for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){let x=c*cellSize,y=r*cellSize;ctx.strokeStyle='#333';ctx.strokeRect(x,y,cellSize,cellSize);ctx.fillStyle=grid[r][c]?'#4ade80':'#444';ctx.fillText(grid[r][c],x+cellSize/2,y+cellSize/2);}}
+        function step(){let n=createEmpty();for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){let nb=countN(r,c),s=grid[r][c];if(s&&(nb<2||nb>3))n[r][c]=0;else if(!s&&nb===3)n[r][c]=1;else n[r][c]=s;}grid=n;}
+        function countN(r,c){let s=0;for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){let nr=(r+i+rows)%rows,nc=(c+j+cols)%cols;s+=grid[nr][nc];}return s-grid[r][c];}
+        function togglePlay(){isPlaying=!isPlaying;const b=document.getElementById('playBtn');if(isPlaying){b.innerText='⏸ Pause';gameTimer=setInterval(()=>{step();draw();},300);}else{b.innerText='▶ Play';clearInterval(gameTimer);}}
+        document.getElementById('playBtn').addEventListener('click',togglePlay);
+        document.getElementById('stepBtn').addEventListener('click',()=>{step();draw();});
+        document.getElementById('clearBtn').addEventListener('click',()=>{if(isPlaying)togglePlay();grid=createEmpty();draw();});
+        document.getElementById('randomBtn').addEventListener('click',()=>{for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)grid[r][c]=Math.random()>0.8?1:0;draw();});
+        let drawing=false;
+        function toggle(e){const rect=canvas.getBoundingClientRect();const mx=e.clientX-rect.left,my=e.clientY-rect.top;const col=Math.floor(mx/cellSize),row=Math.floor(my/cellSize);if(col>=0&&col<cols&&row>=0&&row<rows){grid[row][col]=1;draw();}}
+        canvas.addEventListener('mousedown',e=>{drawing=true;toggle(e);});
+        canvas.addEventListener('mousemove',e=>{if(drawing)toggle(e);});
+        canvas.addEventListener('mouseup',()=>drawing=false);
+        canvas.addEventListener('touchstart',e=>{drawing=true;toggle(e.touches[0]);});
+        canvas.addEventListener('touchmove',e=>{if(drawing){e.preventDefault();toggle(e.touches[0]);}});
+        canvas.addEventListener('touchend',()=>drawing=false);
+        draw();
+    </script>
+</body>
+</html>

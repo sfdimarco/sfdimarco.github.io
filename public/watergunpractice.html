@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Water Gun Target Practice - MEGA SHOP!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+            font-family: 'Arial', sans-serif;
+            background: #87CEEB;
+            user-select: none;
+        }
+        canvas { display: block; }
+        .ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            pointer-events: none;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        .shop-menu {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.98);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 6px solid #3b82f6;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            z-index: 100;
+            width: 90%;
+            max-width: 450px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .shop-item {
+            transition: all 0.2s;
+        }
+        .shop-item:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="ui-layer">
+        <h1 class="text-3xl font-bold">Score: <span id="score">0</span></h1>
+        <h1 class="text-3xl font-bold text-yellow-300">💰 Coins: <span id="coins">0</span></h1>
+        <p class="text-xl font-bold">Water: <span id="water">100</span> / <span id="maxWaterLabel">100</span></p>
+        <div id="activeBuffs" class="flex gap-2 mt-2"></div>
+    </div>
+
+    <!-- Shop Button -->
+    <button onclick="toggleShop()" class="fixed bottom-5 right-5 bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-black py-4 px-8 rounded-full shadow-lg text-2xl z-50 transition-transform active:scale-90">
+        🛒 SHOP
+    </button>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- The Mega Shop Menu -->
+    <div id="shopMenu" class="shop-menu text-center">
+        <h2 class="text-4xl font-black text-blue-600 mb-2">MEGA SHOP</h2>
+        <p class="mb-4 font-bold text-xl">My Coins: 💰<span id="shopCoins">0</span></p>
+        
+        <div class="space-y-3">
+            <!-- Basic Items -->
+            <button onclick="buyRefill()" class="shop-item w-full bg-blue-400 text-white p-3 rounded-xl font-bold flex justify-between items-center">
+                <div class="text-left">
+                    <div class="text-lg">💧 Quick Refill</div>
+                    <div class="text-xs opacity-80">Instant 100% Water</div>
+                </div>
+                <span class="bg-blue-600 px-3 py-1 rounded-full">💰 20</span>
+            </button>
+
+            <!-- Upgrade Items -->
+            <button onclick="buyBiggerSplash()" class="shop-item w-full bg-purple-500 text-white p-3 rounded-xl font-bold flex justify-between items-center">
+                <div class="text-left">
+                    <div class="text-lg">🌊 Splash Power</div>
+                    <div class="text-xs opacity-80">Wider blast area</div>
+                </div>
+                <span class="bg-purple-700 px-3 py-1 rounded-full">💰 50</span>
+            </button>
+
+            <button onclick="buyTankUpgrade()" class="shop-item w-full bg-green-500 text-white p-3 rounded-xl font-bold flex justify-between items-center">
+                <div class="text-left">
+                    <div class="text-lg">🎒 Huge Tank</div>
+                    <div class="text-xs opacity-80">+50 Max Water</div>
+                </div>
+                <span class="bg-green-700 px-3 py-1 rounded-full">💰 100</span>
+            </button>
+
+            <!-- Passive Items (The New Stuff!) -->
+            <button onclick="buyAutoRefill()" id="btnAutoRefill" class="shop-item w-full bg-orange-400 text-white p-3 rounded-xl font-bold flex justify-between items-center">
+                <div class="text-left">
+                    <div class="text-lg">⚙️ Auto-Pump</div>
+                    <div class="text-xs opacity-80">Slowly refills water</div>
+                </div>
+                <span class="bg-orange-600 px-3 py-1 rounded-full">💰 250</span>
+            </button>
+
+            <button onclick="buyGoldenLuck()" id="btnGoldenLuck" class="shop-item w-full bg-yellow-500 text-white p-3 rounded-xl font-bold flex justify-between items-center">
+                <div class="text-left">
+                    <div class="text-lg">✨ Golden Luck</div>
+                    <div class="text-xs opacity-80">Chance for 2x Coins</div>
+                </div>
+                <span class="bg-yellow-700 px-3 py-1 rounded-full">💰 400</span>
+            </button>
+
+            <button onclick="buySlowMo()" id="btnSlowMo" class="shop-item w-full bg-cyan-500 text-white p-3 rounded-xl font-bold flex justify-between items-center">
+                <div class="text-left">
+                    <div class="text-lg">❄️ Slow-Mo Mist</div>
+                    <div class="text-xs opacity-80">Targets move slower</div>
+                </div>
+                <span class="bg-cyan-700 px-3 py-1 rounded-full">💰 500</span>
+            </button>
+        </div>
+        
+        <button onclick="toggleShop()" class="mt-6 text-blue-500 font-bold underline text-lg">Close Shop</button>
+    </div>
+
+    <!-- Start Overlay -->
+    <div id="overlay" class="fixed inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-6 z-[200]">
+        <div id="start-content" class="text-center">
+            <h2 class="text-6xl font-black mb-4 text-blue-300">SQUIRT MASTER!</h2>
+            <p class="text-xl mb-8">Hit targets to earn coins. Use coins in the shop!</p>
+            <button onclick="startGame()" class="bg-blue-500 hover:bg-blue-600 text-white text-3xl font-bold py-6 px-16 rounded-full shadow-2xl transition-transform active:scale-90">
+                START GAME
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const coinsEl = document.getElementById('coins');
+        const waterEl = document.getElementById('water');
+        const maxWaterLabel = document.getElementById('maxWaterLabel');
+        const shopCoinsEl = document.getElementById('shopCoins');
+        const shopMenu = document.getElementById('shopMenu');
+        const activeBuffsEl = document.getElementById('activeBuffs');
+
+        // --- Game State Buckets ---
+        let score = 0;
+        let coins = 0;
+        let water = 100;
+        let maxWater = 100;
+        let hitRadius = 50;
+        let gameActive = false;
+        
+        // --- Passive Upgrades (Our Booleans!) ---
+        let hasAutoRefill = false;
+        let hasGoldenLuck = false;
+        let hasSlowMo = false;
+
+        let targets = [];
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- Shop Functions ---
+        function toggleShop() {
+            if (!gameActive) return;
+            shopMenu.style.display = shopMenu.style.display === 'block' ? 'none' : 'block';
+            shopCoinsEl.innerText = Math.floor(coins);
+        }
+
+        function buyRefill() {
+            if (coins >= 20) {
+                coins -= 20; water = maxWater; updateUI();
+            }
+        }
+
+        function buyBiggerSplash() {
+            if (coins >= 50) {
+                coins -= 50; hitRadius += 15; updateUI();
+            }
+        }
+
+        function buyTankUpgrade() {
+            if (coins >= 100) {
+                coins -= 100; maxWater += 50; water += 50; updateUI();
+            }
+        }
+
+        function buyAutoRefill() {
+            if (coins >= 250 && !hasAutoRefill) {
+                coins -= 250; hasAutoRefill = true;
+                addBuffIcon('⚙️');
+                document.getElementById('btnAutoRefill').classList.add('opacity-50', 'pointer-events-none');
+                updateUI();
+            }
+        }
+
+        function buyGoldenLuck() {
+            if (coins >= 400 && !hasGoldenLuck) {
+                coins -= 400; hasGoldenLuck = true;
+                addBuffIcon('✨');
+                document.getElementById('btnGoldenLuck').classList.add('opacity-50', 'pointer-events-none');
+                updateUI();
+            }
+        }
+
+        function buySlowMo() {
+            if (coins >= 500 && !hasSlowMo) {
+                coins -= 500; hasSlowMo = true;
+                addBuffIcon('❄️');
+                document.getElementById('btnSlowMo').classList.add('opacity-50', 'pointer-events-none');
+                updateUI();
+            }
+        }
+
+        function addBuffIcon(emoji) {
+            const span = document.createElement('span');
+            span.className = 'bg-white/20 p-2 rounded-full text-2xl';
+            span.innerText = emoji;
+            activeBuffsEl.appendChild(span);
+        }
+
+        function updateUI() {
+            scoreEl.innerText = score;
+            coinsEl.innerText = Math.floor(coins);
+            shopCoinsEl.innerText = Math.floor(coins);
+            waterEl.innerText = Math.floor(water);
+            maxWaterLabel.innerText = maxWater;
+        }
+
+        // --- Game Classes ---
+        class Target {
+            constructor() {
+                this.radius = 40;
+                this.x = Math.random() * (canvas.width - this.radius * 2) + this.radius;
+                this.y = canvas.height + this.radius;
+                
+                // Logic: If slowMo is active, move at half speed
+                let baseSpeed = Math.random() * 3 + 2;
+                this.speed = hasSlowMo ? baseSpeed * 0.5 : baseSpeed;
+                
+                this.emoji = ['🎯', '🎈', '🦆', '🥫', '🧸'][Math.floor(Math.random() * 5)];
+                this.isGolden = hasGoldenLuck && Math.random() < 0.20; // 20% Probability
+            }
+            update() { this.y -= this.speed; }
+            draw() {
+                ctx.font = '60px Arial';
+                ctx.textAlign = 'center';
+                // If it's a golden target, make it glow!
+                if (this.isGolden) {
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = "yellow";
+                }
+                ctx.fillText(this.isGolden ? '🌟' : this.emoji, this.x, this.y);
+                ctx.shadowBlur = 0; // Reset glow
+            }
+        }
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.vx = (Math.random() - 0.5) * 12;
+                this.vy = (Math.random() - 0.5) * 12;
+                this.life = 1.0;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.vy += 0.25; this.life -= 0.03;
+            }
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = '#00BFFF';
+                ctx.beginPath(); ctx.arc(this.x, this.y, 5, 0, Math.PI * 2); ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function handleAction(clientX, clientY) {
+            if (!gameActive || shopMenu.style.display === 'block') return;
+
+            if (water >= 1) {
+                water -= 1;
+                updateUI();
+                for (let i = 0; i < 8; i++) particles.push(new Particle(clientX, clientY));
+
+                for (let i = targets.length - 1; i >= 0; i--) {
+                    const t = targets[i];
+                    const dist = Math.hypot(clientX - t.x, clientY - t.y);
+                    if (dist < hitRadius) {
+                        score += 10;
+                        // Golden Luck Logic: 2x Coins!
+                        let coinGain = t.isGolden ? 15 : 5;
+                        coins += coinGain;
+                        targets.splice(i, 1);
+                        updateUI();
+                    }
+                }
+            }
+        }
+
+        canvas.addEventListener('pointerdown', (e) => handleAction(e.clientX, e.clientY));
+
+        function startGame() {
+            score = 0; coins = 0; water = 100; maxWater = 100; hitRadius = 50;
+            hasAutoRefill = false; hasGoldenLuck = false; hasSlowMo = false;
+            activeBuffsEl.innerHTML = '';
+            gameActive = true;
+            updateUI();
+            document.getElementById('overlay').classList.add('hidden');
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // PASSIVE LOGIC: Auto-Refill
+            if (hasAutoRefill && water < maxWater) {
+                water += 0.05; // Refills a tiny bit every single frame
+                updateUI();
+            }
+
+            if (Math.random() < 0.03) targets.push(new Target());
+
+            targets.forEach((t, i) => {
+                t.update(); t.draw();
+                if (t.y < -50) targets.splice(i, 1);
+            });
+
+            particles.forEach((p, i) => {
+                p.update(); p.draw();
+                if (p.life <= 0) particles.splice(i, 1);
+            });
+
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>

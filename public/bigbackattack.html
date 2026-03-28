@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Big Back Attack 🍕 — Mook DiMarco</title>
+    <style>
+        :root{--bg:#050510;--accent:#ffcc00;--veggie:#4cd137;--danger:#ff4757;--card:#1a1a3a;--text:#ffffff;--gold:#ffd700;}
+        body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;height:100vh;overflow:hidden;touch-action:none;}
+        #hud{width:100%;max-width:600px;display:flex;justify-content:space-around;padding:10px;background:var(--card);font-weight:bold;font-size:.9rem;border-bottom:3px solid var(--accent);text-align:center;}
+        #game-container{position:relative;width:100%;max-width:600px;height:70vh;background:#000;border:4px solid #333;border-radius:20px;overflow:hidden;margin-top:5px;cursor:none;}
+        canvas{width:100%;height:100%;display:block;}
+        .overlay{position:absolute;inset:0;background:rgba(0,0,0,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:110;padding:20px;cursor:default;}
+        .hidden{display:none!important;}
+        button{background:var(--accent);border:none;padding:12px 30px;border-radius:10px;font-weight:bold;color:#000;cursor:pointer;font-size:1.1rem;margin-top:15px;}
+        #announcer{position:absolute;bottom:15%;left:50%;transform:translateX(-50%);padding:15px 25px;border-radius:15px;text-align:center;z-index:100;pointer-events:none;transition:all .3s;width:85%;}
+        .good-news{background:rgba(255,204,0,.9);color:#000;box-shadow:0 0 20px var(--accent);}
+        .bad-news{background:rgba(76,209,55,.9);color:#000;box-shadow:0 0 20px var(--veggie);}
+        #timer-container{width:100%;height:8px;background:#222;position:absolute;bottom:0;}
+        #timer-bar{width:0%;height:100%;background:var(--accent);transition:width .1s linear;}
+        .score-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #333;font-size:.9rem;}
+        .back-btn{position:fixed;top:10px;left:10px;background:var(--card);border:1px solid var(--accent);color:var(--accent);padding:6px 14px;border-radius:6px;text-decoration:none;font-family:monospace;font-size:11px;letter-spacing:2px;z-index:300;}
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← BACK</a>
+    <div id="hud">
+        <div>⭐ Score<br><span id="score">0</span></div>
+        <div>🏆 Best<br><span id="best-score">0</span></div>
+        <div>❤️ Lives<br><span id="lives">3</span></div>
+    </div>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="timer-container"><div id="timer-bar"></div></div>
+        <div id="announcer" class="hidden"><span style="font-weight:bold;display:block;" id="ann-name">!</span><span style="font-size:.85rem;font-style:italic;" id="ann-desc"></span></div>
+        <div id="start-screen" class="overlay">
+            <h1 style="color:var(--accent);margin:0;font-size:2.2rem;">BIG BACK ATTACK</h1>
+            <p>Break bricks, catch power-ups, score big! 🍕</p>
+            <button onclick="startGame()">START MISSION</button>
+            <div style="font-size:.8rem;color:#888;margin-top:10px;">Mouse, Arrows, or A/D to move</div>
+        </div>
+        <div id="game-over-screen" class="overlay hidden" style="z-index:120;">
+            <h2 style="color:var(--danger)">FULL STOMACH!</h2>
+            <p>Score: <span id="final-score-val">0</span></p>
+            <button onclick="startGame()">PLAY AGAIN</button>
+            <a href="index.html" style="color:var(--accent);margin-top:12px;font-size:.9rem;">← Back to Portfolio</a>
+        </div>
+    </div>
+    <script>
+        let bestScore=0,powerTimer=0,score=0,lives=3,level=1,gameRunning=false,lootSpeedMod=1;
+        let paddle={x:0,w:100,h:15,baseW:100,hasExplosive:false},balls=[],bricks=[],powerups=[],explosions=[];
+        const SPEED=250/60;
+        const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+        const timerBar=document.getElementById('timer-bar'),announcer=document.getElementById('announcer');
+        const POWERS=[
+            {name:"Pepperoni Slice",emoji:"🍕",desc:"Fire ball melts bricks!",effect:()=>{balls.forEach(b=>b.isFire=true);startTimer(15000,()=>balls.forEach(b=>b.isFire=false));}},
+            {name:"Mega Burger",emoji:"🍔",desc:"Super wide paddle!",effect:()=>{paddle.w=paddle.baseW+60;startTimer(15000,()=>paddle.w=paddle.baseW);}},
+            {name:"Ice Cream",emoji:"🍦",desc:"Slow loot!",effect:()=>{lootSpeedMod=0.3;startTimer(15000,()=>lootSpeedMod=1.0);}},
+            {name:"Soda Fountain",emoji:"🥤",desc:"3 extra balls!",effect:()=>{for(let i=0;i<3;i++)balls.push(mkBall(SPEED*0.7));}},
+            {name:"Nacho Bomb",emoji:"🧀",desc:"Explosive hits!",effect:()=>{paddle.hasExplosive=true;startTimer(15000,()=>paddle.hasExplosive=false);}},
+            {name:"Brussels Sprout",emoji:"🥦",desc:"Tiny paddle!",isBad:true,effect:()=>{const o=paddle.w;paddle.w=40;startTimer(5000,()=>paddle.w=o);}},
+        ];
+        const snacks=["🥧","🎂","🍫","🍬","🍭","🍿","🥓","🥩","🍗","🍔","🍟"];
+        while(POWERS.length<30){const bad=Math.random()<0.3;POWERS.push(bad?{name:"Veggie",emoji:"🥗",isBad:true,desc:"-100 pts",effect:()=>{score=Math.max(0,score-100);}}:{name:"Snack",emoji:snacks[POWERS.length%snacks.length],desc:"+300 pts",effect:()=>{score+=300;}});}
+        function startTimer(ms,cb){powerTimer=ms;if(window._pt)clearTimeout(window._pt);window._pt=setTimeout(()=>{cb();powerTimer=0;},ms);}
+        function mkBall(sp){return{x:canvas.width/2,y:canvas.height-60,dx:(Math.random()>.5?1:-1)*sp,dy:-sp,r:10,isFire:false};}
+        function initBricks(){const cols=6,rows=4+Math.min(level,2);bricks=[];for(let c=0;c<cols;c++){bricks[c]=[];for(let r=0;r<rows;r++){const sp=Math.random()<0.45;bricks[c][r]={status:1,isSpecial:sp,color:sp?"#ff9f43":`hsl(${r*35+level*15},80%,60%)`};}}}
+        window.startGame=()=>{document.getElementById('start-screen').classList.add('hidden');document.getElementById('game-over-screen').classList.add('hidden');score=0;lives=3;level=1;powerTimer=0;startLevel();};
+        function startLevel(){initBricks();balls=[mkBall()];powerups=[];explosions=[];gameRunning=true;requestAnimationFrame(loop);}
+        function boom(x,y){explosions.push({x,y,r:10,a:1});bricks.flat().forEach(b=>{if(b.status){const d=Math.hypot(b.x+25-x,b.y+10-y);if(d<70){b.status=0;score+=20;if(b.isSpecial)spawn(b.x+25,b.y);}}});}
+        function loop(){if(!gameRunning)return;ctx.clearRect(0,0,canvas.width,canvas.height);if(keys.Left)paddle.x-=8;if(keys.Right)paddle.x+=8;paddle.x=Math.max(0,Math.min(canvas.width-paddle.w,paddle.x));if(powerTimer>0){powerTimer-=16.6;timerBar.style.width=(powerTimer/15000*100)+"%";}else timerBar.style.width="0%";document.getElementById('score').innerText=Math.floor(score);document.getElementById('lives').innerText=lives;
+        bricks.flat().forEach((b,i)=>{if(b.status){const r=Math.floor(i/6),c=i%6;b.x=20+c*((canvas.width-40)/6);b.y=50+r*25;ctx.fillStyle=b.color;ctx.beginPath();ctx.roundRect(b.x,b.y,(canvas.width-40)/6-5,20,5);ctx.fill();if(b.isSpecial){ctx.fillStyle="white";ctx.fillText("🎁",b.x+10,b.y+15);}}});
+        explosions.forEach((ex,i)=>{ctx.beginPath();ctx.arc(ex.x,ex.y,ex.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,204,0,${ex.a})`;ctx.fill();ex.r+=3;ex.a-=0.05;if(ex.a<=0)explosions.splice(i,1);});
+        ctx.fillStyle="#ffcc00";ctx.beginPath();ctx.roundRect(paddle.x,canvas.height-35,paddle.w,paddle.h,10);ctx.fill();
+        powerups.forEach((p,idx)=>{p.y+=2.5*lootSpeedMod;ctx.font="28px Arial";ctx.fillText(p.emoji,p.x-14,p.y);if(p.y>canvas.height-45&&p.x>paddle.x&&p.x<paddle.x+paddle.w){announce(p);p.effect();powerups.splice(idx,1);}else if(p.y>canvas.height)powerups.splice(idx,1);});
+        balls.forEach((ball,bi)=>{ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);ctx.fillStyle=ball.isFire?"#ff4757":"white";ctx.fill();
+        bricks.flat().forEach(b=>{const bW=(canvas.width-40)/6-5;if(b.status&&ball.x>b.x&&ball.x<b.x+bW&&ball.y>b.y&&ball.y<b.y+20){if(paddle.hasExplosive)boom(ball.x,ball.y);if(!ball.isFire)ball.dy*=-1;b.status=0;score+=50;if(b.isSpecial)spawn(b.x+bW/2,b.y);}});
+        if(ball.x+ball.dx>canvas.width||ball.x+ball.dx<0)ball.dx*=-1;if(ball.y+ball.dy<0)ball.dy*=-1;else if(ball.y+ball.dy>canvas.height-40){if(ball.x>paddle.x&&ball.x<paddle.x+paddle.w){ball.dy=-Math.abs(ball.dy);ball.dx=(ball.x-(paddle.x+paddle.w/2))*0.2;}else if(ball.y>canvas.height){balls.splice(bi,1);if(balls.length===0){lives--;if(lives<=0)endGame();else balls.push(mkBall());}}}ball.x+=ball.dx;ball.y+=ball.dy;});
+        if(bricks.flat().every(b=>b.status===0)){level++;startLevel();}requestAnimationFrame(loop);}
+        function spawn(x,y){const p=POWERS[Math.floor(Math.random()*POWERS.length)];powerups.push({x,y,...p});}
+        function announce(p){document.getElementById('ann-name').innerText=p.emoji+" "+p.name;document.getElementById('ann-desc').innerText=p.desc;announcer.classList.remove('hidden','good-news','bad-news');announcer.classList.add(p.isBad?'bad-news':'good-news');setTimeout(()=>announcer.classList.add('hidden'),3000);}
+        function endGame(){gameRunning=false;if(score>bestScore){bestScore=score;document.getElementById('best-score').innerText=Math.floor(bestScore);}document.getElementById('game-over-screen').classList.remove('hidden');document.getElementById('final-score-val').innerText=Math.floor(score);}
+        const keys={Left:false,Right:false};
+        canvas.addEventListener('mousemove',e=>{if(!gameRunning)return;const rect=canvas.getBoundingClientRect();paddle.x=Math.max(0,Math.min(canvas.width-paddle.w,(e.clientX-rect.left)-paddle.w/2));});
+        window.addEventListener('keydown',e=>{if(e.code==='ArrowLeft'||e.code==='KeyA')keys.Left=true;if(e.code==='ArrowRight'||e.code==='KeyD')keys.Right=true;});
+        window.addEventListener('keyup',e=>{if(e.code==='ArrowLeft'||e.code==='KeyA')keys.Left=false;if(e.code==='ArrowRight'||e.code==='KeyD')keys.Right=false;});
+        canvas.addEventListener('touchmove',e=>{const rx=e.touches[0].clientX-canvas.getBoundingClientRect().left;paddle.x=Math.max(0,Math.min(canvas.width-paddle.w,rx-paddle.w/2));},{passive:false});
+        function resize(){const c=document.getElementById('game-container');canvas.width=c.clientWidth;canvas.height=c.clientHeight;paddle.x=canvas.width/2-paddle.w/2;}
+        window.addEventListener('resize',resize);resize();
+    </script>
+</body>
+</html>

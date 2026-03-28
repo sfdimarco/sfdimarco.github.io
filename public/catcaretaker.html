@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cat Caretaker: Nightmare Mansion — Mook DiMarco</title>
+    <style>
+        body{margin:0;padding:0;background:#000;color:#f00;font-family:'Courier New',Courier,monospace;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;touch-action:none;}
+        #game-container{position:relative;width:95vw;max-width:800px;height:60vh;border:4px solid #444;background:#000;overflow:hidden;}
+        canvas{display:block;width:100%;height:100%;image-rendering:pixelated;}
+        #ui-overlay{position:absolute;top:10px;left:10px;right:10px;pointer-events:none;display:flex;justify-content:space-between;z-index:10;}
+        .stat-card{background:rgba(0,0,0,.8);border:2px solid #f00;padding:8px;color:#f00;font-size:12px;min-width:100px;}
+        #held-cat-ui{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:120px;height:120px;pointer-events:none;display:none;z-index:5;}
+        #controls{width:100%;height:35vh;display:flex;justify-content:space-around;align-items:center;background:#111;}
+        .dpad{display:grid;grid-template-columns:repeat(3,60px);grid-template-rows:repeat(2,60px);gap:8px;}
+        .btn{background:#222;border:2px solid #444;color:white;display:flex;justify-content:center;align-items:center;border-radius:12px;font-size:24px;user-select:none;}
+        .btn:active{background:#444;}
+        .btn-action{width:100px;height:100px;border-radius:50%;background:#400;border:3px solid #f00;font-size:14px;text-align:center;color:#fff;}
+        #jump-scare{position:absolute;inset:0;background:#000;display:none;z-index:100;flex-direction:column;justify-content:center;align-items:center;}
+        .shake{animation:shake .2s infinite;}
+        @keyframes shake{0%{transform:translate(1px,1px) rotate(0deg)}20%{transform:translate(-3px,0) rotate(1deg)}40%{transform:translate(1px,-1px) rotate(-1deg)}60%{transform:translate(-3px,1px) rotate(0deg)}80%{transform:translate(3px,1px) rotate(1deg)}100%{transform:translate(1px,-2px) rotate(-1deg)}}
+        .back-btn{position:fixed;top:16px;left:16px;background:#111;border:1px solid #f00;color:#f00;padding:8px 16px;border-radius:6px;text-decoration:none;font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;z-index:200;}
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← BACK</a>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui-overlay">
+            <div class="stat-card"><b>MANSION STATUS</b><br>ANGER: <span id="mood-ui">0</span>%<br>ROOM: <span id="room-ui">Hallway</span></div>
+            <div class="stat-card" style="text-align:right"><b>OBJECTIVE</b><br><span id="task-ui">Find a Cat</span></div>
+        </div>
+        <div id="held-cat-ui"><svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M20 100 Q 50 40 80 100" fill="#666"/><circle cx="50" cy="50" r="25" fill="#777"/><path d="M30 35 L20 10 L45 35 Z" fill="#777"/><path d="M70 35 L80 10 L55 35 Z" fill="#777"/><circle cx="40" cy="45" r="4" fill="white"/><circle cx="60" cy="45" r="4" fill="white"/><path d="M45 60 Q 50 65 55 60" stroke="black" fill="none"/></svg></div>
+        <div id="jump-scare"><h1 style="font-size:50px;color:red;">THEY ARE ANGRY</h1><button onclick="location.reload()" style="padding:20px;background:red;color:white;border:none;font-weight:bold;">TRY AGAIN?</button></div>
+    </div>
+    <div id="controls">
+        <div class="dpad">
+            <div id="btn-up" class="btn" style="grid-column:2;">▲</div>
+            <div id="btn-left" class="btn" style="grid-column:1;grid-row:2;">◀</div>
+            <div id="btn-down" class="btn" style="grid-column:2;grid-row:2;">▼</div>
+            <div id="btn-right" class="btn" style="grid-column:3;grid-row:2;">▶</div>
+        </div>
+        <div class="btn btn-action" id="btn-action">PICK UP /<br>DROP</div>
+    </div>
+    <script>
+        const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+        const moodUI=document.getElementById('mood-ui'),roomUI=document.getElementById('room-ui'),taskUI=document.getElementById('task-ui'),heldUI=document.getElementById('held-cat-ui');
+        canvas.width=400;canvas.height=300;
+        const worldMap=[[1,1,1,5,5,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,1],[1,0,1,1,0,1,1,0,1,1,0,1],[2,0,1,0,0,0,1,0,0,1,0,3],[2,0,0,0,0,0,0,0,0,0,0,3],[1,1,1,0,0,0,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,0,1,1,1,0,1],[4,0,1,0,0,0,0,1,0,0,0,1],[4,0,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1]];
+        let player={x:5.5,y:5.5,dir:Math.PI},cats=[{x:3.5,y:1.5,id:0,need:'Wash',color:'#aaa'},{x:8.5,y:1.5,id:1,need:'Feed',color:'#888'},{x:1.5,y:9.5,id:2,need:'Litter',color:'#666'},{x:9.5,y:9.5,id:3,need:'Medicine',color:'#444'}];
+        let heldCat=null,globalAnger=0,isGameOver=false;
+        const keys={up:false,down:false,left:false,right:false};
+        function bindBtn(id,key){const el=document.getElementById(id);el.ontouchstart=e=>{e.preventDefault();keys[key]=true;};el.ontouchend=e=>{e.preventDefault();keys[key]=false;};}
+        bindBtn('btn-up','up');bindBtn('btn-down','down');bindBtn('btn-left','left');bindBtn('btn-right','right');
+        document.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='w')keys.up=true;if(e.key==='ArrowDown'||e.key==='s')keys.down=true;if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;if(e.key==='ArrowRight'||e.key==='d')keys.right=true;if(e.key===' '){if(heldCat)dropCat();else pickUp();}});
+        document.addEventListener('keyup',e=>{if(e.key==='ArrowUp'||e.key==='w')keys.up=false;if(e.key==='ArrowDown'||e.key==='s')keys.down=false;if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;if(e.key==='ArrowRight'||e.key==='d')keys.right=false;});
+        document.getElementById('btn-action').ontouchstart=e=>{e.preventDefault();if(heldCat)dropCat();else pickUp();};
+        function pickUp(){cats.forEach(c=>{if(heldCat)return;if(Math.sqrt((player.x-c.x)**2+(player.y-c.y)**2)<0.8){heldCat=c;heldUI.style.display='block';taskUI.innerText=`Take to ${c.need}`;}});}
+        function dropCat(){const rx=Math.floor(player.x),ry=Math.floor(player.y),zone=worldMap[ry][rx];let ok=false;if(heldCat.need==='Wash'&&zone===2)ok=true;if(heldCat.need==='Feed'&&zone===3)ok=true;if(heldCat.need==='Litter'&&zone===4)ok=true;if(heldCat.need==='Medicine'&&zone===5)ok=true;if(ok){globalAnger=Math.max(0,globalAnger-20);taskUI.innerText='Task Complete!';const needs=['Wash','Feed','Litter','Medicine'];heldCat.need=needs[Math.floor(Math.random()*needs.length)];}else{globalAnger+=5;taskUI.innerText='Wrong Room!';}heldCat.x=player.x;heldCat.y=player.y;heldCat=null;heldUI.style.display='none';}
+        function update(){if(isGameOver)return;if(keys.left)player.dir-=0.08;if(keys.right)player.dir+=0.08;let move=0;if(keys.up)move=0.06;if(keys.down)move=-0.04;let nx=player.x+Math.cos(player.dir)*move,ny=player.y+Math.sin(player.dir)*move;if(worldMap[Math.floor(ny)][Math.floor(nx)]!==1){player.x=nx;player.y=ny;}globalAnger+=0.02;if(globalAnger>=100){isGameOver=true;document.getElementById('jump-scare').style.display='flex';}moodUI.innerText=Math.floor(globalAnger);const zone=worldMap[Math.floor(player.y)][Math.floor(player.x)];roomUI.innerText=["Hallway","Wall","Wash Room","Food Kitchen","Litter Closet","Infirmary"][zone]||"Hallway";if(globalAnger>70)canvas.classList.add('shake');else canvas.classList.remove('shake');}
+        function draw(){ctx.fillStyle='#050505';ctx.fillRect(0,0,canvas.width,canvas.height);const numRays=60,fov=Math.PI/2.5;for(let i=0;i<numRays;i++){let angle=(player.dir-fov/2)+(i*fov/numRays),dist=0,hit=0;while(dist<12){dist+=0.1;let tx=Math.floor(player.x+Math.cos(angle)*dist),ty=Math.floor(player.y+Math.sin(angle)*dist);if(worldMap[ty]&&worldMap[ty][tx]===1){hit=1;break;}if(worldMap[ty]&&worldMap[ty][tx]>1){hit=worldMap[ty][tx];break;}}dist*=Math.cos(player.dir-angle);let h=canvas.height/dist,r=0,g=0,b=0;if(hit===1){r=g=b=50;}if(hit===2){b=100;r=g=20;}if(hit===3){g=100;r=b=20;}if(hit===4){r=g=80;b=0;}if(hit===5){r=100;g=b=20;}let br=1.5-(dist/8);ctx.fillStyle=`rgb(${r*br},${g*br},${b*br})`;ctx.fillRect(i*(canvas.width/numRays),(canvas.height-h)/2,(canvas.width/numRays)+1,h);}
+        cats.forEach(c=>{if(heldCat===c)return;let dx=c.x-player.x,dy=c.y-player.y,dist=Math.sqrt(dx*dx+dy*dy),angle=Math.atan2(dy,dx)-player.dir;while(angle<-Math.PI)angle+=2*Math.PI;while(angle>Math.PI)angle-=2*Math.PI;if(Math.abs(angle)<fov/1.5){let s=(canvas.height/dist)*0.4,x=(angle/(fov/1.5)+0.5)*canvas.width-s/2,y=(canvas.height-s)/2+(s*0.5);ctx.fillStyle="rgba(0,0,0,0.5)";ctx.fillRect(x,y+s*0.8,s,s*0.2);ctx.fillStyle=globalAnger>50?"#300":c.color;ctx.fillRect(x+s*0.2,y+s*0.3,s*0.6,s*0.6);ctx.fillRect(x+s*0.3,y,s*0.4,s*0.4);ctx.fillRect(x+s*0.7,y+s*0.4,s*0.3,s*0.1);ctx.fillStyle=globalAnger>60?"red":"white";ctx.fillRect(x+s*0.35,y+s*0.1,s*0.1,s*0.1);ctx.fillRect(x+s*0.55,y+s*0.1,s*0.1,s*0.1);}});
+        const grad=ctx.createRadialGradient(canvas.width/2,canvas.height/2,50,canvas.width/2,canvas.height/2,200);grad.addColorStop(0,'transparent');grad.addColorStop(1,`rgba(${globalAnger*2},0,0,0.8)`);ctx.fillStyle=grad;ctx.fillRect(0,0,canvas.width,canvas.height);}
+        function loop(){update();draw();requestAnimationFrame(loop);}
+        function resize(){const c=document.getElementById('game-container');canvas.width=c.clientWidth;canvas.height=c.clientHeight;}
+        window.addEventListener('resize',resize);resize();loop();
+    </script>
+</body>
+</html>
