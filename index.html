@@ -53,14 +53,33 @@ const IMG = {
   needleFelt:    "images/NeedleFelt.jpg",
   needleFelt2:   "images/NeedleFlet2.jpg",
   animation1:    "images/Animation1.jpg",
-  // ART
+  // ART — abstract / personal paintings
   abstractCoder:      "images/abstract-coder.png",
   texturedChild:      "images/textured-child.png",
   otisAbstract:       "images/otis-abstract.png",
   tvboy:              "images/tvboy.png",
-  elsinoreTriptych:   "images/elsinore-triptych.jpg",
-  elsinoreOphilia:    "images/elsinore-ophilia.jpg",
-  elsinoreEsmerelda:  "images/elsinore-esmerelda.jpg",
+  abstractBonsai:     "images/abstract-bonsai.png",
+  dualFaces:          "images/dual-faces.png",
+  abstractAstronaut:  "images/abstract-astronaut.png",
+  doodle1:            "images/doodle1.jpg",
+  dudemoon:           "images/dudemoon.jpg",
+  noodles13:          "images/noodles13.jpg",
+  blurArt:            "images/blur-art.jpg",
+  gigabyteArt:        "images/gigabyte-art.png",
+  tvdogSidekick2025:  "images/tvdog-sidekick-2025.png",
+  headshot:           "images/headshot.jpg",
+  styleguideLight:    "images/styleguide-light.png",
+  // ART — Mook & Mush production backgrounds (Gemini-assisted)
+  mowersvilleBikes:    "images/mowersville-bikes.png",
+  mowersvilleSkate:    "images/mowersville-skatepark.png",
+  mowersvilleClass:    "images/mowersville-classroom.png",
+  mowersvilleTown:     "images/mowersville-town.png",
+  mowersvilleArtRoom:  "images/mowersville-artroom.png",
+  mowersvilleSoccer:   "images/mowersville-soccer.png",
+  tvdogMoodboard:      "images/tvdog-moodboard.png",
+  fiannaChar:          "images/fianna-character.png",
+  mookNightwalk:       "images/mook-nightwalk.png",
+  mookClassic:         "images/mook-classic.png",
 };
 
 // ── Animated synesthesia number grid ──────────────────────────────────────
@@ -311,17 +330,70 @@ const CAT_COLOR = { ALL:SYN["9"], ART:SYN["7"], GAMES:SYN["4"], TOOLS:SYN["6"], 
 
 const PROJECTS = [
   // ART
-  { id:"visualart", cat:"ART", wide:true, title:"Visual Art", tagline:"Painting, illustration & generative work", accent:SYN["7"],
-    desc:"Abstract expressionism, figurative work, and generative AI collaboration. My painting practice runs parallel to everything else — it's where synesthetic perception gets translated most directly into form and color. Abstract Coder in Vibrant Cosmos came out of thinking about what it feels like to debug code. The Contemplative Child Figure came out of ten years in classrooms. The work isn't decorative. It's data.",
+  { id:"visualart", cat:"ART", wide:true, title:"Visual Art", tagline:"Painting, illustration & mixed media", accent:SYN["7"],
+    desc:"Abstract expressionism, figurative work, and AI-collaborative painting. My painting practice runs parallel to everything else — it's where synesthetic perception gets translated most directly into form and color. Abstract Coder in Vibrant Cosmos came out of thinking about what it feels like to debug code. The Contemplative Child Figure came out of ten years in classrooms. The work isn't decorative. It's data.",
     tags:["Abstract Expressionism","Acrylic","Digital","AI-Assisted","Figurative","Synesthesia"],
     renderMedia: a => (
       <div style={{ padding:"16px 16px 0" }}>
-        <PhotoGrid accent={a} images={[
-          { src:IMG.abstractCoder,  alt:"Abstract Coder in Vibrant Cosmos",               label:"abstract-coder.png" },
-          { src:IMG.texturedChild,  alt:"Textured Expression: Contemplative Child Figure", label:"textured-child.png" },
-          { src:IMG.otisAbstract,   alt:"Otis in Vibrant Abstract Expressionism",          label:"otis-abstract.png" },
-          { src:IMG.tvboy,          alt:"TV Boy",                                          label:"tvboy.png" },
-        ]} />
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4 }}>
+          {[
+            { src:IMG.abstractCoder,    alt:"Abstract Coder in Vibrant Cosmos" },
+            { src:IMG.texturedChild,    alt:"Contemplative Child Figure" },
+            { src:IMG.otisAbstract,     alt:"Otis — Abstract Expressionism" },
+            { src:IMG.tvboy,            alt:"TV Boy" },
+            { src:IMG.abstractBonsai,   alt:"Abstract Figure with Bonsai Tree" },
+            { src:IMG.dualFaces,        alt:"Dual Faces and Playful Paws" },
+            { src:IMG.abstractAstronaut,alt:"Astronaut in Abstract Space Dream" },
+            { src:IMG.mookNightwalk,    alt:"Mook Night Walk" },
+            { src:IMG.dudemoon,         alt:"Dude Moon" },
+          ].map((img,i) => (
+            <div key={i} style={{ aspectRatio:"4/3", overflow:"hidden", borderRadius: i===0?"8px 0 0 0":i===2?"0 8px 0 0":i===6?"0 0 0 8px":i===8?"0 0 8px 0":"0" }}>
+              <ImgSlot src={img.src} alt={img.alt} accent={a} style={{ height:"100%", borderRadius:0 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    )},
+
+  { id:"sketchwork", cat:"ART", title:"Sketchbook & Studies", tagline:"Experimental work, studies, and process", accent:SYN["0"],
+    desc:"The noodles series, blur studies, and experimental digital work. This is the practice that feeds everything else — unfiltered, unpolished, ongoing. Process as product. The sketchbook is the real research.",
+    tags:["Sketchbook","Digital Studies","Experimental","Process Work","Ongoing"],
+    renderMedia: a => (
+      <div style={{ padding:"16px 16px 0" }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:4 }}>
+          {[
+            { src:IMG.noodles13,       alt:"Noodles 13 — Large Format Study" },
+            { src:IMG.blurArt,         alt:"Blur Study" },
+            { src:IMG.gigabyteArt,     alt:"Gigabyte" },
+            { src:IMG.tvdogSidekick2025, alt:"TV Dog Sidekick — 2025 AI Collab" },
+          ].map((img,i) => (
+            <div key={i} style={{ aspectRatio:"4/3", overflow:"hidden", borderRadius: i===0?"8px 0 0 0":i===1?"0 8px 0 0":i===2?"0 0 0 8px":"0 0 8px 0" }}>
+              <ImgSlot src={img.src} alt={img.alt} accent={a} style={{ height:"100%", borderRadius:0 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    )},
+
+  { id:"mowersvilleart", cat:"ART", wide:true, title:"Mowersville — Production Backgrounds", tagline:"Environment design for Mook & Mush — Gemini-directed visual development", accent:SYN["5"],
+    desc:"Six fully-realized environments built for the Mook & Mush animated series. Directed through Gemini with a chalk-pastel aesthetic. Each location — the skate park, the classroom, the art room, the soccer field, the bike path — is a character. The world precedes the story. I designed the visual grammar first: warm suburban light, high-key palette, late-afternoon golden hour everywhere. That's Mowersville.",
+    tags:["Background Art","Environment Design","Google Gemini","Pre-Production","Chalk-Pastel","Mook & Mush"],
+    renderMedia: a => (
+      <div style={{ padding:"16px 16px 0" }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4 }}>
+          {[
+            { src:IMG.mowersvilleBikes,   alt:"Mowersville — Bike Path" },
+            { src:IMG.mowersvilleSkate,   alt:"Mowersville — Skate Park" },
+            { src:IMG.mowersvilleClass,   alt:"Mowersville — Classroom" },
+            { src:IMG.mowersvilleTown,    alt:"Mowersville — Town Overview" },
+            { src:IMG.mowersvilleArtRoom, alt:"Mowersville — Art Room" },
+            { src:IMG.mowersvilleSoccer,  alt:"Mowersville — Soccer Field" },
+          ].map((img,i) => (
+            <div key={i} style={{ aspectRatio:"16/9", overflow:"hidden", borderRadius: i===0?"8px 0 0 0":i===2?"0 8px 0 0":i===3?"0 0 0 8px":i===5?"0 0 8px 0":"0" }}>
+              <ImgSlot src={img.src} alt={img.alt} accent={a} style={{ height:"100%", borderRadius:0 }} />
+            </div>
+          ))}
+        </div>
       </div>
     )},
 
@@ -385,10 +457,11 @@ const PROJECTS = [
     image:IMG.bayHouse, imageAlt:"Bay House background — Mowersville sunset", imageLabel:"BayHouse.jpeg" },
 
   // FILM
-  { id:"robotfilm", cat:"FILM", wide:true, title:"Robot Changes TV Channel", tagline:"BFA short film — Lesley University, Zero VFX", accent:SYN["1"],
-    desc:"A short film made at Lesley University. 3D animation, character performance, VFX trained at Zero VFX. The TV-head aesthetic in this film became the seed for the Mook & Mush universe.",
-    tags:["3D Animation","Short Film","Lesley BFA","Zero VFX","Character Animation"],
-    cta:"Watch on Film Freeway", ctaHref:"https://filmfreeway.com/WeightSortFilm" },
+  { id:"robotfilm", cat:"FILM", wide:true, title:"Robot Changes TV Channel", tagline:"BFA capstone — Lesley University · Zero VFX · IMDB listed", accent:SYN["1"],
+    desc:"My BFA Animation capstone at Lesley University. 3D character animation, performance, and VFX pipeline built with training from Zero VFX studio. Listed on IMDB. The TV-head robot in this film became the visual seed for the entire Mook & Mush universe — the character that started everything. Also produced 'Every Child Deserves a Home' during my BFA — an animated short for the Child Homelessness Initiative.",
+    tags:["3D Animation","BFA Capstone","Lesley University","Zero VFX","IMDB","Character Animation","Festival Submission"],
+    cta:"Watch on Film Freeway", ctaHref:"https://filmfreeway.com/WeightSortFilm",
+    ctaTarget:"_blank" },
 
   // TEACHING
   { id:"chs-main", cat:"TEACHING", wide:true, title:"The Chestnut Hill School", tagline:"~10 years · Camp Counselor → Videographer → STEAM Teacher · Chestnut Hill, MA", accent:SYN["5"],
@@ -522,7 +595,7 @@ function App() {
         <div style={{ position:"absolute", top:"50%", right:"5%", transform:"translateY(-50%)", fontFamily:"'Space Mono',monospace", fontSize:10, letterSpacing:5, color:SYN["2"]+"bb", writingMode:"vertical-rl" }}>BUILDER</div>
 
         <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"100px 24px 60px", position:"relative", zIndex:2, textAlign:"center" }}>
-          <div style={{ fontSize:11, letterSpacing:6, color:"#555", marginBottom:18, animation:"fadeUp 0.8s ease both" }}>SEAN DIMARCO — CREATIVE TECHNOLOGIST</div>
+          <div style={{ fontSize:11, letterSpacing:6, color:"#555", marginBottom:18, animation:"fadeUp 0.8s ease both" }}>SEAN DIMARCO — CREATIVE TECHNOLOGIST · BOSTON, MA</div>
           <h1 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:"clamp(38px,8vw,90px)", fontWeight:400, lineHeight:1, margin:"0 0 6px", letterSpacing:-2, color:"#fff", animation:"fadeUp 0.8s 0.1s ease both" }}>I build AI tools</h1>
           <h1 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontStyle:"italic", fontSize:"clamp(38px,8vw,90px)", fontWeight:400, lineHeight:1, margin:"0 0 28px", letterSpacing:-2, color:"#fff", animation:"fadeUp 0.8s 0.15s ease both" }}>
             kids actually <span style={{ color:SYN["4"] }}>use.</span>
@@ -598,6 +671,9 @@ function App() {
       <section id="contact" style={{ borderTop:"1px solid #1a1a1a", padding:"80px 24px", textAlign:"center", position:"relative", overflow:"hidden" }}>
         <div style={{ position:"absolute", inset:0, opacity:0.25 }}><SynGrid /></div>
         <div style={{ position:"relative", zIndex:2 }}>
+          <div style={{ width:88, height:88, borderRadius:"50%", overflow:"hidden", margin:"0 auto 20px", border:`3px solid ${SYN["4"]}44`, boxShadow:`0 0 24px ${SYN["4"]}33` }}>
+            <ImgSlot src="images/headshot.jpg" alt="Sean DiMarco" accent={SYN["4"]} style={{ height:"100%", borderRadius:0 }} fit="cover" />
+          </div>
           <div style={{ fontSize:10, letterSpacing:6, color:"#555", marginBottom:20 }}>LET'S WORK TOGETHER</div>
           <h2 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:"clamp(28px,5vw,56px)", color:"#fff", margin:"0 0 16px", fontWeight:400 }}>
             Hire the person who builds <em style={{ color:SYN["4"] }}>and</em> teaches.
@@ -607,7 +683,9 @@ function App() {
           </p>
           <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
             <a href="mailto:sfdimarco@gmail.com" style={{ background:SYN["4"], color:"#000", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none" }}>Email Me</a>
-            <a href="https://www.linkedin.com/in/sfdimarco" target="_blank" rel="noreferrer" style={{ background:"transparent", color:"#aaa", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:"1px solid #333" }}>LinkedIn</a>
+            <a href="https://www.linkedin.com/in/sean-dimarco/" target="_blank" rel="noreferrer" style={{ background:"transparent", color:"#aaa", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:"1px solid #333" }}>LinkedIn</a>
+            <a href="https://www.instagram.com/dumbnot_stupid/" target="_blank" rel="noreferrer" style={{ background:"transparent", color:SYN["7"], fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:`1px solid ${SYN["7"]}44` }}>Instagram</a>
+            <a href="https://www.imdb.com/name/nm11904779/" target="_blank" rel="noreferrer" style={{ background:"transparent", color:SYN["3"], fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:`1px solid ${SYN["3"]}44` }}>IMDB</a>
           </div>
         </div>
       </section>
