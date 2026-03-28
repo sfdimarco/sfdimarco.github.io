@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Heist - Confetti!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a202c; /* Tailwind gray-900 */
+            color: #e2e8f0; /* Tailwind slate-200 */
+        }
+        .game-area { 
+            position: relative; 
+            margin-bottom: 1rem;
+        }
+        #gameCanvas {
+            border: 2px solid #4a5568; 
+            background-color: #2d3748; 
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            display: block; 
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+        }
+        #messageArea {
+            margin-top: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            height: 2.5rem; 
+            color: #63b3ed; 
+            text-align: center;
+        }
+        .controls-info {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #a0aec0; 
+        }
+        .button-container {
+            margin-top: 1rem;
+        }
+        .button {
+            background-color: #4299e1; 
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background-color: #3182ce; 
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        .overlay-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75); 
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-radius: 0.5rem; 
+            z-index: 10; 
+            visibility: hidden; 
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .overlay-screen.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+        .overlay-screen h2 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .overlay-screen p {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-slate-200 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="game-container bg-gray-800 p-6 rounded-lg shadow-xl">
+        <h1 class="text-3xl font-bold mb-4 text-blue-400">Bank Heist Mission</h1>
+        
+        <div class="game-area">
+            <canvas id="gameCanvas"></canvas>
+            <div id="winnerScreen" class="overlay-screen">
+                <h2 class="text-green-400">VAULT OPENED!</h2>
+                <p>YOU WIN!</p>
+            </div>
+            <div id="gameOverScreen" class="overlay-screen">
+                <h2 class="text-red-500">BUSTED!</h2>
+                <p>GAME OVER!</p>
+            </div>
+        </div>
+
+        <div id="messageArea" class="mt-4 text-2xl font-bold h-10">&nbsp;</div>
+        <div class="controls-info mt-2 text-gray-400">
+            Arrow Keys/WASD: Move. Vault (Green) moves! Avoid Guard (Red). Player breaks Obstacles (Brown).
+        </div>
+        <div class="button-container mt-4">
+            <button id="resetButton" class="button">Reset Game</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const messageArea = document.getElementById('messageArea');
+        const resetButton = document.getElementById('resetButton');
+        const winnerScreen = document.getElementById('winnerScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+
+        const TILE_SIZE = 30; 
+        let mapStrings = [ 
+            "############", "#P  O      #", "#   O      #", "#   G O  V #", 
+            "#     O    #", "#  O       #", "############"
+        ];
+        let map = []; 
+        const MAP_ROWS = mapStrings.length;
+        const MAP_COLS = mapStrings[0].length;
+        canvas.width = MAP_COLS * TILE_SIZE;
+        canvas.height = MAP_ROWS * TILE_SIZE;
+
+        let player = { x: 0, y: 0, color: '#3498db' }; 
+        let guard = { x: 0, y: 0, color: '#e74c3c', detectionRadius: 4 };   
+        let vault = { x: 0, y: 0, color: '#2ecc71' };   
+        const WALL_COLOR = '#7f8c8d'; 
+        const OBSTACLE_COLOR = '#a16207'; 
+        const FLOOR_COLOR = '#374151'; 
+        const EMPTY_SPACE = ' '; 
+
+        let gameOver = false;
+        let gameWon = false;
+        let guardMoveIntervalId; 
+        const GUARD_MOVE_INTERVAL = 200; 
+        let vaultMoveTimeoutId;
+        const VAULT_MOVE_INTERVAL = 2000; 
+        let canPlayerMove = true; 
+        const PLAYER_MOVE_COOLDOWN = 100; 
+
+        let confettiParticles = [];
+        let winAnimationId; // For requestAnimationFrame
+
+        function parseMap() {
+            map = mapStrings.map(rowStr => rowStr.split(''));
+        }
+
+        function initializeGame() {
+            gameOver = false;
+            gameWon = false;
+            canPlayerMove = true; 
+            messageArea.textContent = '\u00A0'; 
+            messageArea.style.color = '#63b3ed'; 
+            winnerScreen.classList.remove('visible'); 
+            gameOverScreen.classList.remove('visible'); 
+            
+            confettiParticles = []; // Clear confetti
+            if (winAnimationId) {
+                cancelAnimationFrame(winAnimationId); // Stop win animation loop
+                winAnimationId = null;
+            }
+
+            parseMap(); 
+
+            let initialPlayerPos = {x: -1, y: -1};
+            let initialGuardPos = {x: -1, y: -1};
+            let initialVaultPos = {x: -1, y: -1}; 
+
+            for (let row = 0; row < MAP_ROWS; row++) {
+                for (let col = 0; col < MAP_COLS; col++) {
+                    if (map[row][col] === 'P') initialPlayerPos = { x: col, y: row };
+                    else if (map[row][col] === 'G') initialGuardPos = { x: col, y: row };
+                    else if (map[row][col] === 'V') initialVaultPos = { x: col, y: row };
+                }
+            }
+            player.x = initialPlayerPos.x;
+            player.y = initialPlayerPos.y;
+            guard.x = initialGuardPos.x;
+            guard.y = initialGuardPos.y;
+            vault.x = initialVaultPos.x; 
+            vault.y = initialVaultPos.y;
+
+            clearInterval(guardMoveIntervalId);
+            clearTimeout(vaultMoveTimeoutId);
+
+            drawGame(); // Initial draw
+            if (!gameWon && !gameOver) { // Only start game loops if game is not already over
+                 startGameLoops();
+            }
+        }
+        
+        // --- Confetti Functions ---
+        function createConfettiParticle() {
+            const colors = ['#f1c40f', '#e67e22', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+            return {
+                x: Math.random() * canvas.width,
+                y: Math.random() * -canvas.height, // Start above the screen
+                size: Math.random() * 5 + 5, // Size between 5 and 10
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speedX: Math.random() * 6 - 3, // Horizontal speed between -3 and 3
+                speedY: Math.random() * 3 + 2, // Vertical speed between 2 and 5
+                angle: Math.random() * Math.PI * 2,
+                angularSpeed: Math.random() * 0.1 - 0.05
+            };
+        }
+
+        function triggerConfetti() {
+            confettiParticles = []; // Clear previous confetti if any (though usually done on reset)
+            for (let i = 0; i < 100; i++) { // Create 100 particles
+                confettiParticles.push(createConfettiParticle());
+            }
+        }
+
+        function drawConfetti() {
+            for (let i = confettiParticles.length - 1; i >= 0; i--) {
+                const p = confettiParticles[i];
+                ctx.save();
+                ctx.translate(p.x + p.size / 2, p.y + p.size / 2);
+                ctx.rotate(p.angle);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                ctx.restore();
+
+                p.y += p.speedY;
+                p.x += p.speedX;
+                p.angle += p.angularSpeed;
+
+                // Remove particle if it's off screen
+                if (p.y > canvas.height) {
+                    confettiParticles.splice(i, 1);
+                }
+            }
+        }
+        // --- End Confetti Functions ---
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Draw map
+            for (let row = 0; row < MAP_ROWS; row++) {
+                for (let col = 0; col < MAP_COLS; col++) {
+                    let tile = map[row][col]; 
+                    ctx.fillStyle = FLOOR_COLOR; 
+                    if (tile === '#') ctx.fillStyle = WALL_COLOR;
+                    else if (tile === 'O') ctx.fillStyle = OBSTACLE_COLOR;
+                    
+                    ctx.fillRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    ctx.strokeStyle = '#2d3748'; 
+                    ctx.strokeRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                }
+            }
+
+            // Draw game objects
+            ctx.fillStyle = vault.color;
+            ctx.fillRect(vault.x * TILE_SIZE, vault.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.strokeStyle = 'black';
+            ctx.strokeRect(vault.x * TILE_SIZE, vault.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+            ctx.fillStyle = guard.color;
+            ctx.fillRect(guard.x * TILE_SIZE, guard.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.strokeStyle = 'black';
+            ctx.strokeRect(guard.x * TILE_SIZE, guard.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x * TILE_SIZE, player.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.strokeStyle = 'black';
+            ctx.strokeRect(player.x * TILE_SIZE, player.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+            // Draw confetti if there are particles
+            if (confettiParticles.length > 0) {
+                drawConfetti();
+            }
+        }
+
+        function isGuardPassable(x, y) {
+            if (map[y] && map[y][x]) {
+                const tile = map[y][x];
+                return tile !== '#' && tile !== 'O';
+            }
+            return false;
+        }
+
+        function movePlayer(dx, dy) {
+            if (gameOver || gameWon || !canPlayerMove) return; 
+
+            let newX = player.x + dx;
+            let newY = player.y + dy;
+            let moved = false;
+
+            if (map[newY] && map[newY][newX]) { 
+                const targetTile = map[newY][newX];
+                if (targetTile !== '#') { 
+                    if (targetTile === 'O') {
+                        map[newY][newX] = EMPTY_SPACE; 
+                    }
+                    player.x = newX;
+                    player.y = newY;
+                    moved = true; 
+                }
+            }
+            
+            if (moved) {
+                canPlayerMove = false; 
+                setTimeout(() => {
+                    canPlayerMove = true; 
+                }, PLAYER_MOVE_COOLDOWN);
+            }
+
+            checkConditions(); 
+            if (!gameWon) drawGame(); // Don't redraw if game won, animateWinScreen will handle it
+        }
+        
+        function updateGuard() {
+            if (gameOver || gameWon) return;
+
+            const distX = player.x - guard.x;
+            const distY = player.y - guard.y;
+            const manhattanDistance = Math.abs(distX) + Math.abs(distY);
+
+            if (manhattanDistance === 0) return; 
+
+            if (manhattanDistance <= guard.detectionRadius) {
+                let moved = false;
+                let preferredMoveX = (distX > 0) ? 1 : (distX < 0) ? -1 : 0;
+                let preferredMoveY = (distY > 0) ? 1 : (distY < 0) ? -1 : 0;
+
+                if (Math.abs(distX) > Math.abs(distY)) {
+                    if (preferredMoveX !== 0 && isGuardPassable(guard.x + preferredMoveX, guard.y)) {
+                        guard.x += preferredMoveX;
+                        moved = true;
+                    }
+                    if (!moved && preferredMoveY !== 0 && isGuardPassable(guard.x, guard.y + preferredMoveY)) {
+                        guard.y += preferredMoveY;
+                    }
+                } else { 
+                    if (preferredMoveY !== 0 && isGuardPassable(guard.x, guard.y + preferredMoveY)) {
+                        guard.y += preferredMoveY;
+                        moved = true;
+                    }
+                    if (!moved && preferredMoveX !== 0 && isGuardPassable(guard.x + preferredMoveX, guard.y)) {
+                        guard.x += preferredMoveX;
+                    }
+                }
+                 if(moved && !gameWon) drawGame(); 
+            }
+        }
+
+        function moveVault() {
+            if (gameOver || gameWon) return;
+
+            const emptyTiles = [];
+            for (let r = 0; r < MAP_ROWS; r++) {
+                for (let c = 0; c < MAP_COLS; c++) {
+                    if (map[r][c] === EMPTY_SPACE || (map[r][c] !== '#' && map[r][c] !== 'O')) {
+                         if (!((c === player.x && r === player.y) || (c === guard.x && r === guard.y))) {
+                            emptyTiles.push({ x: c, y: r });
+                        }
+                    }
+                }
+            }
+
+            if (emptyTiles.length > 0) {
+                const randomIndex = Math.floor(Math.random() * emptyTiles.length);
+                const newPos = emptyTiles[randomIndex];
+                vault.x = newPos.x;
+                vault.y = newPos.y;
+                if (!gameWon) drawGame(); 
+            }
+            scheduleNextVaultMove();
+        }
+        
+        function scheduleNextVaultMove() {
+            if (gameOver || gameWon) return;
+            clearTimeout(vaultMoveTimeoutId); 
+            vaultMoveTimeoutId = setTimeout(moveVault, VAULT_MOVE_INTERVAL);
+        }
+
+        function gameLoopTick() {
+            if (!gameOver && !gameWon) {
+                updateGuard();
+                checkConditions(); 
+            } else {
+                stopGameLoops();
+            }
+        }
+        
+        function animateWinScreen() {
+            if (!gameWon) { // If game was reset
+                if(winAnimationId) cancelAnimationFrame(winAnimationId);
+                winAnimationId = null;
+                return;
+            }
+            drawGame(); // This will draw static game + update/draw confetti
+            winAnimationId = requestAnimationFrame(animateWinScreen);
+        }
+
+        function stopGameLoops() {
+            clearInterval(guardMoveIntervalId); 
+            clearTimeout(vaultMoveTimeoutId);
+        }
+
+        function startGameLoops() {
+            stopGameLoops(); // Clear any existing loops first
+            guardMoveIntervalId = setInterval(gameLoopTick, GUARD_MOVE_INTERVAL);
+            scheduleNextVaultMove(); 
+        }
+
+        function checkConditions() {
+            if (gameOver || gameWon) return; 
+
+            if (player.x === guard.x && player.y === guard.y) {
+                messageArea.textContent = ''; 
+                gameOverScreen.classList.add('visible'); 
+                gameOver = true;
+                stopGameLoops();
+            }
+
+            if (!gameOver && player.x === vault.x && player.y === vault.y) {
+                messageArea.textContent = ''; 
+                winnerScreen.classList.add('visible'); 
+                gameWon = true;
+                triggerConfetti(); // Start confetti!
+                stopGameLoops();
+                if (winAnimationId) cancelAnimationFrame(winAnimationId); // Clear previous if any
+                winAnimationId = requestAnimationFrame(animateWinScreen); // Start win animation loop
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (gameOver || gameWon || !canPlayerMove) return; 
+
+            let dx = 0, dy = 0;
+            switch (event.key) {
+                case 'ArrowUp': case 'w': dy = -1; break;
+                case 'ArrowDown': case 's': dy = 1; break;
+                case 'ArrowLeft': case 'a': dx = -1; break;
+                case 'ArrowRight': case 'd': dx = 1; break;
+                default: return; 
+            }
+            if (dx !== 0 || dy !== 0) { 
+                 movePlayer(dx, dy);
+            }
+        });
+
+        resetButton.addEventListener('click', initializeGame);
+        
+        window.onload = () => {
+            initializeGame();
+        };
+
+    </script></body>
+</html>

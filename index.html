@@ -435,34 +435,69 @@ const PROJECTS = [
     )},
 
   // GAMES
-  { id:"bigback", cat:"GAMES", title:"Big Back Attack 🍕", tagline:"Built by my students at Bowen After School", accent:SYN["5"],
-    desc:"A fully playable breakout game with food-themed power-ups, multi-ball, explosive combos, and a live leaderboard — shipped by students in my after-school program. They designed the mechanics, named it, and balanced it themselves. My job was to give them the tools and get out of the way.",
+  { id:"bigback", cat:"GAMES", title:"Big Back Attack 🍕", tagline:"Student-built breakout game — Bowen After School", accent:SYN["5"],
+    desc:"A breakout game with food-themed power-ups, multi-ball mechanics, and a live leaderboard — designed and built by my students at Bowen After School. They named it, balanced the difficulty, and kept iterating until it felt right. I introduced the canvas loop and got out of the way.",
     tags:["Student Work","Canvas","Bowen After School","Game Design","Breakout"],
     cta:"Play Now", ctaHref:"bigbackattack.html" },
 
   { id:"binarylifegame", cat:"GAMES", title:"Base 2: Game of Life 🧬", tagline:"Conway's Life reframed as a binary teaching tool for kids", accent:SYN["2"],
-    desc:"Click to flip cells between 0 and 1. Watch Conway's rules play out on a grid of binary digits. Built for elementary classrooms — big cells, friendly labels, draw-to-paint interaction. The rules of life explained through the rules of computers.",
+    desc:"Conway's Game of Life displayed as binary digits. Flip cells between 0 and 1 and watch the rules play out. Built for 3rd and 4th graders — big cells, friendly labels, and a draw mode so students can paint patterns freehand. Simple rules that produce complicated things.",
     tags:["Canvas","Teaching Tool","Conway","Binary","K–5"],
     cta:"Play Now", ctaHref:"binarylife.html" },
 
-  { id:"chaoslands", cat:"GAMES", title:"Chaos Lands: Corruption 🏃", tagline:"Built by my students at Bowen After School", accent:SYN["1"],
-    desc:"A wave-mode runner with a Nightmare Mode that activates at 50%, particle explosions, and a global leaderboard — designed and shipped by students in my after-school program. They came up with the lore, the 'corruption' mechanic, and the name. I taught them the canvas loop. They took it from there.",
+  { id:"chaoslands", cat:"GAMES", title:"Chaos Lands: Corruption 🏃", tagline:"Student-built wave runner — Bowen After School", accent:SYN["1"],
+    desc:"A wave runner with Nightmare Mode, particle explosions, and a live leaderboard — designed by my students at Bowen After School. They wrote the lore, invented the corruption mechanic, and pushed for competitive scoring. I taught them the canvas loop. Everything else was theirs.",
     tags:["Student Work","Canvas","Game Design","Bowen After School","Runner"],
     cta:"Play Now", ctaHref:"chaoslands.html" },
 
-  { id:"catcaretaker", cat:"GAMES", title:"Cat Caretaker: Nightmare Mansion 🐱", tagline:"Built by my students at Bowen After School", accent:SYN["6"],
-    desc:"A first-person raycasting horror game built from scratch by students in my after-school program. They designed the rooms, the cat mechanics, the anger system, and the jump scare ending. I introduced them to raycasting. They turned it into a nightmare.",
+  { id:"catcaretaker", cat:"GAMES", title:"Cat Caretaker: Nightmare Mansion 🐱", tagline:"Student-built raycasting horror game — Bowen After School", accent:SYN["6"],
+    desc:"A first-person raycasting game where you navigate a mansion full of cats with moods. Students designed the room layouts, the anger system, and the jump scare ending. I introduced raycasting. They decided it should be a horror game — that part was entirely theirs.",
     tags:["Student Work","Raycasting","Canvas","Horror","Bowen After School"],
     cta:"Play Now", ctaHref:"catcaretaker.html" },
 
-  { id:"ginrummy", cat:"GAMES", title:"Gin Rummy 🃏", tagline:"Built by my students at Bowen After School", accent:SYN["3"],
-    desc:"A complete Gin Rummy implementation with meld detection, deadwood calculation, and an AI opponent — built by students in my after-school program. They learned what an algorithm actually is by writing one that figures out the best possible hand. No tutorials. Just the problem and the tools.",
+  { id:"ginrummy", cat:"GAMES", title:"Gin Rummy 🃏", tagline:"Student-built card game with AI opponent — Bowen After School", accent:SYN["3"],
+    desc:"A complete Gin Rummy implementation with meld detection, deadwood scoring, and an AI opponent — built by my students at Bowen After School. I gave them the rules and let them work out the logic. Writing the AI was the moment several of them understood what an algorithm actually is.",
     tags:["Student Work","Card Game","AI Opponent","Algorithm Design","Bowen After School"],
     cta:"Play Now", ctaHref:"ginrummy.html" },
 
+
+  { id:"bankheist", cat:"GAMES", title:"Bank Heist Mission", tagline:"Grid stealth — catch the moving vault, avoid the guard", accent:SYN["2"],
+    desc:"Tile-based stealth game. Navigate a grid to reach a vault that keeps moving before the guard catches you. Obstacles block the path and your character breaks through them. Simple rules that open into real spatial problem-solving. Arrow keys or WASD, confetti on the win screen.",
+    tags:["Canvas","Stealth","Grid","Spatial Reasoning","Classroom Game"],
+    cta:"Play Now", ctaHref:"bankheist.html" },
+
+  { id:"connect4kirby", cat:"GAMES", title:"Connect 4 — Kirby & Among Us", tagline:"Classic strategy with adjustable AI difficulty", accent:SYN["7"],
+    desc:"Connect 4 with Kirby and Among Us themes and three AI difficulty levels. Students can feel the difference between easy and hard, which tends to open up a real conversation about what the computer is actually doing — a quiet introduction to decision trees.",
+    tags:["Canvas","AI Opponent","Strategy","Connect 4","Student Favorite"],
+    cta:"Play Now", ctaHref:"connect4kirby.html" },
+
+  { id:"diceroller", cat:"GAMES", title:"Dice Roller Deluxe", tagline:"Every die you need — D4 through D20", accent:SYN["3"],
+    desc:"A full-featured dice roller covering D4 through D20, with multiple dice at once. Started as a quick probability tool and became one of the most-used things in my room — tabletop game days, math lessons, and any time a student wants to leave something to chance.",
+    tags:["Math Tool","Tabletop","Probability","Classroom Tool","D&D"],
+    cta:"Roll", ctaHref:"diceroller.html" },
+
+  { id:"geocatdash", cat:"GAMES", title:"Geo Cat Dash", tagline:"Geometry Dash-style runner — a cat, an obstacle course, one button", accent:SYN["4"],
+    desc:"A cat moving through an obstacle course that does not stop. Press space to jump, survive as long as you can. An accessible entry point into canvas animation — the mechanic is simple, but the timing is unforgiving in exactly the right way.",
+    tags:["Canvas","Runner","Platformer","Animation","Classroom Build"],
+    cta:"Play Now", ctaHref:"geocatdash.html" },
+
+  { id:"milkfactory", cat:"GAMES", title:"Milk Carton Factory", tagline:"Factory simulation — inputs, outputs, and the occasional bottleneck", accent:SYN["5"],
+    desc:"Run a milk carton production line. Manage inputs, watch for bottlenecks, optimize throughput. Good for teaching systems thinking in a context that is concrete and a little absurd. Students find it funny, which tends to make the concepts easier to hold onto.",
+    tags:["Simulation","Factory","Systems Thinking","Management","Classroom"],
+    cta:"Play Now", ctaHref:"milkfactory.html" },
+
+  { id:"mylesclicker", cat:"GAMES", title:"Myles Clicker", tagline:"An incremental clicker — made because a student asked nicely", accent:SYN["0"],
+    desc:"A student named Myles asked if we could just make a clicking game. So we did. Simple incremental mechanics, satisfying feedback, and a quiet lesson in how exponential growth works. Sometimes the best projects start with a simple question.",
+    tags:["Clicker","Incremental","Student Request","Classroom Build","Math"],
+    cta:"Play Now", ctaHref:"mylesclicker.html" },
+
+  { id:"watergunpractice", cat:"GAMES", title:"Water Gun Target Practice", tagline:"Shooting gallery with an upgrade shop — students helped design the economy", accent:SYN["6"],
+    desc:"Moving targets, water mechanics, and a full upgrade shop. Students helped design the in-game economy — what upgrades should cost, which are worth buying, how to balance power against price. A natural entry point into game design thinking.",
+    tags:["Canvas","Shooter","Upgrade System","Economy Design","Student Design"],
+    cta:"Play Now", ctaHref:"watergunpractice.html" },
   // TOOLS
   { id:"synth", cat:"TOOLS", wide:true, title:"MOOK SYNTH", tagline:"A browser music instrument built for 4th graders", accent:SYN["6"],
-    desc:"Six build sessions. 808 drum engine. XY pads. Grid cells that display the waveform shape of the sound they hold — colour-coded with my synesthetic number system. Real user testing at Bowen After School. Not a demo. A deployed tool kids play.",
+    desc:"An 808 drum engine and XY synthesis pad built across six sessions. Grid cells display the waveform of the sound they hold, colour-coded using my synesthetic number system. Tested with real students at Bowen After School — kids actually play it.",
     tags:["Web Audio API","React","Generative UI","EdTech","Synesthesia"],
     cta:"Open MOOK SYNTH", ctaHref:"mook-synth.html", ctaTarget:"_blank",
     renderMedia: a => <Waveform accent={a} /> },
