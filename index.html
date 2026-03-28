@@ -579,6 +579,7 @@ function App() {
         <div style={{ display:"flex", gap:28, fontSize:11, letterSpacing:2, alignItems:"center" }}>
           <a href="#work"    style={{ color:"#666", textDecoration:"none" }}>WORK</a>
           <a href="#about"   style={{ color:"#666", textDecoration:"none" }}>ABOUT</a>
+          <a href="https://github.com/sfdimarco" target="_blank" rel="noreferrer" style={{ color:"#666", textDecoration:"none" }}>GITHUB</a>
           <a href="#contact" style={{ color:SYN["4"], textDecoration:"none", fontWeight:700 }}>HIRE ME</a>
           <button onClick={()=>setDark(d=>!d)} title={dark?"Light Mode":"Dark Mode"}
             style={{ background:"transparent", border:`1px solid #333`, borderRadius:6, color:"#888", fontFamily:"'Space Mono',monospace", fontSize:10, letterSpacing:2, padding:"5px 11px", cursor:"pointer", transition:"all 0.2s", display:"flex", alignItems:"center", gap:6 }}>
@@ -684,7 +685,7 @@ function App() {
           <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
             <a href="mailto:sfdimarco@gmail.com" style={{ background:SYN["4"], color:"#000", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none" }}>Email Me</a>
             <a href="https://www.linkedin.com/in/sean-dimarco/" target="_blank" rel="noreferrer" style={{ background:"transparent", color:"#aaa", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:"1px solid #333" }}>LinkedIn</a>
-            <a href="https://www.instagram.com/dumbnot_stupid/" target="_blank" rel="noreferrer" style={{ background:"transparent", color:SYN["7"], fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:`1px solid ${SYN["7"]}44` }}>Instagram</a>
+            <a href="https://www.instagram.com/dumbnot_stupid/" target="_blank" rel="noreferrer" style={{ background:"transparent", color:SYN["7"], fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:`1px solid ${SYN["7"]}44` }}>Art / Process</a>
             <a href="https://www.imdb.com/name/nm11904779/" target="_blank" rel="noreferrer" style={{ background:"transparent", color:SYN["3"], fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:`1px solid ${SYN["3"]}44` }}>IMDB</a>
           </div>
         </div>
@@ -696,7 +697,13 @@ function App() {
         <div style={{ display:"flex", gap:5 }}>
           {Object.entries(SYN).map(([d,c])=><span key={d} style={{ color:c, fontWeight:700 }}>{d}</span>)}
         </div>
-        <div>NEWTON, MA · BUILDING IN THE OPEN</div>
+        <div style={{ display:"flex", gap:16, alignItems:"center" }}>
+          <a href="https://github.com/sfdimarco" target="_blank" rel="noreferrer" style={{ color:"#555", textDecoration:"none", letterSpacing:2, fontSize:10 }}>GITHUB</a>
+          <span style={{ color:"#222" }}>·</span>
+          <a href="https://www.imdb.com/name/nm11904779/" target="_blank" rel="noreferrer" style={{ color:"#555", textDecoration:"none", letterSpacing:2, fontSize:10 }}>IMDB</a>
+          <span style={{ color:"#222" }}>·</span>
+          <span style={{ color:"#333" }}>NEWTON, MA</span>
+        </div>
       </footer>
 
     </div>
