@@ -226,6 +226,61 @@ function PhotoGrid({ images, accent }) {
   );
 }
 
+// 🔍 Lightbox — click any art image to see it full ─────────────────────────
+const LightboxCtx = React.createContext(null);
+function LightboxProvider({ children }) {
+  const [lb, setLb] = React.useState(null);
+  const open = (src, alt) => setLb({ src, alt });
+  const close = () => setLb(null);
+  return (
+    <LightboxCtx.Provider value={open}>
+      {children}
+      {lb && (
+        <div onClick={close} style={{
+          position:"fixed", inset:0, background:"rgba(0,0,0,0.94)", zIndex:9999,
+          display:"flex", alignItems:"center", justifyContent:"center", cursor:"zoom-out", padding:24
+        }}>
+          <img src={lb.src} alt={lb.alt} onClick={e => e.stopPropagation()}
+            style={{ maxWidth:"92vw", maxHeight:"88vh", objectFit:"contain", borderRadius:10,
+                     boxShadow:"0 0 120px rgba(0,0,0,0.9)" }} />
+          <div onClick={close} style={{
+            position:"absolute", top:18, right:26, color:"#fff", fontSize:32,
+            cursor:"pointer", fontFamily:"monospace", lineHeight:1, opacity:0.7
+          }}>×</div>
+          {lb.alt && (
+            <div style={{ position:"absolute", bottom:18, left:0, right:0, textAlign:"center",
+              color:"#666", fontSize:10, letterSpacing:3, fontFamily:"'Space Mono',monospace" }}>
+              {lb.alt}
+            </div>
+          )}
+        </div>
+      )}
+    </LightboxCtx.Provider>
+  );
+}
+
+// 🖼️ Clickable art grid — any cols, any aspect ratio ──────────────────────
+function ArtGrid({ images, accent, cols = 2, ratio = "4/3" }) {
+  const openLb = React.useContext(LightboxCtx);
+  const n = images.length;
+  const getBR = i => {
+    const tl = i === 0, tr = i === cols - 1, bl = i === n - cols, br = i === n - 1;
+    return `${tl?"8px":"0"} ${tr?"8px":"0"} ${br?"8px":"0"} ${bl?"8px":"0"}`;
+  };
+  return (
+    <div style={{ display:"grid", gridTemplateColumns:`repeat(${cols},1fr)`, gap:4 }}>
+      {images.map((img, i) => (
+        <div key={i} onClick={() => openLb && openLb(img.src, img.alt)}
+          style={{ aspectRatio:ratio, overflow:"hidden", cursor:"zoom-in", borderRadius:getBR(i), transition:"opacity 0.12s" }}
+          onMouseEnter={e => e.currentTarget.style.opacity="0.78"}
+          onMouseLeave={e => e.currentTarget.style.opacity="1"}>
+          <ImgSlot src={img.src} alt={img.alt} accent={accent} style={{ height:"100%", borderRadius:0 }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Image with graceful placeholder ───────────────────────────────────────
 function ImgSlot({ src, alt, accent, label, style, fit="cover" }) {
   const [err, setErr] = useState(false);
@@ -335,23 +390,17 @@ const PROJECTS = [
     tags:["Abstract Expressionism","Acrylic","Digital","AI-Assisted","Figurative","Synesthesia"],
     renderMedia: a => (
       <div style={{ padding:"16px 16px 0" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4 }}>
-          {[
-            { src:IMG.abstractCoder,    alt:"Abstract Coder in Vibrant Cosmos" },
-            { src:IMG.texturedChild,    alt:"Contemplative Child Figure" },
-            { src:IMG.otisAbstract,     alt:"Otis — Abstract Expressionism" },
-            { src:IMG.tvboy,            alt:"TV Boy" },
-            { src:IMG.abstractBonsai,   alt:"Abstract Figure with Bonsai Tree" },
-            { src:IMG.dualFaces,        alt:"Dual Faces and Playful Paws" },
-            { src:IMG.abstractAstronaut,alt:"Astronaut in Abstract Space Dream" },
-            { src:IMG.mookNightwalk,    alt:"Mook Night Walk" },
-            { src:IMG.dudemoon,         alt:"Dude Moon" },
-          ].map((img,i) => (
-            <div key={i} style={{ aspectRatio:"4/3", overflow:"hidden", borderRadius: i===0?"8px 0 0 0":i===2?"0 8px 0 0":i===6?"0 0 0 8px":i===8?"0 0 8px 0":"0" }}>
-              <ImgSlot src={img.src} alt={img.alt} accent={a} style={{ height:"100%", borderRadius:0 }} />
-            </div>
-          ))}
-        </div>
+        <ArtGrid cols={3} ratio="4/3" accent={a} images={[
+          { src:IMG.abstractCoder,    alt:"Abstract Coder in Vibrant Cosmos" },
+          { src:IMG.texturedChild,    alt:"Contemplative Child Figure" },
+          { src:IMG.otisAbstract,     alt:"Otis - Abstract Expressionism" },
+          { src:IMG.tvboy,            alt:"TV Boy" },
+          { src:IMG.abstractBonsai,   alt:"Abstract Figure with Bonsai Tree" },
+          { src:IMG.dualFaces,        alt:"Dual Faces and Playful Paws" },
+          { src:IMG.abstractAstronaut,alt:"Astronaut in Abstract Space Dream" },
+          { src:IMG.mookNightwalk,    alt:"Mook Night Walk" },
+          { src:IMG.dudemoon,         alt:"Dude Moon" },
+        ]} />
       </div>
     )},
 
@@ -360,18 +409,12 @@ const PROJECTS = [
     tags:["Sketchbook","Digital Studies","Experimental","Process Work","Ongoing"],
     renderMedia: a => (
       <div style={{ padding:"16px 16px 0" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:4 }}>
-          {[
-            { src:IMG.noodles13,       alt:"Noodles 13 — Large Format Study" },
-            { src:IMG.blurArt,         alt:"Blur Study" },
-            { src:IMG.gigabyteArt,     alt:"Gigabyte" },
-            { src:IMG.tvdogSidekick2025, alt:"TV Dog Sidekick — 2025 AI Collab" },
-          ].map((img,i) => (
-            <div key={i} style={{ aspectRatio:"4/3", overflow:"hidden", borderRadius: i===0?"8px 0 0 0":i===1?"0 8px 0 0":i===2?"0 0 0 8px":"0 0 8px 0" }}>
-              <ImgSlot src={img.src} alt={img.alt} accent={a} style={{ height:"100%", borderRadius:0 }} />
-            </div>
-          ))}
-        </div>
+        <ArtGrid cols={2} ratio="4/3" accent={a} images={[
+          { src:IMG.noodles13,         alt:"Noodles 13 - Large Format Study" },
+          { src:IMG.blurArt,           alt:"Blur Study" },
+          { src:IMG.gigabyteArt,       alt:"Gigabyte" },
+          { src:IMG.tvdogSidekick2025, alt:"TV Dog Sidekick - 2025 AI Collab" },
+        ]} />
       </div>
     )},
 
@@ -380,20 +423,14 @@ const PROJECTS = [
     tags:["Background Art","Environment Design","Google Gemini","Pre-Production","Chalk-Pastel","Mook & Mush"],
     renderMedia: a => (
       <div style={{ padding:"16px 16px 0" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4 }}>
-          {[
-            { src:IMG.mowersvilleBikes,   alt:"Mowersville — Bike Path" },
-            { src:IMG.mowersvilleSkate,   alt:"Mowersville — Skate Park" },
-            { src:IMG.mowersvilleClass,   alt:"Mowersville — Classroom" },
-            { src:IMG.mowersvilleTown,    alt:"Mowersville — Town Overview" },
-            { src:IMG.mowersvilleArtRoom, alt:"Mowersville — Art Room" },
-            { src:IMG.mowersvilleSoccer,  alt:"Mowersville — Soccer Field" },
-          ].map((img,i) => (
-            <div key={i} style={{ aspectRatio:"16/9", overflow:"hidden", borderRadius: i===0?"8px 0 0 0":i===2?"0 8px 0 0":i===3?"0 0 0 8px":i===5?"0 0 8px 0":"0" }}>
-              <ImgSlot src={img.src} alt={img.alt} accent={a} style={{ height:"100%", borderRadius:0 }} />
-            </div>
-          ))}
-        </div>
+        <ArtGrid cols={3} ratio="16/9" accent={a} images={[
+          { src:IMG.mowersvilleBikes,   alt:"Mowersville - Bike Path" },
+          { src:IMG.mowersvilleSkate,   alt:"Mowersville - Skate Park" },
+          { src:IMG.mowersvilleClass,   alt:"Mowersville - Classroom" },
+          { src:IMG.mowersvilleTown,    alt:"Mowersville - Town Overview" },
+          { src:IMG.mowersvilleArtRoom, alt:"Mowersville - Art Room" },
+          { src:IMG.mowersvilleSoccer,  alt:"Mowersville - Soccer Field" },
+        ]} />
       </div>
     )},
 
@@ -643,7 +680,7 @@ function App() {
       <section id="about" className="split-section" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", borderTop:"1px solid #1a1a1a", borderBottom:"1px solid #1a1a1a" }}>
         <div style={{ padding:"56px 44px", borderRight:"1px solid #1a1a1a", background:`linear-gradient(160deg,${SYN["3"]}06,transparent)` }}>
           <div style={{ fontSize:10, color:SYN["3"], letterSpacing:5, marginBottom:20 }}>THE EDUCATOR</div>
-          <h2 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:"clamp(22px,2.8vw,36px)", color:"#fff", lineHeight:1.2, margin:"0 0 18px", fontWeight:400 }}>I've taught a thousand kids to think in systems.</h2>
+          <h2 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:"clamp(22px,2.8vw,36px)", color:"#fff", lineHeight:1.2, margin:"0 0 18px", fontWeight:400 }}>I've taught hundreds of kids to think in systems.</h2>
           <p style={{ color:"#777", fontSize:13, lineHeight:1.85 }}>The Chestnut Hill School · 10 years · EMPOW Studios · 25 schools · Bowen After School · MagicSchool AI Certified · BFA Animation, Lesley University. I don't just demo AI tools — I hand them to a 4th grader and watch what breaks.</p>
         </div>
         <div style={{ padding:"56px 44px", background:`linear-gradient(160deg,${SYN["2"]}06,transparent)` }}>
@@ -653,6 +690,52 @@ function App() {
         </div>
       </section>
 
+
+      {/* SYNESTHESIA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <section style={{ borderTop:"1px solid #1a1a1a", padding:"72px 24px", maxWidth:820, margin:"0 auto" }}>
+        <div style={{ fontSize:10, color:SYN["6"], letterSpacing:5, marginBottom:16, textAlign:"center" }}>THE SYNESTHETIC DEVELOPER</div>
+        <h2 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:"clamp(24px,4vw,42px)", color:"#fff", lineHeight:1.2, margin:"0 0 28px", fontWeight:400, textAlign:"center" }}>
+          I don't experience data the way most people do.
+        </h2>
+
+        <div style={{ display:"flex", gap:0, marginBottom:36, borderRadius:8, overflow:"hidden", height:7 }}>
+          {Object.entries(SYN).map(([d,col]) => <div key={d} style={{ flex:1, background:col }} />)}
+        </div>
+
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:32, marginBottom:32 }}>
+          <div>
+            <div style={{ fontSize:10, color:SYN["1"], letterSpacing:4, marginBottom:10 }}>HOW IT WORKS</div>
+            <p style={{ color:"#888", fontSize:13, lineHeight:1.9, margin:0 }}>
+              I have grapheme-color synesthesia. Numbers and letters each have a fixed color â€” not a metaphor, an actual perceptual event. 0 is cyan, 1 is red, 2 is blue, 3 is yellow, 4 green, 5 orange, 6 purple, 7 pink, 8 near-white, 9 near-black. Letters encode from those same digits. When I read code, I'm reading color patterns. When something is wrong, it looks wrong before I can say why.
+            </p>
+          </div>
+          <div>
+            <div style={{ fontSize:10, color:SYN["2"], letterSpacing:4, marginBottom:10 }}>WHY IT MATTERS FOR AI</div>
+            <p style={{ color:"#888", fontSize:13, lineHeight:1.9, margin:0 }}>
+              AI systems are high-dimensional pattern spaces. Synesthetic perception is native multi-channel processing â€” I navigate token spaces, embeddings, and latent structure the way most people navigate physical rooms: by feel, shape, color. UI decisions I make aren't aesthetic preferences. They're perceptual data. When something doesn't parse visually, it genuinely doesn't parse.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ background:"#0c0c0c", border:"1px solid #1e1e1e", borderRadius:10, padding:"28px 32px", marginBottom:28 }}>
+          <div style={{ fontSize:10, color:SYN["3"], letterSpacing:4, marginBottom:14 }}>ON COLLABORATING WITH AI â€” HONESTLY</div>
+          <p style={{ color:"#999", fontSize:13, lineHeight:1.9, margin:"0 0 14px" }}>
+            I've worked with Claude and Gemini not just as a user but as someone who documents the texture of the interaction. My synesthesia means I notice when a response feels off in ways I can't immediately articulate â€” when a model is pattern-matching instead of reasoning, when something is structurally almost right but perceptually wrong. That's a different feedback signal than most developers provide.
+          </p>
+          <p style={{ color:"#999", fontSize:13, lineHeight:1.9, margin:"0 0 14px" }}>
+            The Mowersville production backgrounds were built by developing a visual grammar with Gemini that it could hold consistently across six scenes. That's not prompting â€” that's a collaborative design process with a non-human creative partner. The synesthetic color-temperature system I used as the brief gave the model something to hold onto that went beyond adjectives.
+          </p>
+          <p style={{ color:"#999", fontSize:13, lineHeight:1.9, margin:0 }}>
+            Whether my interactions have shaped how AI develops is genuinely hard to know â€” I won't overclaim. What I can say: the feedback I give is precise, grounded in perception most developers don't have, and comes from a classroom where I watch AI tools meet real friction every week. I hand an AI tool to a 9-year-old and observe what breaks. That's field research.
+          </p>
+        </div>
+
+        <div style={{ display:"flex", justifyContent:"center", gap:8, flexWrap:"wrap" }}>
+          {["Grapheme-Color Synesthesia","ADHD","Autism","Multi-Channel Perception","Perceptual UI Design","AI Collaboration","Pattern Recognition"].map(t => (
+            <Tag key={t} color={SYN["6"]}>{t}</Tag>
+          ))}
+        </div>
+      </section>
       {/* wave: about → work */}
       <SectionWave accent={SYN["9"]} speed={1.1} complexity={1.3} height={44} />
 
@@ -702,6 +785,7 @@ function App() {
             <a href="https://www.linkedin.com/in/sean-dimarco/" target="_blank" rel="noreferrer" style={{ background:"transparent", color:"#aaa", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:"1px solid #333" }}>LinkedIn</a>
             <a href="https://www.instagram.com/dumbnot_stupid/" target="_blank" rel="noreferrer" style={{ background:"transparent", color:SYN["7"], fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:`1px solid ${SYN["7"]}44` }}>Art / Process</a>
             <a href="https://www.imdb.com/name/nm11904779/" target="_blank" rel="noreferrer" style={{ background:"transparent", color:SYN["3"], fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:`1px solid ${SYN["3"]}44` }}>IMDB</a>
+            <a href="https://vimeo.com/user6495644" target="_blank" rel="noreferrer" style={{ background:"transparent", color:"#1ab7ea", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:"1px solid #1ab7ea44" }}>Vimeo</a>
           </div>
         </div>
       </section>
@@ -716,8 +800,11 @@ function App() {
           <a href="https://github.com/sfdimarco" target="_blank" rel="noreferrer" style={{ color:"#555", textDecoration:"none", letterSpacing:2, fontSize:10 }}>GITHUB</a>
           <span style={{ color:"#222" }}>·</span>
           <a href="https://www.imdb.com/name/nm11904779/" target="_blank" rel="noreferrer" style={{ color:"#555", textDecoration:"none", letterSpacing:2, fontSize:10 }}>IMDB</a>
+          <span style={{ color:"#222" }}>Â·</span>
+          <a href="https://vimeo.com/user6495644" target="_blank" rel="noreferrer" style={{ color:"#555", textDecoration:"none", letterSpacing:2, fontSize:10 }}>VIMEO</a>
           <span style={{ color:"#222" }}>·</span>
           <span style={{ color:"#333" }}>NEWTON, MA</span>
+            <a href="https://vimeo.com/user6495644" target="_blank" rel="noreferrer" style={{ background:"transparent", color:"#1ab7ea", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:"1px solid #1ab7ea44" }}>Vimeo</a>
         </div>
       </footer>
 
@@ -726,7 +813,7 @@ function App() {
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
+root.render(<LightboxProvider><App /></LightboxProvider>);
 </script>
 </body>
 </html>
