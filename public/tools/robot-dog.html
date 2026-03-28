@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Dog AI Simulator — Mook DiMarco</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e2e;
+            color: #cdd6f4;
+            display: flex;
+            height: 100vh;
+        }
+        #game-container { flex: 2; position: relative; }
+        #dashboard {
+            flex: 1;
+            background-color: #181825;
+            padding: 20px;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 10;
+            overflow-y: auto;
+        }
+        h1 { margin: 0; font-size: 1.5rem; color: #f9e2af; text-align: center; }
+        .panel { background-color: #313244; padding: 15px; border-radius: 10px; }
+        h2 { margin-top: 0; font-size: 1.1rem; color: #89b4fa; }
+        #nn-canvas {
+            width: 100%; height: 200px;
+            background-color: #11111b;
+            border-radius: 8px;
+            border: 2px solid #45475a;
+        }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; }
+        .stat-value { color: #a6e3a1; }
+        .controls { display: flex; gap: 10px; flex-wrap: wrap; }
+        button {
+            background-color: #cba6f7;
+            color: #11111b;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+            flex: 1;
+        }
+        button:hover { background-color: #b4befe; transform: scale(1.05); }
+        button:active { transform: scale(0.95); }
+        input[type="range"] { width: 100%; }
+        .instruction { font-size: 0.85rem; color: #bac2de; line-height: 1.4; }
+        .back-link {
+            position: fixed; top: 16px; left: 16px; z-index: 100;
+            background: rgba(24,24,37,0.85);
+            color: #cba6f7; text-decoration: none;
+            font-size: 11px; letter-spacing: 2px;
+            padding: 8px 14px; border-radius: 6px;
+            border: 1px solid #45475a;
+            font-family: 'Courier New', monospace;
+            backdrop-filter: blur(8px);
+        }
+        .back-link:hover { border-color: #cba6f7; }
+    </style>
+</head>
+<body>
+
+    <a class="back-link" href="javascript:history.back()">← LAB</a>
+    <div id="game-container"></div>
+
+    <div id="dashboard">
+        <h1>🐾 Dog AI Simulator</h1>
+
+        <div class="panel">
+            <h2>🧠 The Brain (Neural Net)</h2>
+            <p class="instruction">Watch the connections light up as the dog thinks about moving its joints to reach the bone!</p>
+            <canvas id="nn-canvas" width="400" height="200"></canvas>
+        </div>
+
+        <div class="panel">
+            <h2>📊 Hero Dog Stats</h2>
+            <div class="stat-row"><span>Attempt:</span> <span id="stat-gen" class="stat-value">1</span></div>
+            <div class="stat-row"><span>Time Left:</span> <span id="stat-time" class="stat-value">15.0</span></div>
+            <div class="stat-row"><span>Best Score:</span> <span id="stat-score" class="stat-value">0</span></div>
+        </div>
+
+        <div class="panel">
+            <h2>🎮 Controls</h2>
+            <p class="instruction">Change how fast they learn or force a new attempt.</p>
+            <div class="controls">
+                <button id="btn-restart">Reset Training</button>
+                <button id="btn-next">Next Attempt</button>
+            </div>
+            <div style="margin-top: 15px;">
+                <label for="speed-slider">Simulation Speed: <span id="speed-val">1x</span></label>
+                <input type="range" id="speed-slider" min="1" max="5" value="1">
+            </div>
+        </div>
+    </div>
+    <script>
+        // --- NEURAL NETWORK ---
+        class NeuralNetwork {
+            constructor(layerSizes) {
+                this.levels = [];
+                for (let i = 0; i < layerSizes.length - 1; i++) {
+                    this.levels.push(new Level(layerSizes[i], layerSizes[i + 1]));
+                }
+            }
+            feedForward(givenInputs) {
+                let outputs = this.levels[0].feedForward(givenInputs);
+                for (let i = 1; i < this.levels.length; i++) {
+                    outputs = this.levels[i].feedForward(outputs);
+                }
+                return outputs;
+            }
+            mutate(amount = 0.1) {
+                this.levels.forEach(level => {
+                    for (let i = 0; i < level.biases.length; i++) {
+                        level.biases[i] = lerp(level.biases[i], Math.random() * 2 - 1, amount);
+                    }
+                    for (let i = 0; i < level.weights.length; i++) {
+                        for (let j = 0; j < level.weights[i].length; j++) {
+                            level.weights[i][j] = lerp(level.weights[i][j], Math.random() * 2 - 1, amount);
+                        }
+                    }
+                });
+            }
+            clone() {
+                const cloneStr = JSON.stringify(this);
+                const cloneObj = JSON.parse(cloneStr);
+                const newNet = new NeuralNetwork([1, 1]);
+                Object.assign(newNet, cloneObj);
+                newNet.levels = newNet.levels.map(l => {
+                    const newL = new Level(l.inputs.length, l.outputs.length);
+                    Object.assign(newL, l);
+                    return newL;
+                });
+                return newNet;
+            }
+        }
+
+        class Level {
+            constructor(inputCount, outputCount) {
+                this.inputs = new Array(inputCount).fill(0);
+                this.outputs = new Array(outputCount).fill(0);
+                this.biases = new Array(outputCount).fill(0).map(() => Math.random() * 2 - 1);
+                this.weights = [];
+                for (let i = 0; i < inputCount; i++) {
+                    this.weights[i] = new Array(outputCount).fill(0).map(() => Math.random() * 2 - 1);
+                }
+            }
+            feedForward(givenInputs) {
+                for (let i = 0; i < this.inputs.length; i++) this.inputs[i] = givenInputs[i];
+                for (let i = 0; i < this.outputs.length; i++) {
+                    let sum = 0;
+                    for (let j = 0; j < this.inputs.length; j++) sum += this.inputs[j] * this.weights[j][i];
+                    this.outputs[i] = Math.tanh(sum + this.biases[i]);
+                }
+                return this.outputs;
+            }
+        }
+
+        function lerp(A, B, t) { return A + (B - A) * t; }
+
+        // --- ROBOT DOG ---
+        const SIMULATION_TIME = 15;
+
+        class RobotDog {
+            constructor(brain = null) {
+                this.x = (Math.random() - 0.5) * 4;
+                this.z = (Math.random() - 0.5) * 4;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.legAngles = [0, 0, 0, 0];
+                this.brain = brain ? brain.clone() : new NeuralNetwork([7, 8, 4]);
+                this.fitness = 0;
+                this.isDead = false;
+                this.color = new THREE.Color().setHSL(Math.random(), 0.8, 0.5);
+            }
+            update(bone, deltaTime, timer) {
+                if (this.isDead) return;
+                const dx = bone.position.x - this.x;
+                const dz = bone.position.z - this.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                let angleToBone = Math.atan2(dx, dz);
+                let relAngle = angleToBone - this.rotation;
+                while (relAngle > Math.PI) relAngle -= Math.PI * 2;
+                while (relAngle < -Math.PI) relAngle += Math.PI * 2;
+                const oscillator = Math.sin(timer * Math.PI * 2);
+                const inputs = [
+                    distance / 20, relAngle / Math.PI,
+                    this.legAngles[0] / (Math.PI / 4), this.legAngles[1] / (Math.PI / 4),
+                    this.legAngles[2] / (Math.PI / 4), this.legAngles[3] / (Math.PI / 4),
+                    oscillator
+                ];
+                const outputs = this.brain.feedForward(inputs);
+                const maxAngle = Math.PI / 4;
+                let forwardThrust = 0;
+                for (let i = 0; i < 4; i++) {
+                    let targetAngle = outputs[i] * maxAngle;
+                    let diff = targetAngle - this.legAngles[i];
+                    this.legAngles[i] += diff * deltaTime * 5;
+                    if (diff < 0) forwardThrust += Math.abs(diff) * 0.1;
+                }
+                let leftPush = outputs[0] + outputs[2];
+                let rightPush = outputs[1] + outputs[3];
+                let turnThrust = (leftPush - rightPush) * 0.05;
+                this.rotation += turnThrust * deltaTime * 10;
+                this.x += Math.sin(this.rotation) * forwardThrust * 15 * deltaTime;
+                this.z += Math.cos(this.rotation) * forwardThrust * 15 * deltaTime;
+                let currentDist = Math.sqrt(Math.pow(bone.position.x - this.x, 2) + Math.pow(bone.position.z - this.z, 2));
+                this.fitness = 100 / (currentDist + 1);
+                if (currentDist < 1.5) { this.fitness += 1000; this.isDead = true; }
+                if (this.x > 20 || this.x < -20 || this.z > 20 || this.z < -20) { this.isDead = true; this.fitness -= 10; }
+            }
+        }
+
+        // --- THREE.JS WORLD ---
+        const container = document.getElementById('game-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
+        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 15, -15);
+        camera.lookAt(0, 0, 0);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 20, 10);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+        const ground = new THREE.Mesh(new THREE.BoxGeometry(40, 1, 40), new THREE.MeshLambertMaterial({ color: 0x55aa55 }));
+        ground.position.y = -0.5; ground.receiveShadow = true;
+        scene.add(ground);
+        const grid = new THREE.GridHelper(40, 40, 0x000000, 0x000000);
+        grid.material.opacity = 0.2; grid.material.transparent = true;
+        scene.add(grid);
+        const boneGroup = new THREE.Group();
+        const boneMat = new THREE.MeshLambertMaterial({ color: 0xffffaa });
+        boneGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 1.2), boneMat));
+        const bEnd1 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.4), boneMat); bEnd1.position.z = 0.6; boneGroup.add(bEnd1);
+        const bEnd2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.4), boneMat); bEnd2.position.z = -0.6; boneGroup.add(bEnd2);
+        boneGroup.position.set(0, 0.5, 10);
+        scene.add(boneGroup);
+
+        function createDogMesh(color) {
+            const dogGroup = new THREE.Group();
+            const mat = new THREE.MeshLambertMaterial({ color });
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1, 0.8, 2), mat);
+            body.position.y = 1.2; body.castShadow = true; dogGroup.add(body);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), mat);
+            head.position.set(0, 1.6, 1.2); head.castShadow = true; dogGroup.add(head);
+            const legs = [];
+            [{ x: 0.6, z: 0.8 }, { x: -0.6, z: 0.8 }, { x: 0.6, z: -0.8 }, { x: -0.6, z: -0.8 }].forEach(pos => {
+                const pivot = new THREE.Group();
+                pivot.position.set(pos.x, 1.0, pos.z);
+                const legMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.0, 0.3), mat);
+                legMesh.position.y = -0.5; legMesh.castShadow = true;
+                pivot.add(legMesh); dogGroup.add(pivot); legs.push(pivot);
+            });
+            return { group: dogGroup, legs };
+        }
+
+        // --- GAME LOOP ---
+        let dogs = [], dogMeshes = [], generation = 1, timeLeft = SIMULATION_TIME;
+        let lastTime = performance.now(), simSpeed = 1;
+        let championBrain = null, championScore = 0;
+
+        function initPopulation() {
+            dogs = [];
+            dogMeshes.forEach(dm => scene.remove(dm.group));
+            dogMeshes = [];
+            const newDog = new RobotDog();
+            dogs.push(newDog);
+            championBrain = newDog.brain.clone();
+            championScore = 0;
+            const visual = createDogMesh(newDog.color);
+            scene.add(visual.group);
+            dogMeshes.push(visual);
+            boneGroup.position.set(0, 0.5, 10);
+        }
+
+        function randomizeBone() {
+            boneGroup.position.x = (Math.random() - 0.5) * 20;
+            boneGroup.position.z = Math.random() * 10 + 5;
+        }
+
+        function nextGeneration() {
+            const currentDog = dogs[0];
+            let isNewHighScore = false;
+            if (currentDog.fitness > championScore) {
+                championScore = currentDog.fitness;
+                championBrain = currentDog.brain.clone();
+                isNewHighScore = true;
+            }
+            document.getElementById('stat-score').innerText = Math.round(championScore);
+            const nextDog = new RobotDog(championBrain);
+            nextDog.brain.mutate(0.2);
+            if (isNewHighScore) nextDog.color = new THREE.Color(0xffd700);
+            dogs = [nextDog];
+            dogMeshes.forEach(dm => scene.remove(dm.group));
+            dogMeshes = [];
+            const visual = createDogMesh(nextDog.color);
+            scene.add(visual.group); dogMeshes.push(visual);
+            generation++;
+            document.getElementById('stat-gen').innerText = generation;
+            timeLeft = SIMULATION_TIME;
+            if (currentDog.isDead && currentDog.fitness > 500) { randomizeBone(); championScore = 0; }
+        }
+
+        // --- BRAIN VISUALIZER ---
+        const canvas = document.getElementById('nn-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function drawNetwork(network) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const nodeRadius = 8;
+            const levelWidth = canvas.width / network.levels.length;
+            network.levels.forEach((level, levelIndex) => {
+                const xInput = levelIndex * levelWidth + 40;
+                const xOutput = (levelIndex + 1) * levelWidth + 40;
+                const ySpacingIn = canvas.height / (level.inputs.length + 1);
+                const ySpacingOut = canvas.height / (level.outputs.length + 1);
+                for (let i = 0; i < level.inputs.length; i++) {
+                    for (let j = 0; j < level.outputs.length; j++) {
+                        ctx.beginPath();
+                        ctx.moveTo(xInput, (i + 1) * ySpacingIn);
+                        ctx.lineTo(xOutput, (j + 1) * ySpacingOut);
+                        const w = level.weights[i][j];
+                        ctx.lineWidth = Math.abs(w) * 2;
+                        ctx.strokeStyle = w > 0 ? 'rgba(166,227,161,0.5)' : 'rgba(243,139,168,0.5)';
+                        ctx.stroke();
+                    }
+                }
+                for (let i = 0; i < level.inputs.length; i++) {
+                    ctx.beginPath();
+                    ctx.arc(xInput, (i + 1) * ySpacingIn, nodeRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = level.inputs[i] > 0 ? '#a6e3a1' : '#45475a';
+                    ctx.fill(); ctx.strokeStyle = '#cdd6f4'; ctx.lineWidth = 1; ctx.stroke();
+                }
+                if (levelIndex === network.levels.length - 1) {
+                    for (let j = 0; j < level.outputs.length; j++) {
+                        ctx.beginPath();
+                        ctx.arc(xOutput, (j + 1) * ySpacingOut, nodeRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = level.outputs[j] > 0 ? '#89b4fa' : '#45475a';
+                        ctx.fill(); ctx.strokeStyle = '#cdd6f4'; ctx.stroke();
+                    }
+                }
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const now = performance.now();
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+            for (let s = 0; s < simSpeed; s++) {
+                timeLeft -= dt;
+                const bestDog = dogs[0];
+                for (let i = 0; i < dogs.length; i++) {
+                    dogs[i].update(boneGroup, dt, SIMULATION_TIME - timeLeft);
+                    dogMeshes[i].group.position.x = dogs[i].x;
+                    dogMeshes[i].group.position.z = dogs[i].z;
+                    dogMeshes[i].group.rotation.y = dogs[i].rotation;
+                    for (let j = 0; j < 4; j++) dogMeshes[i].legs[j].rotation.x = dogs[i].legAngles[j];
+                }
+                boneGroup.position.y = 0.5 + Math.sin(now / 300) * 0.2;
+                boneGroup.rotation.y += dt;
+                drawNetwork(bestDog.brain);
+                if (timeLeft <= 0) nextGeneration();
+            }
+            document.getElementById('stat-time').innerText = Math.max(0, timeLeft).toFixed(1);
+            let centerX = 0, centerZ = 0, aliveCount = 0;
+            dogs.forEach(d => { if (!d.isDead) { centerX += d.x; centerZ += d.z; aliveCount++; } });
+            if (aliveCount > 0) {
+                centerX /= aliveCount; centerZ /= aliveCount;
+                camera.position.x = lerp(camera.position.x, centerX, 0.05);
+                camera.position.z = lerp(camera.position.z, centerZ - 15, 0.05);
+                camera.lookAt(centerX, 0, centerZ + 5);
+            }
+            renderer.render(scene, camera);
+        }
+
+        document.getElementById('speed-slider').addEventListener('input', (e) => {
+            simSpeed = parseInt(e.target.value);
+            document.getElementById('speed-val').innerText = simSpeed + 'x';
+        });
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            generation = 1; document.getElementById('stat-gen').innerText = 1;
+            initPopulation(); timeLeft = SIMULATION_TIME;
+        });
+        document.getElementById('btn-next').addEventListener('click', nextGeneration);
+        window.addEventListener('resize', () => {
+            const w = container.clientWidth, h = container.clientHeight;
+            renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+        });
+
+        initPopulation();
+        animate();
+    </script>
+</body>
+</html>
