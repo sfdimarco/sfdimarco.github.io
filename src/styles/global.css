@@ -82,4 +82,20 @@ a:hover {
     border-right: none !important;
     border-bottom: 1px solid var(--border);
   }
+  .nav-links {
+    gap: 14px !important;
+  }
+  .nav-links a[href="https://github.com/sfdimarco"] {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-links {
+    gap: 10px !important;
+  }
+  .nav-links a[href="https://github.com/sfdimarco"],
+  .nav-links button {
+    display: none;
+  }
 }

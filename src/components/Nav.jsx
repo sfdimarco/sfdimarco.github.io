@@ -37,7 +37,7 @@ export default function Nav({ dark, setDark }) {
       </Link>
 
       {/* Links */}
-      <div style={{ display: "flex", gap: 24, fontSize: 10, letterSpacing: 3, alignItems: "center" }}>
+      <div className="nav-links" style={{ display: "flex", gap: 24, fontSize: 10, letterSpacing: 3, alignItems: "center" }}>
         {NAV_LINKS.map(({ to, label, color }) => (
           <NavLink
             key={to}
