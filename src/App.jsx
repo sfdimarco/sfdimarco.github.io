@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import Nav from "./components/Nav";
 import GamutCursor from "./components/GamutCursor";
 import { LightboxProvider } from "./components/Lightbox";
@@ -10,7 +10,7 @@ export default function App() {
   const [dark, setDark] = useState(true);
 
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <HashRouter>
       <LightboxProvider>
         <div style={{
           background: "#070707",
@@ -29,6 +29,6 @@ export default function App() {
           </Routes>
         </div>
       </LightboxProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
