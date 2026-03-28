@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mook DiMarco — Creative Technologist</title>
+  <meta name="description" content="Sean 'Mook' DiMarco — Creative Technologist, Animator, Educator. Building AI tools kids actually use." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; background: #070707; }
+    body { background: #070707; color: #e0e0e0; font-family: 'Space Mono', monospace; overflow-x: hidden; }
+    a:hover { opacity: 0.8; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateX(-50%) translateY(0); opacity: .4; }
+      50%      { transform: translateX(-50%) translateY(6px); opacity: .8; }
+    }
+    @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+    @media (max-width: 640px) {
+      .split-section { grid-template-columns: 1fr !important; }
+      .split-section > div:first-child { border-right: none !important; border-bottom: 1px solid #1a1a1a; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ── Mook's synesthesia colour map ──────────────────────────────────────────
+const SYN = {
+  "0":"#00FFFF","1":"#FF2233","2":"#2255FF","3":"#FFD700",
+  "4":"#22CC44","5":"#FF8800","6":"#9933FF","7":"#FF66CC",
+  "8":"#cccccc","9":"#F5F5F5"
+};
+
+// ── Image paths — add files to /images/ folder in GitHub repo ──────────────
+const IMG = {
+  mookAndMush:   "images/MookAndMush.jpeg",
+  bayHouse:      "images/BayHouse.jpeg",
+  charSheet:     "images/Mook_character_sheet1.jpeg",
+  tvDogPoses:    "images/TVdogposesheet.jpeg",
+  dogSculptures: "images/DogSculptures.jpg",
+  needleFelt:    "images/NeedleFelt.jpg",
+  needleFelt2:   "images/NeedleFlet2.jpg",
+  animation1:    "images/Animation1.jpg",
+  // ART
+  abstractCoder:      "images/abstract-coder.png",
+  texturedChild:      "images/textured-child.png",
+  otisAbstract:       "images/otis-abstract.png",
+  tvboy:              "images/tvboy.png",
+  elsinoreTriptych:   "images/elsinore-triptych.jpg",
+  elsinoreOphilia:    "images/elsinore-ophilia.jpg",
+  elsinoreEsmerelda:  "images/elsinore-esmerelda.jpg",
+};
+
+// ── Animated synesthesia number grid ──────────────────────────────────────
+const COLS = 20, ROWS = 9;
+function useSynGrid() {
+  const [cells, setCells] = useState(() =>
+    Array.from({ length: ROWS * COLS }, () => ({
+      d: String(Math.floor(Math.random() * 10)),
+      op: Math.random() * 0.28 + 0.05,
+      ph: Math.random() * Math.PI * 2,
+      sp: Math.random() * 0.4 + 0.15,
+    }))
+  );
+  useEffect(() => {
+    let raf, t = 0;
+    const tick = () => {
+      t += 0.012;
+      setCells(p => p.map(c => ({
+        ...c,
+        d: Math.random() < 0.002 ? String(Math.floor(Math.random() * 10)) : c.d,
+        op: 0.05 + Math.abs(Math.sin(t * c.sp + c.ph)) * 0.3,
+      })));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return cells;
+}
+
+function SynGrid({ style }) {
+  const cells = useSynGrid();
+  return (
+    <div style={{ display:"grid", gridTemplateColumns:`repeat(${COLS},1fr)`, gridTemplateRows:`repeat(${ROWS},1fr)`, width:"100%", height:"100%", userSelect:"none", pointerEvents:"none", ...style }}>
+      {cells.map((c,i) => (
+        <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Space Mono',monospace", fontSize:"clamp(9px,1.1vw,15px)", fontWeight:700, color:SYN[c.d], opacity:c.op, transition:"opacity 0.5s" }}>{c.d}</div>
+      ))}
+    </div>
+  );
+}
+
+// ── Live waveform canvas ───────────────────────────────────────────────────
+function Waveform({ accent }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let t = 0, raf;
+    const draw = () => {
+      const { width: w, height: h } = canvas;
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = accent; ctx.lineWidth = 2;
+      ctx.shadowBlur = 10; ctx.shadowColor = accent;
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const y = h/2 + Math.sin(x*0.03+t)*h*0.28 + Math.sin(x*0.07+t*1.7)*h*0.1 + Math.sin(x*0.015+t*0.5)*h*0.08;
+        x===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.stroke(); t += 0.04;
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, [accent]);
+  return <canvas ref={ref} width={700} height={64} style={{ width:"100%", height:64, borderRadius:8, background:accent+"0a" }} />;
+}
+
+// ── YouTube embed (click to load) ─────────────────────────────────────────
+function YouTubeEmbed({ videoId, accent }) {
+  const [go, setGo] = useState(false);
+  return (
+    <div style={{ position:"relative", width:"100%", paddingTop:"56.25%", background:"#000", borderRadius:8, overflow:"hidden" }}>
+      {!go ? (
+        <div onClick={() => setGo(true)} style={{ position:"absolute", inset:0, cursor:"pointer", background:`${accent}10`, border:`1px solid ${accent}33`, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:12 }}>
+          <div style={{ width:64, height:64, borderRadius:"50%", background:accent, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, color:"#000" }}>▶</div>
+          <div style={{ color:accent, fontFamily:"'Space Mono',monospace", fontSize:11, letterSpacing:3 }}>PLAY FILM</div>
+        </div>
+      ) : (
+        <iframe src={`https://www.youtube.com/embed/${videoId}?autoplay=1`} style={{ position:"absolute", inset:0, width:"100%", height:"100%", border:"none" }} allow="autoplay; fullscreen" allowFullScreen />
+      )}
+    </div>
+  );
+}
+
+// ── 2×2 photo grid ────────────────────────────────────────────────────────
+function PhotoGrid({ images, accent }) {
+  return (
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:4 }}>
+      {images.map((img, i) => {
+        const r = [i===0?"8px 0 0 0":i===1?"0 8px 0 0":i===2?"0 0 0 8px":"0 0 8px 0"];
+        return (
+          <div key={i} style={{ aspectRatio:"4/3", overflow:"hidden", borderRadius:r[0] }}>
+            <ImgSlot src={img.src} alt={img.alt} accent={accent} label={img.label} style={{ height:"100%", borderRadius:0 }} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Image with graceful placeholder ───────────────────────────────────────
+function ImgSlot({ src, alt, accent, label, style, fit="cover" }) {
+  const [err, setErr] = useState(false);
+  if (err || !src) return (
+    <div style={{ background:`${accent}14`, border:`1px dashed ${accent}44`, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", color:accent, fontFamily:"'Space Mono',monospace", fontSize:11, letterSpacing:2, textAlign:"center", gap:6, ...style }}>
+      <div style={{ fontSize:20 }}>🖼</div><div>{label||alt}</div>
+    </div>
+  );
+  return <img src={src} alt={alt} onError={()=>setErr(true)} style={{ objectFit:fit, width:"100%", height:"100%", display:"block", ...style }} />;
+}
+
+// ── Tag pill ───────────────────────────────────────────────────────────────
+function Tag({ children, color }) {
+  return <span style={{ display:"inline-block", border:`1px solid ${color}55`, color, background:`${color}11`, borderRadius:4, padding:"3px 10px", fontSize:10, letterSpacing:2, fontFamily:"'Space Mono',monospace", fontWeight:700, textTransform:"uppercase" }}>{children}</span>;
+}
+
+// ── Project data ───────────────────────────────────────────────────────────
+const CATS = ["ALL","ART","GAMES","TOOLS","ANIMATION","FILM","TEACHING"];
+const CAT_COLOR = { ALL:SYN["9"], ART:SYN["7"], GAMES:SYN["4"], TOOLS:SYN["6"], ANIMATION:SYN["5"], FILM:SYN["1"], TEACHING:SYN["3"] };
+
+const PROJECTS = [
+  // ART
+  { id:"visualart", cat:"ART", wide:true, title:"Visual Art", tagline:"Painting, illustration & generative work", accent:SYN["7"],
+    desc:"Abstract expressionism, figurative work, and generative AI collaboration. My painting practice runs parallel to everything else — it's where synesthetic perception gets translated most directly into form and color. Abstract Coder in Vibrant Cosmos came out of thinking about what it feels like to debug code. The Contemplative Child Figure came out of ten years in classrooms. The work isn't decorative. It's data.",
+    tags:["Abstract Expressionism","Acrylic","Digital","AI-Assisted","Figurative","Synesthesia"],
+    renderMedia: a => (
+      <div style={{ padding:"16px 16px 0" }}>
+        <PhotoGrid accent={a} images={[
+          { src:IMG.abstractCoder,  alt:"Abstract Coder in Vibrant Cosmos",               label:"abstract-coder.png" },
+          { src:IMG.texturedChild,  alt:"Textured Expression: Contemplative Child Figure", label:"textured-child.png" },
+          { src:IMG.otisAbstract,   alt:"Otis in Vibrant Abstract Expressionism",          label:"otis-abstract.png" },
+          { src:IMG.tvboy,          alt:"TV Boy",                                          label:"tvboy.png" },
+        ]} />
+      </div>
+    )},
+
+  { id:"elsinore", cat:"ART", title:"Project Elsinore", tagline:"Character design for an original interactive project", accent:SYN["6"],
+    desc:"A cast of 12+ original characters, each with multiple visual breakdown sheets. Painted digitally with reference to Magritte, Hockney, and German Expressionism. Ophilia, Esmerelda, Albert, Claudius — each one exists in a specific visual register that reflects who they are. This is character design as world-building.",
+    tags:["Character Design","Concept Art","Digital Painting","Visual Development","Magritte","Hockney"],
+    renderMedia: a => (
+      <div style={{ padding:"16px 16px 0" }}>
+        <PhotoGrid accent={a} images={[
+          { src:IMG.elsinoreTriptych,  alt:"Bizarre Triptych",           label:"elsinore-triptych.jpg" },
+          { src:IMG.elsinoreOphilia,   alt:"Ophilia character design",   label:"elsinore-ophilia.jpg" },
+          { src:IMG.elsinoreEsmerelda, alt:"Esmerelda character design", label:"elsinore-esmerelda.jpg" },
+          { src:IMG.tvboy,             alt:"TV Boy character",           label:"tvboy.png" },
+        ]} />
+      </div>
+    )},
+
+  // GAMES
+  { id:"bigback", cat:"GAMES", title:"Big Back Attack 🍕", tagline:"Built by my students at Bowen After School", accent:SYN["5"],
+    desc:"A fully playable breakout game with food-themed power-ups, multi-ball, explosive combos, and a live leaderboard — shipped by students in my after-school program. They designed the mechanics, named it, and balanced it themselves. My job was to give them the tools and get out of the way.",
+    tags:["Student Work","Canvas","Bowen After School","Game Design","Breakout"],
+    cta:"Play Now", ctaHref:"bigbackattack.html" },
+
+  { id:"binarylifegame", cat:"GAMES", title:"Base 2: Game of Life 🧬", tagline:"Conway's Life reframed as a binary teaching tool for kids", accent:SYN["2"],
+    desc:"Click to flip cells between 0 and 1. Watch Conway's rules play out on a grid of binary digits. Built for elementary classrooms — big cells, friendly labels, draw-to-paint interaction. The rules of life explained through the rules of computers.",
+    tags:["Canvas","Teaching Tool","Conway","Binary","K–5"],
+    cta:"Play Now", ctaHref:"binarylife.html" },
+
+  { id:"chaoslands", cat:"GAMES", title:"Chaos Lands: Corruption 🏃", tagline:"Built by my students at Bowen After School", accent:SYN["1"],
+    desc:"A wave-mode runner with a Nightmare Mode that activates at 50%, particle explosions, and a global leaderboard — designed and shipped by students in my after-school program. They came up with the lore, the 'corruption' mechanic, and the name. I taught them the canvas loop. They took it from there.",
+    tags:["Student Work","Canvas","Game Design","Bowen After School","Runner"],
+    cta:"Play Now", ctaHref:"chaoslands.html" },
+
+  { id:"catcaretaker", cat:"GAMES", title:"Cat Caretaker: Nightmare Mansion 🐱", tagline:"Built by my students at Bowen After School", accent:SYN["6"],
+    desc:"A first-person raycasting horror game built from scratch by students in my after-school program. They designed the rooms, the cat mechanics, the anger system, and the jump scare ending. I introduced them to raycasting. They turned it into a nightmare.",
+    tags:["Student Work","Raycasting","Canvas","Horror","Bowen After School"],
+    cta:"Play Now", ctaHref:"catcaretaker.html" },
+
+  { id:"ginrummy", cat:"GAMES", title:"Gin Rummy 🃏", tagline:"Built by my students at Bowen After School", accent:SYN["3"],
+    desc:"A complete Gin Rummy implementation with meld detection, deadwood calculation, and an AI opponent — built by students in my after-school program. They learned what an algorithm actually is by writing one that figures out the best possible hand. No tutorials. Just the problem and the tools.",
+    tags:["Student Work","Card Game","AI Opponent","Algorithm Design","Bowen After School"],
+    cta:"Play Now", ctaHref:"ginrummy.html" },
+
+  // TOOLS
+  { id:"synth", cat:"TOOLS", wide:true, title:"MOOK SYNTH", tagline:"A browser music instrument built for 4th graders", accent:SYN["6"],
+    desc:"Six build sessions. 808 drum engine. XY pads. Grid cells that display the waveform shape of the sound they hold — colour-coded with my synesthetic number system. Real user testing at Bowen After School. Not a demo. A deployed tool kids play.",
+    tags:["Web Audio API","React","Generative UI","EdTech","Synesthesia"],
+    cta:"Open MOOK SYNTH", ctaHref:"mook-synth.html",
+    renderMedia: a => <Waveform accent={a} /> },
+
+  { id:"binarylife", cat:"TOOLS", title:"Binary Game of Life", tagline:"Conway's Life as a binary teaching tool for 4th graders", accent:SYN["2"],
+    desc:"A full Swing GUI Java app: 28×40 grid, classroom-friendly controls, binary mode overlay showing 0/1 instead of alive/dead. Built to teach computational thinking through play.",
+    tags:["Java","Swing GUI","Cellular Automata","Teaching Tool","K–5"],
+    cta:"View on GitHub", ctaHref:"https://github.com/sfdimarco" },
+
+  // ANIMATION
+  { id:"mookandmush", cat:"ANIMATION", wide:true, title:"The Misadventures of Mook & Mush", tagline:"Original cartoon series — pixel art characters in a painted world", accent:SYN["7"],
+    desc:"An original animated series in development. Mook is a synesthetic pixel-art kid; Mush is his small grey companion. Set in Mowersville — a hand-painted suburban world. Full production pipeline: character design, turnaround sheets, background art, animation.",
+    tags:["Character Design","Google Flow","AI Animation","Original IP","Background Art"],
+    image:IMG.mookAndMush, imageAlt:"Mook and Mush skating in Mowersville", imageLabel:"MookAndMush.jpeg" },
+
+  { id:"chardesign", cat:"ANIMATION", title:"Mook — Character Design", tagline:"Full turnaround sheets & pose library", accent:SYN["5"],
+    desc:"Production-ready character design: 5-angle turnaround, pose sheet across 5 emotional states, colour model. Built in Google Flow. The split orange/blue grid texture is a visual encoding of synesthesia.",
+    tags:["Character Design","Turnaround Sheet","Google Flow","Pre-Production"],
+    image:IMG.charSheet, imageAlt:"Mook character pose sheet", imageLabel:"Mook_character_sheet1.jpeg" },
+
+  { id:"tvdog", cat:"ANIMATION", title:"TV Dog — Character Design", tagline:"Supporting character with a vintage television for a head", accent:SYN["3"],
+    desc:"Full pose sheet: walking, sleeping, leaping, curious, yawning, confused. Each expression reads through the screen face. Built in Google Flow with a textured chalk-pastel aesthetic.",
+    tags:["Character Design","Pose Sheet","Google Flow","Anthropomorphic"],
+    image:IMG.tvDogPoses, imageAlt:"TV Dog pose sheet — 6 expressions", imageLabel:"TVdogposesheet.jpeg" },
+
+  { id:"bayhouse", cat:"ANIMATION", title:"Bay House — Background Art", tagline:"Production background for Mowersville exterior scenes", accent:SYN["4"],
+    desc:"Hand-illustrated background: Cape Cod bay house at golden hour, dock, lobster traps, warm orange sky. Painted in Google Flow. Sets the tone for Mook's coastal New England neighbourhood.",
+    tags:["Background Art","Google Flow","Environment Design","Pre-Production"],
+    image:IMG.bayHouse, imageAlt:"Bay House background — Mowersville sunset", imageLabel:"BayHouse.jpeg" },
+
+  // FILM
+  { id:"robotfilm", cat:"FILM", wide:true, title:"Robot Changes TV Channel", tagline:"BFA short film — Lesley University, Zero VFX", accent:SYN["1"],
+    desc:"A short film made at Lesley University. 3D animation, character performance, VFX trained at Zero VFX. The TV-head aesthetic in this film became the seed for the Mook & Mush universe.",
+    tags:["3D Animation","Short Film","Lesley BFA","Zero VFX","Character Animation"],
+    cta:"Watch on Vimeo", ctaHref:"#" },
+
+  // TEACHING
+  { id:"chs-main", cat:"TEACHING", wide:true, title:"The Chestnut Hill School", tagline:"~10 years · Camp Counselor → Videographer → STEAM Teacher · Chestnut Hill, MA", accent:SYN["5"],
+    desc:"Grew up here as a student. Became a CIT in 2009. Now in my 10th summer on staff. Designed and produced 16 student films per summer as camp counselor. Created in-house promotional videos and animations as staff videographer. Currently run Senior Camp for incoming 7th–8th graders: clay armature puppet sculpting, stop motion workshops, live sketch comedy, Momentum Lab tinkering, and watercolour journaling on 3 day trips per week.",
+    tags:["Stop Motion","Clay Armature","Needle Felt","Film Production","Sketch Comedy","Watercolour","7th–8th Grade","10 Years"],
+    renderMedia: a => (
+      <div style={{ padding:"16px 16px 0" }}>
+        <PhotoGrid accent={a} images={[
+          { src:IMG.dogSculptures, alt:"Student dog sculptures",   label:"DogSculptures.jpg" },
+          { src:IMG.needleFelt,    alt:"Needle felt project",      label:"NeedleFelt.jpg" },
+          { src:IMG.needleFelt2,   alt:"Needle felt project 2",    label:"NeedleFlet2.jpg" },
+          { src:IMG.animation1,    alt:"Student animation still",  label:"Animation1.jpg" },
+        ]} />
+      </div>
+    )},
+
+  { id:"chs-film", cat:"TEACHING", title:"CHS Student Animation", tagline:"Stop motion film produced in Senior Camp — Summer 2024", accent:SYN["5"],
+    desc:"A student-produced stop motion animation from last summer's Senior Camp program. Students designed characters, built sets, and animated every frame. No student faces — the work speaks for itself.",
+    tags:["Stop Motion","Student Film","CHS","Summer 2024"],
+    renderMedia: a => (
+      <div style={{ padding:"16px 16px 0" }}>
+        <YouTubeEmbed videoId="tj0Xk_aZ5Fc" accent={a} />
+      </div>
+    )},
+
+  { id:"empow", cat:"TEACHING", title:"EMPOW Studios", tagline:"25 schools · Program director · Curriculum architect", accent:SYN["3"],
+    desc:"Managed AI and STEM programming across 25 schools. Designed challenge-based curricula: give kids a tool and ask 'what can you make?' Scratch, robotics, game dev, AI tools — student-led, educator-facilitated.",
+    tags:["STEM Education","Curriculum Design","Program Management","25 Schools","K–8"] },
+
+  { id:"bowen", cat:"TEACHING", title:"Bowen After School", tagline:"Live user testing with 4th and 5th graders · Newton, MA", accent:SYN["4"],
+    desc:"Current role. I hand AI tools to 4th and 5th graders and watch what breaks. MOOK SYNTH was tested here first. Teaching philosophy: tools, not tutorials.",
+    tags:["After School","AI Tools","User Testing","4th–5th Grade","Newton MA"] },
+
+  { id:"magicschool", cat:"TEACHING", title:"MagicSchool AI", tagline:"Certified educator — AI professional development", accent:SYN["0"],
+    desc:"Completed MagicSchool AI's professional development certification. Applied to Pioneer program. Using AI tools to build lesson plans, differentiate instruction, and advocate for thoughtful AI integration in K–5 classrooms.",
+    tags:["MagicSchool AI","PD Certification","AI Integration","EdTech"] },
+];
+
+const SKILLS = [
+  {label:"AI Tool Design",color:SYN["2"]},{label:"Character Design",color:SYN["7"]},
+  {label:"Web Audio API",color:SYN["6"]},{label:"React / Next.js",color:SYN["2"]},
+  {label:"Unity / C#",color:SYN["4"]},{label:"Google Flow / AI Art",color:SYN["5"]},
+  {label:"3D Animation (BFA)",color:SYN["1"]},{label:"VFX (Zero VFX trained)",color:SYN["1"]},
+  {label:"Java / Swing",color:SYN["2"]},{label:"Three.js / WebGL",color:SYN["0"]},
+  {label:"STEM Curriculum Design",color:SYN["3"]},{label:"MagicSchool AI Certified",color:SYN["3"]},
+  {label:"25-School Program Director",color:SYN["3"]},{label:"Stop Motion & Puppetry",color:SYN["5"]},
+  {label:"Synesthetic UX Research",color:SYN["7"]},
+];
+
+// ── Project card ───────────────────────────────────────────────────────────
+function ProjectCard({ p, isWide }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ gridColumn:isWide?"1 / -1":"auto", background:hov?"#0f0f0f":"#090909", border:`1px solid ${hov?p.accent+"66":"#1e1e1e"}`, borderRadius:14, overflow:"hidden", transition:"all 0.22s", cursor:"default", position:"relative" }}>
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:hov?`linear-gradient(90deg,transparent,${p.accent},transparent)`:"transparent", transition:"all 0.35s" }} />
+
+      {(p.image||p.renderMedia) && (
+        <div style={{ overflow:"hidden", position:"relative" }}>
+          {p.renderMedia ? p.renderMedia(p.accent) : (
+            <div style={{ height:isWide?260:200 }}>
+              <ImgSlot src={p.image} alt={p.imageAlt} accent={p.accent} label={p.imageLabel} style={{ height:"100%" }} />
+            </div>
+          )}
+          {!p.renderMedia && (
+            <div style={{ position:"absolute", top:10, right:12, background:`${p.accent}22`, border:`1px solid ${p.accent}44`, color:p.accent, fontFamily:"'Space Mono',monospace", fontSize:9, letterSpacing:3, padding:"3px 8px", borderRadius:4 }}>{p.cat}</div>
+          )}
+        </div>
+      )}
+
+      <div style={{ padding:"20px 24px 24px" }}>
+        {!p.image&&!p.renderMedia&&(
+          <div style={{ fontSize:9, color:p.accent, letterSpacing:4, fontFamily:"'Space Mono',monospace", marginBottom:10 }}>{p.cat}</div>
+        )}
+        <div style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:isWide?"clamp(20px,2.5vw,28px)":"clamp(17px,2vw,22px)", color:"#fff", lineHeight:1.15, marginBottom:6 }}>{p.title}</div>
+        <div style={{ color:p.accent, fontFamily:"'Space Mono',monospace", fontSize:11, fontStyle:"italic", marginBottom:14 }}>{p.tagline}</div>
+        <p style={{ color:"#777", fontSize:13, lineHeight:1.75, margin:"0 0 18px", maxWidth:isWide?640:400 }}>{p.desc}</p>
+        <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:p.cta?18:0 }}>
+          {p.tags.map(t=><Tag key={t} color={p.accent}>{t}</Tag>)}
+        </div>
+        {p.cta&&(
+          p.ctaHref
+            ? <a href={p.ctaHref} style={{ display:"inline-flex", alignItems:"center", gap:8, background:p.accent, color:"#000", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:2, padding:"9px 20px", borderRadius:6, textDecoration:"none", marginTop:4 }}>▶ {p.cta}</a>
+            : <span style={{ display:"inline-flex", alignItems:"center", gap:8, background:"transparent", color:p.accent, border:`1px solid ${p.accent}55`, fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:2, padding:"9px 20px", borderRadius:6, marginTop:4, opacity:0.7 }}>⏳ {p.cta}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Main app ───────────────────────────────────────────────────────────────
+function App() {
+  const [cat, setCat] = useState("ALL");
+  const [scrolled, setScrolled] = useState(false);
+  const filtered = cat==="ALL" ? PROJECTS : PROJECTS.filter(p=>p.cat===cat);
+
+  useEffect(()=>{
+    const h = ()=>setScrolled(window.scrollY>40);
+    window.addEventListener("scroll",h);
+    return ()=>window.removeEventListener("scroll",h);
+  },[]);
+
+  return (
+    <div style={{ background:"#070707", minHeight:"100vh", color:"#e0e0e0", fontFamily:"'Space Mono',monospace", overflowX:"hidden" }}>
+
+      {/* NAV */}
+      <nav style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, padding:"0 32px", height:54, display:"flex", alignItems:"center", justifyContent:"space-between", background:scrolled?"rgba(7,7,7,0.92)":"transparent", backdropFilter:scrolled?"blur(12px)":"none", borderBottom:scrolled?"1px solid #1a1a1a":"1px solid transparent", transition:"all 0.3s" }}>
+        <div style={{ fontWeight:700, fontSize:14, letterSpacing:3 }}>
+          {[["M","4"],["O","5"],["O","5"],["K","1"]].map(([l,c],i)=>(
+            <span key={i} style={{ color:SYN[c] }}>{l}</span>
+          ))}
+        </div>
+        <div style={{ display:"flex", gap:28, fontSize:11, letterSpacing:2 }}>
+          <a href="#work"    style={{ color:"#666", textDecoration:"none" }}>WORK</a>
+          <a href="#about"   style={{ color:"#666", textDecoration:"none" }}>ABOUT</a>
+          <a href="#contact" style={{ color:SYN["4"], textDecoration:"none", fontWeight:700 }}>HIRE ME</a>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section style={{ minHeight:"100vh", position:"relative", overflow:"hidden", display:"flex", flexDirection:"column" }}>
+        <div style={{ position:"absolute", inset:0 }}><SynGrid /></div>
+        <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,rgba(7,7,7,.85) 0%,rgba(7,7,7,.6) 45%,rgba(34,85,255,.05) 55%,rgba(7,7,7,.8) 100%)" }} />
+        <div style={{ position:"absolute", top:"50%", left:"6%", transform:"translateY(-50%)", fontFamily:"'Space Mono',monospace", fontSize:10, letterSpacing:5, color:SYN["3"]+"bb", writingMode:"vertical-rl", rotate:"180deg" }}>EDUCATOR</div>
+        <div style={{ position:"absolute", top:"50%", right:"5%", transform:"translateY(-50%)", fontFamily:"'Space Mono',monospace", fontSize:10, letterSpacing:5, color:SYN["2"]+"bb", writingMode:"vertical-rl" }}>BUILDER</div>
+
+        <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"100px 24px 60px", position:"relative", zIndex:2, textAlign:"center" }}>
+          <div style={{ fontSize:11, letterSpacing:6, color:"#555", marginBottom:18, animation:"fadeUp 0.8s ease both" }}>SEAN DIMARCO — CREATIVE TECHNOLOGIST</div>
+          <h1 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:"clamp(38px,8vw,90px)", fontWeight:400, lineHeight:1, margin:"0 0 6px", letterSpacing:-2, color:"#fff", animation:"fadeUp 0.8s 0.1s ease both" }}>I build AI tools</h1>
+          <h1 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontStyle:"italic", fontSize:"clamp(38px,8vw,90px)", fontWeight:400, lineHeight:1, margin:"0 0 28px", letterSpacing:-2, color:"#fff", animation:"fadeUp 0.8s 0.15s ease both" }}>
+            kids actually <span style={{ color:SYN["4"] }}>use.</span>
+          </h1>
+          <p style={{ maxWidth:520, color:"#777", fontSize:"clamp(13px,1.4vw,15px)", lineHeight:1.85, margin:"0 0 44px", animation:"fadeUp 0.8s 0.25s ease both" }}>
+            7+ years teaching. Animator. Game developer. I design the tool, ship it to a classroom, watch a 4th grader break it, and fix it the same day. That's the research.
+          </p>
+          <div style={{ display:"flex", gap:14, flexWrap:"wrap", justifyContent:"center", animation:"fadeUp 0.8s 0.35s ease both" }}>
+            <a href="#work"    style={{ background:SYN["4"], color:"#000", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"13px 30px", borderRadius:6, textDecoration:"none" }}>See My Work</a>
+            <a href="#contact" style={{ background:"transparent", color:SYN["2"], fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"13px 30px", borderRadius:6, textDecoration:"none", border:`1px solid ${SYN["2"]}55` }}>Get In Touch</a>
+          </div>
+
+          {/* Synesthesia legend */}
+          <div style={{ marginTop:60, display:"flex", gap:5, flexWrap:"wrap", justifyContent:"center", animation:"fadeUp 0.8s 0.5s ease both" }}>
+            <span style={{ fontSize:10, color:"#444", letterSpacing:3, alignSelf:"center", marginRight:8 }}>I SEE</span>
+            {Object.entries(SYN).map(([d,c])=>(
+              <div key={d} style={{ width:26, height:26, borderRadius:4, background:c+"20", border:`1px solid ${c}44`, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Space Mono',monospace", fontSize:12, fontWeight:700, color:c }}>{d}</div>
+            ))}
+            <span style={{ fontSize:10, color:"#444", letterSpacing:2, alignSelf:"center", marginLeft:8 }}>as color</span>
+          </div>
+        </div>
+        <div style={{ position:"absolute", bottom:22, left:"50%", transform:"translateX(-50%)", fontSize:10, color:"#444", letterSpacing:4, animation:"bounce 2s infinite" }}>↓ SCROLL</div>
+      </section>
+
+      {/* WHO I AM */}
+      <section id="about" className="split-section" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", borderTop:"1px solid #1a1a1a", borderBottom:"1px solid #1a1a1a" }}>
+        <div style={{ padding:"56px 44px", borderRight:"1px solid #1a1a1a", background:`linear-gradient(160deg,${SYN["3"]}06,transparent)` }}>
+          <div style={{ fontSize:10, color:SYN["3"], letterSpacing:5, marginBottom:20 }}>THE EDUCATOR</div>
+          <h2 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:"clamp(22px,2.8vw,36px)", color:"#fff", lineHeight:1.2, margin:"0 0 18px", fontWeight:400 }}>I've taught a thousand kids to think in systems.</h2>
+          <p style={{ color:"#777", fontSize:13, lineHeight:1.85 }}>The Chestnut Hill School · 10 years · EMPOW Studios · 25 schools · Bowen After School · MagicSchool AI Certified · BFA Animation, Lesley University. I don't just demo AI tools — I hand them to a 4th grader and watch what breaks.</p>
+        </div>
+        <div style={{ padding:"56px 44px", background:`linear-gradient(160deg,${SYN["2"]}06,transparent)` }}>
+          <div style={{ fontSize:10, color:SYN["2"], letterSpacing:5, marginBottom:20 }}>THE BUILDER</div>
+          <h2 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:"clamp(22px,2.8vw,36px)", color:"#fff", lineHeight:1.2, margin:"0 0 18px", fontWeight:400 }}>I ship interactive AI tools from scratch, in the browser.</h2>
+          <p style={{ color:"#777", fontSize:13, lineHeight:1.85 }}>React · Web Audio API · Unity · Three.js · Google Flow · Java. I have synesthesia — numbers are colours, sounds are shapes. My UI decisions aren't aesthetic preferences. They're perceptual data.</p>
+        </div>
+      </section>
+
+      {/* WORK */}
+      <section id="work" style={{ padding:"72px 24px", maxWidth:1000, margin:"0 auto" }}>
+        <div style={{ fontSize:10, letterSpacing:6, color:"#555", marginBottom:32, textAlign:"center" }}>★ SELECTED WORK</div>
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center", marginBottom:44 }}>
+          {CATS.map(c=>(
+            <button key={c} onClick={()=>setCat(c)} style={{ background:cat===c?CAT_COLOR[c]:"#111", color:cat===c?"#000":CAT_COLOR[c], border:`1px solid ${CAT_COLOR[c]}`, borderRadius:999, padding:"7px 16px", fontSize:10, fontWeight:700, cursor:"pointer", letterSpacing:3, fontFamily:"'Space Mono',monospace", transition:"all 0.15s" }}>{c}</button>
+          ))}
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:20 }}>
+          {filtered.map(p=><ProjectCard key={p.id} p={p} isWide={p.wide && cat==="ALL"} />)}
+        </div>
+      </section>
+
+      {/* SKILLS */}
+      <section style={{ borderTop:"1px solid #1a1a1a", padding:"56px 24px", maxWidth:900, margin:"0 auto" }}>
+        <div style={{ fontSize:10, letterSpacing:6, color:"#555", marginBottom:32, textAlign:"center" }}>TOOLS I SPEAK</div>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:9, justifyContent:"center" }}>
+          {SKILLS.map(s=><Tag key={s.label} color={s.color}>{s.label}</Tag>)}
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section id="contact" style={{ borderTop:"1px solid #1a1a1a", padding:"80px 24px", textAlign:"center", position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", inset:0, opacity:0.25 }}><SynGrid /></div>
+        <div style={{ position:"relative", zIndex:2 }}>
+          <div style={{ fontSize:10, letterSpacing:6, color:"#555", marginBottom:20 }}>LET'S WORK TOGETHER</div>
+          <h2 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:"clamp(28px,5vw,56px)", color:"#fff", margin:"0 0 16px", fontWeight:400 }}>
+            Hire the person who builds <em style={{ color:SYN["4"] }}>and</em> teaches.
+          </h2>
+          <p style={{ color:"#666", fontSize:13, lineHeight:1.85, maxWidth:420, margin:"0 auto 40px" }}>
+            Looking for a hybrid EdTech / Creative AI role in the Boston area.<br/>Open to fully remote for the right team.
+          </p>
+          <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
+            <a href="mailto:sfdimarco@gmail.com" style={{ background:SYN["4"], color:"#000", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none" }}>Email Me</a>
+            <a href="https://www.linkedin.com/in/sfdimarco" target="_blank" rel="noreferrer" style={{ background:"transparent", color:"#aaa", fontFamily:"'Space Mono',monospace", fontWeight:700, fontSize:11, letterSpacing:3, padding:"15px 34px", borderRadius:6, textDecoration:"none", border:"1px solid #333" }}>LinkedIn</a>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{ borderTop:"1px solid #111", padding:"20px 32px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, fontSize:10, color:"#444", letterSpacing:2 }}>
+        <div>© 2026 SEAN "MOOK" DIMARCO</div>
+        <div style={{ display:"flex", gap:5 }}>
+          {Object.entries(SYN).map(([d,c])=><span key={d} style={{ color:c, fontWeight:700 }}>{d}</span>)}
+        </div>
+        <div>NEWTON, MA · BUILDING IN THE OPEN</div>
+      </footer>
+
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+</body>
+</html>

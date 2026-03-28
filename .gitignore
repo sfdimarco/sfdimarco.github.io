@@ -1,0 +1,14 @@
+# Large media files — keep locally, don't push to GitHub
+*.HEIC
+*.MOV
+*.mov
+*.MP4
+*.mp4
+
+# Duplicate file
+Portfoliowebsite.html
+
+# System
+Thumbs.db
+.DS_Store
+desktop.ini
