@@ -457,11 +457,26 @@ const PROJECTS = [
     image:IMG.bayHouse, imageAlt:"Bay House background — Mowersville sunset", imageLabel:"BayHouse.jpeg" },
 
   // FILM
-  { id:"robotfilm", cat:"FILM", wide:true, title:"Robot Changes TV Channel", tagline:"BFA capstone — Lesley University · Zero VFX · IMDB listed", accent:SYN["1"],
-    desc:"My BFA Animation capstone at Lesley University. 3D character animation, performance, and VFX pipeline built with training from Zero VFX studio. Listed on IMDB. The TV-head robot in this film became the visual seed for the entire Mook & Mush universe — the character that started everything. Also produced 'Every Child Deserves a Home' during my BFA — an animated short for the Child Homelessness Initiative.",
-    tags:["3D Animation","BFA Capstone","Lesley University","Zero VFX","IMDB","Character Animation","Festival Submission"],
-    cta:"Watch on Film Freeway", ctaHref:"https://filmfreeway.com/WeightSortFilm",
+  { id:"robotfilm", cat:"FILM", wide:true, title:"Robot Changes TV Channel", tagline:"Junior Thesis Film · Lesley University · Zero VFX · IMDB listed", accent:SYN["1"],
+    desc:"My junior thesis film at Lesley University's BFA Animation program. 3D character animation, performance direction, and a VFX pipeline built with training from Zero VFX Boston. Listed on IMDB. The TV-head robot in this film became the visual and thematic seed for the Mook & Mush universe — the character that started everything. Also made 'Every Child Deserves a Home' during my BFA — an animated short for the Child Homelessness Initiative.",
+    tags:["3D Animation","Junior Thesis","Lesley University","Zero VFX","IMDB","Character Animation","Festival Circuit"],
+    renderMedia: a => (
+      <div style={{ padding:"16px 16px 0" }}>
+        <YouTubeEmbed videoId="xX9ZQkI-Pac" accent={a} />
+      </div>
+    ),
+    cta:"Submit · Film Freeway", ctaHref:"https://filmfreeway.com/WeightSortFilm",
     ctaTarget:"_blank" },
+
+  { id:"earlyfilms", cat:"FILM", title:"First Year Work — 2017", tagline:"Lesley University · Freshman animation exercises", accent:SYN["8"],
+    desc:"First-year animation work at Lesley University, 2017. These aren't thesis films — they're where the fundamentals got built. Flour sack, character movement, timing. The foundation everything else stands on.",
+    tags:["Student Work","Lesley University","2017","Fundamentals","Character Animation"],
+    renderMedia: a => (
+      <div style={{ padding:"16px 16px 0", display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+        <YouTubeEmbed videoId="ssxQIc3kv5Y" accent={a} />
+        <YouTubeEmbed videoId="l3cI4xeQb8s" accent={a} />
+      </div>
+    )},
 
   // TEACHING
   { id:"chs-main", cat:"TEACHING", wide:true, title:"The Chestnut Hill School", tagline:"~10 years · Camp Counselor → Videographer → STEAM Teacher · Chestnut Hill, MA", accent:SYN["5"],
