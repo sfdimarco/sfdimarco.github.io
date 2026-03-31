@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuadTree Vision — .geoi Format Explorer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'IBM Plex Mono', 'Courier New', monospace; background: #0a0a0a; color: #e0e0e0; }
+    input[type=range] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: #222; outline: none; cursor: pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #f27d26; cursor: pointer; }
+    input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #f27d26; border: none; cursor: pointer; }
+    canvas { image-rendering: pixelated; }
+    .fade-overlay { background: linear-gradient(to top, #0f0f0f, transparent); }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+<header class="border-b border-[#222] p-4 flex items-center justify-between bg-[#0f0f0f] sticky top-0 z-50">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-[#f27d26] rounded-sm flex items-center justify-center text-black font-bold text-lg">⊞</div>
+    <div>
+      <h1 class="text-base font-bold tracking-tight uppercase italic">QuadTree Vision</h1>
+      <p class="text-[10px] text-[#666] uppercase tracking-widest">.geoi Format Explorer — V1 Raw</p>
+    </div>
+  </div>
+  <div class="flex items-center gap-3">
+    <div id="progress-bar" class="hidden items-center gap-3 w-32">
+      <div class="flex-1 h-1 bg-[#222] rounded-full overflow-hidden">
+        <div id="progress-fill" class="h-full bg-[#f27d26] transition-all duration-100" style="width:0%"></div>
+      </div>
+      <span id="progress-pct" class="text-[9px] text-[#666]">0%</span>
+    </div>
+    <label id="upload-label" class="cursor-pointer px-4 py-2 rounded-sm text-xs flex items-center gap-2 border bg-[#222] hover:bg-[#333] border-[#333] transition-colors">
+      ↑ UPLOAD IMAGE / .GEOI
+      <input id="file-input" type="file" class="hidden" accept="image/*,.geoi" />
+    </label>
+    <div class="h-8 w-px bg-[#222]"></div>
+    <div id="status-badge" class="text-[10px] text-[#666]">● IDLE</div>
+  </div>
+</header>
+
+<!-- ── MAIN ──────────────────────────────────────────────────────────── -->
+<main class="p-4 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 max-w-[1500px] mx-auto">
+
+  <!-- Left: Viewport -->
+  <div class="space-y-4">
+
+    <!-- Canvas drop zone -->
+    <div id="drop-zone"
+      class="relative aspect-video bg-[#0f0f0f] border border-[#222] rounded-sm overflow-hidden flex items-center justify-center cursor-pointer group hover:border-[#f27d26]/40 transition-colors">
+
+      <!-- Empty state -->
+      <div id="empty-state" class="text-center space-y-3 opacity-40 group-hover:opacity-80 transition-opacity">
+        <div class="w-14 h-14 border-2 border-dashed border-[#444] rounded-full mx-auto flex items-center justify-center text-2xl">⊞</div>
+        <p class="text-xs uppercase tracking-widest">Drop image or .geoi here</p>
+        <p class="text-[10px] text-[#444]">PNG · JPG · HEIC · GEOI</p>
+      </div>
+
+      <!-- Processing overlay -->
+      <div id="proc-overlay" class="hidden absolute inset-0 bg-black/60 z-10 flex flex-col items-center justify-center gap-3">
+        <div class="w-56 h-1 bg-[#222] rounded-full overflow-hidden">
+          <div id="proc-fill" class="h-full bg-[#f27d26] transition-all duration-100" style="width:0%"></div>
+        </div>
+        <span class="text-[10px] font-bold tracking-[0.2em] text-[#f27d26]">ENCODING SPATIAL DATA</span>
+        <span id="proc-pct" class="text-[10px] text-[#666]">0%</span>
+      </div>
+
+      <!-- Canvas -->
+      <canvas id="main-canvas" class="hidden max-w-full max-h-full shadow-2xl"></canvas>
+
+      <!-- Canvas overlay controls -->
+      <div id="canvas-controls" class="hidden absolute bottom-3 left-3 right-3 flex justify-between items-end">
+        <div class="flex gap-2">
+          <button id="btn-grid" class="px-3 py-1.5 rounded-sm border text-[10px] uppercase tracking-widest transition-all bg-[#f27d26] text-black border-[#f27d26]">Grid</button>
+          <button id="btn-orig" class="px-3 py-1.5 rounded-sm border text-[10px] uppercase tracking-widest transition-all bg-[#1a1a1a] text-white border-[#333] hover:border-[#444]">Original</button>
+        </div>
+        <div id="stats-overlay" class="bg-black/80 border border-[#222] p-2.5 rounded-sm text-[10px] space-y-1"></div>
+      </div>
+    </div>
+
+    <!-- Progressive depth slider -->
+    <div id="depth-slider-panel" class="hidden bg-[#0f0f0f] border border-[#222] p-4 rounded-sm space-y-2">
+      <div class="flex items-center justify-between text-[10px] uppercase tracking-widest">
+        <span class="text-[#666]">⊟ Progressive Decode Depth</span>
+        <span id="depth-val" class="text-[#f27d26]">—</span>
+      </div>
+      <input id="depth-slider" type="range" min="0" max="12" value="8" class="w-full" />
+      <p class="text-[9px] text-[#444]">Slide left → lower resolution. This is the progressive decode baked into .geoi.</p>
+    </div>
+
+    <!-- Bitstream display -->
+    <div id="bitstream-panel" class="hidden bg-[#0f0f0f] border border-[#222] p-4 rounded-sm space-y-2">
+      <div class="flex items-center justify-between text-[10px] uppercase tracking-widest">
+        <span class="text-[#666]">⊞ Z-Order Grammar Bitstream</span>
+        <span id="bitstream-size" class="text-[#f27d26]">—</span>
+      </div>
+      <div class="relative h-16 overflow-hidden">
+        <div id="bitstream-text" class="text-[10px] text-[#444] break-all leading-tight font-mono select-none"></div>
+        <div class="fade-overlay absolute inset-0"></div>
+      </div>
+      <p class="text-[9px] text-[#333]">1 = internal node · 0 = leaf · Z-order: TL→TR→BL→BR</p>
+    </div>
+  </div>
+
+  <!-- Right: Sidebar -->
+  <aside class="space-y-4">
+
+    <!-- GEOi header panel (shown when .geoi loaded) -->
+    <div id="geoi-header-panel" class="hidden bg-[#0a1a0a] border border-[#2a4a2a] p-5 rounded-sm space-y-3">
+      <div class="text-xs font-bold uppercase tracking-widest border-b border-[#2a4a2a] pb-3 text-[#4af27d]">
+        ⊞ GEOi File Loaded
+      </div>
+      <div id="geoi-header-fields" class="space-y-2 text-[10px]"></div>
+    </div>
+
+    <!-- Encoder parameters (shown in image mode) -->
+    <div id="encoder-panel" class="bg-[#0f0f0f] border border-[#222] p-5 rounded-sm space-y-5">
+      <div class="text-xs font-bold uppercase tracking-widest border-b border-[#222] pb-3 flex items-center gap-2">
+        <span class="text-[#f27d26]">⚙</span> Encoder Parameters
+      </div>
+      <div class="space-y-2">
+        <div class="flex justify-between text-[10px] uppercase tracking-widest">
+          <span class="text-[#666]">Variance Threshold</span>
+          <span id="threshold-val" class="text-[#f27d26]">50</span>
+        </div>
+        <input id="threshold" type="range" min="0" max="255" value="50" class="w-full" />
+        <p class="text-[9px] text-[#444] leading-relaxed">Higher = more compression. Merges blocks with similar color.</p>
+      </div>
+      <div class="space-y-2">
+        <div class="flex justify-between text-[10px] uppercase tracking-widest">
+          <span class="text-[#666]">Max Recursion Depth</span>
+          <span id="maxdepth-val" class="text-[#f27d26]">8</span>
+        </div>
+        <input id="maxdepth" type="range" min="1" max="12" value="8" class="w-full" />
+        <p class="text-[9px] text-[#444] leading-relaxed">Higher = finer detail captured.</p>
+      </div>
+      <div class="pt-2 border-t border-[#222] space-y-3">
+        <button id="btn-reencode" class="w-full bg-[#f27d26] hover:bg-[#ff8c3a] disabled:bg-[#333] disabled:text-[#666] text-black font-bold py-3 rounded-sm text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2" disabled>
+          ↺ Re-Encode
+        </button>
+        <button id="btn-download" class="w-full bg-transparent hover:bg-[#1a1a1a] disabled:text-[#444] text-[#f27d26] border border-[#f27d26] disabled:border-[#333] font-bold py-3 rounded-sm text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2" disabled>
+          ↓ Download .geoi
+        </button>
+      </div>
+    </div>
+
+    <!-- Compression analysis -->
+    <div id="compression-panel" class="hidden bg-[#0f0f0f] border border-[#222] p-5 rounded-sm space-y-3">
+      <div class="text-xs font-bold uppercase tracking-widest border-b border-[#222] pb-3 flex items-center gap-2">
+        <span class="text-[#f27d26]">⚡</span> Compression Analysis
+      </div>
+      <div id="compression-fields" class="space-y-2 text-[10px]"></div>
+    </div>
+
+    <!-- Format spec -->
+    <div class="bg-[#0f0f0f] border border-[#222] p-5 rounded-sm space-y-3">
+      <div class="text-xs font-bold uppercase tracking-widest border-b border-[#222] pb-3 flex items-center gap-2">
+        <span class="text-[#666]">ℹ</span> .geoi Format Spec
+      </div>
+      <div class="space-y-1.5 text-[10px] text-[#555]">
+        <div class="flex justify-between gap-4"><span class="text-[#444]">MAGIC</span><span>'GEOi' (4 bytes)</span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#444]">HEADER</span><span>16 bytes · big-endian</span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#444]">ORDER</span><span>Z-order · TL→TR→BL→BR</span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#444]">LEAVES</span><span>Mask=0x00 · solid color</span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#444]">INTERNAL</span><span>Mask=0x0F · 4 children</span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#444]">DELTA</span><span>Signed int8 from parent</span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#444]">DECODE</span><span>Stop at any depth → valid</span></div>
+      </div>
+    </div>
+
+    <!-- Back link -->
+    <a href="/" class="block text-center text-[10px] text-[#444] hover:text-[#f27d26] uppercase tracking-widest transition-colors py-2">
+      ← Back to Labs
+    </a>
+
+  </aside>
+</main>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+<footer class="mt-8 border-t border-[#222] p-5 text-center space-y-1">
+  <div class="flex justify-center gap-5 text-[10px] text-[#333] uppercase tracking-[0.2em]">
+    <span>Binary Quadtree</span><span>·</span><span>Z-Order</span><span>·</span><span>Progressive Decode</span><span>·</span><span>V1 Raw</span>
+  </div>
+  <p class="text-[9px] text-[#2a2a2a]">GEO Image Format · github.com/sfdimarco/BinaryQuadTreeCPUTest</p>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// QUADTREE ENGINE — .geoi V1 Raw Format
+// Compatible with BinaryQuadTreeCPUTest Go codec
+// ═══════════════════════════════════════════════════════════════════════
+
+const GEOI_MAGIC = [0x47,0x45,0x4F,0x69]; // 'GEOi'
+const HEADER_SIZE = 16;
+
+function getAverageColor(x,y,w,h,data,W){
+  let r=0,g=0,b=0,a=0, n=w*h;
+  for(let i=y;i<y+h;i++) for(let j=x;j<x+w;j++){
+    const k=(i*W+j)*4; r+=data[k];g+=data[k+1];b+=data[k+2];a+=data[k+3];
+  }
+  return [r/n|0, g/n|0, b/n|0, a/n|0];
+}
+
+function getVariance(x,y,w,h,data,W,avg){
+  let v=0, n=w*h;
+  for(let i=y;i<y+h;i++) for(let j=x;j<x+w;j++){
+    const k=(i*W+j)*4;
+    const dr=data[k]-avg[0], dg=data[k+1]-avg[1], db=data[k+2]-avg[2];
+    v+=dr*dr+dg*dg+db*db;
+  }
+  return v/(n*3);
+}
+
+async function buildTree(x,y,w,h,depth,maxDepth,threshold,data,imgW,progress){
+  const avg = getAverageColor(x,y,w,h,data,imgW);
+  if(depth>=maxDepth || w<=1 || h<=1 || getVariance(x,y,w,h,data,imgW,avg)<=threshold){
+    if(progress) progress.px += w*h;
+    return {x,y,w,h,color:avg,leaf:true,depth};
+  }
+  const hw=w>>1, hh=h>>1;
+  // Z-order: TL=0, TR=1, BL=2, BR=3
+  const ch = await Promise.all([
+    buildTree(x,    y,    hw,   hh,   depth+1,maxDepth,threshold,data,imgW,progress),
+    buildTree(x+hw, y,    w-hw, hh,   depth+1,maxDepth,threshold,data,imgW,progress),
+    buildTree(x,    y+hh, hw,   h-hh, depth+1,maxDepth,threshold,data,imgW,progress),
+    buildTree(x+hw, y+hh, w-hw, h-hh, depth+1,maxDepth,threshold,data,imgW,progress),
+  ]);
+  return {x,y,w,h,color:avg,leaf:false,depth,ch};
+}
+
+function toSignedByte(d){ const c=Math.max(-128,Math.min(127,d)); return c<0?c+256:c; }
+function fromSignedByte(b){ return b>127?b-256:b; }
+function pushU32BE(buf,v){ buf.push((v>>>24)&0xFF,(v>>>16)&0xFF,(v>>>8)&0xFF,v&0xFF); }
+function readU32BE(d,o){ return ((d[o]<<24)|(d[o+1]<<16)|(d[o+2]<<8)|d[o+3])>>>0; }
+
+function getMaxDepth(node){ return node.leaf ? node.depth : Math.max(...node.ch.map(getMaxDepth)); }
+
+function countNodes(node){
+  if(node.leaf) return {total:1,leaves:1};
+  const s=node.ch.map(countNodes);
+  return {total:1+s.reduce((a,c)=>a+c.total,0), leaves:s.reduce((a,c)=>a+c.leaves,0)};
+}
+
+function getBinaryString(node){
+  if(node.leaf) return '0';
+  return '1'+node.ch.map(getBinaryString).join('');
+}
+
+function serializeGeoi(node,W,H){
+  const md=getMaxDepth(node), buf=[];
+  buf.push(...GEOI_MAGIC);
+  buf.push(1,md,1,100); // version=1, maxDepth, colorMode=RGB, quality=100
+  pushU32BE(buf,W); pushU32BE(buf,H);
+  buf.push(...node.color); // root absolute RGBA
+  function encode(n,parentColor,isRoot){
+    if(!isRoot) buf.push(toSignedByte(n.color[0]-parentColor[0]),toSignedByte(n.color[1]-parentColor[1]),toSignedByte(n.color[2]-parentColor[2]),toSignedByte(n.color[3]-parentColor[3]));
+    const mask = n.leaf ? 0 : 0x0F;
+    buf.push(mask);
+    if(!n.leaf) n.ch.forEach(c=>encode(c,n.color,false));
+  }
+  encode(node,node.color,true);
+  return new Uint8Array(buf);
+}
+
+function deserializeGeoi(data){
+  if(data.length<HEADER_SIZE) return null;
+  if(data[0]!==0x47||data[1]!==0x45||data[2]!==0x4F||data[3]!==0x69) return null;
+  if(data[4]!==1){ alert('GEOi v'+data[4]+' (Huffman) not yet supported — only V1 Raw'); return null; }
+  const hdr={version:data[4],maxDepth:data[5],colorMode:data[6],quality:data[7],
+             width:readU32BE(data,8),height:readU32BE(data,12)};
+  let off=HEADER_SIZE;
+  function r4(){ const v=[data[off],data[off+1],data[off+2],data[off+3]]; off+=4; return v; }
+  function applyDelta(p,d){ return [
+    Math.max(0,Math.min(255,p[0]+fromSignedByte(d[0]))),
+    Math.max(0,Math.min(255,p[1]+fromSignedByte(d[1]))),
+    Math.max(0,Math.min(255,p[2]+fromSignedByte(d[2]))),
+    Math.max(0,Math.min(255,p[3]+fromSignedByte(d[3]))),
+  ];}
+  function decode(x,y,w,h,depth,parentColor,isRoot){
+    const color = isRoot ? parentColor : applyDelta(parentColor,r4());
+    const mask=data[off++];
+    if(mask===0||w<=1||h<=1) return{x,y,w,h,color,leaf:true,depth};
+    const hw=w>>1,hh=h>>1;
+    const quads=[{cx:x,cy:y,cw:hw,ch:hh},{cx:x+hw,cy:y,cw:w-hw,ch:hh},
+                 {cx:x,cy:y+hh,cw:hw,ch:h-hh},{cx:x+hw,cy:y+hh,cw:w-hw,ch:h-hh}];
+    const children=quads.map((q,i)=>{
+      if(mask&(1<<i)) return decode(q.cx,q.cy,q.cw,q.ch,depth+1,color,false);
+      return{x:q.cx,y:q.cy,w:q.cw,h:q.ch,color,leaf:true,depth:depth+1};
+    });
+    return{x,y,w,h,color,leaf:false,depth,ch:children};
+  }
+  const rootColor=r4();
+  return{node:decode(0,0,hdr.width,hdr.height,0,rootColor,true),header:hdr};
+}
+
+function estimateJpegSize(img,quality=0.85){
+  const c=document.createElement('canvas');
+  c.width=img.width;c.height=img.height;
+  c.getContext('2d').drawImage(img,0,0);
+  const b64=c.toDataURL('image/jpeg',quality).split(',')[1];
+  return Math.round(b64.length*0.75);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// UI STATE
+// ═══════════════════════════════════════════════════════════════════════
+
+let state = {
+  image:null, tree:null, geoiHeader:null, mode:'image',
+  threshold:50, maxDepth:8, renderDepth:8,
+  showGrid:true, showOriginal:false, isProcessing:false,
+  stats:null, jpegSize:null, imgW:0, imgH:0,
+};
+
+const offCanvas = document.createElement('canvas');
+const offCtx    = offCanvas.getContext('2d', {willReadFrequently:true});
+const MAX_SIZE  = 800;
+
+// ─── Rendering ──────────────────────────────────────────────────────────────
+
+function renderTree(){
+  if(!state.tree) return;
+  const canvas=document.getElementById('main-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=state.tree.w, H=state.tree.h;
+  const scale=Math.min(MAX_SIZE/W,MAX_SIZE/H,1);
+  canvas.width=W*scale; canvas.height=H*scale;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.save(); ctx.scale(scale,scale);
+  if(state.showOriginal&&state.image){
+    ctx.drawImage(state.image,0,0);
+  } else {
+    function draw(node){
+      const isLeaf=node.leaf||node.depth>=state.renderDepth;
+      if(isLeaf){
+        ctx.fillStyle=`rgba(${node.color[0]},${node.color[1]},${node.color[2]},${node.color[3]/255})`;
+        ctx.fillRect(node.x,node.y,node.w,node.h);
+        if(state.showGrid){ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=0.5/scale;ctx.strokeRect(node.x,node.y,node.w,node.h);}
+      } else { node.ch.forEach(draw); }
+    }
+    draw(state.tree);
+  }
+  ctx.restore();
+}
+
+// ─── Stats panels ────────────────────────────────────────────────────────────
+
+function renderStatsOverlay(){
+  const el=document.getElementById('stats-overlay'); if(!state.tree) return;
+  const rows=[];
+  if(state.geoiHeader) rows.push(`<div class="flex justify-between gap-6"><span class="text-[#f27d26]">FROM .GEOI</span><span>V${state.geoiHeader.version}</span></div>`);
+  rows.push(`<div class="flex justify-between gap-6"><span class="text-[#666]">RES</span><span>${state.tree.w}×${state.tree.h}</span></div>`);
+  if(state.stats) rows.push(`<div class="flex justify-between gap-6"><span class="text-[#666]">NODES</span><span>${state.stats.total.toLocaleString()}</span></div>`);
+  rows.push(`<div class="flex justify-between gap-6"><span class="text-[#666]">DEPTH</span><span>${getMaxDepth(state.tree)}</span></div>`);
+  el.innerHTML=rows.join('');
+}
+
+function renderGeoiHeaderPanel(){
+  const panel=document.getElementById('geoi-header-panel');
+  const fields=document.getElementById('geoi-header-fields');
+  if(!state.geoiHeader){panel.classList.add('hidden');return;}
+  panel.classList.remove('hidden');
+  const h=state.geoiHeader;
+  const rows=[
+    ['MAGIC','GEOi'],['VERSION',`${h.version} (Raw)`],
+    ['COLOR MODE',h.colorMode===1?'RGB':'YCbCr'],['MAX DEPTH',h.maxDepth],
+    ['QUALITY',h.quality],['WIDTH',h.width],['HEIGHT',h.height],
+    ['FILE SIZE',`${(state.stats?.geoiSize/1024||0).toFixed(1)} KB`],
+  ];
+  fields.innerHTML=rows.map(([k,v])=>
+    `<div class="flex justify-between"><span class="text-[#666]">${k}</span><span class="text-[#4af27d]">${v}</span></div>`
+  ).join('');
+}
+
+function renderCompression(){
+  const panel=document.getElementById('compression-panel');
+  const fields=document.getElementById('compression-fields');
+  if(!state.stats){panel.classList.add('hidden');return;}
+  panel.classList.remove('hidden');
+  const raw=state.imgW*state.imgH*3;
+  const gz=state.stats.geoiSize;
+  const jp=state.jpegSize;
+  let rows=[];
+  rows.push(`<div class="flex justify-between"><span class="text-[#666]">RAW RGB</span><span>${(raw/1024).toFixed(0)} KB</span></div>`);
+  if(jp) rows.push(`<div class="flex justify-between"><span class="text-[#666]">JPEG 85%</span><span>${(jp/1024).toFixed(0)} KB</span></div>`);
+  rows.push(`<div class="flex justify-between"><span class="text-[#666]">GEOI V1</span><span class="text-[#f27d26]">${(gz/1024).toFixed(1)} KB</span></div>`);
+  rows.push(`<div class="h-px bg-[#222] my-1"></div>`);
+  if(raw>0) rows.push(`<div class="flex justify-between"><span class="text-[#666]">vs RAW</span><span class="text-[#f27d26]">${(100*(1-gz/raw)).toFixed(0)}% smaller</span></div>`);
+  if(jp) rows.push(`<div class="flex justify-between"><span class="text-[#666]">vs JPEG</span><span class="${gz<jp?'text-[#4af27d]':'text-[#f27d26]'}">${gz<jp?(100*(1-gz/jp)).toFixed(0)+'% smaller ✓':(100*(gz/jp-1)).toFixed(0)+'% larger'}</span></div>`);
+  if(state.stats.leaves) rows.push(`<div class="flex justify-between"><span class="text-[#666]">REDUCTION</span><span class="text-[#f27d26]">${(100*(1-state.stats.leaves/(state.imgW*state.imgH))).toFixed(1)}%</span></div>`);
+  fields.innerHTML=rows.join('');
+}
+
+function updateAllPanels(){
+  renderTree();
+  renderStatsOverlay();
+  renderGeoiHeaderPanel();
+  renderCompression();
+  // Depth slider
+  const treeDepth=state.tree?getMaxDepth(state.tree):0;
+  const dsPanel=document.getElementById('depth-slider-panel');
+  const dsInput=document.getElementById('depth-slider');
+  const dsVal=document.getElementById('depth-val');
+  dsPanel.classList.toggle('hidden',!state.tree);
+  dsInput.max=treeDepth;
+  dsInput.value=state.renderDepth;
+  dsVal.textContent=state.renderDepth>=treeDepth?'Full':String(state.renderDepth);
+  // Bitstream
+  const bsPanel=document.getElementById('bitstream-panel');
+  bsPanel.classList.toggle('hidden',!state.stats);
+  if(state.stats){
+    document.getElementById('bitstream-text').textContent=state.stats.binary.slice(0,1500)+'...';
+    document.getElementById('bitstream-size').textContent=`${(state.stats.binary.length/8/1024).toFixed(1)} KB`;
+  }
+  // Canvas visibility
+  const canvas=document.getElementById('main-canvas');
+  const empty=document.getElementById('empty-state');
+  const controls=document.getElementById('canvas-controls');
+  const hasContent=!!state.tree;
+  canvas.classList.toggle('hidden',!hasContent);
+  empty.classList.toggle('hidden',hasContent);
+  controls.classList.toggle('hidden',!hasContent);
+  // Encoder panel visibility
+  document.getElementById('encoder-panel').classList.toggle('hidden',state.mode==='geoi');
+  // Buttons
+  document.getElementById('btn-reencode').disabled=!state.image||state.isProcessing;
+  document.getElementById('btn-download').disabled=!state.tree||state.isProcessing||state.mode==='geoi';
+  // Status
+  const sb=document.getElementById('status-badge');
+  sb.textContent=state.isProcessing?'● ENCODING...':(state.mode==='geoi'?'● GEOI LOADED':'● IDLE');
+  sb.style.color=state.isProcessing?'#f27d26':(state.mode==='geoi'?'#4af27d':'#666');
+}
+
+// ─── Process image ───────────────────────────────────────────────────────────
+
+let encodeTimer=null;
+async function processImage(){
+  if(!state.image||state.isProcessing) return;
+  state.isProcessing=true;
+  const procOverlay=document.getElementById('proc-overlay');
+  procOverlay.classList.remove('hidden');
+  const procFill=document.getElementById('proc-fill');
+  const procPct=document.getElementById('proc-pct');
+  const progBar=document.getElementById('progress-bar');
+  progBar.classList.remove('hidden'); progBar.style.display='flex';
+  try {
+    offCanvas.width=state.image.width; offCanvas.height=state.image.height;
+    offCtx.drawImage(state.image,0,0);
+    const imgData=offCtx.getImageData(0,0,state.image.width,state.image.height);
+    const total=state.image.width*state.image.height;
+    const prog={px:0};
+    // Build with progress updates via animation frame
+    const progressInterval=setInterval(()=>{
+      const pct=Math.min(99,Math.round(prog.px/total*100));
+      procFill.style.width=pct+'%'; procPct.textContent=pct+'%';
+      document.getElementById('progress-fill').style.width=pct+'%';
+      document.getElementById('progress-pct').textContent=pct+'%';
+    },100);
+    state.tree=await buildTree(0,0,state.image.width,state.image.height,0,
+      state.maxDepth,state.threshold,imgData.data,state.image.width,prog);
+    clearInterval(progressInterval);
+    state.renderDepth=state.maxDepth;
+    state.imgW=state.image.width; state.imgH=state.image.height;
+    const ns=countNodes(state.tree);
+    const bin=getBinaryString(state.tree);
+    const geoi=serializeGeoi(state.tree,state.image.width,state.image.height);
+    state.stats={...ns,binary:bin,geoiSize:geoi.length};
+    state.jpegSize=estimateJpegSize(state.image);
+  } finally {
+    state.isProcessing=false;
+    procOverlay.classList.add('hidden');
+    progBar.style.display='none';
+    procFill.style.width='100%'; procPct.textContent='100%';
+  }
+  updateAllPanels();
+}
+
+// ─── File handling ───────────────────────────────────────────────────────────
+
+async function handleFile(file){
+  if(!file) return;
+  // .geoi decode
+  if(/\.geoi$/i.test(file.name)){
+    const buf=await file.arrayBuffer();
+    const result=deserializeGeoi(new Uint8Array(buf));
+    if(!result) return;
+    const{node,header}=result;
+    state.tree=node; state.geoiHeader=header; state.mode='geoi';
+    state.image=null; state.renderDepth=header.maxDepth;
+    state.imgW=header.width; state.imgH=header.height;
+    const ns=countNodes(node);
+    const bin=getBinaryString(node);
+    state.stats={...ns,binary:bin,geoiSize:buf.byteLength};
+    state.jpegSize=null;
+    updateAllPanels(); return;
+  }
+  // Image encode
+  const isImg=file.type.startsWith('image/')||/\.(jpg|jpeg|png|gif|webp|svg|bmp|heic|heif)$/i.test(file.name);
+  if(!isImg) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      state.image=img; state.geoiHeader=null; state.mode='image';
+      state.jpegSize=null; state.tree=null; state.stats=null;
+      updateAllPanels();
+      clearTimeout(encodeTimer);
+      encodeTimer=setTimeout(processImage,200);
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── Event listeners ─────────────────────────────────────────────────────────
+
+document.getElementById('file-input').addEventListener('change',e=>{
+  if(e.target.files[0]) handleFile(e.target.files[0]);
+  e.target.value='';
+});
+
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='#f27d26';});
+dz.addEventListener('dragleave',()=>{dz.style.borderColor='';});
+dz.addEventListener('drop',async e=>{
+  e.preventDefault(); dz.style.borderColor='';
+  if(e.dataTransfer.files[0]) await handleFile(e.dataTransfer.files[0]);
+});
+dz.addEventListener('click',()=>{ if(!state.tree&&!state.isProcessing) document.getElementById('file-input').click(); });
+
+document.getElementById('threshold').addEventListener('input',e=>{
+  state.threshold=parseInt(e.target.value);
+  document.getElementById('threshold-val').textContent=e.target.value;
+  clearTimeout(encodeTimer);
+  encodeTimer=setTimeout(()=>{if(state.image&&state.mode==='image')processImage();},400);
+});
+
+document.getElementById('maxdepth').addEventListener('input',e=>{
+  state.maxDepth=parseInt(e.target.value);
+  document.getElementById('maxdepth-val').textContent=e.target.value;
+  clearTimeout(encodeTimer);
+  encodeTimer=setTimeout(()=>{if(state.image&&state.mode==='image')processImage();},400);
+});
+
+document.getElementById('depth-slider').addEventListener('input',e=>{
+  state.renderDepth=parseInt(e.target.value);
+  const treeDepth=state.tree?getMaxDepth(state.tree):0;
+  document.getElementById('depth-val').textContent=state.renderDepth>=treeDepth?'Full':e.target.value;
+  renderTree();
+});
+
+document.getElementById('btn-grid').addEventListener('click',()=>{
+  state.showGrid=!state.showGrid;
+  const btn=document.getElementById('btn-grid');
+  btn.className=`px-3 py-1.5 rounded-sm border text-[10px] uppercase tracking-widest transition-all ${state.showGrid?'bg-[#f27d26] text-black border-[#f27d26]':'bg-[#1a1a1a] text-white border-[#333]'}`;
+  renderTree();
+});
+
+document.getElementById('btn-orig').addEventListener('click',()=>{
+  if(!state.image) return;
+  state.showOriginal=!state.showOriginal;
+  const btn=document.getElementById('btn-orig');
+  btn.className=`px-3 py-1.5 rounded-sm border text-[10px] uppercase tracking-widest transition-all ${state.showOriginal?'bg-[#f27d26] text-black border-[#f27d26]':'bg-[#1a1a1a] text-white border-[#333]'}`;
+  renderTree();
+});
+
+document.getElementById('btn-reencode').addEventListener('click',processImage);
+
+document.getElementById('btn-download').addEventListener('click',()=>{
+  if(!state.tree||!state.image) return;
+  const geoi=serializeGeoi(state.tree,state.image.width,state.image.height);
+  const url=URL.createObjectURL(new Blob([geoi],{type:'application/octet-stream'}));
+  const a=document.createElement('a'); a.href=url; a.download='image.geoi'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+</script>
+</body>
+</html>

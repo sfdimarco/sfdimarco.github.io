@@ -319,6 +319,17 @@ const TOOLS = [
     type: "external",
     href: "/mook-synth.html",
   },
+  {
+    id: "quadtree-vision",
+    title: "QUADTREE VISION",
+    tagline: "Binary Quadtree / .geoi Format / Z-Order",
+    accent: SYN["5"],
+    status: "BETA",
+    desc: "Encode any image into the .geoi binary quadtree format — then decode it back. The Z-order spatial tree captures image detail hierarchically: slide the progressive decode depth to watch it sharpen from blobs to pixels. Building .geoi into a real image codec.",
+    tags: ["Binary Quadtree", "Image Compression", "Z-Order", "Canvas", ".geoi"],
+    type: "external",
+    href: "/tools/quadtree-vision.html",
+  },
 ];
 
 // ── Tool card ─────────────────────────────────────────────────────────────────
