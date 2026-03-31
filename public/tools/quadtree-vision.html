@@ -180,6 +180,56 @@
   </aside>
 </main>
 
+<!-- ── WHY .GEOI MATTERS ──────────────────────────────────────────────── -->
+<section style="max-width:1060px;margin:0 auto;padding:0 16px 48px;">
+  <div style="border:1px solid #1e1e1e;border-radius:8px;overflow:hidden;">
+    <div style="background:#0f0f0f;border-bottom:1px solid #1e1e1e;padding:20px 28px;display:flex;align-items:center;gap:12px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#f27d26;box-shadow:0 0 8px #f27d2688;"></div>
+      <span style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#f27d26;font-family:'IBM Plex Mono',monospace;">Why .geoi matters for AI vision</span>
+    </div>
+    <div style="background:#080808;padding:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;">
+
+      <!-- Problem -->
+      <div style="border:1px solid #1e1e1e;border-radius:6px;padding:20px;">
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#666;margin-bottom:10px;">The Problem</div>
+        <p style="font-size:11px;color:#aaa;line-height:1.8;margin:0;">Vision AI tokenizes images as <span style="color:#e0e0e0;">uniform 16×16 pixel grids</span>. A plain wall costs the same tokens as a complex painting. Token count scales quadratically with resolution — and you pay per token.</p>
+        <div style="margin-top:14px;padding:12px;background:#111;border-radius:4px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:#555;line-height:1.9;">
+          GPT-4o &nbsp;&nbsp; 1080p image → ~765 tokens<br>
+          Claude &nbsp;&nbsp;&nbsp; 1080p image → ~1,300 tokens<br>
+          <span style="color:#f27d26;">1M images/mo → $1,900–$3,900</span>
+        </div>
+      </div>
+
+      <!-- Quadtree insight -->
+      <div style="border:1px solid #1e1e1e;border-radius:6px;padding:20px;">
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#666;margin-bottom:10px;">The Quadtree Insight</div>
+        <p style="font-size:11px;color:#aaa;line-height:1.8;margin:0;">A quadtree is a <span style="color:#e0e0e0;">spatial hierarchy</span> — dense where information is dense, sparse where it's uniform. 60–80% of a typical image is low-variance (sky, walls, backgrounds). Those regions become single leaf nodes. The important detail gets full depth.</p>
+        <div style="margin-top:14px;padding:12px;background:#111;border-radius:4px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:#555;line-height:1.9;">
+          SparseVLM (ICML 2025) &nbsp;54% fewer tokens<br>
+          FastV &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;45% fewer tokens<br>
+          <span style="color:#4af27d;">97% accuracy retained ✓</span>
+        </div>
+      </div>
+
+      <!-- The gap -->
+      <div style="border:1px solid #2a3a2a;border-radius:6px;padding:20px;background:#0a110a;">
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#4af27d;margin-bottom:10px;">The Gap .geoi Fills</div>
+        <p style="font-size:11px;color:#aaa;line-height:1.8;margin:0;">All token-compression research happens inside training pipelines. There is <span style="color:#e0e0e0;">no production image transport format</span> that encodes spatial hierarchy for vision APIs. JPEG doesn't. PNG doesn't. WebP doesn't.</p>
+        <p style="font-size:11px;color:#aaa;line-height:1.8;margin:8px 0 0;">.geoi is a proposal for what that format looks like. Every prefix of the bitstream is a valid image — progressive by design, hierarchical by nature.</p>
+        <div style="margin-top:14px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:#4af27d;">→ CVPR 2023: Mixed-Resolution Tokenization<br>→ arXiv 2601.20742: Quadtree + Information Density</div>
+      </div>
+
+    </div>
+    <div style="background:#0a0a0a;border-top:1px solid #1e1e1e;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <span style="font-size:9px;color:#444;letter-spacing:2px;text-transform:uppercase;">Proof of concept — github.com/sfdimarco/BinaryQuadTreeCPUTest</span>
+      <div style="display:flex;gap:16px;">
+        <a href="https://github.com/sfdimarco/BinaryQuadTreeCPUTest" target="_blank" style="font-size:9px;color:#666;letter-spacing:2px;text-transform:uppercase;text-decoration:none;font-family:'IBM Plex Mono',monospace;">↗ Go Codec</a>
+        <a href="https://arxiv.org/abs/2601.20742" target="_blank" style="font-size:9px;color:#666;letter-spacing:2px;text-transform:uppercase;text-decoration:none;font-family:'IBM Plex Mono',monospace;">↗ Research</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
 <footer class="mt-8 border-t border-[#222] p-5 text-center space-y-1">
   <div class="flex justify-center gap-5 text-[10px] text-[#333] uppercase tracking-[0.2em]">
