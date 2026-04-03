@@ -338,8 +338,8 @@ const TOOLS = [
     status: "BETA",
     desc: "A Scratch-style visual coding playground for 4th-5th graders. Snap colorful Blockly blocks together and watch live p5.js output appear instantly. An AI coach guides students through game-making without doing it for them.",
     tags: ["Blockly", "p5.js", "AI Coach", "EdTech", "K-8", "Gemini"],
-    type: "embed",
-    src: "https://sfdimarco.github.io/p5-blocky-coding/",
+    type: "external",
+    href: "https://sfdimarco.github.io/p5-blocky-coding/",
   },
 ];
 
