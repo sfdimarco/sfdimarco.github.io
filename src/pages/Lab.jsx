@@ -330,6 +330,17 @@ const TOOLS = [
     type: "external",
     href: "/tools/quadtree-vision.html",
   },
+  {
+    id: "momentumlab",
+    title: "MOMENTUMLAB",
+    tagline: "Visual Coding / Blockly / p5.js / AI Coach",
+    accent: SYN["0"],
+    status: "BETA",
+    desc: "A Scratch-style visual coding playground for 4th-5th graders. Snap colorful Blockly blocks together and watch live p5.js output appear instantly. An AI coach guides students through game-making without doing it for them.",
+    tags: ["Blockly", "p5.js", "AI Coach", "EdTech", "K-8", "Gemini"],
+    type: "embed",
+    src: "https://sfdimarco.github.io/p5-blocky-coding/",
+  },
 ];
 
 // ── Tool card ─────────────────────────────────────────────────────────────────
@@ -355,6 +366,14 @@ function ToolCard({ tool, i }) {
           <Comp />
         </div>
       )}
+      {tool.type === "embed" && open && (
+        <iframe
+          src={tool.src}
+          title={tool.title}
+          allow="scripts"
+          style={{ width: "100%", height: 580, border: "none", display: "block" }}
+        />
+      )}
       <div style={{
         height: 2,
         background: `linear-gradient(90deg, transparent, ${tool.accent}, transparent)`,
@@ -379,7 +398,7 @@ function ToolCard({ tool, i }) {
           {tool.tags.map((t) => <Tag key={t} color={tool.accent}>{t}</Tag>)}
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          {tool.type === "inline" && (
+          {(tool.type === "inline" || tool.type === "embed") && (
             <button onClick={() => setOpen(!open)} style={{
               background: open ? tool.accent : "transparent",
               color: open ? "#000" : tool.accent,
