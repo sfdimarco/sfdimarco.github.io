@@ -52,9 +52,11 @@ export default function GeoZeroWidget() {
     let cancelled = false;
     (async () => {
       try {
+        // Indirect import: prevents rolldown (Vite 8) static analysis on public WASM paths
+        const _load = new Function('u', 'return import(u)');
         const [bzMod, meMod] = await Promise.all([
-          import(/* @vite-ignore */ "/wasm/babyzero/babyzero_wasm.js"),
-          import(/* @vite-ignore */ "/wasm/universe/momentum_engine.js"),
+          _load("/wasm/babyzero/babyzero_wasm.js"),
+          _load("/wasm/universe/momentum_engine.js"),
         ]);
         await Promise.all([bzMod.default(), meMod.default()]);
         if (cancelled) return;
