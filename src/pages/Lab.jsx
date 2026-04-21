@@ -1,7 +1,8 @@
-import { useRef, useEffect, useState } from "react";
+﻿import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { SYN } from "../constants/syn";
 import Tag from "../components/Tag";
+import GeoZeroWidget from "../components/GeoZeroWidget";
 
 // ── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -331,15 +332,15 @@ const TOOLS = [
     href: "/tools/quadtree-vision.html",
   },
   {
-    id: "momentumlab",
-    title: "MOMENTUMLAB",
-    tagline: "Visual Coding / Blockly / p5.js / AI Coach",
-    accent: SYN["0"],
-    status: "BETA",
-    desc: "A Scratch-style visual coding playground for 4th-5th graders. Snap colorful Blockly blocks together and watch live p5.js output appear instantly. An AI coach guides students through game-making without doing it for them.",
-    tags: ["Blockly", "p5.js", "AI Coach", "EdTech", "K-8", "Gemini"],
-    type: "external",
-    href: "https://sfdimarco.github.io/p5-blocky-coding/",
+    id: "geozero",
+    title: "GEOZERO",
+    tagline: "BabyZero WASM / MoireEngine / Synesthetic Perception",
+    accent: SYN["4"],
+    status: "DEV",
+    desc: "Paint a synesthetic grid. BabyZero paint -> WASM perception -> object count. MoireEngine hive breathes behind it. Zero LLMs. Zero JSON. Pure geometric intelligence.",
+    tags: ["Rust", "WASM", "BabyZero", "MoireEngine", "ARC-AGI", "Perception"],
+    type: "inline",
+    component: GeoZeroWidget,
   },
 ];
 

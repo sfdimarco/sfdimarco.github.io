@@ -1,0 +1,15 @@
+{
+  "name": "momentum-engine",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "momentum_engine_bg.wasm",
+    "momentum_engine.js",
+    "momentum_engine.d.ts"
+  ],
+  "main": "momentum_engine.js",
+  "types": "momentum_engine.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
