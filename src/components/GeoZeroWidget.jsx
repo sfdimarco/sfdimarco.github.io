@@ -53,8 +53,8 @@ export default function GeoZeroWidget() {
     (async () => {
       try {
         const [bzMod, meMod] = await Promise.all([
-          import("/wasm/babyzero/babyzero_wasm.js"),
-          import("/wasm/universe/momentum_engine.js"),
+          import(/* @vite-ignore */ "/wasm/babyzero/babyzero_wasm.js"),
+          import(/* @vite-ignore */ "/wasm/universe/momentum_engine.js"),
         ]);
         await Promise.all([bzMod.default(), meMod.default()]);
         if (cancelled) return;
