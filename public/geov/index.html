@@ -432,6 +432,42 @@
   #fb-sheet th.fhead.cur .fthumb { outline: 2px solid var(--pink); }
   #fb-sheet th.fhead .fnum { line-height: 1.4; }
 
+  /* ═══ 📷 STOP MOTION STUDIO — a digital downshooter ═══ */
+  #sm-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 260; display: none;
+    grid-template-rows: 50px 1fr 128px;
+    grid-template-areas: "smhead" "smmain" "smstrip";
+  }
+  #sm-overlay.open { display: grid; }
+  #sm-head { grid-area: smhead; display: flex; align-items: center; gap: 10px; padding: 0 14px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  #sm-head .logo { color: var(--yellow); }
+  #sm-name { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; font-size: 13px; width: 150px; }
+  #sm-main { grid-area: smmain; position: relative; display: flex; align-items: center; justify-content: center; background: #0a0a12; min-height: 0; }
+  #sm-stage { position: relative; max-width: 92%; max-height: 92%; aspect-ratio: 16/9; }
+  #sm-video, #sm-ghost { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 8px; }
+  #sm-video { object-fit: contain; background: #000; transform: none; }
+  #sm-ghost { pointer-events: none; }
+  #sm-capture {
+    position: absolute; right: 26px; bottom: 26px; width: 92px; height: 92px; border-radius: 50%;
+    border: 5px solid #fff; background: var(--red); color: #fff; font-size: 34px; cursor: pointer;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.7); z-index: 5;
+  }
+  #sm-capture:active { transform: scale(0.92); }
+  #sm-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; border-radius: 8px; transition: opacity 0.18s; }
+  #sm-nocam {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 15px; text-align: center; padding: 30px;
+  }
+  #sm-strip { grid-area: smstrip; background: var(--panel); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 10px 14px; overflow-x: auto; }
+  .sm-frame { position: relative; flex: none; width: 150px; height: 84px; border-radius: 8px; outline: 2px solid var(--border); background: #000; }
+  .sm-frame img, .sm-frame canvas { width: 100%; height: 100%; border-radius: 8px; display: block; }
+  .sm-frame .n { position: absolute; left: 5px; top: 4px; font-size: 10px; color: #fff; background: rgba(0,0,0,0.6); border-radius: 5px; padding: 1px 6px; }
+  .sm-frame .x { position: absolute; right: 4px; top: 4px; border: none; background: rgba(0,0,0,0.65); color: var(--red); border-radius: 6px; cursor: pointer; font-size: 12px; padding: 2px 6px; }
+  .sm-frame:last-of-type { outline-color: var(--yellow); }
+  #sm-empty { color: var(--muted); font-size: 13px; padding: 0 10px; white-space: nowrap; }
+  #flipbook-sm-btn { border-color: var(--yellow) !important; color: var(--yellow) !important; }
+  #flipbook-sm-btn:hover { background: rgba(255,214,0,0.08) !important; }
+
   /* ═══ 📐 VECTOR FLIPBOOK STUDIO ═══ */
   #vf-overlay {
     position: fixed; inset: 0; background: var(--bg); z-index: 260; display: none;
@@ -688,6 +724,7 @@
     <button id="import-btn">📂 ADD VIDEO<br>+ MUSIC</button>
     <button id="flipbook-new-btn" title="draw frame by frame — like a paper flipbook">🎨 RASTER<br>FLIPBOOK</button>
     <button id="flipbook-vec-btn" title="place shapes and animate them with keys — they tween by themselves">📐 VECTOR<br>FLIPBOOK</button>
+    <button id="flipbook-sm-btn" title="move something, snap a photo, move it again — stop motion!">📷 STOP<br>MOTION</button>
     <button id="code-new-btn">✨ NEW<br>CODE</button>
   </div>
   <div id="bin-list"></div>
@@ -879,6 +916,35 @@
     </div>
   </div>
   <div id="fb-sheet"></div>
+</div>
+
+<!-- 📷 STOP MOTION STUDIO — capture, onion skin, flip. A digital downshooter. -->
+<div id="sm-overlay">
+  <div id="sm-head">
+    <span class="logo">📷 STOP MOTION</span>
+    <input id="sm-name" value="my stop motion" spellcheck="false">
+    <select id="sm-fps" title="playback speed — 12 is classic stop motion">
+      <option value="6">6 fps — chunky</option>
+      <option value="12" selected>12 fps — classic</option>
+      <option value="24">24 fps — smooth</option>
+    </select>
+    <span style="font-size:11px;color:var(--muted)">🧅 GHOST</span>
+    <input type="range" id="sm-onion" min="0" max="80" value="45" style="width:90px">
+    <button class="tlb-btn" id="sm-play-btn" title="flip through what you've shot">▶ PREVIEW</button>
+    <span id="sm-count" style="font-size:12px;color:var(--yellow);min-width:80px"></span>
+    <div class="header-spacer"></div>
+    <button class="hdr-btn" id="sm-done-btn" style="border-color:var(--yellow);color:var(--yellow)">✅ DONE</button>
+  </div>
+  <div id="sm-main">
+    <div id="sm-stage">
+      <video id="sm-video" autoplay playsinline muted></video>
+      <canvas id="sm-ghost" width="1280" height="720"></canvas>
+      <div id="sm-flash"></div>
+      <div id="sm-nocam">📷 waiting for the camera…<br><span style="font-size:12px">if nothing appears, this device may not have one — the iPads do!</span></div>
+    </div>
+    <button id="sm-capture" title="snap this frame! (space)">📸</button>
+  </div>
+  <div id="sm-strip"><span id="sm-empty">move something a tiny bit · 📸 snap · move it again — that's the whole magic</span></div>
 </div>
 
 <!-- 📐 VECTOR FLIPBOOK STUDIO — easy Flash: place shapes, move them, keys tween -->
@@ -1859,7 +1925,7 @@ function clipSurface(clip, srcT, forScrub) {
     return { img: c, sw: c.width, sh: c.height };
   }
   const v = videoPool.get(m.id);
-  const videoReady = v && v.readyState >= 2 && Math.abs(v.currentTime - srcT) < 0.35;
+  const videoReady = v && v.readyState >= 2 && !v.seeking && Math.abs(v.currentTime - srcT) < 0.35;
   if ((forScrub && !videoReady) || !v || v.readyState < 2) {
     const pf = proxyFrameFor(m, srcT);          // ⬡ GEO proxy — instant scrub
     if (pf) return { img: pf, sw: pf.width, sh: pf.height, proxy: true };
@@ -1902,9 +1968,10 @@ function drawFrame() {
   pvCtx.fillStyle = '#000';
   pvCtx.fillRect(0, 0, W, H);
   let usedProxy = false;
+  const adaptive = scrubbing || (playing && smoothMode);   // 🌊 proxies carry the picture when decode lags
   for (const clip of activeClipsAt(playhead)) {
     const srcT = clip.in + (playhead - clip.start);
-    if (drawClipLayer(pvCtx, W, H, clip, srcT, scrubbing, false)) usedProxy = true;
+    if (drawClipLayer(pvCtx, W, H, clip, srcT, adaptive, false)) usedProxy = true;
   }
   if (usedProxy) {
     pvCtx.globalAlpha = 0.8;
@@ -1912,7 +1979,7 @@ function drawFrame() {
     pvCtx.fillRect(W - 118, H - 30, 110, 22);
     pvCtx.fillStyle = '#00E5FF';
     pvCtx.font = '12px monospace';
-    pvCtx.fillText('⬡ geo proxy', W - 108, H - 14);
+    pvCtx.fillText(playing && smoothMode ? '⬡ smooth mode' : '⬡ geo proxy', W - 108, H - 14);
     pvCtx.globalAlpha = 1;
   }
 }
@@ -1953,7 +2020,9 @@ function syncVideos(t, wantPlaying) {
       activeAudioTids.add(clip.tid);
       setElGain(a, clipGain(clip));
       if (wantPlaying) {
-        if (Math.abs(a.currentTime - want) > 0.25) { try { a.currentTime = want; } catch (e) {} }
+        // 🌊 audio elements free-run — re-seeking a playing element pops the sound.
+        // Only correct drift a listener would actually notice.
+        if (Math.abs(a.currentTime - want) > 0.35) { try { a.currentTime = want; } catch (e) {} }
         if (a.paused) a.play().catch(() => {});
       } else {
         if (Math.abs(a.currentTime - want) > 0.05) { try { a.currentTime = want; } catch (e) {} }
@@ -1966,7 +2035,11 @@ function syncVideos(t, wantPlaying) {
     const v = videoPool.get(m.id);
     if (!v) continue;
     if (wantPlaying) {
-      if (Math.abs(v.currentTime - want) > 0.25) { try { v.currentTime = want; } catch (e) {} }
+      // 🌊 seek-storm guard: a playing video that carries sound gets the widest
+      // leash (seeks interrupt its audio); muted video gets a medium one; and in
+      // smooth mode we stop correcting entirely — proxies carry the picture.
+      const leash = smoothMode ? 9e9 : (clipGain(clip) > 0 ? 0.8 : 0.45);
+      if (Math.abs(v.currentTime - want) > leash) { try { v.currentTime = want; } catch (e) {} }
       setElGain(v, clipGain(clip));
       if (v.paused) v.play().catch(() => {});
     } else {
@@ -1986,9 +2059,43 @@ function syncVideos(t, wantPlaying) {
   }
 }
 
+// ── 🌊 ADAPTIVE PLAYBACK — timing is everything in editing.
+// The master clock never waits for a slow decoder. If frames start taking
+// too long (video decode falling behind), playback flips to ⬡ GEO proxy
+// frames — instant, pre-decoded — until the pressure clears. The audio
+// elements free-run untouched the whole time, so sound stays glass-smooth.
+// Hysteresis: quick to protect (8 slow ticks), slow to trust again (60 fast).
+let smoothMode = false, slowStreak = 0, fastStreak = 0, lastTickWall = 0, lastPrefetchT = -99;
+
+function prefetchProxiesAhead(t) {
+  // warm the proxy decode cache for the NEXT 1.5s of the movie
+  for (const clip of timeline) {
+    if (isAudioRole(clip)) continue;
+    const m = mediaOf(clip);
+    if (!m || m.kind !== 'video' || !m.proxy) continue;
+    for (let dt = 0.3; dt <= 1.5; dt += 0.35) {
+      const tt = t + dt;
+      if (tt < clip.start || tt > clipEnd(clip)) continue;
+      const srcT = clip.in + (tt - clip.start);
+      const idx = Math.max(0, Math.min(m.proxy.frames.length - 1, Math.round(srcT / m.proxy.step)));
+      proxyDecode(m, idx);
+    }
+  }
+}
+
 function playbackTick() {
   if (!playing) return;
-  playhead = clockStartT + (performance.now() - clockStartWall) / 1000;
+  const now = performance.now();
+  // frame-time monitor: >42ms/tick = we're dropping below ~24fps
+  if (lastTickWall) {
+    if (now - lastTickWall > 42) { slowStreak++; fastStreak = 0; }
+    else { fastStreak++; if (fastStreak > 20) slowStreak = Math.max(0, slowStreak - 1); }
+    if (!smoothMode && slowStreak >= 8) smoothMode = true;              // protect the clock
+    else if (smoothMode && fastStreak >= 60) { smoothMode = false; slowStreak = 0; }  // trust again
+  }
+  lastTickWall = now;
+
+  playhead = clockStartT + (now - clockStartWall) / 1000;
   const total = totalDuration();
   if (playhead >= total) {
     playhead = total;
@@ -1996,6 +2103,7 @@ function playbackTick() {
     drawFrame(); updatePlayheadUI();
     return;
   }
+  if (playhead - lastPrefetchT > 0.5) { lastPrefetchT = playhead; prefetchProxiesAhead(playhead); }
   syncVideos(playhead, true);
   drawFrame();
   updatePlayheadUI();
@@ -2008,6 +2116,7 @@ function startPlayback() {
   if (playhead >= totalDuration() - 0.05) playhead = 0;
   playing = true;
   scrubbing = false;
+  smoothMode = false; slowStreak = 0; fastStreak = 0; lastTickWall = 0; lastPrefetchT = -99;
   clockStartWall = performance.now();
   clockStartT = playhead;
   $('play-btn').textContent = '⏸';
@@ -3963,6 +4072,170 @@ $('code-done-btn').addEventListener('click', () => {
 
 // ════════════════════════════════════════════════════════════
 // ════════════════════════════════════════════════════════════
+// 📷 STOP MOTION — a digital downshooter, Dragonframe for kids.
+// Live camera + onion skin of the last shot + one big red button.
+// Captures ARE flipbook frames: they save, export, and can be
+// drawn on later in the Raster Flipbook (sparks! speech bubbles!).
+// ════════════════════════════════════════════════════════════
+const sm = { open: false, mediaId: null, stream: null, playing: false, playTimer: null, playIdx: 0 };
+const smVideo = $('sm-video'), smGhost = $('sm-ghost'), smGhostCtx = smGhost.getContext('2d');
+function smMedia() { return media.find(m => m.id === sm.mediaId); }
+function smCells() { const m = smMedia(); return m ? m.layers[0].cells : []; }
+
+$('flipbook-sm-btn').addEventListener('click', async () => {
+  // a stop motion IS a flipbook — one draw layer, cells = captures
+  const item = {
+    id: ++mediaCounter, kind: 'flipbook', name: `stop motion ${mediaCounter}`,
+    fileName: null, fileSize: 0, file: null, url: null,
+    fps: 12, frameCount: 0, duration: 0,
+    width: FB_W, height: FB_H, thumbURL: null, previewOK: true,
+    layers: [{ lid: ++fbLayerCounter, name: 'captures', kind: 'draw', visible: true, cells: [] }],
+    proxy: null,
+  };
+  media.push(item);
+  sm.mediaId = item.id; sm.open = true; sm.playing = false;
+  $('sm-name').value = item.name;
+  $('sm-count').textContent = '0 frames';
+  $('sm-overlay').classList.add('open');
+  $('sm-nocam').style.display = 'flex';
+  smRenderStrip(); smDrawGhost();
+  try {
+    sm.stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'environment' },
+      audio: false,
+    });
+    smVideo.srcObject = sm.stream;
+    await smVideo.play().catch(() => {});
+    $('sm-nocam').style.display = 'none';
+  } catch (err) {
+    console.warn('camera failed:', err);
+    caution('camera', 'the camera said no',
+      err && err.name === 'NotAllowedError'
+        ? 'camera permission was blocked. Tap the 🎥 icon in the address bar (or AA menu on iPad) and allow the camera, then try again.'
+        : 'this device doesn’t seem to have a usable camera — the iPads do! You can still draw frames in the 🎨 RASTER FLIPBOOK.');
+    $('sm-nocam').innerHTML = '📷 no camera — press ✅ DONE and try on an iPad';
+  }
+});
+
+function smStopCamera() {
+  if (sm.stream) { for (const t of sm.stream.getTracks()) t.stop(); sm.stream = null; }
+  smVideo.srcObject = null;
+}
+function smStopPlay() {
+  sm.playing = false;
+  clearInterval(sm.playTimer);
+  $('sm-play-btn').textContent = '▶ PREVIEW';
+  smDrawGhost();
+}
+
+// 📸 the button — draw the live feed into a real flipbook cell
+function smCapture() {
+  const m = smMedia();
+  if (!m || !smVideo.videoWidth) { toast('📷 no picture yet — wait for the camera'); return; }
+  if (sm.playing) smStopPlay();
+  const c = newFrameCanvas();
+  const x = c.getContext('2d');
+  const s = Math.min(FB_W / smVideo.videoWidth, FB_H / smVideo.videoHeight);
+  const dw = smVideo.videoWidth * s, dh = smVideo.videoHeight * s;
+  x.fillStyle = '#000'; x.fillRect(0, 0, FB_W, FB_H);
+  x.drawImage(smVideo, (FB_W - dw) / 2, (FB_H - dh) / 2, dw, dh);
+  m.layers[0].cells.push(c);
+  m.frameCount = m.layers[0].cells.length;
+  bumpFb(m);
+  // shutter flash + strip + ghost
+  const fl = $('sm-flash');
+  fl.style.opacity = 0.85;
+  setTimeout(() => fl.style.opacity = 0, 90);
+  $('sm-count').textContent = `${m.frameCount} frame${m.frameCount === 1 ? '' : 's'}`;
+  smRenderStrip(true); smDrawGhost();
+}
+$('sm-capture').addEventListener('click', smCapture);
+
+// onion skin: the last shot ghosted over the live view
+function smDrawGhost() {
+  smGhostCtx.clearRect(0, 0, FB_W, FB_H);
+  const cells = smCells();
+  const alpha = parseInt($('sm-onion').value) / 100;
+  if (!cells.length || alpha <= 0 || sm.playing) return;
+  smGhostCtx.globalAlpha = alpha;
+  smGhostCtx.drawImage(cells[cells.length - 1], 0, 0);
+  smGhostCtx.globalAlpha = 1;
+}
+$('sm-onion').addEventListener('input', smDrawGhost);
+
+function smRenderStrip(scrollEnd) {
+  const strip = $('sm-strip');
+  const cells = smCells();
+  strip.innerHTML = '';
+  if (!cells.length) {
+    strip.innerHTML = '<span id="sm-empty">move something a tiny bit · 📸 snap · move it again — that\'s the whole magic</span>';
+    return;
+  }
+  cells.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'sm-frame';
+    const tc = document.createElement('canvas');
+    tc.width = 150; tc.height = 84;
+    tc.getContext('2d').drawImage(c, 0, 0, 150, 84);
+    d.appendChild(tc);
+    d.innerHTML += `<span class="n">${i + 1}</span><button class="x" title="delete this frame">✕</button>`;
+    d.querySelector('.x').addEventListener('click', () => {
+      const m = smMedia();
+      m.layers[0].cells.splice(i, 1);
+      m.frameCount = m.layers[0].cells.length;
+      bumpFb(m);
+      $('sm-count').textContent = `${m.frameCount} frames`;
+      smRenderStrip(); smDrawGhost();
+    });
+    strip.appendChild(d);
+  });
+  if (scrollEnd) strip.scrollLeft = strip.scrollWidth;
+}
+
+// preview: flip the captures on the ghost layer, full strength
+$('sm-play-btn').addEventListener('click', () => {
+  const cells = smCells();
+  if (sm.playing) { smStopPlay(); return; }
+  if (cells.length < 2) { toast('snap at least 2 frames first 📸📸'); return; }
+  sm.playing = true;
+  sm.playIdx = 0;
+  $('sm-play-btn').textContent = '⏸';
+  const m = smMedia();
+  sm.playTimer = setInterval(() => {
+    smGhostCtx.clearRect(0, 0, FB_W, FB_H);
+    smGhostCtx.drawImage(cells[sm.playIdx % cells.length], 0, 0);
+    sm.playIdx++;
+  }, 1000 / m.fps);
+});
+$('sm-fps').addEventListener('change', e => {
+  const m = smMedia(); if (!m) return;
+  m.fps = parseInt(e.target.value);
+  bumpFb(m);
+  if (sm.playing) { smStopPlay(); $('sm-play-btn').click(); }
+});
+
+$('sm-done-btn').addEventListener('click', () => {
+  const m = smMedia();
+  smStopPlay();
+  smStopCamera();                      // 🔴 camera light OFF — always
+  sm.open = false;
+  $('sm-overlay').classList.remove('open');
+  if (!m) return;
+  if (!m.frameCount) {                 // nothing shot — quietly tidy up
+    media = media.filter(x => x.id !== m.id);
+    renderBin();
+    return;
+  }
+  m.name = $('sm-name').value.trim() || m.name;
+  const tc = document.createElement('canvas'); tc.width = 240; tc.height = 135;
+  tc.getContext('2d').drawImage(renderFbFrame(m, 0), 0, 0, 240, 135);
+  m.thumbURL = tc.toDataURL('image/jpeg', 0.8);
+  bumpFb(m);
+  renderBin(); refresh();
+  toast(`📷 "${m.name}" — ${m.frameCount} frames! Add it to your movie, or open it in 🎨 to draw on your shots`, 4500);
+});
+
+// ════════════════════════════════════════════════════════════
 // 📐 VECTOR FLIPBOOK — easy early Flash. Objects live on the canvas,
 // motion lives on the timeline as curves. Auto-key is ALWAYS on:
 // move something at any frame and the tween builds itself.
@@ -5211,6 +5484,11 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape') $('code-done-btn').click();
     return;
   }
+  if (sm.open) {
+    if (e.key === 'Escape') $('sm-done-btn').click();
+    if (e.code === 'Space') { e.preventDefault(); smCapture(); }   // spacebar shutter, like a real rig
+    return;
+  }
   if (vf.open) {
     if (e.key === 'Escape') $('vf-done-btn').click();
     if (e.code === 'Space') { e.preventDefault(); $('vf-play-btn').click(); }
@@ -5253,7 +5531,7 @@ refresh();
 checkEngine();
 offerRecovery();                                   // 🛟 the tab closed? the movie didn't die
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-console.log('%c⬡ GeoV Studio v5 — layers · flipbook · ✨ code clips · geo proxies · iPad ready', 'color:#00E5FF;font-size:16px;font-weight:bold');
+console.log('%c⬡ GeoV Studio v8 — 🎨 raster · 📐 vector · 📷 stop motion · ✨ code · 🌊 adaptive playback', 'color:#00E5FF;font-size:16px;font-weight:bold');
 console.log('%cSPACE=play · ←→=frame step (shift=1s) · S=split · DEL=remove · CTRL+Z=undo · wheel=zoom timeline · shift+drag=snap', 'color:#8888a0');
 </script>
 </body>
