@@ -343,8 +343,18 @@
   .fbt-group input[type=range] { width: 64px; -webkit-appearance: none; height: 3px; background: var(--border); border-radius: 2px; cursor: pointer; }
   .fbt-group input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--pink); cursor: pointer; }
   .fbt-val { color: var(--pink); min-width: 22px; font-size: 10px; }
-  #fb-key-panel { display: none; align-items: center; gap: 5px; }
-  #fb-key-panel.show { display: flex; }
+  /* palette chips — one tap swaps the whole color family */
+  #fb-palettes { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+  .fb-pal-chip {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted);
+    background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+    padding: 3px 6px; cursor: pointer; white-space: nowrap;
+  }
+  .fb-pal-chip.on { border-color: var(--pink); color: var(--pink); }
+
+  /* 🎤 recording pulse */
+  @keyframes mic-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,23,68,0.7); } 50% { box-shadow: 0 0 0 7px rgba(255,23,68,0); } }
+  #mic-btn.rec { border-color: var(--red); color: var(--red); animation: mic-pulse 1s infinite; }
 
   /* main area */
   #fb-main { grid-area: fbmain; display: flex; align-items: stretch; justify-content: center; gap: 10px; padding: 10px; min-height: 0; position: relative; }
@@ -422,6 +432,11 @@
   #fb-sheet td.cell .dot { color: var(--text); }
   #fb-sheet td.cell .held { opacity: 0.35; }
   #fb-sheet td.cell .key { color: var(--yellow); }
+  /* 🎞 cel exposure: ● starts a drawing, the pink bar is how long it stays up */
+  #fb-sheet td.cell.run { background: rgba(255,64,129,0.13); }
+  #fb-sheet td.cell.run .dot { color: var(--pink); }
+  #fb-sheet td.cell.runend { border-right: 3px solid var(--pink); cursor: ew-resize; }
+  #fb-sheet td.cell.exthl { background: rgba(255,214,0,0.25); }
 
   /* 🎞 downshooter look — frame headers read like little timeline clips */
   #fb-sheet th.fhead { padding: 3px 3px 2px; vertical-align: top; }
@@ -798,6 +813,16 @@
     <input type="range" id="volume-slider" min="0" max="100" value="100" disabled>
     <span class="insp-val" id="volume-val">—</span>
   </div>
+  <div class="insp-group">
+    <label>◢ IN</label>
+    <input type="range" id="fadein-slider" min="0" max="30" value="0" title="fade the sound in" disabled>
+    <span class="insp-val" id="fadein-val">—</span>
+  </div>
+  <div class="insp-group">
+    <label>◣ OUT</label>
+    <input type="range" id="fadeout-slider" min="0" max="30" value="0" title="fade the sound out" disabled>
+    <span class="insp-val" id="fadeout-val">—</span>
+  </div>
   <button class="tool-btn" id="mute-btn" title="mute this clip (m)" disabled><span class="ico">🔇</span></button>
   <button class="tool-btn" id="detach-btn" title="pull the sound out of this clip onto the audio lane" disabled><span class="ico">⇣</span> DETACH</button>
   <button class="tool-btn" id="fb-edit-btn" style="display:none"><span class="ico">✏️</span> EDIT DRAWING</button>
@@ -821,6 +846,7 @@
       <input type="range" id="master-vol" min="0" max="100" value="100" title="master volume — the whole mix">
       <span class="insp-val" id="master-val" style="color:var(--green)">100%</span>
     </div>
+    <button class="tlb-btn" id="mic-btn" title="record your voice or sound effects while the movie plays — headphones on!">🎤 REC</button>
     <span class="note">scroll = zoom · shift+drag clip = snap · drag clip up = new layer · 🎵 audio lanes live below</span>
   </div>
   <div id="tl-scroll">
@@ -853,8 +879,9 @@
   </div>
 
   <div id="fb-toolbar">
-    <button class="fbt-btn" id="fbt-add" title="new frame after this one">＋ FRAME</button>
-    <button class="fbt-btn" id="fbt-dup" title="duplicate this frame">⧉ DUP</button>
+    <button class="fbt-btn" id="fbt-add" title="new empty frame after this one">＋ FRAME</button>
+    <button class="fbt-btn" id="fbt-hold" title="hold this drawing one frame longer (or drag its pink edge in the sheet)">⇥ HOLD</button>
+    <button class="fbt-btn" id="fbt-dup" title="duplicate this frame as a new drawing">⧉ DUP</button>
     <button class="fbt-btn" id="fbt-copy" title="copy this layer's drawing (ctrl+c)">📋 COPY</button>
     <button class="fbt-btn" id="fbt-paste" title="paste onto this frame (ctrl+v)">📌 PASTE</button>
     <button class="fbt-btn" id="fbt-del" title="delete this frame">🗑 FRAME</button>
@@ -866,26 +893,20 @@
       <label>GHOST</label><input type="range" id="fbt-alpha" min="10" max="80" value="40"><span class="fbt-val" id="fbt-alpha-val">40</span>
       <button class="fbt-btn on" id="fbt-tint" title="color the ghosts: red = before, blue = after">🔴🔵</button>
     </div>
-    <span class="divider"></span>
-    <div id="fb-key-panel">
-      <button class="fbt-btn" id="fbt-mode" title="ART = draw the thing · POSE = place it">🎨 ART</button>
-      <div class="fbt-group">
-        <label>SIZE</label><input type="range" id="fbt-kscale" min="10" max="300" value="100"><span class="fbt-val" id="fbt-kscale-val">100</span>
-        <label>SPIN</label><input type="range" id="fbt-krot" min="-180" max="180" value="0"><span class="fbt-val" id="fbt-krot-val">0</span>
-        <label>FADE</label><input type="range" id="fbt-kopacity" min="0" max="100" value="100"><span class="fbt-val" id="fbt-kopacity-val">100</span>
-      </div>
-      <button class="fbt-btn" id="fbt-setkey" title="lock this pose at this frame">◆ SET KEY</button>
-      <button class="fbt-btn" id="fbt-delkey" title="remove the key at this frame">✕ KEY</button>
-    </div>
   </div>
 
   <div id="fb-main">
     <div id="fb-tools">
-      <div class="fb-tool on" id="fb-pen-btn" title="pen — hard edge">✏️</div>
+      <div class="fb-tool on" id="fb-ink-btn" title="ink pen — crisp line, presses harder = thicker">✒️</div>
+      <div class="fb-tool" id="fb-pencil-btn" title="pencil — light, thin, great for roughs">✏️</div>
       <div class="fb-tool" id="fb-marker-btn" title="marker — soft edge">🖊️</div>
+      <div class="fb-tool" id="fb-air-btn" title="airbrush — soft spray, builds up slowly">💨</div>
+      <div class="fb-tool" id="fb-crayon-btn" title="crayon — waxy texture">🖍️</div>
+      <div class="fb-tool" id="fb-fill-btn" title="paint bucket — tap to fill an area">🪣</div>
       <div class="fb-tool" id="fb-eraser-btn" title="eraser">🧽</div>
       <div class="fb-vslider"><label>SIZE</label><input type="range" id="fb-size" min="1" max="80" value="10"><span id="fb-size-val">10</span></div>
       <div class="fb-vslider"><label>INK</label><input type="range" id="fb-alpha" min="5" max="100" value="100"><span id="fb-alpha-val">100</span></div>
+      <div class="fb-vslider"><label>CALM</label><input type="range" id="fb-smooth" min="0" max="100" value="30" title="steadies shaky lines"><span id="fb-smooth-val">30</span></div>
       <div class="fb-tool" id="fb-undo-btn" title="undo stroke (ctrl+z)">↩</div>
       <div class="fb-tool" id="fb-clear-btn" title="clear this drawing">🗑</div>
     </div>
@@ -900,14 +921,15 @@
         <div id="fb-current"></div>
         <canvas id="fb-gamut" width="170" height="110"></canvas>
         <canvas id="fb-hue" width="170" height="14"></canvas>
+        <div id="fb-palettes"></div>
         <div id="fb-swatches"></div>
       </div>
       <div class="fb-panel">
         <h4>LAYERS <span style="float:right;font-weight:400">top draws last</span></h4>
         <div id="fb-layer-list"></div>
         <div class="fb-layer-btns">
-          <button id="fbl-add-draw" title="frame-by-frame drawing layer">＋✏️ DRAW</button>
-          <button id="fbl-add-move" title="draw once, move it with keys">＋↔ MOVE</button>
+          <button id="fbl-add-draw" title="a new pane of glass — draws on top">＋ LAYER</button>
+          <button id="fbl-rename" title="rename this layer">✏️ NAME</button>
           <button id="fbl-up" title="layer up">⬆</button>
           <button id="fbl-down" title="layer down">⬇</button>
           <button id="fbl-del" title="delete layer">🗑</button>
@@ -1128,6 +1150,7 @@ function defaultClipFX() {
     opacity: 1, blend: 'source-over',
     chroma: { on: false, color: [0, 255, 0], thresh: 45, soft: 20 },
     volume: 1, muted: false, audioOnly: false,
+    fadeIn: 0, fadeOut: 0,   // seconds of audio fade at each end
   };
 }
 // audio-role clips live on the green lanes (track < 0): music files + detached audio
@@ -1137,6 +1160,16 @@ function isAudioRole(clip) {
 }
 function clipGain(clip) {
   return clip.muted ? 0 : Math.max(0, Math.min(1, clip.volume)) * masterVol;
+}
+// ◢◣ fade envelope at timeline time t (0..1 multiplier on top of clipGain)
+function fadeMultAt(clip, t) {
+  const fi = clip.fadeIn || 0, fo = clip.fadeOut || 0;
+  if (!fi && !fo) return 1;
+  const dur = clipDur(clip);
+  let g = 1;
+  if (fi > 0) g = Math.min(g, (t - clip.start) / fi);
+  if (fo > 0) g = Math.min(g, (clipEnd(clip) - t) / fo);
+  return Math.max(0, Math.min(1, g));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1293,10 +1326,18 @@ let snapOn = false, multiOn = false;
 // volume must go through WebAudio GainNodes. Every pooled element gets routed
 // element → GainNode → destination; gain carries clipGain(), element stays at
 // volume=1. muted still works as a hard cut (used by mute + stop).
-let playCtx = null;
+let playCtx = null, playBus = null;
 function ensurePlayGraph() {
   if (!playCtx) {
-    try { playCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+    try {
+      playCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // 🛡 master limiter: layered clips SUM here — the limiter catches the
+      // overshoot so three loud tracks blend instead of crunching the speaker
+      playBus = playCtx.createDynamicsCompressor();
+      playBus.threshold.value = -6; playBus.knee.value = 4;
+      playBus.ratio.value = 12; playBus.attack.value = 0.003; playBus.release.value = 0.25;
+      playBus.connect(playCtx.destination);
+    } catch (e) { return; }
   }
   if (playCtx.state === 'suspended') playCtx.resume().catch(() => {});
 }
@@ -1306,7 +1347,7 @@ function routeThroughGraph(el) {
     const src = playCtx.createMediaElementSource(el);   // only legal ONCE per element
     el.__gain = playCtx.createGain();
     src.connect(el.__gain);
-    el.__gain.connect(playCtx.destination);
+    el.__gain.connect(playBus || playCtx.destination);
   } catch (e) {}
 }
 function setElGain(el, g) {
@@ -1482,6 +1523,7 @@ async function importOne(file) {
   renderBin();
   toast(`✅ added "${item.name}" — ${fmtTime(p.duration)}`);
   queueProxyGen(item);
+  queuePeaks(item);       // sound strip appears on the clip when decoded
   stashFile(file);        // crash recovery: footage comes back by itself
   scheduleAutosave();
 }
@@ -1494,6 +1536,7 @@ async function relinkMedia(item, file) {
   if (!item.thumbURL) item.thumbURL = p.thumbURL;
   item.previewOK = p.previewOK;
   videoPool.set(item.id, p.v);
+  queuePeaks(item);
   renderBin(); refresh();
   toast(`🔗 relinked "${item.name}"`);
   queueProxyGen(item);
@@ -1565,7 +1608,7 @@ async function relinkAudio(item, file) {
   renderBin(); refresh();
   toast(`🔗 relinked "${item.name}"`);
 }
-// peaks for a video's soundtrack (computed on first detach)
+// peaks for a video's soundtrack (auto on import, one at a time — decode is heavy)
 async function ensurePeaks(item) {
   if (item.peaks || !item.file) return;
   try {
@@ -1573,6 +1616,11 @@ async function ensurePeaks(item) {
     item.peaks = peaks;
     renderTimeline();
   } catch (e) { console.warn('no decodable audio in', item.name, e); }
+}
+let peaksQueue = Promise.resolve();
+function queuePeaks(item) {
+  if (item.fileSize > 300 * 1048576) return;   // giant file — decode only if detached
+  peaksQueue = peaksQueue.then(() => ensurePeaks(item)).catch(() => {});
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2008,42 +2056,52 @@ function syncVideos(t, wantPlaying) {
   const active = activeClipsAt(t);
   const activeVideoIds = new Set();
   const activeAudioTids = new Set();
+  const mediaOwned = new Set();   // which media already have a clip driving the shared element
+
+  // one audible element per CLIP: gains SUM in the WebAudio graph, so layered
+  // sounds blend instead of the top clip stealing the shared element
+  const syncAudioEl = (clip, want) => {
+    const a = audioElFor(clip);
+    if (!a) return;
+    activeAudioTids.add(clip.tid);
+    setElGain(a, clipGain(clip) * fadeMultAt(clip, t));
+    if (wantPlaying) {
+      // 🌊 audio elements free-run — re-seeking a playing element pops the sound.
+      if (Math.abs(a.currentTime - want) > 0.35) { try { a.currentTime = want; } catch (e) {} }
+      if (a.paused) a.play().catch(() => {});
+    } else {
+      if (Math.abs(a.currentTime - want) > 0.05) { try { a.currentTime = want; } catch (e) {} }
+    }
+  };
 
   for (const clip of active) {
     const m = mediaOf(clip);
     if (!m || m.missing) continue;
     const want = clip.in + (t - clip.start);
 
-    if (isAudioRole(clip)) {
-      const a = audioElFor(clip);
-      if (!a) continue;
-      activeAudioTids.add(clip.tid);
-      setElGain(a, clipGain(clip));
-      if (wantPlaying) {
-        // 🌊 audio elements free-run — re-seeking a playing element pops the sound.
-        // Only correct drift a listener would actually notice.
-        if (Math.abs(a.currentTime - want) > 0.35) { try { a.currentTime = want; } catch (e) {} }
-        if (a.paused) a.play().catch(() => {});
-      } else {
-        if (Math.abs(a.currentTime - want) > 0.05) { try { a.currentTime = want; } catch (e) {} }
-      }
-      continue;
-    }
+    if (isAudioRole(clip)) { syncAudioEl(clip, want); continue; }
 
     if (m.kind !== 'video') continue;   // flipbooks are silent pictures
     activeVideoIds.add(m.id);
     const v = videoPool.get(m.id);
     if (!v) continue;
-    if (wantPlaying) {
-      // 🌊 seek-storm guard: a playing video that carries sound gets the widest
-      // leash (seeks interrupt its audio); muted video gets a medium one; and in
-      // smooth mode we stop correcting entirely — proxies carry the picture.
-      const leash = smoothMode ? 9e9 : (clipGain(clip) > 0 ? 0.8 : 0.45);
-      if (Math.abs(v.currentTime - want) > leash) { try { v.currentTime = want; } catch (e) {} }
-      setElGain(v, clipGain(clip));
-      if (v.paused) v.play().catch(() => {});
-    } else {
-      if (Math.abs(v.currentTime - want) > 0.05) { try { v.currentTime = want; } catch (e) {} }
+    if (!mediaOwned.has(m.id)) {
+      mediaOwned.add(m.id);   // first clip of this footage drives the shared element
+      if (wantPlaying) {
+        // 🌊 seek-storm guard: a playing video that carries sound gets the widest
+        // leash (seeks interrupt its audio); muted video gets a medium one; and in
+        // smooth mode we stop correcting entirely — proxies carry the picture.
+        const leash = smoothMode ? 9e9 : (clipGain(clip) > 0 ? 0.8 : 0.45);
+        if (Math.abs(v.currentTime - want) > leash) { try { v.currentTime = want; } catch (e) {} }
+        setElGain(v, clipGain(clip) * fadeMultAt(clip, t));
+        if (v.paused) v.play().catch(() => {});
+      } else {
+        if (Math.abs(v.currentTime - want) > 0.05) { try { v.currentTime = want; } catch (e) {} }
+      }
+    } else if (clipGain(clip) > 0) {
+      // 🔊 a SECOND clip of the same footage is audible at the same moment —
+      // it gets its own element so both soundtracks actually blend
+      syncAudioEl(clip, want);
     }
   }
   for (const [id, v] of videoPool) {
@@ -2128,6 +2186,7 @@ function startPlayback() {
 function stopPlayback() {
   playing = false;
   cancelAnimationFrame(rafId);
+  if (micRec) stopMicRec();   // movie over → the take wraps itself up
   for (const v of videoPool.values()) { v.pause(); v.muted = true; }
   for (const a of audioPool.values()) a.pause();
   $('play-btn').textContent = '▶';
@@ -2278,30 +2337,59 @@ function renderTimeline() {
     el.style.width = wPx + 'px';
     el.style.height = rowHFor(clip.track) + 'px';
     const color = audioRole ? '#00E676' : CLIP_COLORS[i % CLIP_COLORS.length];
+    // waveform painter — sound you can SEE, on green lanes and video blocks alike
+    const paintWave = (w, h, opts) => {
+      const wf = document.createElement('canvas');
+      wf.width = Math.max(1, Math.min(800, Math.ceil(w))); wf.height = h;
+      const wctx = wf.getContext('2d');
+      if (opts.bg) { wctx.fillStyle = opts.bg; wctx.fillRect(0, 0, wf.width, wf.height); }
+      wctx.fillStyle = opts.color;
+      const p0 = clip.in / m.duration, p1 = clip.out / m.duration;
+      const mid = opts.baseline === 'bottom' ? wf.height : wf.height / 2;
+      for (let x = 0; x < wf.width; x++) {
+        const pi = Math.floor((p0 + (x / wf.width) * (p1 - p0)) * m.peaks.length);
+        const hh = Math.max(1, (m.peaks[pi] || 0) * (opts.baseline === 'bottom' ? wf.height : mid) * 0.9 * Math.min(1, clip.volume));
+        if (opts.baseline === 'bottom') wctx.fillRect(x, wf.height - hh, 1, hh);
+        else wctx.fillRect(x, mid - hh, 1, hh * 2);
+      }
+      // ◢◣ fades drawn right on the block — kids see the ramp
+      const fiPx = (clip.fadeIn || 0) * pxPerSec * (wf.width / w);
+      const foPx = (clip.fadeOut || 0) * pxPerSec * (wf.width / w);
+      wctx.fillStyle = 'rgba(0,0,0,0.55)';
+      wctx.strokeStyle = 'rgba(255,255,255,0.85)'; wctx.lineWidth = 1.5;
+      if (fiPx > 1) {
+        wctx.beginPath(); wctx.moveTo(0, wf.height); wctx.lineTo(0, 0); wctx.lineTo(fiPx, wf.height); wctx.closePath(); wctx.fill();
+        wctx.beginPath(); wctx.moveTo(0, wf.height); wctx.lineTo(fiPx, 0); wctx.stroke();
+      }
+      if (foPx > 1) {
+        wctx.beginPath(); wctx.moveTo(wf.width, wf.height); wctx.lineTo(wf.width, 0); wctx.lineTo(wf.width - foPx, wf.height); wctx.closePath(); wctx.fill();
+        wctx.beginPath(); wctx.moveTo(wf.width - foPx, 0); wctx.lineTo(wf.width, wf.height); wctx.stroke();
+      }
+      return wf.toDataURL();
+    };
     if (audioRole) {
       if (m && m.peaks) {
-        // waveform slice for the trimmed [in,out] window
-        const wf = document.createElement('canvas');
-        wf.width = Math.min(800, Math.ceil(wPx)); wf.height = AROW_H;
-        const wctx = wf.getContext('2d');
-        wctx.fillStyle = '#0d1f16'; wctx.fillRect(0, 0, wf.width, wf.height);
-        wctx.fillStyle = clip.muted ? '#2a4a3a' : '#00E676';
-        const p0 = clip.in / m.duration, p1 = clip.out / m.duration;
-        const mid = wf.height / 2;
-        for (let x = 0; x < wf.width; x++) {
-          const pi = Math.floor((p0 + (x / wf.width) * (p1 - p0)) * m.peaks.length);
-          const hh = Math.max(1, (m.peaks[pi] || 0) * mid * 0.9 * Math.min(1, clip.volume));
-          wctx.fillRect(x, mid - hh, 1, hh * 2);
-        }
-        el.style.background = `url(${wf.toDataURL()})`;
+        el.style.background = `url(${paintWave(wPx, AROW_H, { bg: '#0d1f16', color: clip.muted ? '#2a4a3a' : '#00E676' })})`;
         el.style.backgroundSize = '100% 100%';
       }
     } else {
-      el.style.background = m && m.thumbURL
+      const thumbBg = m && m.thumbURL
         ? `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url(${m.thumbURL})`
-        : color;
-      el.style.backgroundSize = 'cover';
-      el.style.backgroundPosition = 'center';
+        : '';
+      if (m && m.kind === 'video' && m.peaks && !clip.muted) {
+        // sound strip along the bottom of the picture block — same green as the lanes
+        const wfURL = paintWave(wPx, 28, { color: 'rgba(0,230,118,0.95)', baseline: 'bottom' });
+        el.style.background = `url(${wfURL})` + (thumbBg ? ', ' + thumbBg : '');
+        el.style.backgroundRepeat = 'no-repeat';
+        el.style.backgroundSize = thumbBg ? '100% 34%, cover, cover' : '100% 34%';
+        el.style.backgroundPosition = thumbBg ? 'left bottom, center, center' : 'left bottom';
+      } else if (thumbBg) {
+        el.style.background = thumbBg;
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+      } else {
+        el.style.background = color;
+      }
     }
     el.style.outline = `2px solid ${m && m.missing ? 'var(--red)' : color}`;
     const fx = [];
@@ -2595,6 +2683,8 @@ function updateTools() {
   $('chroma-thresh').disabled = !c || audioRole || !c.chroma.on;
   $('chroma-soft').disabled = !c || audioRole || !c.chroma.on;
   $('volume-slider').disabled = !canSound;
+  $('fadein-slider').disabled = !canSound;
+  $('fadeout-slider').disabled = !canSound;
   $('mute-btn').disabled = !canSound;
   $('detach-btn').disabled = !c || audioRole || !(m && m.kind === 'video') || c.muted;
   const editKind = m && (m.kind === 'flipbook' || m.kind === 'code' || m.kind === 'vector') ? m.kind : null;
@@ -2614,6 +2704,10 @@ function updateTools() {
     $('chroma-soft').value = c.chroma.soft;
     $('volume-slider').value = Math.round(c.volume * 100);
     $('volume-val').textContent = c.muted ? 'MUTE' : Math.round(c.volume * 100) + '%';
+    $('fadein-slider').value = Math.round((c.fadeIn || 0) * 10);
+    $('fadein-val').textContent = (c.fadeIn || 0) > 0 ? (c.fadeIn).toFixed(1) + 's' : 'off';
+    $('fadeout-slider').value = Math.round((c.fadeOut || 0) * 10);
+    $('fadeout-val').textContent = (c.fadeOut || 0) > 0 ? (c.fadeOut).toFixed(1) + 's' : 'off';
     $('mute-btn').classList.toggle('on', c.muted);
     const where = c.track < 0 ? `audio ${-c.track}` : `layer ${c.track + 1}`;
     $('tool-hint').textContent = inside
@@ -2712,6 +2806,20 @@ $('volume-slider').addEventListener('input', e => {
   $('volume-val').textContent = c.muted ? 'MUTE' : e.target.value + '%';
 });
 $('volume-slider').addEventListener('change', renderTimeline);
+$('fadein-slider').addEventListener('input', e => {
+  const c = selClip(); if (!c) return;
+  fxSnapshotOnce();
+  c.fadeIn = parseInt(e.target.value) / 10;
+  $('fadein-val').textContent = c.fadeIn > 0 ? c.fadeIn.toFixed(1) + 's' : 'off';
+});
+$('fadein-slider').addEventListener('change', renderTimeline);
+$('fadeout-slider').addEventListener('input', e => {
+  const c = selClip(); if (!c) return;
+  fxSnapshotOnce();
+  c.fadeOut = parseInt(e.target.value) / 10;
+  $('fadeout-val').textContent = c.fadeOut > 0 ? c.fadeOut.toFixed(1) + 's' : 'off';
+});
+$('fadeout-slider').addEventListener('change', renderTimeline);
 $('mute-btn').addEventListener('click', () => {
   const c = selClip(); if (!c) return;
   snapshot();
@@ -2743,6 +2851,96 @@ $('master-vol').addEventListener('input', e => {
   masterVol = parseInt(e.target.value) / 100;
   $('master-val').textContent = e.target.value + '%';
 });
+
+// ── 🎤 MIC RECORDING — dub + foley, straight onto the timeline ──
+// tap REC: the movie plays from the playhead while the mic listens. tap again
+// (or let the movie end) and the take lands at the exact frame you started on.
+let micRec = null, micCounter = 0;
+$('mic-btn').addEventListener('click', () => micRec ? stopMicRec() : startMicRec());
+async function startMicRec() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    caution('mic', '🎤 no microphone', 'this device or browser can’t record sound.');
+    return;
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+  } catch (err) {
+    caution('mic', '🎤 microphone blocked', err && err.name === 'NotAllowedError'
+      ? 'allow the microphone in the permission popup (or Settings → Safari/Chrome → Microphone) and try again.'
+      : 'couldn’t open a microphone on this device.');
+    return;
+  }
+  const mime = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
+  let rec;
+  const chunks = [];
+  try {
+    rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    rec.start(250);
+  } catch (e) {
+    stream.getTracks().forEach(tr => tr.stop());
+    caution('mic', '🎤 recorder missing', 'this browser can’t record audio.');
+    return;
+  }
+  micRec = { rec, stream, chunks, t0: playhead, mime };
+  $('mic-btn').classList.add('rec');
+  $('mic-btn').textContent = '⏹ STOP';
+  toast('🎤 recording — 🎧 headphones on so the mic doesn’t hear the movie!', 3600);
+  if (!playing && timeline.length) startPlayback();
+}
+async function stopMicRec() {
+  if (!micRec) return;
+  const { rec, stream, chunks, t0, mime } = micRec;
+  micRec = null;
+  $('mic-btn').classList.remove('rec');
+  $('mic-btn').textContent = '🎤 REC';
+  if (playing) stopPlayback();
+  await new Promise(res => { rec.onstop = res; try { rec.stop(); } catch (e) { res(); } });
+  stream.getTracks().forEach(tr => tr.stop());
+  if (!chunks.length) { toast('🎤 nothing recorded'); return; }
+  const ext = (mime || '').includes('mp4') ? 'm4a' : 'webm';
+  const file = new File(chunks, `voice ${++micCounter}.${ext}`, { type: mime || 'audio/webm' });
+  await importMicTake(file, t0);
+}
+// the take becomes ordinary audio media + a clip at the exact start frame
+async function importMicTake(file, t0) {
+  try {
+    const url = URL.createObjectURL(file);
+    const { duration, peaks } = await decodePeaks(file);
+    const item = {
+      id: ++mediaCounter, kind: 'audio',
+      name: file.name.replace(/\.[^.]+$/, ''),
+      fileName: file.name, fileSize: file.size,
+      file, url, duration, width: 0, height: 0,
+      thumbURL: waveformDataURL(peaks, 240, 135, '#00E676', '#0d1f16'),
+      previewOK: true, peaks, proxy: null,
+    };
+    media.push(item);
+    const a = document.createElement('audio');
+    a.preload = 'auto'; a.src = url;
+    videoPool.set(item.id, a);
+    stashFile(file);
+    // drop the take at the frame the recording started, on a free audio lane
+    snapshot();
+    let lane = -1;
+    const end = t0 + duration;
+    const overlaps = tr => timeline.some(x => x.track === tr && t0 < clipEnd(x) && end > x.start);
+    while (overlaps(lane)) lane--;
+    const clip = { tid: ++tidCounter, mediaId: item.id, start: t0, track: lane, in: 0, out: duration, ...defaultClipFX() };
+    timeline.push(clip);
+    selTid = clip.tid;
+    playhead = t0;
+    refresh();
+    scheduleAutosave();
+    toast(`🎤 "${item.name}" is on the timeline — ${fmtTime(duration)} at ${fmtTime(t0)}`);
+    return clip;
+  } catch (err) {
+    console.error('mic decode failed', err);
+    caution('mic', '🎤 take lost', 'that recording couldn’t be decoded — try again.');
+    return null;
+  }
+}
 
 $('undo-btn').addEventListener('click', doUndo);
 $('redo-btn').addEventListener('click', doRedo);
@@ -2851,14 +3049,14 @@ let fbLayerCounter = 0;
 const fb = {
   open: false, mediaId: null, clip: null,
   cur: 0, activeLid: null,
-  tool: 'pen', size: 10, brushAlpha: 1,
+  tool: 'ink', size: 10, brushAlpha: 1, smooth: 0.3,
   hue: 348, sat: 0.91, val: 1, color: '#FF1744',
   onion: { on: true, back: 1, fwd: 1, alpha: 0.4, tint: true },
   roto: false, playing: false, playTimer: null,
-  moveMode: 'art', pose: { x: 0, y: 0, s: 1, r: 0, o: 1 },
   clipboard: null,
-  undo: [],   // {lid, type:'cell'|'art', frame?, prev:canvas|null}
+  undo: [],   // {lid, type:'cell', frame, prev} | {lid, type:'row', cells:[...]}
   swatches: [...FB_DEFAULT_SWATCHES],
+  palette: '🌈 bold',
 };
 const fbDraw = $('fb-draw');
 const fbDrawCtx = fbDraw.getContext('2d', { willReadFrequently: true });
@@ -2883,49 +3081,57 @@ function cloneCanvas(src) {
 function newDrawLayer(name, frameCount) {
   return { lid: ++fbLayerCounter, name, kind: 'draw', visible: true, cells: new Array(frameCount).fill(null) };
 }
-function newMoveLayer(name) {
-  return { lid: ++fbLayerCounter, name, kind: 'move', visible: true, art: null, keys: [] };
-}
 function activeLayer() {
   const m = fbMedia();
   return m ? m.layers.find(l => l.lid === fb.activeLid) || null : null;
 }
-// legacy (v2/v3 .geov + old in-memory items): frames[] → one draw layer
+// ── migration ──
+// cells[i] is: a canvas (a drawing STARTS here) · 'H' (⇥ hold — the previous
+// drawing stays up, like a cel left on the glass) · null (empty pane — nothing).
+// v8 and earlier: empty meant hold-forever, and mover layers tweened. Both retire:
+// implicit holds become explicit 'H', movers bake to a held drawing (motion → 📐 VECTOR).
 function migrateFlipbook(m) {
-  if (m.layers) return;
-  const frames = m.frames || [newFrameCanvas()];
-  m.frameCount = frames.length;
-  m.layers = [{ lid: ++fbLayerCounter, name: 'drawing', kind: 'draw', visible: true, cells: frames }];
-  delete m.frames;
+  if (!m.layers) {   // legacy v2/v3: frames[] → one draw layer
+    const frames = m.frames || [newFrameCanvas()];
+    m.frameCount = frames.length;
+    m.layers = [{ lid: ++fbLayerCounter, name: 'drawing', kind: 'draw', visible: true, cells: frames }];
+    delete m.frames;
+  }
+  if (m._cel) return;
+  m._cel = true;
+  m.layers = m.layers.map(l => {
+    if (l.kind === 'move') {
+      const cells = new Array(m.frameCount).fill('H');
+      cells[0] = l.art || newFrameCanvas();
+      return { lid: l.lid, name: l.name, kind: 'draw', visible: l.visible !== false, cells };
+    }
+    let seen = false;
+    l.cells = l.cells.map(c => { if (c) { seen = true; return c; } return seen ? 'H' : null; });
+    return l;
+  });
 }
 
 // ── frame compositor ──
-function cellAt(layer, i) {   // exposure hold: empty cells keep showing the last drawing
-  for (let k = Math.min(i, layer.cells.length - 1); k >= 0; k--) {
-    if (layer.cells[k]) return { c: layer.cells[k], from: k };
-  }
-  return null;
+function cellAt(layer, i) {   // a drawing shows on its own frame + every contiguous ⇥ hold after it
+  i = Math.min(i, layer.cells.length - 1);
+  if (i < 0 || !layer.cells[i]) return null;
+  let k = i;
+  while (k > 0 && layer.cells[k] === 'H') k--;
+  const p = layer.cells[k];
+  return (p && p !== 'H') ? { c: p, from: k } : null;
 }
-function tweenAt(layer, i) {
-  const ks = layer.keys || [];
-  if (!ks.length) return { x: 0, y: 0, s: 1, r: 0, o: 1 };
-  if (i <= ks[0].f) return { ...ks[0] };
-  const last = ks[ks.length - 1];
-  if (i >= last.f) return { ...last };
-  for (let k = 0; k < ks.length - 1; k++) {
-    const a = ks[k], b = ks[k + 1];
-    if (i >= a.f && i <= b.f) {
-      const t = (i - a.f) / Math.max(1, b.f - a.f);
-      const L = (p, q) => p + (q - p) * t;
-      return { x: L(a.x, b.x), y: L(a.y, b.y), s: L(a.s, b.s), r: L(a.r, b.r), o: L(a.o, b.o) };
-    }
-  }
-  return { ...ks[0] };
+// the exposure run covering frame f: {s, e} or null if the pane is empty
+function cellRun(layer, f) {
+  const cc = cellAt(layer, f);
+  if (!cc) return null;
+  let e = cc.from;
+  while (e + 1 < layer.cells.length && layer.cells[e + 1] === 'H') e++;
+  return { s: cc.from, e };
 }
 function renderFbFrame(m, i, opts = {}) {
   migrateFlipbook(m);
   i = Math.max(0, Math.min(m.frameCount - 1, i));
-  const cacheable = !opts.excludeLid && !opts.poseOverride;
+  const cacheable = !opts.excludeLid;
   if (cacheable) {
     if (!m._cache) m._cache = new Map();
     const hit = m._cache.get(i);
@@ -2935,20 +3141,8 @@ function renderFbFrame(m, i, opts = {}) {
   const ctx = out.getContext('2d');
   for (const layer of m.layers) {
     if (!layer.visible || layer.lid === opts.excludeLid) continue;
-    if (layer.kind === 'draw') {
-      const cc = cellAt(layer, i);
-      if (cc) ctx.drawImage(cc.c, 0, 0);
-    } else if (layer.art) {
-      let p = tweenAt(layer, i);
-      if (opts.poseOverride && opts.poseOverride.lid === layer.lid) p = opts.poseOverride.pose;
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, Math.min(1, p.o));
-      ctx.translate(FB_W / 2 + p.x, FB_H / 2 + p.y);
-      ctx.rotate(p.r * Math.PI / 180);
-      ctx.scale(p.s, p.s);
-      ctx.drawImage(layer.art, -FB_W / 2, -FB_H / 2);
-      ctx.restore();
-    }
+    const cc = cellAt(layer, i);
+    if (cc) ctx.drawImage(cc.c, 0, 0);
   }
   if (cacheable) {
     m._cache.set(i, out);
@@ -3003,33 +3197,33 @@ function openFlipbook(mediaId, clip) {
 }
 
 // ── tools + toolbar state ──
+// the brush kit: line brushes ride the stroke buffer, stamp brushes dab along
+// the path, fill floods on tap. pressure (Apple Pencil) breathes into ink + pencil.
+const FB_BRUSHES = {
+  ink:    { line: true,  pressure: true,  widthMul: 1,    alphaMul: 1 },
+  pencil: { line: true,  pressure: true,  widthMul: 0.55, alphaMul: 0.8 },
+  marker: { line: true,  pressure: false, widthMul: 1.15, alphaMul: 1, blur: true },
+  air:    { stamp: 'air',    spacing: 0.22 },
+  crayon: { stamp: 'crayon', spacing: 0.16 },
+  fill:   { bucket: true },
+  eraser: { line: true, pressure: false, widthMul: 1, alphaMul: 1, erase: true },
+};
 function buildFbTools() {
-  $('fb-pen-btn').classList.toggle('on', fb.tool === 'pen');
-  $('fb-marker-btn').classList.toggle('on', fb.tool === 'marker');
-  $('fb-eraser-btn').classList.toggle('on', fb.tool === 'eraser');
+  for (const b of Object.keys(FB_BRUSHES)) {
+    const el = $(`fb-${b}-btn`);
+    if (el) el.classList.toggle('on', fb.tool === b);
+  }
   $('fbt-onion').classList.toggle('on', fb.onion.on);
   $('fbt-tint').classList.toggle('on', fb.onion.tint);
   $('fb-roto-btn').classList.toggle('on', fb.roto);
-  const layer = activeLayer();
-  const isMove = layer && layer.kind === 'move';
-  $('fb-key-panel').classList.toggle('show', isMove);
-  if (isMove) {
-    $('fbt-mode').textContent = fb.moveMode === 'art' ? '🎨 ART' : '↔ POSE';
-    $('fbt-mode').classList.toggle('on', fb.moveMode === 'pose');
-    $('fbt-kscale').value = Math.round(fb.pose.s * 100);
-    $('fbt-kscale-val').textContent = Math.round(fb.pose.s * 100);
-    $('fbt-krot').value = Math.round(fb.pose.r);
-    $('fbt-krot-val').textContent = Math.round(fb.pose.r);
-    $('fbt-kopacity').value = Math.round(fb.pose.o * 100);
-    $('fbt-kopacity-val').textContent = Math.round(fb.pose.o * 100);
-  }
-  fbDraw.classList.toggle('pose', isMove && fb.moveMode === 'pose');
 }
-$('fb-pen-btn').addEventListener('click', () => { fb.tool = 'pen'; buildFbTools(); });
-$('fb-marker-btn').addEventListener('click', () => { fb.tool = 'marker'; buildFbTools(); });
-$('fb-eraser-btn').addEventListener('click', () => { fb.tool = 'eraser'; buildFbTools(); });
+for (const b of Object.keys(FB_BRUSHES)) {
+  const el = $(`fb-${b}-btn`);
+  if (el) el.addEventListener('click', () => { fb.tool = b; buildFbTools(); });
+}
 $('fb-size').addEventListener('input', e => { fb.size = parseInt(e.target.value); $('fb-size-val').textContent = e.target.value; });
 $('fb-alpha').addEventListener('input', e => { fb.brushAlpha = parseInt(e.target.value) / 100; $('fb-alpha-val').textContent = e.target.value; });
+$('fb-smooth').addEventListener('input', e => { fb.smooth = parseInt(e.target.value) / 100; $('fb-smooth-val').textContent = e.target.value; });
 $('fbt-onion').addEventListener('click', () => { fb.onion.on = !fb.onion.on; buildFbTools(); drawFbGhost(); });
 $('fbt-tint').addEventListener('click', () => { fb.onion.tint = !fb.onion.tint; buildFbTools(); drawFbGhost(); });
 $('fbt-back').addEventListener('input', e => { fb.onion.back = parseInt(e.target.value); $('fbt-back-val').textContent = e.target.value; drawFbGhost(); });
@@ -3109,6 +3303,30 @@ function attachPickerDrag(el, fn) {
 }
 attachPickerDrag($('fb-gamut'), (x, y) => setFbColor(fb.hue, x, 1 - y));
 attachPickerDrag($('fb-hue'), (x) => setFbColor(x * 360, fb.sat, fb.val));
+// curated palettes — real color families that reward real drawing
+const FB_PALETTES = {
+  '🌈 bold':    [...FB_DEFAULT_SWATCHES],
+  '🧑‍🎨 painter': ['#7B3F00','#A0522D','#C68642','#E0AC69','#F1C27D','#FFDBAC','#5D4037','#8D6E63','#3E2723','#FFF8E1'],
+  '🌸 pastel':  ['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E0BBE4','#FEC8D8','#D4F0F0','#F6EAC2','#FFFFFF'],
+  '🌊 cool':    ['#0D47A1','#1976D2','#29B6F6','#00E5FF','#00897B','#26A69A','#4DB6AC','#B2DFDB','#37474F','#ECEFF1'],
+  '🔥 warm':    ['#B71C1C','#E53935','#FF7043','#FF9100','#FFC400','#FFD600','#8D2F23','#FF8A65','#FFE0B2','#4E342E'],
+  '🖤 comic':   ['#000000','#1A1A1A','#4A4A4A','#7A7A7A','#B0B0B0','#E0E0E0','#FFFFFF','#FF1744','#2979FF','#FFD600'],
+};
+function renderPalettes() {
+  const wrap = $('fb-palettes');
+  wrap.innerHTML = '';
+  for (const name of Object.keys(FB_PALETTES)) {
+    const chip = document.createElement('div');
+    chip.className = 'fb-pal-chip' + (name === fb.palette ? ' on' : '');
+    chip.textContent = name;
+    chip.addEventListener('click', () => {
+      fb.palette = name;
+      fb.swatches = [...FB_PALETTES[name]];
+      renderPalettes(); renderSwatches();
+    });
+    wrap.appendChild(chip);
+  }
+}
 function renderSwatches() {
   const wrap = $('fb-swatches');
   wrap.innerHTML = '';
@@ -3133,6 +3351,7 @@ function renderSwatches() {
 function buildColorUI() {
   $('fb-current').style.background = fb.color;
   drawGamut();
+  renderPalettes();
   renderSwatches();
 }
 
@@ -3140,8 +3359,6 @@ function buildColorUI() {
 function fbNav(idx) {
   const m = fbMedia();
   fb.cur = Math.max(0, Math.min(m.frameCount - 1, idx));
-  const layer = activeLayer();
-  if (layer && layer.kind === 'move') fb.pose = tweenAt(layer, fb.cur);
   loadFbView();
   renderFbSheet();
   renderFbLayers();
@@ -3152,13 +3369,8 @@ function loadFbView() {
   const layer = activeLayer();
   fbDrawCtx.clearRect(0, 0, FB_W, FB_H);
   if (layer) {
-    if (layer.kind === 'draw') {
-      const cc = cellAt(layer, fb.cur);
-      if (cc) fbDrawCtx.drawImage(cc.c, 0, 0);
-    } else if (fb.moveMode === 'art' && layer.art) {
-      fbDrawCtx.drawImage(layer.art, 0, 0);   // untransformed, for editing
-    }
-    // pose mode: fbDraw stays empty — the layer renders in the ghost at its pose
+    const cc = cellAt(layer, fb.cur);
+    if (cc) fbDrawCtx.drawImage(cc.c, 0, 0);
   }
   drawFbGhost();
 }
@@ -3186,8 +3398,6 @@ function drawFbGhost() {
   fbGhostCtx.clearRect(0, 0, FB_W, FB_H);
   const m = fbMedia();
   if (!m) return;
-  const layer = activeLayer();
-  const poseMode = layer && layer.kind === 'move' && fb.moveMode === 'pose';
 
   if (fb.roto) {
     const t = fbFrameTimelineTime(fb.cur);
@@ -3215,125 +3425,198 @@ function drawFbGhost() {
     }
   }
   // everything except what's being edited in fbDraw
-  const frame = poseMode
-    ? renderFbFrame(m, fb.cur, { poseOverride: { lid: layer.lid, pose: fb.pose } })
-    : renderFbFrame(m, fb.cur, { excludeLid: fb.activeLid });
-  fbGhostCtx.drawImage(frame, 0, 0);
+  fbGhostCtx.drawImage(renderFbFrame(m, fb.cur, { excludeLid: fb.activeLid }), 0, 0);
 }
 
 // ── brush engine: stroke builds on a buffer, composites once (clean ink) ──
-let fbStroking = false, fbLast = null, fbPosing = false, fbPoseStart = null;
+let fbStroking = false, fbLast = null, fbPressure = 0.5;
 function fbPos(e) {
   const r = fbDraw.getBoundingClientRect();
   return { x: (e.clientX - r.left) / r.width * FB_W, y: (e.clientY - r.top) / r.height * FB_H };
 }
+// glass panes: drawing on an empty frame starts a FRESH drawing (one frame long).
+// drawing on a ⇥ hold splits it — that frame becomes its own cel, holds after it follow.
 function getEditableBase(create) {
   const layer = activeLayer();
-  const m = fbMedia();
   if (!layer) return null;
-  if (layer.kind === 'move') {
-    if (!layer.art && create) layer.art = newFrameCanvas();
-    return layer.art;
-  }
   let cell = layer.cells[fb.cur];
-  if (!cell && create) {
+  if (cell === 'H') {
     const held = cellAt(layer, fb.cur);
-    cell = held ? cloneCanvas(held.c) : newFrameCanvas();   // drawing on a hold continues from it
+    cell = held ? cloneCanvas(held.c) : newFrameCanvas();
+    layer.cells[fb.cur] = cell;
+  } else if (!cell && create) {
+    cell = newFrameCanvas();
     layer.cells[fb.cur] = cell;
   }
   return cell;
 }
+function cellSnapshot(v) { return (v && v !== 'H') ? cloneCanvas(v) : v; }
 function pushFbUndo() {
   const layer = activeLayer();
   if (!layer) return;
-  fb.undo.push(layer.kind === 'move'
-    ? { lid: layer.lid, type: 'art', prev: cloneCanvas(layer.art) }
-    : { lid: layer.lid, type: 'cell', frame: fb.cur, prev: cloneCanvas(layer.cells[fb.cur]) });
+  fb.undo.push({ lid: layer.lid, type: 'cell', frame: fb.cur, prev: cellSnapshot(layer.cells[fb.cur]) });
   if (fb.undo.length > 30) fb.undo.shift();
+}
+function pushFbRowUndo(layer) {   // structural ops: snapshot the whole row (refs, not pixels)
+  fb.undo.push({ lid: layer.lid, type: 'row', cells: [...layer.cells] });
+  if (fb.undo.length > 30) fb.undo.shift();
+}
+// crayon stamp — a waxy speckle disc, rebuilt when color or size changes
+let fbCrayonStamp = null, fbCrayonKey = '';
+function crayonStamp() {
+  const key = fb.color + '|' + fb.size;
+  if (fbCrayonStamp && fbCrayonKey === key) return fbCrayonStamp;
+  const d = Math.max(6, fb.size * 1.15);
+  const c = document.createElement('canvas');
+  c.width = c.height = Math.ceil(d);
+  const x = c.getContext('2d');
+  x.fillStyle = fb.color;
+  const r = d / 2;
+  for (let i = 0; i < d * d * 0.42; i++) {
+    const a = Math.random() * Math.PI * 2, rr = Math.sqrt(Math.random()) * r;
+    x.globalAlpha = 0.35 + Math.random() * 0.6;
+    const s = 0.6 + Math.random() * 1.6;
+    x.fillRect(r + Math.cos(a) * rr - s / 2, r + Math.sin(a) * rr - s / 2, s, s);
+  }
+  fbCrayonStamp = c; fbCrayonKey = key;
+  return c;
 }
 fbDraw.addEventListener('pointerdown', e => {
   if (fb.playing) return;
   const layer = activeLayer();
   if (!layer) return;
   fbDraw.setPointerCapture(e.pointerId);
-  if (layer.kind === 'move' && fb.moveMode === 'pose') {
-    fbPosing = true;
-    fbPoseStart = { p: fbPos(e), pose: { ...fb.pose } };
+  const p = fbPos(e);
+  if (fb.tool === 'fill') {          // 🪣 one tap, no stroke
+    pushFbUndo();
+    const base = getEditableBase(true);
+    if (base) {
+      fbFloodFill(base, Math.round(p.x), Math.round(p.y));
+      bumpFb(fbMedia());
+      loadFbView(); renderFbSheet();
+    }
     return;
   }
   fbStroking = true;
+  fbPressure = (e.pointerType === 'pen' && e.pressure > 0) ? e.pressure : 0.5;
   pushFbUndo();
   fbStrokeCtx.clearRect(0, 0, FB_W, FB_H);
-  fbLast = fbPos(e);
-  fbStrokeSeg(fbLast, fbLast);
+  fbLast = p;
+  fbStrokeSeg(p, p, fbPressure);
 });
 fbDraw.addEventListener('pointermove', e => {
-  if (fbPosing) {
-    const p = fbPos(e);
-    fb.pose.x = fbPoseStart.pose.x + (p.x - fbPoseStart.p.x);
-    fb.pose.y = fbPoseStart.pose.y + (p.y - fbPoseStart.p.y);
-    drawFbGhost();
-    return;
-  }
   if (!fbStroking) return;
-  const p = fbPos(e);
-  fbStrokeSeg(fbLast, p);
+  const raw = fbPos(e);
+  // CALM: an EMA stabilizer — the line follows your hand like a brush through honey
+  const k = 1 - 0.82 * fb.smooth;
+  const p = { x: fbLast.x + (raw.x - fbLast.x) * k, y: fbLast.y + (raw.y - fbLast.y) * k };
+  const pr = (e.pointerType === 'pen' && e.pressure > 0) ? e.pressure : 0.5;
+  fbPressure = fbPressure + (pr - fbPressure) * 0.35;
+  fbStrokeSeg(fbLast, p, fbPressure);
   fbLast = p;
 });
 window.addEventListener('pointerup', () => {
-  if (fbPosing) { fbPosing = false; toast('◆ press SET KEY to lock this pose at this frame'); }
   if (fbStroking) { fbStroking = false; commitFbStroke(); }
 });
-function fbStrokeSeg(a, b) {
+function fbStrokeSeg(a, b, pressure) {
+  const B = FB_BRUSHES[fb.tool] || FB_BRUSHES.ink;
   const sc = fbStrokeCtx;
-  sc.lineCap = 'round'; sc.lineJoin = 'round';
-  sc.lineWidth = fb.size;
-  sc.strokeStyle = fb.tool === 'eraser' ? '#ffffff' : fb.color;
-  sc.beginPath(); sc.moveTo(a.x, a.y); sc.lineTo(b.x, b.y); sc.stroke();
+  if (B.line) {
+    const pw = B.pressure ? (0.35 + 1.3 * pressure) : 1;
+    sc.lineCap = 'round'; sc.lineJoin = 'round';
+    sc.lineWidth = Math.max(0.8, fb.size * B.widthMul * pw);
+    sc.strokeStyle = B.erase ? '#ffffff' : fb.color;
+    sc.beginPath(); sc.moveTo(a.x, a.y); sc.lineTo(b.x, b.y); sc.stroke();
+  } else {
+    // stamp brushes: dab along the segment
+    const dist = Math.hypot(b.x - a.x, b.y - a.y);
+    const gap = Math.max(1.5, fb.size * B.spacing);
+    const n = Math.max(1, Math.ceil(dist / gap));
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
+      if (B.stamp === 'air') {
+        const r = Math.max(3, fb.size * 1.4);
+        const g = sc.createRadialGradient(x, y, 0, x, y, r);
+        const [cr, cg, cb] = hsvToRgb(fb.hue, fb.sat, fb.val);
+        g.addColorStop(0, `rgba(${cr},${cg},${cb},${0.10 + 0.12 * pressure})`);
+        g.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+        sc.fillStyle = g;
+        sc.beginPath(); sc.arc(x, y, r, 0, Math.PI * 2); sc.fill();
+      } else {   // crayon
+        const st = crayonStamp();
+        const jx = (Math.random() - 0.5) * fb.size * 0.14, jy = (Math.random() - 0.5) * fb.size * 0.14;
+        sc.drawImage(st, x - st.width / 2 + jx, y - st.height / 2 + jy);
+      }
+    }
+  }
   repaintDrawView();
+}
+function brushCompositeInto(ctx) {
+  const B = FB_BRUSHES[fb.tool] || FB_BRUSHES.ink;
+  ctx.save();
+  if (B.erase) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.globalAlpha = fb.brushAlpha;
+  } else {
+    ctx.globalAlpha = fb.brushAlpha * (B.alphaMul || 1);
+    if (B.blur) ctx.filter = `blur(${Math.max(1, fb.size / 6)}px)`;
+  }
+  ctx.drawImage(fbStrokeBuf, 0, 0);
+  ctx.restore();
 }
 function repaintDrawView() {
   loadFbViewBaseOnly();
-  fbDrawCtx.save();
-  if (fb.tool === 'eraser') {
-    fbDrawCtx.globalCompositeOperation = 'destination-out';
-    fbDrawCtx.globalAlpha = fb.brushAlpha;
-  } else {
-    fbDrawCtx.globalAlpha = fb.brushAlpha;
-    if (fb.tool === 'marker') fbDrawCtx.filter = `blur(${Math.max(1, fb.size / 6)}px)`;
-  }
-  fbDrawCtx.drawImage(fbStrokeBuf, 0, 0);
-  fbDrawCtx.restore();
+  brushCompositeInto(fbDrawCtx);
 }
 function loadFbViewBaseOnly() {
   const layer = activeLayer();
   fbDrawCtx.clearRect(0, 0, FB_W, FB_H);
   if (!layer) return;
-  if (layer.kind === 'draw') {
-    const cc = cellAt(layer, fb.cur);
-    if (cc) fbDrawCtx.drawImage(cc.c, 0, 0);
-  } else if (layer.art) {
-    fbDrawCtx.drawImage(layer.art, 0, 0);
-  }
+  const cc = cellAt(layer, fb.cur);
+  if (cc) fbDrawCtx.drawImage(cc.c, 0, 0);
 }
 function commitFbStroke() {
   const base = getEditableBase(true);
   if (!base) return;
-  const bc = base.getContext('2d');
-  bc.save();
-  if (fb.tool === 'eraser') {
-    bc.globalCompositeOperation = 'destination-out';
-    bc.globalAlpha = fb.brushAlpha;
-  } else {
-    bc.globalAlpha = fb.brushAlpha;
-    if (fb.tool === 'marker') bc.filter = `blur(${Math.max(1, fb.size / 6)}px)`;
-  }
-  bc.drawImage(fbStrokeBuf, 0, 0);
-  bc.restore();
+  brushCompositeInto(base.getContext('2d'));
   fbStrokeCtx.clearRect(0, 0, FB_W, FB_H);
   bumpFb(fbMedia());
   loadFbView();
   renderFbSheet();
+}
+// 🪣 scanline flood fill — respects the alpha channel, ~32 tolerance
+function fbFloodFill(canvas, sx, sy) {
+  const ctx = canvas.getContext('2d');
+  const img = ctx.getImageData(0, 0, FB_W, FB_H);
+  const d = img.data;
+  const idx = (x, y) => (y * FB_W + x) * 4;
+  const i0 = idx(sx, sy);
+  const t0 = [d[i0], d[i0 + 1], d[i0 + 2], d[i0 + 3]];
+  const [fr, fg, fbl] = hsvToRgb(fb.hue, fb.sat, fb.val);
+  if (Math.abs(t0[0] - fr) < 8 && Math.abs(t0[1] - fg) < 8 && Math.abs(t0[2] - fbl) < 8 && t0[3] > 250) return;
+  const TOL = 34;
+  const match = (i) =>
+    Math.abs(d[i] - t0[0]) <= TOL && Math.abs(d[i + 1] - t0[1]) <= TOL &&
+    Math.abs(d[i + 2] - t0[2]) <= TOL && Math.abs(d[i + 3] - t0[3]) <= TOL;
+  const paint = (i) => { d[i] = fr; d[i + 1] = fg; d[i + 2] = fbl; d[i + 3] = 255; };
+  const stack = [[sx, sy]];
+  const seen = new Uint8Array(FB_W * FB_H);
+  while (stack.length) {
+    const [x, y] = stack.pop();
+    let xl = x;
+    while (xl >= 0 && !seen[y * FB_W + xl] && match(idx(xl, y))) xl--;
+    let xr = x + 1;
+    while (xr < FB_W && !seen[y * FB_W + xr] && match(idx(xr, y))) xr++;
+    for (let xi = xl + 1; xi < xr; xi++) {
+      const si = y * FB_W + xi;
+      if (seen[si]) continue;
+      seen[si] = 1; paint(idx(xi, y));
+      if (y > 0 && !seen[(y - 1) * FB_W + xi] && match(idx(xi, y - 1))) stack.push([xi, y - 1]);
+      if (y < FB_H - 1 && !seen[(y + 1) * FB_W + xi] && match(idx(xi, y + 1))) stack.push([xi, y + 1]);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
 }
 $('fb-undo-btn').addEventListener('click', fbUndoOnce);
 function fbUndoOnce() {
@@ -3342,52 +3625,22 @@ function fbUndoOnce() {
   const m = fbMedia();
   const layer = m.layers.find(l => l.lid === op.lid);
   if (!layer) return;
-  if (op.type === 'art') layer.art = op.prev;
+  if (op.type === 'row') layer.cells = op.cells;
   else layer.cells[op.frame] = op.prev;
   bumpFb(m);
-  loadFbView(); renderFbSheet();
+  fbNav(fb.cur);
 }
 $('fb-clear-btn').addEventListener('click', () => {
   const layer = activeLayer();
   if (!layer) return;
-  pushFbUndo();
-  if (layer.kind === 'move') layer.art = null;
+  pushFbRowUndo(layer);
+  // clearing a drawing takes its holds with it — the panes go back to empty glass
+  const run = cellRun(layer, fb.cur);
+  if (run) for (let f = fb.cur; f <= run.e; f++) layer.cells[f] = null;
   else layer.cells[fb.cur] = null;
   bumpFb(fbMedia());
   loadFbView(); renderFbSheet();
   toast('🗑 cleared (UNDO brings it back)');
-});
-
-// ── pose controls (move layers) ──
-$('fbt-mode').addEventListener('click', () => {
-  fb.moveMode = fb.moveMode === 'art' ? 'pose' : 'art';
-  const layer = activeLayer();
-  if (layer && layer.kind === 'move' && fb.moveMode === 'pose' && !layer.art) {
-    toast('draw your thing in ART mode first, then POSE it');
-    fb.moveMode = 'art';
-  }
-  buildFbTools(); loadFbView();
-});
-$('fbt-kscale').addEventListener('input', e => { fb.pose.s = parseInt(e.target.value) / 100; $('fbt-kscale-val').textContent = e.target.value; drawFbGhost(); });
-$('fbt-krot').addEventListener('input', e => { fb.pose.r = parseInt(e.target.value); $('fbt-krot-val').textContent = e.target.value; drawFbGhost(); });
-$('fbt-kopacity').addEventListener('input', e => { fb.pose.o = parseInt(e.target.value) / 100; $('fbt-kopacity-val').textContent = e.target.value; drawFbGhost(); });
-$('fbt-setkey').addEventListener('click', () => {
-  const layer = activeLayer();
-  if (!layer || layer.kind !== 'move') return;
-  layer.keys = (layer.keys || []).filter(k => k.f !== fb.cur);
-  layer.keys.push({ f: fb.cur, x: fb.pose.x, y: fb.pose.y, s: fb.pose.s, r: fb.pose.r, o: fb.pose.o });
-  layer.keys.sort((a, b) => a.f - b.f);
-  bumpFb(fbMedia());
-  renderFbSheet(); drawFbGhost();
-  toast(`◆ key set at frame ${fb.cur + 1} — frames between keys move by themselves`);
-});
-$('fbt-delkey').addEventListener('click', () => {
-  const layer = activeLayer();
-  if (!layer || layer.kind !== 'move') return;
-  layer.keys = (layer.keys || []).filter(k => k.f !== fb.cur);
-  bumpFb(fbMedia());
-  fb.pose = tweenAt(layer, fb.cur);
-  renderFbSheet(); drawFbGhost(); buildFbTools();
 });
 
 // ── dope sheet: rows = layers (top first), columns = frames ──
@@ -3441,33 +3694,85 @@ function renderFbSheet() {
     const tr = document.createElement('tr');
     const lh = document.createElement('th');
     lh.className = 'lhead';
-    lh.textContent = `${layer.kind === 'move' ? '↔' : '✏️'} ${layer.name}`;
+    lh.textContent = `✏️ ${layer.name}`;
     lh.style.color = layer.lid === fb.activeLid ? 'var(--pink)' : '';
     tr.appendChild(lh);
     for (let f = 0; f < m.frameCount; f++) {
       const td = document.createElement('td');
-      td.className = 'cell' + (f === fb.cur ? ' curcol' : '') + (f === fb.cur && layer.lid === fb.activeLid ? ' sel' : '');
-      let mark = '';
-      if (layer.kind === 'draw') {
-        if (layer.cells[f]) mark = '<span class="dot">●</span>';
-        else if (cellAt(layer, f)) mark = '<span class="dot held">●</span>';
-      } else {
-        if ((layer.keys || []).some(k => k.f === f)) mark = '<span class="key">◆</span>';
-        else if (layer.art && (layer.keys || []).length) mark = '<span class="dot held">·</span>';
-        else if (layer.art) mark = '<span class="dot held">·</span>';
-      }
-      td.innerHTML = mark;
-      td.addEventListener('pointerdown', () => {
-        if (fb.playing) return;
-        fb.activeLid = layer.lid;
-        fbNav(f);
-      });
+      const v = layer.cells[f];
+      const isEnd = v && (f + 1 >= m.frameCount || layer.cells[f + 1] !== 'H');
+      td.className = 'cell'
+        + (f === fb.cur ? ' curcol' : '')
+        + (f === fb.cur && layer.lid === fb.activeLid ? ' sel' : '')
+        + (v ? ' run' : '')
+        + (isEnd ? ' runend' : '');
+      td.dataset.f = f;
+      td.innerHTML = v ? (v === 'H' ? '<span class="dot held">━</span>' : '<span class="dot">●</span>') : '';
+      attachCellPointer(td, layer, f);
       tr.appendChild(td);
     }
     tbl.appendChild(tr);
   });
   sheet.innerHTML = '';
   sheet.appendChild(tbl);
+}
+
+// cell drag: grab a drawing and PULL — its exposure stretches like taffy.
+// drag on empty panes = scrub (flip the book). plain tap = go there.
+function attachCellPointer(td, layer, f) {
+  td.addEventListener('pointerdown', e => {
+    if (fb.playing) return;
+    e.preventDefault();
+    try { td.setPointerCapture(e.pointerId); } catch (_) {}
+    const m = fbMedia();
+    const run = cellRun(layer, f);
+    // the run can't stretch past the next drawing on this layer
+    let limit = m.frameCount - 1;
+    if (run) for (let k = run.e + 1; k < m.frameCount; k++) {
+      if (layer.cells[k] && layer.cells[k] !== 'H') { limit = k - 1; break; }
+    }
+    let target = f, moved = false;
+    const colAt = ev => {
+      const el = document.elementFromPoint(ev.clientX, ev.clientY);
+      const hit = el && el.closest ? el.closest('[data-f]') : null;
+      return hit ? parseInt(hit.dataset.f) : null;
+    };
+    const move = ev => {
+      const c = colAt(ev);
+      if (c === null || c === target) return;
+      target = c; moved = true;
+      if (run) {   // live preview: highlight the stretched exposure
+        const end = Math.max(run.s, Math.min(limit, target));
+        td.closest('table').querySelectorAll(`td.cell`).forEach(x => x.classList.remove('exthl'));
+        const row = td.parentElement;
+        for (const cell of row.children) {
+          const cf = parseInt(cell.dataset ? cell.dataset.f : 'x');
+          if (!isNaN(cf) && cf > run.s && cf <= end) cell.classList.add('exthl');
+        }
+      } else {
+        fbNav(Math.max(0, Math.min(m.frameCount - 1, target)));   // 📖 flip the book
+      }
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+      if (!moved) { fb.activeLid = layer.lid; fbNav(f); return; }
+      if (!run) return;
+      const end = Math.max(run.s, Math.min(limit, target));
+      pushFbRowUndo(layer);
+      for (let k = run.s + 1; k <= end; k++) layer.cells[k] = 'H';
+      for (let k = end + 1; k < m.frameCount && layer.cells[k] === 'H'; k++) layer.cells[k] = null;
+      bumpFb(m);
+      fb.activeLid = layer.lid;
+      fbNav(fb.cur);
+      const held = end - run.s + 1;
+      toast(held > 1 ? `⇥ drawing now stays up for ${held} frames` : '⇥ back to one frame');
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+  });
 }
 
 // drag a frame column header to reorder frames (drawings move; motion timing stays)
@@ -3510,31 +3815,35 @@ function attachFrameHeadDrag(th, from) {
 }
 
 // ── frame ops (toolbar — never scrolls away) ──
-function shiftKeys(m, afterFrame, delta) {
+// inserting inside a ⇥ hold keeps the hold going; anywhere else the new pane is empty
+function insertFrameAll(m, at, activeVal) {
   for (const layer of m.layers) {
-    if (layer.kind !== 'move') continue;
-    layer.keys = (layer.keys || [])
-      .map(k => k.f > afterFrame ? { ...k, f: k.f + delta } : k)
-      .filter(k => k.f >= 0 && k.f < m.frameCount + Math.max(0, delta));
+    const inHold = layer.cells[at] === 'H';
+    layer.cells.splice(at, 0, layer.lid === fb.activeLid && activeVal !== undefined ? activeVal : (inHold ? 'H' : null));
   }
+  m.frameCount++;
 }
 $('fbt-add').addEventListener('click', () => {
   const m = fbMedia();
-  for (const layer of m.layers) if (layer.kind === 'draw') layer.cells.splice(fb.cur + 1, 0, null);
-  m.frameCount++;
-  shiftKeys(m, fb.cur, 1);
+  insertFrameAll(m, fb.cur + 1);
   bumpFb(m);
   fbNav(fb.cur + 1);
 });
+$('fbt-hold').addEventListener('click', () => {
+  const m = fbMedia();
+  const layer = activeLayer();
+  const run = layer && cellRun(layer, fb.cur);
+  if (!run) { toast('draw something first — HOLD keeps it up longer'); return; }
+  insertFrameAll(m, run.e + 1, 'H');
+  bumpFb(m);
+  fbNav(run.e + 1);
+  toast(`⇥ held — this drawing now stays up ${run.e + 2 - run.s} frames`);
+});
 $('fbt-dup').addEventListener('click', () => {
   const m = fbMedia();
-  for (const layer of m.layers) {
-    if (layer.kind !== 'draw') continue;
-    const cc = cellAt(layer, fb.cur);
-    layer.cells.splice(fb.cur + 1, 0, cc ? cloneCanvas(cc.c) : null);
-  }
-  m.frameCount++;
-  shiftKeys(m, fb.cur, 1);
+  const layer = activeLayer();
+  const cc = layer ? cellAt(layer, fb.cur) : null;
+  insertFrameAll(m, fb.cur + 1, cc ? cloneCanvas(cc.c) : null);
   bumpFb(m);
   fbNav(fb.cur + 1);
 });
@@ -3542,8 +3851,10 @@ $('fbt-del').addEventListener('click', () => {
   const m = fbMedia();
   if (m.frameCount <= 1) { toast('a flipbook needs at least one frame'); return; }
   for (const layer of m.layers) {
-    if (layer.kind !== 'move') { layer.cells.splice(fb.cur, 1); continue; }
-    layer.keys = (layer.keys || []).filter(k => k.f !== fb.cur).map(k => k.f > fb.cur ? { ...k, f: k.f - 1 } : k);
+    // deleting a drawing's first frame promotes its next hold to a real cel
+    const v = layer.cells[fb.cur];
+    if (v && v !== 'H' && layer.cells[fb.cur + 1] === 'H') layer.cells[fb.cur + 1] = v;
+    layer.cells.splice(fb.cur, 1);
   }
   m.frameCount--;
   bumpFb(m);
@@ -3554,7 +3865,7 @@ $('fbt-paste').addEventListener('click', fbPaste);
 function fbCopy() {
   const layer = activeLayer();
   if (!layer) return;
-  const src = layer.kind === 'move' ? layer.art : (cellAt(layer, fb.cur) || {}).c;
+  const src = (cellAt(layer, fb.cur) || {}).c;
   if (!src) { toast('nothing here to copy'); return; }
   fb.clipboard = cloneCanvas(src);
   toast('📋 copied — go to another frame (or layer) and PASTE');
@@ -3564,8 +3875,7 @@ function fbPaste() {
   const layer = activeLayer();
   if (!layer) return;
   pushFbUndo();
-  if (layer.kind === 'move') layer.art = cloneCanvas(fb.clipboard);
-  else layer.cells[fb.cur] = cloneCanvas(fb.clipboard);
+  layer.cells[fb.cur] = cloneCanvas(fb.clipboard);
   bumpFb(fbMedia());
   fbNav(fb.cur);
   toast('📌 pasted');
@@ -3582,7 +3892,7 @@ function renderFbLayers() {
     row.className = 'fb-layer' + (layer.lid === fb.activeLid ? ' on' : '');
     row.innerHTML = `
       <span class="eye">${layer.visible ? '👁' : '○'}</span>
-      <span class="kind">${layer.kind === 'move' ? '↔' : '✏️'}</span>
+      <span class="kind">✏️</span>
       <span class="lname" title="double-click to rename">${layer.name}</span>
     `;
     row.querySelector('.eye').addEventListener('click', e => {
@@ -3593,32 +3903,29 @@ function renderFbLayers() {
     });
     row.querySelector('.lname').addEventListener('dblclick', e => {
       e.stopPropagation();
-      const nn = prompt('layer name:', layer.name);
-      if (nn) { layer.name = nn.slice(0, 18); renderFbLayers(); renderFbSheet(); }
+      renameFbLayer(layer);
     });
     row.addEventListener('click', () => {
       fb.activeLid = layer.lid;
-      fb.moveMode = layer.kind === 'move' ? (layer.art ? 'pose' : 'art') : 'art';
       fbNav(fb.cur);
     });
     list.appendChild(row);
   });
 }
+function renameFbLayer(layer) {
+  const nn = prompt('layer name:', layer.name);
+  if (nn) { layer.name = nn.slice(0, 18); scheduleAutosave(); renderFbLayers(); renderFbSheet(); }
+}
 $('fbl-add-draw').addEventListener('click', () => {
   const m = fbMedia();
-  const l = newDrawLayer(`drawing ${m.layers.length + 1}`, m.frameCount);
+  const l = newDrawLayer(`layer ${m.layers.length + 1}`, m.frameCount);
   m.layers.push(l);
   fb.activeLid = l.lid;
   bumpFb(m); fbNav(fb.cur);
 });
-$('fbl-add-move').addEventListener('click', () => {
-  const m = fbMedia();
-  const l = newMoveLayer(`mover ${m.layers.length + 1}`);
-  m.layers.push(l);
-  fb.activeLid = l.lid;
-  fb.moveMode = 'art';
-  bumpFb(m); fbNav(fb.cur);
-  toast('↔ draw your thing in ART mode, then press POSE and set ◆ keys');
+$('fbl-rename').addEventListener('click', () => {
+  const layer = activeLayer();
+  if (layer) renameFbLayer(layer);
 });
 $('fbl-del').addEventListener('click', () => {
   const m = fbMedia();
@@ -3657,8 +3964,6 @@ $('fb-play-btn').addEventListener('click', () => {
   if (fb.playing) {
     fb.playTimer = setInterval(() => {
       fb.cur = (fb.cur + 1) % m.frameCount;
-      const layer = activeLayer();
-      if (layer && layer.kind === 'move') fb.pose = tweenAt(layer, fb.cur);
       loadFbView();
       $('fb-frame-label').textContent = `frame ${fb.cur + 1} / ${m.frameCount}`;
       if (m.frameCount <= 48) renderFbSheet();
@@ -5148,6 +5453,11 @@ async function exportFast() {
         const w1 = Math.min(total, w0 + WIN);
         const len = Math.max(1, Math.round((w1 - w0) * SR));
         const off = new OfflineAudioContext(2, len, SR);
+        // 🛡 same limiter as the preview bus — the export sounds like what you heard
+        const bus = off.createDynamicsCompressor();
+        bus.threshold.value = -6; bus.knee.value = 4;
+        bus.ratio.value = 12; bus.attack.value = 0.003; bus.release.value = 0.25;
+        bus.connect(off.destination);
         for (const clip of audioClips) {
           const ov0 = Math.max(clip.start, w0), ov1 = Math.min(clipEnd(clip), w1);
           if (ov1 - ov0 <= 0.001) continue;
@@ -5157,12 +5467,21 @@ async function exportFast() {
           const src0 = clip.in + (ov0 - clip.start);
           const src1 = clip.in + (ov1 - clip.start);
           const aSink = new Mediabunny.AudioBufferSink(aTrack);
+          // ONE gain per clip per window: base volume + the ◢◣ fade envelope
+          const gain = off.createGain();
+          const base = clipGain(clip);
+          const corners = [];
+          if (clip.fadeIn > 0)  corners.push(clip.start, clip.start + clip.fadeIn);
+          if (clip.fadeOut > 0) corners.push(clipEnd(clip) - clip.fadeOut, clipEnd(clip));
+          const pts = [...new Set(corners.filter(tl => tl > w0 && tl < w1))].sort((a, b) => a - b);
+          gain.gain.setValueAtTime(base * fadeMultAt(clip, w0), 0);
+          for (const tl of pts) gain.gain.linearRampToValueAtTime(base * fadeMultAt(clip, tl), tl - w0);
+          gain.gain.linearRampToValueAtTime(base * fadeMultAt(clip, w1), w1 - w0);
+          gain.connect(bus);
           for await (const wb of aSink.buffers(src0, src1)) {
             const node = off.createBufferSource();
             node.buffer = wb.buffer;
-            const gain = off.createGain();
-            gain.gain.value = clipGain(clip);   // per-clip volume × master
-            node.connect(gain); gain.connect(off.destination);
+            node.connect(gain);
             const startAt = clip.start + (wb.timestamp - clip.in) - w0;
             if (startAt >= 0) node.start(startAt);
             else node.start(0, -startAt);
@@ -5192,25 +5511,18 @@ async function exportFast() {
 }
 
 // ── slow path: record the preview playback in realtime ──
+// reuses the play graph: an element can be captured by ONE AudioContext ever,
+// and routeThroughGraph already owns them — so we tap the limiter bus instead.
 let audioGraph = null;
 function wireAudioGraph() {
-  if (!audioGraph) {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    audioGraph = { ctx, dest: ctx.createMediaStreamDestination(), wired: new Set() };
-  }
-  // make sure every audio-lane clip has its element before wiring
+  ensurePlayGraph();
   for (const clip of timeline) { if (isAudioRole(clip)) audioElFor(clip); }
-  const wire = (key, el) => {
-    if (audioGraph.wired.has(key)) return;
-    try {
-      const src = audioGraph.ctx.createMediaElementSource(el);
-      src.connect(audioGraph.ctx.destination);
-      src.connect(audioGraph.dest);
-      audioGraph.wired.add(key);
-    } catch (e) {}
-  };
-  for (const [id, v] of videoPool) wire('m' + id, v);
-  for (const [tid, a] of audioPool) wire('t' + tid, a);
+  for (const el of [...videoPool.values(), ...audioPool.values()]) routeThroughGraph(el);
+  if (!playCtx) return { ctx: null, dest: { stream: { getAudioTracks: () => [] } } };  // no WebAudio → silent recording beats a crash
+  if (!audioGraph) {
+    audioGraph = { ctx: playCtx, dest: playCtx.createMediaStreamDestination() };
+    if (playBus) playBus.connect(audioGraph.dest);
+  }
   return audioGraph;
 }
 async function exportRealtime() {
@@ -5218,7 +5530,7 @@ async function exportRealtime() {
   modalShow('🐢 Recording your movie…', 'this plays the whole movie once while recording — keep this tab open!');
   try {
     const graph = wireAudioGraph();
-    await graph.ctx.resume();
+    if (graph.ctx) await graph.ctx.resume();
     const stream = pvCanvas.captureStream(FPS);
     for (const t of graph.dest.stream.getAudioTracks()) stream.addTrack(t);
     const mime = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm']
@@ -5349,7 +5661,7 @@ async function offerRecovery() {
 
 function buildProjectData() {
   return {
-    app: 'geov', version: 5,
+    app: 'geov', version: 6,
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
     masterVol,
@@ -5364,10 +5676,10 @@ function buildProjectData() {
       seed: m.kind === 'code' ? m.seed : undefined,
       objects: m.kind === 'vector' ? m.objects : undefined,
       frameCount: m.kind === 'flipbook' || m.kind === 'vector' ? m.frameCount : undefined,
-      layers: m.kind === 'flipbook' ? (migrateFlipbook(m), m.layers.map(l => l.kind === 'draw'
-        ? { lid: l.lid, name: l.name, kind: 'draw', visible: l.visible, cells: l.cells.map(c => c ? c.toDataURL('image/png') : null) }
-        : { lid: l.lid, name: l.name, kind: 'move', visible: l.visible, art: l.art ? l.art.toDataURL('image/png') : null, keys: l.keys || [] }
-      )) : undefined,
+      layers: m.kind === 'flipbook' ? (migrateFlipbook(m), m.layers.map(l => (
+        { lid: l.lid, name: l.name, kind: 'draw', visible: l.visible,
+          cells: l.cells.map(c => c ? (c === 'H' ? 'H' : c.toDataURL('image/png')) : null) }
+      ))) : undefined,
     })),
   };
 }
@@ -5430,16 +5742,18 @@ async function openProjectData(data) {
           c.getContext('2d').drawImage(img, 0, 0);
           return c;
         };
-        if (md.layers) {          // v4 layered format
+        if (md.layers) {          // v4+ layered format ('H' = ⇥ hold, since v6)
           item.frameCount = md.frameCount || 1;
           item.layers = [];
+          item._cel = (data.version || 0) >= 6;   // v6 saved explicit holds — don't re-migrate
           for (const ld of md.layers) {
             if (ld.kind === 'draw') {
               const cells = [];
-              for (const durl of (ld.cells || [])) cells.push(await loadCanvas(durl));
+              for (const durl of (ld.cells || [])) cells.push(durl === 'H' ? 'H' : await loadCanvas(durl));
               while (cells.length < item.frameCount) cells.push(null);
               item.layers.push({ lid: ld.lid, name: ld.name, kind: 'draw', visible: ld.visible !== false, cells });
             } else {
+              // pre-v6 mover layer — migrateFlipbook bakes it to a held drawing
               item.layers.push({ lid: ld.lid, name: ld.name, kind: 'move', visible: ld.visible !== false, art: await loadCanvas(ld.art), keys: ld.keys || [] });
             }
             fbLayerCounter = Math.max(fbLayerCounter, ld.lid || 0);
@@ -5531,7 +5845,7 @@ refresh();
 checkEngine();
 offerRecovery();                                   // 🛟 the tab closed? the movie didn't die
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-console.log('%c⬡ GeoV Studio v8 — 🎨 raster · 📐 vector · 📷 stop motion · ✨ code · 🌊 adaptive playback', 'color:#00E5FF;font-size:16px;font-weight:bold');
+console.log('%c⬡ GeoV Studio v9 — 🎨 cel flipbook · 📐 vector · 📷 stop motion · ✨ code · 🎤 dub · 🎚 real mixing', 'color:#00E5FF;font-size:16px;font-weight:bold');
 console.log('%cSPACE=play · ←→=frame step (shift=1s) · S=split · DEL=remove · CTRL+Z=undo · wheel=zoom timeline · shift+drag=snap', 'color:#8888a0');
 </script>
 </body>
