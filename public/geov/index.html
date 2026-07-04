@@ -6,6 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GeoV">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="geov-icon-180.png">
 <title>GeoV Studio — make your movie</title>
 <style>
   :root {
@@ -420,6 +423,66 @@
   #fb-sheet td.cell .held { opacity: 0.35; }
   #fb-sheet td.cell .key { color: var(--yellow); }
 
+  /* 🎞 downshooter look — frame headers read like little timeline clips */
+  #fb-sheet th.fhead { padding: 3px 3px 2px; vertical-align: top; }
+  #fb-sheet th.fhead .fthumb {
+    display: block; width: 56px; height: 32px; border-radius: 5px;
+    background: #000; outline: 1px solid var(--border); margin: 2px auto 0;
+  }
+  #fb-sheet th.fhead.cur .fthumb { outline: 2px solid var(--pink); }
+  #fb-sheet th.fhead .fnum { line-height: 1.4; }
+
+  /* ═══ 📐 VECTOR FLIPBOOK STUDIO ═══ */
+  #vf-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 260; display: none;
+    grid-template-rows: 50px 44px 1fr 170px 140px;
+    grid-template-areas: "vfhead" "vftool" "vfmain" "vfgraph" "vfsheet";
+  }
+  #vf-overlay.open { display: grid; }
+  #vf-head { grid-area: vfhead; display: flex; align-items: center; gap: 10px; padding: 0 14px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  #vf-head .logo { color: var(--purple); }
+  #vf-name { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; font-size: 13px; width: 150px; }
+  #vf-toolbar { grid-area: vftool; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: var(--panel); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .vft-btn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 7px 11px; font-size: 12px; cursor: pointer; white-space: nowrap;
+  }
+  .vft-btn.on { border-color: var(--purple); color: var(--purple); background: rgba(213,0,249,0.08); }
+  #vf-main { grid-area: vfmain; display: flex; min-height: 0; }
+  #vf-canvas-wrap { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #16161f; min-width: 0; }
+  #vf-canvas { max-width: 96%; max-height: 94%; background: #000; border-radius: 6px; touch-action: none; cursor: crosshair; aspect-ratio: 16/9; }
+  #vf-right { width: 210px; background: var(--panel); border-left: 1px solid var(--border); overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .vf-panel h4 { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; }
+  .vf-row { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--muted); margin-bottom: 5px; }
+  .vf-row input[type=range] { flex: 1; min-width: 0; }
+  .vf-row input[type=color] { width: 34px; height: 26px; border: 1px solid var(--border); border-radius: 6px; background: none; padding: 0; }
+  .vf-row .vv { min-width: 30px; text-align: right; color: var(--text); }
+  #vf-obj-list { display: flex; flex-direction: column; gap: 4px; }
+  .vf-obj {
+    display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px;
+    background: var(--card); border: 1px solid var(--border); font-size: 11px; cursor: pointer;
+  }
+  .vf-obj.sel { border-color: var(--purple); color: var(--purple); }
+  .vf-obj .sw { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+  #vf-graph { grid-area: vfgraph; background: var(--panel); border-top: 1px solid var(--border); display: flex; min-height: 0; }
+  #vf-prop-btns { display: flex; flex-direction: column; gap: 3px; padding: 8px; }
+  .vf-prop { background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 4px 10px; font-size: 10px; cursor: pointer; }
+  .vf-prop.on { border-color: var(--yellow); color: var(--yellow); }
+  #vf-curve { flex: 1; touch-action: none; cursor: crosshair; }
+  #vf-sheet { grid-area: vfsheet; background: var(--panel); border-top: 1px solid var(--border); overflow: auto; }
+  #vf-sheet table { border-collapse: collapse; }
+  #vf-sheet th, #vf-sheet td { border: 1px solid var(--border); }
+  #vf-sheet th.fhead { min-width: 26px; height: 22px; font-size: 9px; color: var(--muted); background: var(--card); position: sticky; top: 0; z-index: 3; cursor: pointer; }
+  #vf-sheet th.fhead.cur { background: var(--purple); color: #fff; }
+  #vf-sheet th.lhead { position: sticky; left: 0; z-index: 4; background: var(--card); font-size: 9px; color: var(--muted); padding: 0 7px; text-align: left; max-width: 100px; overflow: hidden; white-space: nowrap; font-weight: 600; }
+  #vf-sheet td.cell { min-width: 26px; height: 26px; text-align: center; cursor: pointer; font-size: 11px; background: var(--bg); }
+  #vf-sheet td.cell.curcol { background: rgba(213,0,249,0.10); }
+  #vf-sheet td.cell .key { color: var(--yellow); }
+  #vf-sheet td.cell .tw { color: var(--purple); opacity: 0.5; }
+  #flipbook-vec-btn { border-color: var(--purple) !important; color: var(--purple) !important; }
+  #flipbook-vec-btn:hover { background: rgba(213,0,249,0.08) !important; }
+  #vf-canvas, #vf-curve { -webkit-user-select: none; }
+
   /* ═══ MODAL / TOAST / DRAG ═══ */
   #modal-backdrop {
     position: fixed; inset: 0; background: rgba(0,0,0,0.75);
@@ -450,6 +513,49 @@
     padding: 9px 18px; border-radius: 10px; font-size: 13px; z-index: 290;
     display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.6);
   }
+  /* ═══ 🛟 RECOVERY BAR + autosave heartbeat ═══ */
+  #recover-bar {
+    position: fixed; top: 64px; left: 50%; transform: translateX(-50%);
+    z-index: 350; display: none; align-items: center; gap: 12px;
+    background: #0d1f16; border: 2px solid var(--green); border-radius: 12px;
+    padding: 10px 16px; font-size: 14px; box-shadow: 0 8px 26px rgba(0,0,0,0.65);
+  }
+  #recover-bar button {
+    border: none; border-radius: 8px; padding: 8px 14px; font-weight: 800; cursor: pointer;
+  }
+  #recover-yes { background: var(--green); color: #000; }
+  #recover-no { background: #2a2a42; color: var(--muted); }
+  #autosave-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #2a2a42;
+    display: inline-block; margin-left: 6px; transition: background 0.3s;
+  }
+  #autosave-dot.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  /* ═══ 🚧 CAUTION TAPE — silent failure discourages exploration; tell the kid WHY ═══ */
+  #caution-stack {
+    position: fixed; top: 66px; right: 12px; z-index: 340;
+    display: flex; flex-direction: column; gap: 10px; max-width: min(420px, 88vw);
+  }
+  .caution-card {
+    background: #1a1708; color: var(--text);
+    border: 2px solid #FFD600; border-radius: 12px;
+    padding: 12px 14px 12px 16px; font-size: 13px; line-height: 1.45;
+    box-shadow: 0 8px 26px rgba(0,0,0,0.65);
+    position: relative; overflow: hidden;
+    animation: caution-in 0.25s ease;
+  }
+  .caution-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 8px;
+    background: repeating-linear-gradient(-45deg, #FFD600 0 8px, #111 8px 16px);
+  }
+  .caution-card .ct { font-weight: 800; color: #FFD600; margin-bottom: 3px; padding-left: 8px; }
+  .caution-card .cm { padding-left: 8px; }
+  .caution-card .cx {
+    position: absolute; top: 6px; right: 8px; border: none; background: none;
+    color: var(--muted); font-size: 16px; cursor: pointer; padding: 4px;
+  }
+  @keyframes caution-in { from { transform: translateX(30px); opacity: 0; } }
+
   #drag-overlay {
     position: fixed; inset: 0; background: rgba(0,229,255,0.08);
     border: 4px dashed var(--cyan); z-index: 280; display: none;
@@ -481,6 +587,15 @@
   }
   #bin-drag-ghost img { width: 100%; display: block; }
 
+  /* format chips — the file-management brain kids shouldn't need */
+  .bin-fmt {
+    font-size: 10px; padding: 2px 7px; border-radius: 8px; cursor: pointer;
+    display: inline-block; margin: 2px 8px 0; border: 1px solid;
+  }
+  .bin-fmt.hevc { color: #FF8A65; border-color: #FF8A65; background: rgba(255,138,101,0.08); }
+  .bin-fmt.mov  { color: #FFD600; border-color: #FFD600; background: rgba(255,214,0,0.07); }
+  .bin-fmt.web  { color: var(--green); border-color: var(--green); background: rgba(0,230,118,0.06); }
+
   /* audio lanes */
   .tl-row.audio-row { background: rgba(0,230,118,0.04); }
   .tl-row.audio-row .tl-row-label { color: var(--green); }
@@ -489,6 +604,8 @@
 
   /* ═══ TOUCH / iPAD ═══ */
   html, body { touch-action: manipulation; }   /* no double-tap page zoom */
+  body { -webkit-user-select: none; -webkit-touch-callout: none; }  /* Safari needs the prefix — stops text highlight + long-press menu mid-drag */
+  input, textarea { -webkit-user-select: text; user-select: text; }
   @supports (height: 100dvh) { html, body { height: 100dvh; } }
   body { padding-bottom: env(safe-area-inset-bottom); }
   .tl-clip, #tl-ruler, #vsplit, #hsplit, .bin-thumb, #fb-gamut, #fb-hue,
@@ -552,8 +669,9 @@
 <div id="header">
   <span class="logo">⬡ GeoV</span>
   <input id="project-name" value="my movie" spellcheck="false" title="project name">
-  <button class="hdr-btn" id="save-btn" title="save project file">💾 SAVE</button>
+  <button class="hdr-btn" id="save-btn" title="save project file">💾 SAVE<span id="autosave-dot" title="autosave heartbeat"></span></button>
   <button class="hdr-btn" id="open-btn" title="open a .geov project">📂 OPEN</button>
+  <button class="hdr-btn" id="fs-btn" title="fullscreen — more room to edit">⛶</button>
   <div class="header-spacer"></div>
   <span id="engine-chip">checking engine…</span>
   <select id="export-res" title="export size">
@@ -568,7 +686,8 @@
   <div id="bin-header"><span>🎞 MY CLIPS</span></div>
   <div class="bin-btns">
     <button id="import-btn">📂 ADD VIDEO<br>+ MUSIC</button>
-    <button id="flipbook-new-btn">🎨 NEW<br>FLIPBOOK</button>
+    <button id="flipbook-new-btn" title="draw frame by frame — like a paper flipbook">🎨 RASTER<br>FLIPBOOK</button>
+    <button id="flipbook-vec-btn" title="place shapes and animate them with keys — they tween by themselves">📐 VECTOR<br>FLIPBOOK</button>
     <button id="code-new-btn">✨ NEW<br>CODE</button>
   </div>
   <div id="bin-list"></div>
@@ -680,7 +799,7 @@
 <!-- FLIPBOOK STUDIO v2 -->
 <div id="fb-overlay">
   <div id="fb-head">
-    <span class="logo">🎨 FLIPBOOK</span>
+    <span class="logo">🎨 RASTER FLIPBOOK</span>
     <input id="fb-name" value="my drawing" spellcheck="false">
     <select id="fb-fps" title="drawing speed">
       <option value="6">6 fps — chunky</option>
@@ -688,7 +807,9 @@
       <option value="24">24 fps — smooth</option>
     </select>
     <button class="tlb-btn" id="fb-roto-btn" title="see the movie behind your drawing">🎞 TRACE</button>
+    <button class="tlb-btn" id="fb-prev-btn" title="back one frame (←)">◀</button>
     <button class="tlb-btn" id="fb-play-btn" title="play your flipbook">▶ PLAY</button>
+    <button class="tlb-btn" id="fb-next-btn" title="forward one frame (→)">▶</button>
     <span id="fb-frame-label" style="font-size:12px;color:var(--pink);min-width:80px"></span>
     <div class="header-spacer"></div>
     <button class="hdr-btn" id="fb-done-btn" style="border-color:var(--pink);color:var(--pink)">✅ DONE</button>
@@ -760,6 +881,81 @@
   <div id="fb-sheet"></div>
 </div>
 
+<!-- 📐 VECTOR FLIPBOOK STUDIO — easy Flash: place shapes, move them, keys tween -->
+<div id="vf-overlay">
+  <div id="vf-head">
+    <span class="logo">📐 VECTOR FLIPBOOK</span>
+    <input id="vf-name" value="my animation" spellcheck="false">
+    <select id="vf-fps" title="animation speed">
+      <option value="6">6 fps</option>
+      <option value="12" selected>12 fps</option>
+      <option value="24">24 fps</option>
+    </select>
+    <span style="font-size:11px;color:var(--muted)">FRAMES</span>
+    <input id="vf-len" type="number" min="2" max="600" value="24" style="width:58px;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px">
+    <button class="tlb-btn" id="vf-back-btn" title="back one frame (←)">◀</button>
+    <button class="tlb-btn" id="vf-play-btn" title="play (space)">▶ PLAY</button>
+    <button class="tlb-btn" id="vf-fwd-btn" title="forward one frame (→)">▶</button>
+    <span id="vf-frame-label" style="font-size:12px;color:var(--purple);min-width:86px"></span>
+    <div class="header-spacer"></div>
+    <button class="hdr-btn" id="vf-done-btn" style="border-color:var(--purple);color:var(--purple)">✅ DONE</button>
+  </div>
+  <div id="vf-toolbar">
+    <button class="vft-btn on" data-tool="move" title="grab things and move them — every move makes a key">➡ MOVE</button>
+    <span class="divider"></span>
+    <button class="vft-btn" data-tool="rect" title="tap the canvas to add">⬛ BOX</button>
+    <button class="vft-btn" data-tool="ellipse">⚪ BALL</button>
+    <button class="vft-btn" data-tool="triangle">🔺 TRI</button>
+    <button class="vft-btn" data-tool="star">⭐ STAR</button>
+    <button class="vft-btn" data-tool="scribble" title="draw a squiggle — it becomes an object you can animate">✏️ SQUIGGLE</button>
+    <span class="divider"></span>
+    <button class="vft-btn" id="vf-setkey" title="lock everything about this object at this frame">◆ SET KEY</button>
+    <button class="vft-btn" id="vf-delkey" title="remove this object's keys at this frame">✕ KEY</button>
+    <button class="vft-btn" id="vf-undo" title="undo (ctrl+z)">↩ UNDO</button>
+    <span style="font-size:10px;color:var(--muted);white-space:nowrap">🪄 auto-key is always on — move something and it remembers</span>
+  </div>
+  <div id="vf-main">
+    <div id="vf-canvas-wrap">
+      <canvas id="vf-canvas" width="1280" height="720"></canvas>
+    </div>
+    <div id="vf-right">
+      <div class="vf-panel">
+        <h4>LOOKS</h4>
+        <div class="vf-row"><label>FILL</label><input type="color" id="vf-fill" value="#00E5FF"><label>LINE</label><input type="color" id="vf-stroke" value="#ffffff"></div>
+        <div class="vf-row"><label>LINE SIZE</label><input type="range" id="vf-strokew" min="0" max="30" value="0"><span class="vv" id="vf-strokew-val">0</span></div>
+      </div>
+      <div class="vf-panel">
+        <h4>THIS FRAME</h4>
+        <div class="vf-row"><label>SIZE</label><input type="range" id="vf-scale" min="10" max="300" value="100"><span class="vv" id="vf-scale-val">100</span></div>
+        <div class="vf-row"><label>SPIN</label><input type="range" id="vf-rot" min="-180" max="180" value="0"><span class="vv" id="vf-rot-val">0</span></div>
+        <div class="vf-row"><label>FADE</label><input type="range" id="vf-opacity" min="0" max="100" value="100"><span class="vv" id="vf-opacity-val">100</span></div>
+      </div>
+      <div class="vf-panel">
+        <h4>OBJECTS <span style="float:right;font-weight:400">top = in front</span></h4>
+        <div id="vf-obj-list"></div>
+        <div class="vf-row" style="margin-top:6px">
+          <button class="vft-btn" id="vf-obj-up" title="bring forward">⬆</button>
+          <button class="vft-btn" id="vf-obj-down" title="send back">⬇</button>
+          <button class="vft-btn" id="vf-obj-dup" title="duplicate">⧉</button>
+          <button class="vft-btn" id="vf-obj-del" title="delete object">🗑</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="vf-graph">
+    <div id="vf-prop-btns">
+      <span style="font-size:9px;color:var(--muted);letter-spacing:1px">📈 CURVES</span>
+      <button class="vf-prop" data-prop="x">↔ X</button>
+      <button class="vf-prop" data-prop="y">↕ Y</button>
+      <button class="vf-prop on" data-prop="s">⤢ SIZE</button>
+      <button class="vf-prop" data-prop="r">↻ SPIN</button>
+      <button class="vf-prop" data-prop="o">◐ FADE</button>
+    </div>
+    <canvas id="vf-curve" height="170"></canvas>
+  </div>
+  <div id="vf-sheet"></div>
+</div>
+
 <!-- CODE STUDIO (p5.js) -->
 <div id="code-overlay">
   <div id="code-head">
@@ -815,6 +1011,12 @@
 </div>
 
 <div id="toast"></div>
+<div id="caution-stack"></div>
+<div id="recover-bar">
+  🛟 found your last project <b id="recover-name"></b> — bring it back?
+  <button id="recover-yes">YES, RESTORE</button>
+  <button id="recover-no">start fresh</button>
+</div>
 <div id="drag-overlay">⬇ drop videos or a .geov project ⬇</div>
 <div id="bin-drag-ghost"><img></div>
 <input type="file" id="file-input" accept="video/*,audio/*,.mp4,.mov,.webm,.m4v,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple>
@@ -906,10 +1108,27 @@ function toast(msg, ms = 2600) {
   clearTimeout(el._t);
   el._t = setTimeout(() => el.style.display = 'none', ms);
 }
+// 🚧 caution tape — a visible, friendly card that explains WHY something is
+// slow, blocked or broken. One card per topic (key) so spam can't stack up.
+const cautionSeen = new Map();
+function caution(key, title, msg, ms = 12000) {
+  if (cautionSeen.has(key) && performance.now() - cautionSeen.get(key) < 30000) return;   // same warning max once per 30s
+  cautionSeen.set(key, performance.now());
+  const stack = $('caution-stack');
+  while (stack.children.length >= 3) stack.firstChild.remove();  // never wall-of-warnings
+  const card = document.createElement('div');
+  card.className = 'caution-card';
+  card.innerHTML = `<div class="ct">🚧 ${title}</div><div class="cm">${msg}</div><button class="cx">✕</button>`;
+  card.querySelector('.cx').addEventListener('click', () => card.remove());
+  stack.appendChild(card);
+  setTimeout(() => card.remove(), ms);
+}
+
 function snapshot() {
   undoStack.push(JSON.stringify(timeline));
   if (undoStack.length > 80) undoStack.shift();
   redoStack = [];
+  scheduleAutosave();   // every structural change quietly saves the project
 }
 function restore(json) {
   timeline = JSON.parse(json);
@@ -946,6 +1165,7 @@ function dragMembers(tid) {   // which clips move together when this one is drag
 function attachSplitter(el, axis, cssVar, min, max, invert) {
   el.addEventListener('pointerdown', e => {
     e.preventDefault();
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
     const startPos = axis === 'x' ? e.clientX : e.clientY;
     const startVal = parseFloat(getComputedStyle(document.body).getPropertyValue(cssVar));
     const move = ev => {
@@ -977,16 +1197,65 @@ window.addEventListener('pointercancel', e => {
 
 const touchDevice = navigator.maxTouchPoints > 1;
 
+// ⛶ FULLSCREEN — the iPad screen is small; every pixel is editing room.
+// (Installed as a Home-Screen app? Already chromeless — hide the button.)
+{
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  if (standalone) $('fs-btn').style.display = 'none';
+  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+  $('fs-btn').addEventListener('click', () => {
+    const de = document.documentElement;
+    if (fsEl()) {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    } else {
+      const rq = de.requestFullscreen || de.webkitRequestFullscreen;
+      if (rq) { try { const p = rq.call(de); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+      else caution('fs', 'fullscreen isn’t available here',
+        'tap the share button and “Add to Home Screen” instead — GeoV opens like a real app with the whole screen to itself.');
+    }
+  });
+  const onFs = () => $('fs-btn').textContent = fsEl() ? '🡼' : '⛶';
+  document.addEventListener('fullscreenchange', onFs);
+  document.addEventListener('webkitfullscreenchange', onFs);
+}
+
 // 🧲 SNAP + ✚ MULTI — persistent versions of shift for keyboards-less iPads
 let snapOn = false, multiOn = false;
+
+// ── WebAudio gain graph ──────────────────────────────────────
+// iOS IGNORES the .volume property on media elements, so per-clip and master
+// volume must go through WebAudio GainNodes. Every pooled element gets routed
+// element → GainNode → destination; gain carries clipGain(), element stays at
+// volume=1. muted still works as a hard cut (used by mute + stop).
+let playCtx = null;
+function ensurePlayGraph() {
+  if (!playCtx) {
+    try { playCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+  }
+  if (playCtx.state === 'suspended') playCtx.resume().catch(() => {});
+}
+function routeThroughGraph(el) {
+  if (!playCtx || el.__gain) return;
+  try {
+    const src = playCtx.createMediaElementSource(el);   // only legal ONCE per element
+    el.__gain = playCtx.createGain();
+    src.connect(el.__gain);
+    el.__gain.connect(playCtx.destination);
+  } catch (e) {}
+}
+function setElGain(el, g) {
+  if (el.__gain) { el.__gain.gain.value = g; el.volume = 1; el.muted = g === 0; }
+  else { el.volume = g; el.muted = g === 0; }           // desktop fallback pre-graph
+}
 
 // iOS/iPadOS only lets media elements play after a user gesture "unlocks" them.
 // Called inside the play-button gesture so every layer's element gets unlocked.
 function unlockAllMedia() {
-  if (!touchDevice) return;
+  ensurePlayGraph();
   for (const clip of timeline) if (isAudioRole(clip)) audioElFor(clip);
   for (const el of [...videoPool.values(), ...audioPool.values()]) {
-    if (el.__unlocked) continue;
+    routeThroughGraph(el);
+    if (el.__unlocked || !touchDevice) continue;
     el.__unlocked = true;
     try { const p = el.play(); if (p && p.catch) p.catch(() => {}); el.pause(); } catch (e) {}
   }
@@ -1034,9 +1303,11 @@ async function importFiles(files) {
       else await importOne(file);
     } catch (err) {
       console.error('import failed:', file.name, err);
-      toast(isAudioFile(file)
-        ? `😕 couldn't open "${file.name}" — this device likes MP3, WAV or M4A best`
-        : `😕 couldn't open "${file.name}" — try an MP4`);
+      caution('import-' + file.name,
+        `couldn't open "${file.name}"`,
+        isAudioFile(file)
+          ? 'this device couldn’t read that sound file. MP3, WAV and M4A always work. The file isn’t broken — it just speaks a language this browser doesn’t.'
+          : 'this device couldn’t read that video. MP4 files always work. If it came from a camcorder, plugging it into a computer and re-saving as MP4 fixes it. Nothing you did was wrong!');
     }
   }
 }
@@ -1101,6 +1372,31 @@ async function probeVideo(file, url) {
   return { v, duration, width, height, thumbURL, previewOK };
 }
 
+// ── format detective: what kind of video is this, in kid words ──
+// header-only probe (no decoding) — Mediabunny reads the container metadata
+async function probeCodec(file) {
+  try {
+    const M = Mediabunny;
+    const input = new M.Input({ source: new M.BlobSource(file), formats: M.ALL_FORMATS });
+    const vt = await input.getPrimaryVideoTrack();
+    return vt ? (vt.codec || null) : null;
+  } catch (e) { return null; }
+}
+function formatInfo(item) {
+  const ext = (item.fileName.match(/\.([^.]+)$/) || [])[1]?.toLowerCase() || '';
+  const c = (item.codec || '').toLowerCase();
+  if (/hevc|hvc1|hev1|h265/.test(c)) return {
+    chip: '🍎 iPad video', cls: 'hevc',
+    why: 'this was shot on an iPad or iPhone (HEVC format). It looks great but is heavy to jump around in — GeoV uses fast ⬡ preview frames while you scrub, and the export still uses the full-quality original.'
+  };
+  if (ext === 'mov') return {
+    chip: '🎥 camcorder .mov', cls: 'mov',
+    why: 'this came from a camera that saves .mov files. Some browsers are slower with these — GeoV uses fast ⬡ preview frames while you scrub, and the export still uses the full-quality original.'
+  };
+  if (/vp8|vp9|av01|av1/.test(c) || ext === 'webm') return { chip: '🌐 web video', cls: 'web', why: 'a video format made for the web — smooth sailing.' };
+  return { chip: '▶ web-ready', cls: 'web', why: 'a standard MP4 — the friendliest format for editing in a browser.' };
+}
+
 async function importOne(file) {
   const url = URL.createObjectURL(file);
   const p = await probeVideo(file, url);
@@ -1114,11 +1410,14 @@ async function importOne(file) {
     thumbURL: p.thumbURL, previewOK: p.previewOK,
     proxy: null,
   };
+  probeCodec(file).then(c => { item.codec = c; renderBin(); });   // badge fills in when known
   media.push(item);
   videoPool.set(item.id, p.v);
   renderBin();
   toast(`✅ added "${item.name}" — ${fmtTime(p.duration)}`);
   queueProxyGen(item);
+  stashFile(file);        // crash recovery: footage comes back by itself
+  scheduleAutosave();
 }
 
 async function relinkMedia(item, file) {
@@ -1184,6 +1483,8 @@ async function importAudioOne(file) {
   videoPool.set(item.id, a);
   renderBin();
   toast(`🎵 added "${item.name}" — ${fmtTime(duration)}`);
+  stashFile(file);
+  scheduleAutosave();
 }
 async function relinkAudio(item, file) {
   const url = URL.createObjectURL(file);
@@ -1269,13 +1570,18 @@ async function runProxyQueue() {
     const id = proxyQueue.shift();
     const item = media.find(m => m.id === id);
     if (!item || item.kind !== 'video' || item.missing) continue;
-    try { await genProxy(item); } catch (e) { console.warn('proxy gen failed:', item.name, e); }
+    try { await genProxy(item); } catch (e) {
+      console.warn('proxy gen failed:', item.name, e);
+      updateProxyBadge(item, '⬡ no proxy — scrubbing may be slow');
+      caution('proxy', 'fast preview frames didn’t build for “' + item.name + '”',
+        'scrubbing this clip may feel slow — playback and export are NOT affected. Keeping this tab open and visible for a minute usually lets it finish.');
+    }
   }
   proxyBusy = false;
 }
 async function genProxy(item) {
   const v = document.createElement('video');
-  v.muted = true; v.preload = 'auto'; v.src = item.url;
+  v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = item.url;
   await new Promise((res, rej) => {
     v.onloadedmetadata = res;
     v.onerror = () => rej(new Error('proxy video load failed'));
@@ -1290,6 +1596,8 @@ async function genProxy(item) {
   const out = document.createElement('canvas');
   out.width = PROXY_SIZE; out.height = PROXY_SIZE;
   const octx = out.getContext('2d');
+  const crop = document.createElement('canvas');
+  const cropCtx = crop.getContext('2d');
   const maxDepth = Math.log2(PROXY_SIZE);
 
   const frames = [];
@@ -1309,7 +1617,11 @@ async function genProxy(item) {
     const root = buildQNode(data, PROXY_SIZE, 0, 0, PROXY_SIZE, 0, maxDepth, 215);
     octx.clearRect(0, 0, PROXY_SIZE, PROXY_SIZE);
     totalNodes += renderQTree(root, octx);
-    frames.push(await createImageBitmap(out, 0, 0, pw, ph));
+    // store as a tiny JPEG blob (~12KB) instead of a live ImageBitmap (~256KB of
+    // GPU memory) — 20× less memory. Frames near the playhead decode on demand.
+    crop.width = pw; crop.height = ph;
+    cropCtx.drawImage(out, 0, 0, pw, ph, 0, 0, pw, ph);
+    frames.push(await new Promise(r => crop.toBlob(r, 'image/jpeg', 0.75)));
     // keep the UI honest about progress
     if (i % 6 === 0) updateProxyBadge(item, `⬡ proxy ${Math.round((i / n) * 100)}%`);
     if (!media.find(m => m.id === item.id)) { v.src = ''; return; } // removed mid-gen
@@ -1322,10 +1634,48 @@ function updateProxyBadge(item, text, done) {
   const el = document.querySelector(`[data-proxy="${item.id}"]`);
   if (el) { el.textContent = text; el.className = 'bin-proxy' + (done ? ' done' : ''); }
 }
+// ── proxy decode cache — small global LRU of live bitmaps (~60 × 256KB ≈ 15MB cap)
+const proxyBmCache = new Map();          // "mediaId:idx" → ImageBitmap
+const proxyDecoding = new Set();         // in-flight decodes
+const PROXY_BM_MAX = 60;
+function proxyDecode(item, idx) {
+  const key = item.id + ':' + idx;
+  if (proxyBmCache.has(key) || proxyDecoding.has(key)) return;
+  proxyDecoding.add(key);
+  createImageBitmap(item.proxy.frames[idx]).then(bm => {
+    proxyDecoding.delete(key);
+    proxyBmCache.set(key, bm);
+    while (proxyBmCache.size > PROXY_BM_MAX) {
+      const k = proxyBmCache.keys().next().value;
+      const old = proxyBmCache.get(k);
+      proxyBmCache.delete(k);
+      try { old.close(); } catch (e) {}
+    }
+    if (scrubbing && !playing) drawFrame();   // the frame just arrived — show it
+  }).catch(() => proxyDecoding.delete(key));
+}
 function proxyFrameFor(item, srcT) {
   if (!item.proxy || !item.proxy.frames.length) return null;
-  const idx = Math.max(0, Math.min(item.proxy.frames.length - 1, Math.round(srcT / item.proxy.step)));
-  return item.proxy.frames[idx];
+  const n = item.proxy.frames.length;
+  const idx = Math.max(0, Math.min(n - 1, Math.round(srcT / item.proxy.step)));
+  proxyDecode(item, idx);                                        // exact frame
+  for (let d = 1; d <= 3; d++) {                                 // prefetch neighbors (scrub direction unknown)
+    if (idx + d < n) proxyDecode(item, idx + d);
+    if (idx - d >= 0) proxyDecode(item, idx - d);
+  }
+  const hit = proxyBmCache.get(item.id + ':' + idx);
+  if (hit) {   // refresh LRU position
+    proxyBmCache.delete(item.id + ':' + idx);
+    proxyBmCache.set(item.id + ':' + idx, hit);
+    return hit;
+  }
+  for (let d = 1; d <= 8; d++) {                                 // nearest decoded neighbor beats a black frame
+    const a = proxyBmCache.get(item.id + ':' + (idx + d));
+    if (a) return a;
+    const b = proxyBmCache.get(item.id + ':' + (idx - d));
+    if (b) return b;
+  }
+  return null;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1341,8 +1691,8 @@ function renderBin() {
   for (const m of media) {
     const card = document.createElement('div');
     card.className = 'bin-card' + (m.missing ? ' missing' : '');
-    const icon = m.kind === 'flipbook' ? '🎨 ' : m.kind === 'audio' ? '🎵 ' : m.kind === 'code' ? '✨ ' : '';
-    const thumb = m.kind === 'flipbook'
+    const icon = m.kind === 'flipbook' ? '🎨 ' : m.kind === 'vector' ? '📐 ' : m.kind === 'audio' ? '🎵 ' : m.kind === 'code' ? '✨ ' : '';
+    const thumb = m.kind === 'flipbook' || m.kind === 'vector'
       ? `<img class="bin-thumb fb" src="${m.thumbURL || ''}" draggable="false">`
       : (m.thumbURL ? `<img class="bin-thumb" src="${m.thumbURL}" draggable="false">` : '<div class="bin-thumb"></div>');
     card.innerHTML = `
@@ -1353,8 +1703,9 @@ function renderBin() {
         <span class="bin-dur">${fmtTime(m.duration)}</span>
       </div>
       ${m.missing ? `<div class="bin-missing-note">⚠ missing — drop "${m.fileName}" here to relink</div>` : ''}
+      ${m.kind === 'video' && !m.missing ? `<div class="bin-fmt ${formatInfo(m).cls}" title="tap to learn about this video's format">${formatInfo(m).chip}</div>` : ''}
       ${m.kind === 'video' && !m.missing ? `<div class="bin-proxy${m.proxy ? ' done' : ''}" data-proxy="${m.id}">${m.proxy ? `⬡ geo proxy · ~${m.proxy.nodes} nodes/frame` : '⬡ proxy queued…'}</div>` : ''}
-      ${m.kind === 'flipbook' || m.kind === 'code' ? `<button class="bin-add edit">${m.kind === 'code' ? '✨ EDIT CODE' : '✏️ EDIT DRAWING'}</button>` : ''}
+      ${m.kind === 'flipbook' || m.kind === 'code' || m.kind === 'vector' ? `<button class="bin-add edit">${m.kind === 'code' ? '✨ EDIT CODE' : m.kind === 'vector' ? '📐 EDIT MOTION' : '✏️ EDIT DRAWING'}</button>` : ''}
       <button class="bin-add">${m.missing ? '⚠ RELINK FIRST' : '+ ADD TO MOVIE'}</button>
       <button class="bin-x" title="remove from clips">✕</button>
     `;
@@ -1368,14 +1719,23 @@ function renderBin() {
     const editBtn = card.querySelector('.bin-add.edit');
     if (editBtn) editBtn.addEventListener('click', e => {
       e.stopPropagation();
-      m.kind === 'code' ? openCodeStudio(m.id) : openFlipbook(m.id);
+      m.kind === 'code' ? openCodeStudio(m.id) : m.kind === 'vector' ? openVectorStudio(m.id) : openFlipbook(m.id);
     });
     if (m.kind === 'flipbook') {
       card.querySelector('.bin-thumb').addEventListener('dblclick', () => openFlipbook(m.id));
     }
+    if (m.kind === 'vector') {
+      card.querySelector('.bin-thumb').addEventListener('dblclick', () => openVectorStudio(m.id));
+    }
     if (m.kind === 'code') {
       card.querySelector('.bin-thumb').addEventListener('dblclick', () => openCodeStudio(m.id));
     }
+    const fmtEl = card.querySelector('.bin-fmt');
+    if (fmtEl) fmtEl.addEventListener('click', e => {
+      e.stopPropagation();
+      const fi = formatInfo(m);
+      caution('fmt' + m.id, fi.chip, fi.why, 15000);
+    });
     if (!m.missing) attachBinDrag(card.querySelector('.bin-thumb'), m);
     card.querySelector('.bin-x').addEventListener('click', e => {
       e.stopPropagation();
@@ -1393,6 +1753,7 @@ function renderBin() {
 function attachBinDrag(thumbEl, m) {
   thumbEl.addEventListener('pointerdown', e => {
     e.preventDefault();
+    try { thumbEl.setPointerCapture(e.pointerId); } catch (_) {}
     const startX = e.clientX, startY = e.clientY;
     let dragging = false;
     const ghost = $('bin-drag-ghost');
@@ -1489,6 +1850,10 @@ function clipSurface(clip, srcT, forScrub) {
     const f = renderFbFrame(m, Math.floor(srcT * m.fps));
     return { img: f, sw: FB_W, sh: FB_H };
   }
+  if (m.kind === 'vector') {
+    const f = renderVecFrame(m, Math.floor(srcT * m.fps));
+    return { img: f, sw: VF_W, sh: VF_H };
+  }
   if (m.kind === 'code') {
     const c = renderCodeFrame(m, srcT);
     return { img: c, sw: c.width, sh: c.height };
@@ -1567,6 +1932,7 @@ function audioElFor(clip) {
     a = document.createElement(m.kind === 'video' ? 'video' : 'audio');
     a.preload = 'auto'; a.playsInline = true; a.src = m.url;
     audioPool.set(clip.tid, a);
+    routeThroughGraph(a);   // volume works on iPad only through the gain graph
   }
   return a;
 }
@@ -1585,10 +1951,9 @@ function syncVideos(t, wantPlaying) {
       const a = audioElFor(clip);
       if (!a) continue;
       activeAudioTids.add(clip.tid);
-      a.volume = clipGain(clip);
-      a.muted = clipGain(clip) === 0;
+      setElGain(a, clipGain(clip));
       if (wantPlaying) {
-        if (Math.abs(a.currentTime - want) > 0.12) { try { a.currentTime = want; } catch (e) {} }
+        if (Math.abs(a.currentTime - want) > 0.25) { try { a.currentTime = want; } catch (e) {} }
         if (a.paused) a.play().catch(() => {});
       } else {
         if (Math.abs(a.currentTime - want) > 0.05) { try { a.currentTime = want; } catch (e) {} }
@@ -1601,9 +1966,8 @@ function syncVideos(t, wantPlaying) {
     const v = videoPool.get(m.id);
     if (!v) continue;
     if (wantPlaying) {
-      if (Math.abs(v.currentTime - want) > 0.12) { try { v.currentTime = want; } catch (e) {} }
-      v.volume = clipGain(clip);
-      v.muted = clipGain(clip) === 0;
+      if (Math.abs(v.currentTime - want) > 0.25) { try { v.currentTime = want; } catch (e) {} }
+      setElGain(v, clipGain(clip));
       if (v.paused) v.play().catch(() => {});
     } else {
       if (Math.abs(v.currentTime - want) > 0.05) { try { v.currentTime = want; } catch (e) {} }
@@ -1663,22 +2027,43 @@ function stopPlayback() {
   updateTools();
 }
 
-let scrubSettleTimer = null;
+// Scrubbing is rAF-coalesced and NEVER seeks the videos mid-drag — proxies only.
+// A hundred pointermoves per second become at most 60 draws, and the expensive
+// video decoder is asked to seek exactly ONCE, when the finger settles.
+let scrubSettleTimer = null, scrubRaf = 0, scrubTarget = 0;
 function seekTo(t) {
   const wasPlaying = playing;
   if (playing) stopPlayback();
-  playhead = Math.max(0, Math.min(totalDuration(), t));
-  scrubbing = true;               // ⬡ proxies render instantly while videos seek
-  syncVideos(playhead, false);
-  drawFrame();
-  updatePlayheadUI();
-  updateTools();
+  scrubTarget = Math.max(0, Math.min(totalDuration(), t));
+  if (wasPlaying) {               // frame-step / click while playing: jump + keep playing
+    playhead = scrubTarget;
+    syncVideos(playhead, false);
+    drawFrame(); updatePlayheadUI(); updateTools();
+    startPlayback();
+    return;
+  }
+  scrubbing = true;               // ⬡ proxies render instantly while videos rest
+  if (!scrubRaf) scrubRaf = requestAnimationFrame(() => {
+    scrubRaf = 0;
+    playhead = scrubTarget;
+    drawFrame();
+    updatePlayheadUI();
+    updateTools();
+  });
   clearTimeout(scrubSettleTimer);
   scrubSettleTimer = setTimeout(() => {
     scrubbing = false;
-    drawFrame();                  // real frames have landed by now
-  }, 180);
-  if (wasPlaying) startPlayback();
+    playhead = scrubTarget;
+    syncVideos(playhead, false);  // the ONE real seek
+    drawFrame();
+    // redraw once the decoder actually lands on the frame
+    for (const clip of activeClipsAt(playhead)) {
+      const m = mediaOf(clip);
+      if (!m || m.kind !== 'video' || isAudioRole(clip)) continue;
+      const v = videoPool.get(m.id);
+      if (v) v.addEventListener('seeked', () => { if (!scrubbing && !playing) drawFrame(); }, { once: true });
+    }
+  }, 160);
 }
 
 $('play-btn').addEventListener('click', () => playing ? stopPlayback() : startPlayback());
@@ -1817,7 +2202,7 @@ function renderTimeline() {
     if (clip.muted) fx.push('🔇');
     else if (clip.volume < 1) fx.push('🔉' + Math.round(clip.volume * 100) + '%');
     if (clip.group) fx.push('🔗');
-    const badge = audioRole ? '🎵' : (m && m.kind === 'flipbook' ? '🎨' : m && m.kind === 'code' ? '✨' : clip.track + 1);
+    const badge = audioRole ? '🎵' : (m && m.kind === 'flipbook' ? '🎨' : m && m.kind === 'vector' ? '📐' : m && m.kind === 'code' ? '✨' : clip.track + 1);
     el.innerHTML = `
       <div class="clip-badges">
         <span class="clip-badge" style="background:${color}">${badge}</span>
@@ -1849,6 +2234,7 @@ function scrubFromEvent(e) {
   seekTo((e.clientX - rect.left) / pxPerSec);
 }
 $('tl-ruler').addEventListener('pointerdown', e => {
+  try { $('tl-ruler').setPointerCapture(e.pointerId); } catch (_) {}
   scrubFromEvent(e);
   const move = ev => scrubFromEvent(ev);
   const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
@@ -1960,6 +2346,7 @@ function attachClipPointer(el, tid) {
   el.addEventListener('pointerdown', e => {
     e.preventDefault();
     e.stopPropagation();
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}   // Safari can't steal the drag for scroll/selection
     const clip = timeline.find(c => c.tid === tid);
     if (!clip) return;
     const m = mediaOf(clip);
@@ -2101,10 +2488,11 @@ function updateTools() {
   $('volume-slider').disabled = !canSound;
   $('mute-btn').disabled = !canSound;
   $('detach-btn').disabled = !c || audioRole || !(m && m.kind === 'video') || c.muted;
-  const editKind = m && (m.kind === 'flipbook' || m.kind === 'code') ? m.kind : null;
+  const editKind = m && (m.kind === 'flipbook' || m.kind === 'code' || m.kind === 'vector') ? m.kind : null;
   $('fb-edit-btn').style.display = editKind ? '' : 'none';
   if (editKind) $('fb-edit-btn').innerHTML = editKind === 'code'
     ? '<span class="ico">✨</span> EDIT CODE'
+    : editKind === 'vector' ? '<span class="ico">📐</span> EDIT MOTION'
     : '<span class="ico">✏️</span> EDIT DRAWING';
 
   if (c) {
@@ -2240,7 +2628,7 @@ $('detach-btn').addEventListener('click', () => {
   selTid = a.tid;
   ensurePeaks(m);                    // waveform appears when decoded
   refresh();
-  toast('⇣ sound detached onto the audio lane — move it anywhere');
+  toast('⇣ sound detached — slide or trim its edges past the video to make J-cuts and L-cuts ✂️🎵', 4200);
 });
 $('master-vol').addEventListener('input', e => {
   masterVol = parseInt(e.target.value) / 100;
@@ -2333,6 +2721,7 @@ $('fb-edit-btn').addEventListener('click', () => {
   const c = selClip(); const m = c && mediaOf(c);
   if (m && m.kind === 'flipbook') openFlipbook(m.id, c);
   else if (m && m.kind === 'code') openCodeStudio(m.id);
+  else if (m && m.kind === 'vector') openVectorStudio(m.id);
 });
 
 function refresh() {
@@ -2454,13 +2843,16 @@ function renderFbFrame(m, i, opts = {}) {
   }
   if (cacheable) {
     m._cache.set(i, out);
-    if (m._cache.size > 240) m._cache.delete(m._cache.keys().next().value);
+    // 240 cached 1280×720 canvases ≈ 885MB — an iPad killer. Touch devices get 48 (~175MB max, usually far less).
+    const cap = touchDevice ? 48 : 240;
+    if (m._cache.size > cap) m._cache.delete(m._cache.keys().next().value);
   }
   return out;
 }
 function bumpFb(m) {   // any edit: kill cache, recompute duration, clamp timeline clips
   m._cache = null;
   m.duration = m.frameCount / m.fps;
+  scheduleAutosave();
   for (const c of timeline) {
     if (c.mediaId !== m.id) continue;
     c.out = Math.min(c.out, m.duration);
@@ -2890,6 +3282,7 @@ $('fbt-delkey').addEventListener('click', () => {
 });
 
 // ── dope sheet: rows = layers (top first), columns = frames ──
+let fbThumbGen = 0;
 function renderFbSheet() {
   const m = fbMedia();
   if (!m || !fb.open) return;
@@ -2898,15 +3291,42 @@ function renderFbSheet() {
   // header: frame numbers (click = go, drag = reorder)
   const hr = document.createElement('tr');
   hr.innerHTML = '<th class="lhead"></th>';
+  const wantThumbs = m.frameCount <= 60;   // above 60, thumbs would thrash the cache
+  const thumbJobs = [];
   for (let f = 0; f < m.frameCount; f++) {
     const th = document.createElement('th');
     th.className = 'fhead' + (f === fb.cur ? ' cur' : '');
-    th.textContent = f + 1;
     th.dataset.f = f;
+    const num = document.createElement('div');
+    num.className = 'fnum'; num.textContent = f + 1;
+    th.appendChild(num);
+    if (wantThumbs) {
+      const tc = document.createElement('canvas');
+      tc.width = 56; tc.height = 32; tc.className = 'fthumb';
+      th.appendChild(tc);
+      thumbJobs.push({ tc, f });
+    }
     attachFrameHeadDrag(th, f);
     hr.appendChild(th);
   }
   tbl.appendChild(hr);
+  // paint the little frame previews in rAF chunks — the sheet never blocks a stroke
+  if (wantThumbs) {
+    const gen = ++fbThumbGen;
+    let j = 0;
+    const paint = () => {
+      if (gen !== fbThumbGen || !fb.open) return;   // a newer sheet took over
+      const until = Math.min(thumbJobs.length, j + 6);
+      for (; j < until; j++) {
+        const { tc, f } = thumbJobs[j];
+        const x = tc.getContext('2d');
+        x.fillStyle = '#000'; x.fillRect(0, 0, 56, 32);
+        try { x.drawImage(renderFbFrame(m, f), 0, 0, 56, 32); } catch (e) {}
+      }
+      if (j < thumbJobs.length) requestAnimationFrame(paint);
+    };
+    requestAnimationFrame(paint);
+  }
   // layer rows, topmost first
   [...m.layers].reverse().forEach(layer => {
     const tr = document.createElement('tr');
@@ -2946,6 +3366,7 @@ function attachFrameHeadDrag(th, from) {
   th.addEventListener('pointerdown', e => {
     if (fb.playing) return;
     e.preventDefault();
+    try { th.setPointerCapture(e.pointerId); } catch (_) {}
     let target = from, moved = false;
     const move = ev => {
       const el = document.elementFromPoint(ev.clientX, ev.clientY);
@@ -3109,6 +3530,8 @@ function moveFbLayer(dir) {
   bumpFb(m); fbNav(fb.cur);
 }
 
+$('fb-prev-btn').addEventListener('click', () => { if (!fb.playing) fbNav(fb.cur - 1); });
+$('fb-next-btn').addEventListener('click', () => { if (!fb.playing) fbNav(fb.cur + 1); });
 $('fb-fps').addEventListener('change', e => {
   const m = fbMedia();
   m.fps = parseInt(e.target.value);
@@ -3289,8 +3712,22 @@ function disposeCodeInstance(m) {
   if (m._p5) { try { m._p5.remove(); } catch (e) {} m._p5 = null; }
   if (m._holder) { try { m._holder.remove(); } catch (e) {} m._holder = null; }
 }
+// 🚧 memory guard: each live p5 instance holds a 1280×720 canvas + engine.
+// Keep at most N alive (LRU); the rest re-create instantly when scrubbed to.
+const P5_MAX_LIVE = touchDevice ? 3 : 6;
+const p5Live = [];   // mediaIds, most recent last
+function notePS5Use(m) {
+  const i = p5Live.indexOf(m.id);
+  if (i >= 0) p5Live.splice(i, 1);
+  p5Live.push(m.id);
+  while (p5Live.length > P5_MAX_LIVE) {
+    const oldId = p5Live.shift();
+    const om = media.find(x => x.id === oldId);
+    if (om && om.id !== (codeS.open ? codeS.mediaId : -1)) disposeCodeInstance(om);
+  }
+}
 function ensureCodeInstance(m) {
-  if (m._p5 && m._p5code === m.code) return m._p5;
+  if (m._p5 && m._p5code === m.code) { notePS5Use(m); return m._p5; }
   disposeCodeInstance(m);
   m._err = null;
   if (typeof p5 === 'undefined') { m._err = '📦 p5.js library missing — lib/p5.min.js did not load'; return null; }
@@ -3313,9 +3750,21 @@ function ensureCodeInstance(m) {
     inst = new p5(p => {
       p.setup = () => {
         p.createCanvas(CODE_W, CODE_H);
+        p.pixelDensity(1);                        // half the memory on retina iPads
         p.noLoop();
         p.clear();
         p.t = 0; p.frame = 0;
+        // 🚧 caution tape on giant canvases: clamp createCanvas/resizeCanvas so a
+        // typo like createCanvas(99999, 99999) can't take down the whole studio
+        const clampCC = (fn) => (w, h, ...rest) => {
+          if (w > 1920 || h > 1080) {
+            caution('bigcanvas', 'whoa — that canvas is HUGE',
+              'code clips are 1280×720. I shrank it so the app stays fast — your code still runs!');
+          }
+          return fn.call(p, Math.min(w || CODE_W, 1920), Math.min(h || CODE_H, 1080), ...rest);
+        };
+        p.createCanvas = clampCC(p5.prototype.createCanvas);
+        p.resizeCanvas = clampCC(p5.prototype.resizeCanvas);
         try {
           api = factory(p, guardReset) || api;   // kid's top-level code runs here
           if (api.setup) api.setup();
@@ -3328,6 +3777,7 @@ function ensureCodeInstance(m) {
     }, holder);
   } catch (err) { m._err = friendlyError(err); holder.remove(); return null; }
   m._p5 = inst; m._p5code = m.code; m._holder = holder; m._guardReset = guardReset;
+  notePS5Use(m);
   return inst;
 }
 
@@ -3512,6 +3962,658 @@ $('code-done-btn').addEventListener('click', () => {
 });
 
 // ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// 📐 VECTOR FLIPBOOK — easy early Flash. Objects live on the canvas,
+// motion lives on the timeline as curves. Auto-key is ALWAYS on:
+// move something at any frame and the tween builds itself.
+// ════════════════════════════════════════════════════════════
+const VF_W = 1280, VF_H = 720;
+const VF_DEFS = { x: 0, y: 0, s: 100, r: 0, o: 100 };
+let vfObjCounter = 0;
+
+// ── track math: keys are {f, v, ho:[dx,dy]?, hi:[dx,dy]?} — bezier in (frame,value) space.
+// Default handles = flat thirds → AE "easy ease". Handles clamp inside the segment
+// so the curve is always a function of time (no time-travel loops).
+function vecKeySorted(track) { return track.slice().sort((a, b) => a.f - b.f); }
+function vecSetKey(track, f, v) {
+  const k = track.find(k => k.f === f);
+  if (k) { k.v = v; return k; }
+  const nk = { f, v };
+  track.push(nk);
+  track.sort((a, b) => a.f - b.f);
+  return nk;
+}
+function vecTrackVal(track, f, def) {
+  if (!track || !track.length) return def;
+  if (f <= track[0].f) return track[0].v;
+  const last = track[track.length - 1];
+  if (f >= last.f) return last.v;
+  let i = 0;
+  while (i < track.length - 2 && track[i + 1].f <= f) i++;
+  const A = track[i], B = track[i + 1];
+  if (B.f === f) return B.v;
+  const span = B.f - A.f;
+  const ho = A.ho || [span / 3, 0];
+  const hi = B.hi || [-span / 3, 0];
+  const p0x = A.f, p0y = A.v;
+  const p1x = A.f + Math.max(0, Math.min(span, ho[0])), p1y = A.v + ho[1];
+  const p2x = B.f + Math.max(-span, Math.min(0, hi[0])), p2y = B.v + hi[1];
+  const p3x = B.f, p3y = B.v;
+  // solve x(t) = f by bisection (x is monotonic with clamped handles)
+  let lo = 0, hi_ = 1, t = 0.5;
+  for (let it = 0; it < 28; it++) {
+    t = (lo + hi_) / 2;
+    const u = 1 - t;
+    const x = u*u*u*p0x + 3*u*u*t*p1x + 3*u*t*t*p2x + t*t*t*p3x;
+    if (x < f) lo = t; else hi_ = t;
+  }
+  const u = 1 - t;
+  return u*u*u*p0y + 3*u*u*t*p1y + 3*u*t*t*p2y + t*t*t*p3y;
+}
+function vecObjAt(obj, f) {
+  return {
+    x: vecTrackVal(obj.tracks.x, f, VF_DEFS.x),
+    y: vecTrackVal(obj.tracks.y, f, VF_DEFS.y),
+    s: vecTrackVal(obj.tracks.s, f, VF_DEFS.s),
+    r: vecTrackVal(obj.tracks.r, f, VF_DEFS.r),
+    o: vecTrackVal(obj.tracks.o, f, VF_DEFS.o),
+  };
+}
+
+// ── shape rendering (centered at origin, pre-transform) ──
+function drawVecShape(ctx, sh) {
+  ctx.fillStyle = sh.fill;
+  ctx.strokeStyle = sh.stroke;
+  ctx.lineWidth = sh.strokeW || 0;
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  const w = sh.w, h = sh.h;
+  ctx.beginPath();
+  if (sh.type === 'rect') ctx.rect(-w/2, -h/2, w, h);
+  else if (sh.type === 'ellipse') ctx.ellipse(0, 0, w/2, h/2, 0, 0, Math.PI*2);
+  else if (sh.type === 'triangle') { ctx.moveTo(0, -h/2); ctx.lineTo(w/2, h/2); ctx.lineTo(-w/2, h/2); ctx.closePath(); }
+  else if (sh.type === 'star') {
+    for (let i = 0; i < 10; i++) {
+      const rr = i % 2 === 0 ? w/2 : w/5;
+      const a = i * Math.PI / 5 - Math.PI/2;
+      i === 0 ? ctx.moveTo(Math.cos(a)*rr, Math.sin(a)*rr) : ctx.lineTo(Math.cos(a)*rr, Math.sin(a)*rr);
+    }
+    ctx.closePath();
+  } else if (sh.type === 'scribble' && sh.points && sh.points.length > 1) {
+    ctx.moveTo(sh.points[0][0], sh.points[0][1]);
+    for (let i = 1; i < sh.points.length; i++) ctx.lineTo(sh.points[i][0], sh.points[i][1]);
+  }
+  if (sh.type === 'scribble') {
+    ctx.lineWidth = Math.max(3, sh.strokeW || 6);
+    ctx.strokeStyle = sh.fill;   // a squiggle IS its ink
+    ctx.stroke();
+  } else {
+    ctx.fill();
+    if (sh.strokeW > 0) ctx.stroke();
+  }
+}
+
+// one composited frame — cached exactly like the raster flipbook
+function renderVecFrame(m, i) {
+  i = Math.max(0, Math.min(m.frameCount - 1, i));
+  if (!m._cache) m._cache = new Map();
+  const hit = m._cache.get(i);
+  if (hit) return hit;
+  const out = document.createElement('canvas');
+  out.width = VF_W; out.height = VF_H;
+  const ctx = out.getContext('2d');
+  for (const obj of m.objects) {          // index 0 = back, last = front
+    const p = vecObjAt(obj, i);
+    if (p.o <= 0) continue;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.o / 100));
+    ctx.translate(VF_W/2 + p.x, VF_H/2 + p.y);
+    ctx.rotate(p.r * Math.PI / 180);
+    ctx.scale(p.s / 100, p.s / 100);
+    drawVecShape(ctx, obj.shape);
+    ctx.restore();
+  }
+  m._cache.set(i, out);
+  const cap = touchDevice ? 48 : 240;
+  if (m._cache.size > cap) m._cache.delete(m._cache.keys().next().value);
+  return out;
+}
+function bumpVec(m) {
+  m._cache = null;
+  m.duration = m.frameCount / m.fps;
+  for (const c of timeline) {
+    if (c.mediaId !== m.id) continue;
+    c.out = Math.min(c.out, m.duration);
+    c.in = Math.min(c.in, Math.max(0, c.out - MIN_CLIP));
+  }
+  scheduleAutosave();
+}
+
+// ── studio state ──
+const vf = { open: false, mediaId: null, cur: 0, selOid: null, tool: 'move', prop: 's', playing: false, playTimer: null, undo: [] };
+function vfMedia() { return media.find(m => m.id === vf.mediaId); }
+function vfSel() { const m = vfMedia(); return m && m.objects.find(o => o.oid === vf.selOid); }
+const vfCanvas = $('vf-canvas'), vfCtx = vfCanvas.getContext('2d');
+const vfCurve = $('vf-curve'), vfCurveCtx = vfCurve.getContext('2d');
+
+function vfPushUndo() {
+  const m = vfMedia(); if (!m) return;
+  vf.undo.push(JSON.stringify(m.objects));
+  if (vf.undo.length > 60) vf.undo.shift();
+}
+function vfUndoOnce() {
+  const m = vfMedia(); if (!m || !vf.undo.length) return;
+  m.objects = JSON.parse(vf.undo.pop());
+  if (!m.objects.find(o => o.oid === vf.selOid)) vf.selOid = m.objects.length ? m.objects[m.objects.length-1].oid : null;
+  bumpVec(m); vfRepaint(); vfRenderObjects(); vfRenderSheet(); vfSyncInspect();
+}
+
+function newVecObject(type, x, y) {
+  const names = { rect: 'box', ellipse: 'ball', triangle: 'tri', star: 'star', scribble: 'squiggle' };
+  return {
+    oid: ++vfObjCounter,
+    name: `${names[type] || type} ${vfObjCounter}`,
+    shape: { type, w: 160, h: 160, fill: $('vf-fill').value, stroke: $('vf-stroke').value, strokeW: parseInt($('vf-strokew').value) || 0, points: null },
+    tracks: { x: [{ f: 0, v: x }], y: [{ f: 0, v: y }], s: [], r: [], o: [] },
+  };
+}
+
+// ── open / close ──
+function openVectorStudio(mediaId) {
+  vf.mediaId = mediaId; vf.open = true; vf.cur = 0; vf.playing = false; vf.undo = [];
+  const m = vfMedia();
+  vfObjCounter = Math.max(vfObjCounter, ...m.objects.map(o => o.oid), 0);
+  vf.selOid = m.objects.length ? m.objects[m.objects.length-1].oid : null;
+  $('vf-name').value = m.name;
+  $('vf-fps').value = m.fps;
+  $('vf-len').value = m.frameCount;
+  $('vf-overlay').classList.add('open');
+  vfSizeCurve();
+  vfNav(0);
+}
+$('flipbook-vec-btn').addEventListener('click', () => {
+  const item = {
+    id: ++mediaCounter, kind: 'vector', name: `animation ${mediaCounter}`,
+    fileName: null, fileSize: 0, file: null, url: null,
+    fps: 12, frameCount: 24, duration: 2,
+    width: VF_W, height: VF_H, thumbURL: null, previewOK: true,
+    objects: [], proxy: null,
+  };
+  media.push(item);
+  renderBin();
+  openVectorStudio(item.id);
+  toast('📐 tap a shape button, then tap the canvas — then move things at different frames ◆');
+});
+$('vf-done-btn').addEventListener('click', () => {
+  const m = vfMedia();
+  vfStopPlay();
+  m.name = $('vf-name').value.trim() || m.name;
+  // thumbnail from frame 0
+  const tc = document.createElement('canvas'); tc.width = 240; tc.height = 135;
+  tc.getContext('2d').drawImage(renderVecFrame(m, 0), 0, 0, 240, 135);
+  m.thumbURL = tc.toDataURL('image/png');
+  vf.open = false;
+  $('vf-overlay').classList.remove('open');
+  bumpVec(m);
+  renderBin(); refresh();
+});
+
+// ── navigation + playback ──
+function vfNav(i) {
+  const m = vfMedia(); if (!m) return;
+  vf.cur = Math.max(0, Math.min(m.frameCount - 1, i));
+  $('vf-frame-label').textContent = `frame ${vf.cur + 1} / ${m.frameCount}`;
+  vfRepaint(); vfRenderSheet(); vfSyncInspect(); vfDrawCurve();
+}
+function vfStopPlay() {
+  vf.playing = false;
+  clearInterval(vf.playTimer);
+  $('vf-play-btn').textContent = '▶ PLAY';
+}
+$('vf-play-btn').addEventListener('click', () => {
+  const m = vfMedia(); if (!m) return;
+  if (vf.playing) { vfStopPlay(); vfNav(vf.cur); return; }
+  vf.playing = true;
+  $('vf-play-btn').textContent = '⏸';
+  vf.playTimer = setInterval(() => {
+    vf.cur = (vf.cur + 1) % m.frameCount;
+    $('vf-frame-label').textContent = `frame ${vf.cur + 1} / ${m.frameCount}`;
+    vfRepaint(); vfDrawCurve();
+  }, 1000 / m.fps);
+});
+$('vf-back-btn').addEventListener('click', () => { vfStopPlay(); vfNav(vf.cur - 1); });
+$('vf-fwd-btn').addEventListener('click', () => { vfStopPlay(); vfNav(vf.cur + 1); });
+$('vf-fps').addEventListener('change', e => { const m = vfMedia(); m.fps = parseInt(e.target.value); bumpVec(m); vfNav(vf.cur); });
+$('vf-len').addEventListener('change', e => {
+  const m = vfMedia();
+  m.frameCount = Math.max(2, Math.min(600, parseInt(e.target.value) || 24));
+  e.target.value = m.frameCount;
+  bumpVec(m); vfNav(Math.min(vf.cur, m.frameCount - 1));
+});
+
+// ── canvas paint (studio view = frame + selection box) ──
+function vfRepaint() {
+  const m = vfMedia(); if (!m) return;
+  m._cache = null;   // studio edits invalidate constantly; cheap at one frame
+  vfCtx.clearRect(0, 0, VF_W, VF_H);
+  vfCtx.drawImage(renderVecFrame(m, vf.cur), 0, 0);
+  const sel = vfSel();
+  if (sel && !vf.playing) {
+    const p = vecObjAt(sel, vf.cur);
+    const bb = vecBBox(sel.shape);
+    vfCtx.save();
+    vfCtx.translate(VF_W/2 + p.x, VF_H/2 + p.y);
+    vfCtx.rotate(p.r * Math.PI/180);
+    vfCtx.scale(p.s/100, p.s/100);
+    vfCtx.strokeStyle = '#D500F9';
+    vfCtx.lineWidth = 3 / (p.s/100);
+    vfCtx.setLineDash([8, 6]);
+    vfCtx.strokeRect(bb.x - 8, bb.y - 8, bb.w + 16, bb.h + 16);
+    vfCtx.restore();
+  }
+}
+function vecBBox(sh) {
+  if (sh.type === 'scribble' && sh.points && sh.points.length) {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const [px, py] of sh.points) { x0 = Math.min(x0, px); y0 = Math.min(y0, py); x1 = Math.max(x1, px); y1 = Math.max(y1, py); }
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+  return { x: -sh.w/2, y: -sh.h/2, w: sh.w, h: sh.h };
+}
+function vfCanvasPos(e) {
+  const r = vfCanvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width * VF_W, y: (e.clientY - r.top) / r.height * VF_H };
+}
+function vfHit(m, cx, cy) {
+  for (let i = m.objects.length - 1; i >= 0; i--) {   // front first
+    const obj = m.objects[i];
+    const p = vecObjAt(obj, vf.cur);
+    if (p.o <= 0) continue;
+    // into object space
+    const dx = cx - (VF_W/2 + p.x), dy = cy - (VF_H/2 + p.y);
+    const a = -p.r * Math.PI/180, sc = 100 / Math.max(1, p.s);
+    const ox = (dx * Math.cos(a) - dy * Math.sin(a)) * sc;
+    const oy = (dx * Math.sin(a) + dy * Math.cos(a)) * sc;
+    const bb = vecBBox(obj.shape);
+    if (ox >= bb.x - 14 && ox <= bb.x + bb.w + 14 && oy >= bb.y - 14 && oy <= bb.y + bb.h + 14) return obj;
+  }
+  return null;
+}
+
+// tap = place shape / grab object · drag = move (auto-key!) · squiggle = draw
+let vfDrag = null, vfScribble = null;
+vfCanvas.addEventListener('pointerdown', e => {
+  if (vf.playing) return;
+  e.preventDefault();
+  try { vfCanvas.setPointerCapture(e.pointerId); } catch (_) {}
+  const m = vfMedia(); if (!m) return;
+  const pos = vfCanvasPos(e);
+  if (vf.tool === 'scribble') {
+    vfPushUndo();
+    vfScribble = [[pos.x, pos.y]];
+    return;
+  }
+  if (vf.tool !== 'move') {
+    // place a new shape where the finger lands
+    vfPushUndo();
+    const obj = newVecObject(vf.tool, pos.x - VF_W/2, pos.y - VF_H/2);
+    m.objects.push(obj);
+    vf.selOid = obj.oid;
+    vfSetTool('move');   // straight back to move — place, then play with it
+    bumpVec(m); vfRepaint(); vfRenderObjects(); vfRenderSheet(); vfSyncInspect();
+    toast(`✨ ${obj.name}! drag it around — go to another frame and move it to make a tween`);
+    return;
+  }
+  const hit = vfHit(m, pos.x, pos.y);
+  if (hit) {
+    vf.selOid = hit.oid;
+    const p = vecObjAt(hit, vf.cur);
+    vfDrag = { obj: hit, startX: pos.x, startY: pos.y, origX: p.x, origY: p.y, moved: false };
+    vfRepaint(); vfRenderObjects(); vfSyncInspect(); vfDrawCurve();
+  } else {
+    vf.selOid = null;
+    vfRepaint(); vfRenderObjects(); vfSyncInspect();
+  }
+});
+vfCanvas.addEventListener('pointermove', e => {
+  const m = vfMedia(); if (!m) return;
+  const pos = vfCanvasPos(e);
+  if (vfScribble) {
+    const lastP = vfScribble[vfScribble.length - 1];
+    if (Math.hypot(pos.x - lastP[0], pos.y - lastP[1]) > 4) vfScribble.push([pos.x, pos.y]);
+    // live ink preview
+    vfRepaint();
+    vfCtx.save();
+    vfCtx.strokeStyle = $('vf-fill').value; vfCtx.lineWidth = 6; vfCtx.lineJoin = vfCtx.lineCap = 'round';
+    vfCtx.beginPath();
+    vfCtx.moveTo(vfScribble[0][0], vfScribble[0][1]);
+    for (const [px, py] of vfScribble) vfCtx.lineTo(px, py);
+    vfCtx.stroke(); vfCtx.restore();
+    return;
+  }
+  if (!vfDrag) return;
+  if (!vfDrag.moved) { vfDrag.moved = true; vfPushUndo(); }
+  const nx = vfDrag.origX + (pos.x - vfDrag.startX);
+  const ny = vfDrag.origY + (pos.y - vfDrag.startY);
+  vecSetKey(vfDrag.obj.tracks.x, vf.cur, Math.round(nx));   // 🪄 auto-key
+  vecSetKey(vfDrag.obj.tracks.y, vf.cur, Math.round(ny));
+  vfRepaint();
+});
+window.addEventListener('pointerup', () => {
+  const m = vfMedia();
+  if (vfScribble && m) {
+    if (vfScribble.length > 1) {
+      // normalize points around their center so the object rotates/scales nicely
+      let cx = 0, cy = 0;
+      for (const [px, py] of vfScribble) { cx += px; cy += py; }
+      cx /= vfScribble.length; cy /= vfScribble.length;
+      const obj = newVecObject('scribble', cx - VF_W/2, cy - VF_H/2);
+      obj.shape.points = vfScribble.map(([px, py]) => [px - cx, py - cy]);
+      obj.shape.strokeW = 6;
+      m.objects.push(obj);
+      vf.selOid = obj.oid;
+      vfSetTool('move');
+      bumpVec(m); vfRenderObjects(); vfRenderSheet(); vfSyncInspect();
+    }
+    vfScribble = null; vfRepaint();
+  }
+  if (vfDrag && vfDrag.moved && m) { bumpVec(m); vfRenderSheet(); vfDrawCurve(); }
+  vfDrag = null;
+});
+
+// ── tools + inspector ──
+function vfSetTool(t) {
+  vf.tool = t;
+  document.querySelectorAll('#vf-toolbar [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
+}
+document.querySelectorAll('#vf-toolbar [data-tool]').forEach(b =>
+  b.addEventListener('click', () => vfSetTool(b.dataset.tool)));
+
+function vfAutoKeyProp(prop, v) {
+  const sel = vfSel(); if (!sel) return;
+  vfPushUndo();
+  vecSetKey(sel.tracks[prop], vf.cur, v);
+  const m = vfMedia(); bumpVec(m);
+  vfRepaint(); vfRenderSheet(); vfDrawCurve();
+}
+$('vf-scale').addEventListener('input', e => { $('vf-scale-val').textContent = e.target.value; vfAutoKeyProp('s', parseInt(e.target.value)); });
+$('vf-rot').addEventListener('input', e => { $('vf-rot-val').textContent = e.target.value; vfAutoKeyProp('r', parseInt(e.target.value)); });
+$('vf-opacity').addEventListener('input', e => { $('vf-opacity-val').textContent = e.target.value; vfAutoKeyProp('o', parseInt(e.target.value)); });
+$('vf-strokew').addEventListener('input', e => {
+  $('vf-strokew-val').textContent = e.target.value;
+  const sel = vfSel(); if (!sel) return;
+  sel.shape.strokeW = parseInt(e.target.value); bumpVec(vfMedia()); vfRepaint();
+});
+$('vf-fill').addEventListener('input', e => { const sel = vfSel(); if (sel) { sel.shape.fill = e.target.value; bumpVec(vfMedia()); vfRepaint(); vfRenderObjects(); } });
+$('vf-stroke').addEventListener('input', e => { const sel = vfSel(); if (sel) { sel.shape.stroke = e.target.value; bumpVec(vfMedia()); vfRepaint(); } });
+
+function vfSyncInspect() {
+  const sel = vfSel();
+  const on = !!sel;
+  ['vf-scale','vf-rot','vf-opacity','vf-strokew','vf-obj-up','vf-obj-down','vf-obj-dup','vf-obj-del','vf-setkey','vf-delkey'].forEach(id => $(id).disabled = !on);
+  if (!sel) return;
+  const p = vecObjAt(sel, vf.cur);
+  $('vf-scale').value = Math.round(p.s);   $('vf-scale-val').textContent = Math.round(p.s);
+  $('vf-rot').value = Math.round(((p.r + 180) % 360 + 360) % 360 - 180); $('vf-rot-val').textContent = Math.round(p.r);
+  $('vf-opacity').value = Math.round(p.o); $('vf-opacity-val').textContent = Math.round(p.o);
+  $('vf-strokew').value = sel.shape.strokeW || 0; $('vf-strokew-val').textContent = sel.shape.strokeW || 0;
+  $('vf-fill').value = sel.shape.fill;
+  $('vf-stroke').value = sel.shape.stroke;
+}
+
+$('vf-setkey').addEventListener('click', () => {
+  const sel = vfSel(); if (!sel) return;
+  vfPushUndo();
+  const p = vecObjAt(sel, vf.cur);
+  for (const k of ['x','y','s','r','o']) vecSetKey(sel.tracks[k], vf.cur, Math.round(p[k]));
+  bumpVec(vfMedia()); vfRenderSheet(); vfDrawCurve();
+  toast('◆ everything about this object is locked at this frame');
+});
+$('vf-delkey').addEventListener('click', () => {
+  const sel = vfSel(); if (!sel) return;
+  vfPushUndo();
+  for (const k of ['x','y','s','r','o']) {
+    const t = sel.tracks[k];
+    const i = t.findIndex(key => key.f === vf.cur);
+    if (i < 0) continue;
+    if ((k === 'x' || k === 'y') && t.length === 1) continue;   // keep the position anchor
+    t.splice(i, 1);
+  }
+  bumpVec(vfMedia()); vfRepaint(); vfRenderSheet(); vfDrawCurve(); vfSyncInspect();
+});
+$('vf-undo').addEventListener('click', vfUndoOnce);
+
+// ── object list ──
+function vfRenderObjects() {
+  const m = vfMedia(); if (!m) return;
+  const list = $('vf-obj-list');
+  list.innerHTML = '';
+  [...m.objects].reverse().forEach(obj => {   // top of list = front
+    const d = document.createElement('div');
+    d.className = 'vf-obj' + (obj.oid === vf.selOid ? ' sel' : '');
+    d.innerHTML = `<span class="sw" style="background:${obj.shape.fill}"></span><span>${obj.name}</span>`;
+    d.addEventListener('click', () => { vf.selOid = obj.oid; vfRepaint(); vfRenderObjects(); vfSyncInspect(); vfRenderSheet(); vfDrawCurve(); });
+    list.appendChild(d);
+  });
+}
+function vfReorder(dir) {
+  const m = vfMedia(); const sel = vfSel(); if (!sel) return;
+  const i = m.objects.indexOf(sel);
+  const j = i + dir;
+  if (j < 0 || j >= m.objects.length) return;
+  vfPushUndo();
+  [m.objects[i], m.objects[j]] = [m.objects[j], m.objects[i]];
+  bumpVec(m); vfRepaint(); vfRenderObjects(); vfRenderSheet();
+}
+$('vf-obj-up').addEventListener('click', () => vfReorder(1));
+$('vf-obj-down').addEventListener('click', () => vfReorder(-1));
+$('vf-obj-dup').addEventListener('click', () => {
+  const m = vfMedia(); const sel = vfSel(); if (!sel) return;
+  vfPushUndo();
+  const copy = JSON.parse(JSON.stringify(sel));
+  copy.oid = ++vfObjCounter;
+  copy.name = sel.name + ' copy';
+  for (const k of copy.tracks.x) k.v += 40;
+  for (const k of copy.tracks.y) k.v += 40;
+  m.objects.push(copy);
+  vf.selOid = copy.oid;
+  bumpVec(m); vfRepaint(); vfRenderObjects(); vfRenderSheet(); vfSyncInspect();
+});
+$('vf-obj-del').addEventListener('click', () => {
+  const m = vfMedia(); const sel = vfSel(); if (!sel) return;
+  vfPushUndo();
+  m.objects = m.objects.filter(o => o !== sel);
+  vf.selOid = m.objects.length ? m.objects[m.objects.length-1].oid : null;
+  bumpVec(m); vfRepaint(); vfRenderObjects(); vfRenderSheet(); vfSyncInspect();
+});
+
+// ── dope sheet: rows = objects, ◆ = key on any track, · = tweening ──
+function vfRenderSheet() {
+  const m = vfMedia(); if (!m || !vf.open) return;
+  const sheet = $('vf-sheet');
+  const tbl = document.createElement('table');
+  const hr = document.createElement('tr');
+  hr.innerHTML = '<th class="lhead"></th>';
+  for (let f = 0; f < m.frameCount; f++) {
+    const th = document.createElement('th');
+    th.className = 'fhead' + (f === vf.cur ? ' cur' : '');
+    th.textContent = f + 1;
+    th.addEventListener('pointerdown', () => { if (!vf.playing) vfNav(f); });
+    hr.appendChild(th);
+  }
+  tbl.appendChild(hr);
+  [...m.objects].reverse().forEach(obj => {
+    const tr = document.createElement('tr');
+    const lh = document.createElement('th');
+    lh.className = 'lhead';
+    lh.textContent = obj.name;
+    lh.style.color = obj.oid === vf.selOid ? 'var(--purple)' : '';
+    tr.appendChild(lh);
+    const keyFrames = new Set();
+    let lastKey = 0;
+    for (const k of ['x','y','s','r','o']) for (const key of obj.tracks[k]) { keyFrames.add(key.f); lastKey = Math.max(lastKey, key.f); }
+    for (let f = 0; f < m.frameCount; f++) {
+      const td = document.createElement('td');
+      td.className = 'cell' + (f === vf.cur ? ' curcol' : '');
+      td.innerHTML = keyFrames.has(f) ? '<span class="key">◆</span>' : (f < lastKey ? '<span class="tw">─</span>' : '');
+      td.addEventListener('pointerdown', () => {
+        if (vf.playing) return;
+        vf.selOid = obj.oid;
+        vfNav(f); vfRenderObjects();
+      });
+      tr.appendChild(td);
+    }
+    tbl.appendChild(tr);
+  });
+  sheet.innerHTML = '';
+  sheet.appendChild(tbl);
+}
+
+// ── 📈 graph editor: the value curve with draggable keys + ease handles ──
+document.querySelectorAll('.vf-prop').forEach(b => b.addEventListener('click', () => {
+  vf.prop = b.dataset.prop;
+  document.querySelectorAll('.vf-prop').forEach(x => x.classList.toggle('on', x === b));
+  vfDrawCurve();
+}));
+function vfSizeCurve() {
+  const w = $('vf-graph').clientWidth - $('vf-prop-btns').clientWidth - 8;
+  vfCurve.width = Math.max(300, w);
+  vfCurve.height = 170;
+}
+window.addEventListener('resize', () => { if (vf.open) { vfSizeCurve(); vfDrawCurve(); } });
+
+function vfCurveMap() {
+  // returns {fx(f), fy(v), inv} for the current track's value range
+  const m = vfMedia(); const sel = vfSel();
+  const W = vfCurve.width, H = vfCurve.height;
+  const track = sel ? sel.tracks[vf.prop] : [];
+  let vmin = VF_DEFS[vf.prop], vmax = VF_DEFS[vf.prop];
+  for (const k of track) { vmin = Math.min(vmin, k.v); vmax = Math.max(vmax, k.v); }
+  if (vmax - vmin < 20) { vmin -= 10; vmax += 10; }
+  const pad = (vmax - vmin) * 0.18;
+  vmin -= pad; vmax += pad;
+  const fx = f => 30 + (f / Math.max(1, m.frameCount - 1)) * (W - 45);
+  const fy = v => H - 18 - ((v - vmin) / (vmax - vmin)) * (H - 36);
+  return { fx, fy, invF: px => Math.round((px - 30) / (W - 45) * (m.frameCount - 1)), invV: py => vmin + (H - 18 - py) / (H - 36) * (vmax - vmin), vmin, vmax };
+}
+function vfDrawCurve() {
+  if (!vf.open) return;
+  const m = vfMedia(); const sel = vfSel();
+  const W = vfCurve.width, H = vfCurve.height;
+  const g = vfCurveCtx;
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = '#12121a'; g.fillRect(0, 0, W, H);
+  if (!m) return;
+  const map = vfCurveMap();
+  // frame grid + playhead
+  g.strokeStyle = 'rgba(255,255,255,0.05)';
+  for (let f = 0; f < m.frameCount; f += Math.max(1, Math.round(m.frameCount / 24))) {
+    g.beginPath(); g.moveTo(map.fx(f), 0); g.lineTo(map.fx(f), H); g.stroke();
+  }
+  g.strokeStyle = '#D500F9';
+  g.beginPath(); g.moveTo(map.fx(vf.cur), 0); g.lineTo(map.fx(vf.cur), H); g.stroke();
+  if (!sel) {
+    g.fillStyle = '#8888a0'; g.font = '12px sans-serif';
+    g.fillText('pick an object to see its motion curve 📈', 40, H / 2);
+    return;
+  }
+  const track = vecKeySorted(sel.tracks[vf.prop]);
+  // the curve itself — sampled per frame
+  g.strokeStyle = '#FFD600'; g.lineWidth = 2.5;
+  g.beginPath();
+  for (let f = 0; f < m.frameCount; f++) {
+    const v = vecTrackVal(track, f, VF_DEFS[vf.prop]);
+    f === 0 ? g.moveTo(map.fx(f), map.fy(v)) : g.lineTo(map.fx(f), map.fy(v));
+  }
+  g.stroke();
+  // keys + handles
+  for (let i = 0; i < track.length; i++) {
+    const k = track[i];
+    const kx = map.fx(k.f), ky = map.fy(k.v);
+    if (i > 0) {   // in-handle
+      const span = k.f - track[i-1].f;
+      const hi = k.hi || [-span/3, 0];
+      const hx = map.fx(k.f + hi[0]), hy = map.fy(k.v + hi[1]);
+      g.strokeStyle = 'rgba(255,214,0,0.5)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(kx, ky); g.lineTo(hx, hy); g.stroke();
+      g.fillStyle = '#FF9100'; g.beginPath(); g.arc(hx, hy, 5, 0, 7); g.fill();
+    }
+    if (i < track.length - 1) {   // out-handle
+      const span = track[i+1].f - k.f;
+      const ho = k.ho || [span/3, 0];
+      const hx = map.fx(k.f + ho[0]), hy = map.fy(k.v + ho[1]);
+      g.strokeStyle = 'rgba(255,214,0,0.5)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(kx, ky); g.lineTo(hx, hy); g.stroke();
+      g.fillStyle = '#FF9100'; g.beginPath(); g.arc(hx, hy, 5, 0, 7); g.fill();
+    }
+    g.fillStyle = '#FFD600';
+    g.save(); g.translate(kx, ky); g.rotate(Math.PI/4); g.fillRect(-5, -5, 10, 10); g.restore();
+  }
+}
+// curve interactions: drag ◆ = move key (time + value) · drag ● = shape the ease
+let vfCurveDrag = null;
+vfCurve.addEventListener('pointerdown', e => {
+  const sel = vfSel(); if (!sel || vf.playing) return;
+  e.preventDefault();
+  try { vfCurve.setPointerCapture(e.pointerId); } catch (_) {}
+  const r = vfCurve.getBoundingClientRect();
+  const px = (e.clientX - r.left) * (vfCurve.width / r.width);
+  const py = (e.clientY - r.top) * (vfCurve.height / r.height);
+  const map = vfCurveMap();
+  const track = vecKeySorted(sel.tracks[vf.prop]);
+  // handles first (they sit on top)
+  for (let i = 0; i < track.length; i++) {
+    const k = track[i];
+    if (i > 0) {
+      const span = k.f - track[i-1].f, hi = k.hi || [-span/3, 0];
+      if (Math.hypot(map.fx(k.f + hi[0]) - px, map.fy(k.v + hi[1]) - py) < 14) { vfPushUndo(); vfCurveDrag = { key: k, kind: 'hi', span }; return; }
+    }
+    if (i < track.length - 1) {
+      const span = track[i+1].f - k.f, ho = k.ho || [span/3, 0];
+      if (Math.hypot(map.fx(k.f + ho[0]) - px, map.fy(k.v + ho[1]) - py) < 14) { vfPushUndo(); vfCurveDrag = { key: k, kind: 'ho', span }; return; }
+    }
+  }
+  for (const k of track) {
+    if (Math.hypot(map.fx(k.f) - px, map.fy(k.v) - py) < 14) { vfPushUndo(); vfCurveDrag = { key: k, kind: 'key' }; return; }
+  }
+  // empty spot on the curve line? tap = add a key right there
+  const f = Math.max(0, Math.min(vfMedia().frameCount - 1, map.invF(px)));
+  const v = vecTrackVal(track, f, VF_DEFS[vf.prop]);
+  if (Math.abs(map.fy(v) - py) < 16) {
+    vfPushUndo();
+    vecSetKey(sel.tracks[vf.prop], f, Math.round(v));
+    bumpVec(vfMedia()); vfDrawCurve(); vfRenderSheet();
+  }
+});
+vfCurve.addEventListener('pointermove', e => {
+  if (!vfCurveDrag) return;
+  const sel = vfSel(); if (!sel) return;
+  const r = vfCurve.getBoundingClientRect();
+  const px = (e.clientX - r.left) * (vfCurve.width / r.width);
+  const py = (e.clientY - r.top) * (vfCurve.height / r.height);
+  const map = vfCurveMap();
+  const d = vfCurveDrag;
+  if (d.kind === 'key') {
+    const track = sel.tracks[vf.prop];
+    const others = track.filter(k => k !== d.key).map(k => k.f);
+    let nf = Math.max(0, Math.min(vfMedia().frameCount - 1, map.invF(px)));
+    while (others.includes(nf)) nf++;          // no two keys on one frame
+    d.key.f = nf;
+    d.key.v = Math.round(map.invV(py));
+    track.sort((a, b) => a.f - b.f);
+  } else {
+    const dv = map.invV(py) - d.key.v;
+    const df = map.invF(px) - d.key.f;
+    if (d.kind === 'ho') d.key.ho = [Math.max(0.5, Math.min(d.span, df)), dv];
+    else d.key.hi = [Math.max(-d.span, Math.min(-0.5, df)), dv];
+  }
+  vfMedia()._cache = null;
+  vfDrawCurve(); vfRepaint();
+});
+window.addEventListener('pointerup', () => {
+  if (vfCurveDrag) { bumpVec(vfMedia()); vfRenderSheet(); vfSyncInspect(); }
+  vfCurveDrag = null;
+});
+
 // EXPORT v2 — multi-layer 30fps frame loop + windowed audio mix
 // ════════════════════════════════════════════════════════════
 let engine = { fast: false, audioCodec: null, checked: false };
@@ -3716,6 +4818,9 @@ async function exportFast() {
         if (m.kind === 'flipbook') {
           img = renderFbFrame(m, Math.floor(srcT * m.fps));
           sw = FB_W; sh = FB_H;
+        } else if (m.kind === 'vector') {
+          img = renderVecFrame(m, Math.floor(srcT * m.fps));
+          sw = VF_W; sh = VF_H;
         } else if (m.kind === 'code') {
           img = renderCodeFrame(m, srcT);
           sw = img.width; sh = img.height;
@@ -3882,8 +4987,95 @@ $('project-input').addEventListener('change', e => {
   e.target.value = '';
 });
 
-function saveProject() {
-  const data = {
+// ════════════════════════════════════════════════════════════
+// 🛟 AUTOSAVE + CRASH RECOVERY — IndexedDB (localStorage is ~5MB; a project
+// with flipbook frames blows past that. IDB holds hundreds of MB and can
+// store the actual video Files, so recovery doesn't even need relinking.)
+// ════════════════════════════════════════════════════════════
+let idb = null;
+function openIDB() {
+  return new Promise((res) => {
+    if (idb) return res(idb);
+    let req;
+    try { req = indexedDB.open('geov-studio', 1); } catch (e) { return res(null); }
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('autosave')) db.createObjectStore('autosave');
+      if (!db.objectStoreNames.contains('files')) db.createObjectStore('files');
+    };
+    req.onsuccess = () => { idb = req.result; res(idb); };
+    req.onerror = () => res(null);
+    req.onblocked = () => res(null);
+  });
+}
+function idbPut(store, key, val) {
+  return openIDB().then(db => new Promise((res, rej) => {
+    if (!db) return res(false);
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).put(val, key);
+    tx.oncomplete = () => res(true);
+    tx.onerror = () => rej(tx.error);
+    tx.onabort = () => rej(tx.error);
+  }));
+}
+function idbGet(store, key) {
+  return openIDB().then(db => new Promise((res) => {
+    if (!db) return res(null);
+    const rq = db.transaction(store).objectStore(store).get(key);
+    rq.onsuccess = () => res(rq.result || null);
+    rq.onerror = () => res(null);
+  }));
+}
+const idbGetFile = (fileName) => idbGet('files', fileName);
+
+// stash imported footage so a crash costs nothing (best effort — quota may say no)
+async function stashFile(file) {
+  try { await idbPut('files', file.name, file); }
+  catch (e) {
+    caution('quota', 'this iPad is running out of storage room',
+      'your project still autosaves, but big video files can’t be stashed for crash recovery — if the tab closes you’ll need to re-add the footage. Deleting old videos from the iPad makes room.');
+  }
+}
+
+let autosaveTimer = null, autosaveBusy = false;
+function scheduleAutosave() {
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(doAutosave, 1500);
+}
+async function doAutosave() {
+  if (autosaveBusy) { scheduleAutosave(); return; }
+  autosaveBusy = true;
+  try {
+    const data = buildProjectData();
+    data.savedAt = Date.now();
+    await idbPut('autosave', 'current', JSON.stringify(data));
+    $('autosave-dot').classList.add('on');
+    setTimeout(() => $('autosave-dot').classList.remove('on'), 900);
+  } catch (e) {
+    caution('autosave', 'autosave hit a wall',
+      'the project couldn’t save itself in the background (storage may be full). Use 💾 SAVE to keep a copy safe!');
+  }
+  autosaveBusy = false;
+}
+async function offerRecovery() {
+  const raw = await idbGet('autosave', 'current');
+  if (!raw) return;
+  let data;
+  try { data = JSON.parse(raw); } catch (e) { return; }
+  if (!data.timeline || !data.timeline.length) return;
+  const bar = $('recover-bar');
+  $('recover-name').textContent = `“${data.name || 'my movie'}”`;
+  bar.style.display = 'flex';
+  $('recover-yes').onclick = async () => {
+    bar.style.display = 'none';
+    await openProjectData(data);
+    toast('🛟 project restored — right where you left off');
+  };
+  $('recover-no').onclick = () => { bar.style.display = 'none'; };
+}
+
+function buildProjectData() {
+  return {
     app: 'geov', version: 5,
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
@@ -3897,14 +5089,17 @@ function saveProject() {
       thumbURL: m.thumbURL,
       code: m.kind === 'code' ? m.code : undefined,
       seed: m.kind === 'code' ? m.seed : undefined,
-      frameCount: m.kind === 'flipbook' ? m.frameCount : undefined,
+      objects: m.kind === 'vector' ? m.objects : undefined,
+      frameCount: m.kind === 'flipbook' || m.kind === 'vector' ? m.frameCount : undefined,
       layers: m.kind === 'flipbook' ? (migrateFlipbook(m), m.layers.map(l => l.kind === 'draw'
         ? { lid: l.lid, name: l.name, kind: 'draw', visible: l.visible, cells: l.cells.map(c => c ? c.toDataURL('image/png') : null) }
         : { lid: l.lid, name: l.name, kind: 'move', visible: l.visible, art: l.art ? l.art.toDataURL('image/png') : null, keys: l.keys || [] }
       )) : undefined,
     })),
   };
-  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+}
+function saveProject() {
+  const blob = new Blob([JSON.stringify(buildProjectData())], { type: 'application/json' });
   downloadBlob(blob, exportName('geov'));
   toast('💾 project saved — footage relinks when you reopen it');
 }
@@ -3914,6 +5109,18 @@ async function openProjectFile(file) {
     const data = JSON.parse(await file.text());
     if (data.app !== 'geov') throw new Error('not a GeoV project');
     if (timeline.length && !confirm('Open this project? Your current timeline will be replaced.')) return;
+    await openProjectData(data);
+    const nMissing = media.filter(m => m.missing).length;
+    toast(nMissing
+      ? `📂 project open — drop ${nMissing} video file${nMissing > 1 ? 's' : ''} anywhere to relink (red cards)`
+      : '📂 project open!');
+  } catch (err) {
+    console.error(err);
+    toast('😕 could not open that project file');
+  }
+}
+
+async function openProjectData(data) {
     if (playing) stopPlayback();
 
     // rebuild media
@@ -3933,6 +5140,13 @@ async function openProjectFile(file) {
       if (md.kind === 'code') {
         item.code = md.code || CODE_TEMPLATES[0].code;
         item.seed = md.seed || 1;
+      }
+      if (md.kind === 'vector') {
+        item.objects = (md.objects || []).map(o => ({ ...o, tracks: { x: o.tracks.x || [], y: o.tracks.y || [], s: o.tracks.s || [], r: o.tracks.r || [], o: o.tracks.o || [] } }));
+        item.frameCount = md.frameCount || 24;
+        item.fps = md.fps || 12;
+        item.previewOK = true; item.missing = false;
+        vfObjCounter = Math.max(vfObjCounter, ...item.objects.map(o => o.oid || 0), 0);
       }
       if (md.kind === 'flipbook') {
         const loadCanvas = async (durl) => {
@@ -3978,14 +5192,14 @@ async function openProjectFile(file) {
     selTid = null; playhead = 0; undoStack = []; redoStack = [];
     $('project-name').value = data.name || 'my movie';
     refresh();
-    const nMissing = media.filter(m => m.missing).length;
-    toast(nMissing
-      ? `📂 project open — drop ${nMissing} video file${nMissing > 1 ? 's' : ''} anywhere to relink (red cards)`
-      : '📂 project open!');
-  } catch (err) {
-    console.error(err);
-    toast('😕 could not open that project file');
-  }
+    // 🛟 silent relink: if the footage files were stashed in IndexedDB, pull them
+    // back automatically so nobody has to hunt for files after a crash
+    for (const m of media.filter(x => x.missing)) {
+      try {
+        const f = await idbGetFile(m.fileName);
+        if (f) { m.kind === 'audio' ? await relinkAudio(m, f) : await relinkMedia(m, f); }
+      } catch (e) {}
+    }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -3995,6 +5209,14 @@ document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
   if (codeS.open) {
     if (e.key === 'Escape') $('code-done-btn').click();
+    return;
+  }
+  if (vf.open) {
+    if (e.key === 'Escape') $('vf-done-btn').click();
+    if (e.code === 'Space') { e.preventDefault(); $('vf-play-btn').click(); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); vfStopPlay(); vfNav(vf.cur - 1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); vfStopPlay(); vfNav(vf.cur + 1); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); vfUndoOnce(); }
     return;
   }
   if (fb.open) {
@@ -4019,12 +5241,18 @@ document.addEventListener('keydown', e => {
 window.addEventListener('beforeunload', e => {
   if (timeline.length > 0) { e.preventDefault(); e.returnValue = ''; }
 });
+// tab hidden (or being swiped away on iPad) → flush the autosave RIGHT NOW
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && timeline.length) { clearTimeout(autosaveTimer); doAutosave(); }
+});
 
 // ════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════
 refresh();
 checkEngine();
+offerRecovery();                                   // 🛟 the tab closed? the movie didn't die
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 console.log('%c⬡ GeoV Studio v5 — layers · flipbook · ✨ code clips · geo proxies · iPad ready', 'color:#00E5FF;font-size:16px;font-weight:bold');
 console.log('%cSPACE=play · ←→=frame step (shift=1s) · S=split · DEL=remove · CTRL+Z=undo · wheel=zoom timeline · shift+drag=snap', 'color:#8888a0');
 </script>

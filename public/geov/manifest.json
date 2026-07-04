@@ -1,0 +1,14 @@
+{
+  "name": "GeoV Studio",
+  "short_name": "GeoV",
+  "description": "Make movies — layers, flipbooks, code clips",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0d0d1a",
+  "theme_color": "#0d0d1a",
+  "icons": [
+    { "src": "geov-icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "geov-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
