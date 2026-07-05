@@ -4564,42 +4564,49 @@ $('flipbook-sm-btn').addEventListener('click', async () => {
   smConnect();
 });
 
-// ── camera connect: constraint ladder + deadline + picker ──
-// Old iPads (Air 3) sometimes grant permission and then just… never deliver a
-// stream. So: release any old track first, try strict → loose → anything, put
-// an 8s deadline on every try, and give the kid a picker + tap-to-retry.
+// ── camera connect: ONE forgiving ask + late-stream adoption ──
+// Old iPads (Air 3) taught us three lessons:
+// 1. `ideal` constraints never reject — one ask replaces the whole ladder.
+//    (Stacked getUserMedia calls on a pending permission can wedge Safari's
+//    camera pipeline until the app is force-quit. The ladder was the bug.)
+// 2. Kids read the permission popup slowly. If our deadline fires first and
+//    the stream arrives late, ADOPT it — never kill a stream a kid just allowed.
+// 3. play() can fail silently (Low Power Mode) — a tap is a gesture, use it.
+let smConnectSeq = 0;
 async function smConnect(deviceId) {
   smStopCamera();
+  const mySeq = ++smConnectSeq;
   const nocam = $('sm-nocam');
   nocam.style.display = 'flex';
-  nocam.innerHTML = '📷 waiting for the camera…<br><span style="font-size:12px">if nothing shows up in a few seconds, tap here to try again</span>';
-  const ladder = deviceId
-    ? [{ video: { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
-       { video: { deviceId: { exact: deviceId } }, audio: false }]
-    : [{ video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'environment' }, audio: false },
-       { video: { facingMode: 'environment' }, audio: false },
-       { video: true, audio: false }];
-  let lastErr = null;
-  for (const constraints of ladder) {
-    try {
-      const attempt = navigator.mediaDevices.getUserMedia(constraints);
-      // if the deadline wins but the camera answers later, close that orphan stream
-      attempt.then(s => { if (sm.stream !== s) { try { s.getTracks().forEach(t => t.stop()); } catch (e) {} } }).catch(() => {});
-      const s = await Promise.race([
-        attempt,
-        new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('camera timed out'), { name: 'TimeoutError' })), 8000)),
-      ]);
-      sm.stream = s;
-      break;
-    } catch (err) {
-      lastErr = err;
-      sm.stream = null;
-      if (err && err.name === 'NotAllowedError') break;   // blocked — no point retrying looser
+  nocam.innerHTML = '📷 waking the camera…<br><span style="font-size:12px">first time? a permission popup appears — tap Allow!</span>';
+  const constraints = deviceId
+    ? { video: { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }
+    : { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
+  let timedOut = false;
+  try {
+    const attempt = navigator.mediaDevices.getUserMedia(constraints);
+    // late answer (slow permission tap)? adopt it instead of killing it
+    attempt.then(s => {
+      if (sm.open && !sm.stream && mySeq === smConnectSeq) smAdopt(s);
+      else if (sm.stream !== s) { try { s.getTracks().forEach(t => t.stop()); } catch (e) {} }
+    }).catch(() => {});
+    const s = await Promise.race([
+      attempt,
+      new Promise((_, rej) => setTimeout(() => { timedOut = true; rej(Object.assign(new Error('camera timed out'), { name: 'TimeoutError' })); }, 14000)),
+    ]);
+    if (mySeq !== smConnectSeq) return false;      // a newer connect took over
+    smAdopt(s);
+    return true;
+  } catch (err) {
+    if (mySeq !== smConnectSeq) return false;
+    if (timedOut) {
+      // the permission popup may still be open — late adoption will catch it
+      nocam.innerHTML = '📷 still waiting…<br><span style="font-size:12px">if a permission popup is open, tap Allow — otherwise <b>tap here to retry</b></span>';
+      smListCameras();
+      return false;
     }
-  }
-  if (!sm.stream) {
-    console.warn('camera failed:', lastErr);
-    const blocked = lastErr && lastErr.name === 'NotAllowedError';
+    console.warn('camera failed:', err);
+    const blocked = err && err.name === 'NotAllowedError';
     caution('camera', blocked ? '📷 camera blocked' : '📷 camera won’t connect',
       blocked
         ? 'camera permission was blocked. Tap the AA (or 🎥) icon in the address bar, allow the camera, then tap the preview to retry.'
@@ -4608,11 +4615,39 @@ async function smConnect(deviceId) {
     smListCameras();
     return false;
   }
-  smVideo.srcObject = sm.stream;
-  try { await smVideo.play(); } catch (e) {}
-  nocam.style.display = 'none';
+}
+
+// take a stream on board: wire it, play it, and clear the overlay only when
+// real frames flow (a black rectangle is not a camera)
+function smAdopt(stream) {
+  if (!sm.open) { try { stream.getTracks().forEach(t => t.stop()); } catch (e) {} return; }
+  if (sm.stream && sm.stream !== stream) smStopCamera();
+  sm.stream = stream;
+  const nocam = $('sm-nocam');
+  const track = stream.getVideoTracks()[0];
+  if (track) track.onended = () => {               // iOS kills tracks on app-switch
+    if (sm.open && sm.stream === stream) {
+      smStopCamera();
+      nocam.style.display = 'flex';
+      nocam.innerHTML = '📷 the camera fell asleep — <b>tap here to wake it up</b>';
+    }
+  };
+  smVideo.srcObject = stream;
+  const onLive = () => { if (sm.open && sm.stream === stream && smVideo.videoWidth) nocam.style.display = 'none'; };
+  smVideo.addEventListener('playing', onLive, { once: true });
+  smVideo.play().then(onLive).catch(() => {
+    // autoplay refused (Low Power Mode) — the tap handler plays, and a tap is a gesture
+    nocam.style.display = 'flex';
+    nocam.innerHTML = '📷 camera is ready — <b>tap here to start</b><br><span style="font-size:12px">(battery-saver mode wants a tap first)</span>';
+  });
+  // watchdog: stream but no picture after 4s → offer the tap
+  setTimeout(() => {
+    if (sm.open && sm.stream === stream && !smVideo.videoWidth) {
+      nocam.style.display = 'flex';
+      nocam.innerHTML = '📷 camera connected but no picture — <b>tap here</b>';
+    }
+  }, 4000);
   smListCameras();
-  return true;
 }
 async function smListCameras() {
   try {
@@ -4626,7 +4661,22 @@ async function smListCameras() {
   } catch (e) {}
 }
 $('sm-cam').addEventListener('change', e => { if (sm.open) smConnect(e.target.value); });
-$('sm-nocam').addEventListener('click', () => { if (sm.open && !sm.stream) smConnect(); });
+$('sm-nocam').addEventListener('click', () => {
+  if (!sm.open) return;
+  const live = sm.stream && sm.stream.getVideoTracks().some(t => t.readyState === 'live');
+  if (live) {
+    // stream exists, picture doesn't — the tap IS the gesture play() wanted
+    smVideo.play().then(() => { if (smVideo.videoWidth) $('sm-nocam').style.display = 'none'; }).catch(() => {});
+    setTimeout(() => { if (sm.open && !smVideo.videoWidth) smConnect(); }, 1200);
+  } else smConnect();
+});
+// back from the home screen / another app: iOS usually killed the track
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !sm.open) return;
+  const live = sm.stream && sm.stream.getVideoTracks().some(t => t.readyState === 'live' && !t.muted);
+  if (!live) smConnect();
+  else smVideo.play().catch(() => {});
+});
 
 function smStopCamera() {
   if (sm.stream) { for (const t of sm.stream.getTracks()) t.stop(); sm.stream = null; }
@@ -4642,7 +4692,10 @@ function smStopPlay() {
 // 📸 the button — draw the live feed into a real flipbook cell
 function smCapture() {
   const m = smMedia();
-  if (!m || !smVideo.videoWidth) { toast('📷 no picture yet — wait for the camera'); return; }
+  const track = sm.stream && sm.stream.getVideoTracks()[0];
+  if (!m || !smVideo.videoWidth || smVideo.readyState < 2 || (track && track.muted)) {
+    toast('📷 no picture yet — wait for the camera'); return;   // never shoot a black frame
+  }
   if (sm.playing) smStopPlay();
   const c = newFrameCanvas();
   const x = c.getContext('2d');
