@@ -721,7 +721,8 @@
   <span class="logo">⬡ GeoV</span>
   <input id="project-name" value="my movie" spellcheck="false" title="project name">
   <button class="hdr-btn" id="save-btn" title="save project file">💾 SAVE<span id="autosave-dot" title="autosave heartbeat"></span></button>
-  <button class="hdr-btn" id="open-btn" title="open a .geov project">📂 OPEN</button>
+  <button class="hdr-btn" id="open-btn" title="open a .geov project or a 📦 .geos bundle">📂 OPEN</button>
+  <button class="hdr-btn" id="bundle-btn" title="pack the project + ALL footage into ONE file — perfect for Drive or moving to another iPad">📦 PACK</button>
   <button class="hdr-btn" id="fs-btn" title="fullscreen — more room to edit">⛶</button>
   <div class="header-spacer"></div>
   <span id="engine-chip">checking engine…</span>
@@ -1106,10 +1107,10 @@
   <button id="recover-yes">YES, RESTORE</button>
   <button id="recover-no">start fresh</button>
 </div>
-<div id="drag-overlay">⬇ drop videos or a .geov project ⬇</div>
+<div id="drag-overlay">⬇ drop videos, a .geov project, or a 📦 .geos bundle ⬇</div>
 <div id="bin-drag-ghost"><img></div>
 <input type="file" id="file-input" accept="video/*,audio/*,.mp4,.mov,.webm,.m4v,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple>
-<input type="file" id="project-input" accept=".geov,application/json">
+<input type="file" id="project-input" accept=".geov,.geos,application/json,application/zip">
 
 <script src="lib/mediabunny.min.js"></script>
 <script src="lib/p5.min.js"></script>
@@ -1388,6 +1389,8 @@ window.addEventListener('drop', e => {
   dragDepth = 0;
   $('drag-overlay').style.display = 'none';
   const files = [...e.dataTransfer.files];
+  const bundle = files.find(f => /\.geos$/i.test(f.name));
+  if (bundle) { openBundleFile(bundle); return; }
   const proj = files.find(f => f.name.endsWith('.geov'));
   if (proj) { openProjectFile(proj); return; }
   importFiles(files.filter(f =>
@@ -5446,13 +5449,13 @@ $('modal-cancel').addEventListener('click', () => {
   exportCancelled = true;
   $('modal-backdrop').style.display = 'none';
 });
-function downloadBlob(blob, filename) {
+function downloadBlob(blob, filename, revokeMs = 60000) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename;
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 60000);  // Safari reads the blob slowly on big files
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, revokeMs);  // Safari reads the blob slowly on big files
 }
 function exportName(ext) {
   return ($('project-name').value.trim() || 'geov-movie').replace(/[^\w\- ]+/g, '').replace(/ +/g, '-') + '.' + ext;
@@ -5787,9 +5790,11 @@ async function exportRealtime() {
 $('save-btn').addEventListener('click', saveProject);
 $('open-btn').addEventListener('click', () => $('project-input').click());
 $('project-input').addEventListener('change', e => {
-  if (e.target.files[0]) openProjectFile(e.target.files[0]);
+  const f = e.target.files[0];
+  if (f) /\.geos$/i.test(f.name) ? openBundleFile(f) : openProjectFile(f);
   e.target.value = '';
 });
+$('bundle-btn').addEventListener('click', saveBundle);
 
 // ════════════════════════════════════════════════════════════
 // 🛟 AUTOSAVE + CRASH RECOVERY — IndexedDB (localStorage is ~5MB; a project
@@ -5906,6 +5911,299 @@ function saveProject() {
   const blob = new Blob([JSON.stringify(buildProjectData())], { type: 'application/json' });
   downloadBlob(blob, exportName('geov'));
   toast('💾 project saved — footage relinks when you reopen it');
+}
+
+// ════════════════════════════════════════════════════════════
+// 📦 .GEOS BUNDLES — the whole movie in ONE file
+// A .geos is a real ZIP (STORE, no compression — video is already
+// compressed). Inside: project.geov + media/<every bin file>.
+// MEMORY TRICK: the bundle Blob is assembled from REFERENCES to the
+// original File objects — footage is never copied into RAM. The only
+// full read is the CRC pass (zip checksums), streamed in small chunks.
+// Import slices media straight back out of the bundle: zero-copy.
+// Zip64 throughout, so >4GB movies don't corrupt.
+// ════════════════════════════════════════════════════════════
+const ZIP_LIM = 0xFFFFFFFF;
+
+function fmtBytes(n) {
+  if (n >= 1073741824) return (n / 1073741824).toFixed(2) + ' GB';
+  if (n >= 1048576) return (n / 1048576).toFixed(1) + ' MB';
+  return Math.max(1, Math.round(n / 1024)) + ' KB';
+}
+
+let crcTable = null;
+function crc32Init() {
+  crcTable = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    crcTable[n] = c >>> 0;
+  }
+}
+// streaming CRC — chunks come off disk, never the whole file at once
+async function crc32OfBlob(blob, onBytes) {
+  if (!crcTable) crc32Init();
+  let crc = 0xFFFFFFFF, done = 0;
+  const reader = blob.stream().getReader();
+  while (true) {
+    const { value, done: eof } = await reader.read();
+    if (eof) break;
+    for (let i = 0; i < value.length; i++) crc = crcTable[(crc ^ value[i]) & 0xFF] ^ (crc >>> 8);
+    done += value.length;
+    if (onBytes) onBytes(done);
+    if (exportCancelled) { reader.cancel(); return null; }
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function dosNow() {
+  const d = new Date();
+  return {
+    time: (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1),
+    date: (((d.getFullYear() - 1980) & 0x7F) << 9) | ((d.getMonth() + 1) << 5) | d.getDate(),
+  };
+}
+function safeZipName(name) {
+  // basename only + strip control chars — everything else MUST stay identical,
+  // import relinks by comparing zip entry basename === m.fileName
+  return ((name.replace(/\\/g, '/').split('/').pop() || 'file')
+    .replace(new RegExp('[\\x00-\\x1f]', 'g'), ''));
+}
+function extMime(name) {
+  const e = (name.match(/\.([^.]+)$/) || [])[1]?.toLowerCase() || '';
+  return { mp4: 'video/mp4', m4v: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm',
+           mp3: 'audio/mpeg', wav: 'audio/wav', m4a: 'audio/mp4', aac: 'audio/aac',
+           ogg: 'audio/ogg', flac: 'audio/flac' }[e] || '';
+}
+
+function zipLFH(it, nameBytes, dt) {
+  const z64 = it.size >= ZIP_LIM;
+  const extraLen = z64 ? 20 : 0;
+  const b = new DataView(new ArrayBuffer(30 + nameBytes.length + extraLen));
+  b.setUint32(0, 0x04034b50, true);
+  b.setUint16(4, z64 ? 45 : 20, true);       // version needed
+  b.setUint16(6, 0x0800, true);              // UTF-8 names
+  b.setUint16(8, 0, true);                   // STORE
+  b.setUint16(10, dt.time, true); b.setUint16(12, dt.date, true);
+  b.setUint32(14, it.crc, true);
+  b.setUint32(18, z64 ? ZIP_LIM : it.size, true);
+  b.setUint32(22, z64 ? ZIP_LIM : it.size, true);
+  b.setUint16(26, nameBytes.length, true);
+  b.setUint16(28, extraLen, true);
+  new Uint8Array(b.buffer).set(nameBytes, 30);
+  if (z64) {
+    const o = 30 + nameBytes.length;
+    b.setUint16(o, 1, true); b.setUint16(o + 2, 16, true);
+    b.setBigUint64(o + 4, BigInt(it.size), true);   // uncompressed
+    b.setBigUint64(o + 12, BigInt(it.size), true);  // compressed (STORE: same)
+  }
+  return new Uint8Array(b.buffer);
+}
+function zipCDH(it, nameBytes, offset, dt) {
+  const z64 = it.size >= ZIP_LIM || offset >= ZIP_LIM;
+  const extraLen = z64 ? 28 : 0;             // tag+len + 3×u64
+  const b = new DataView(new ArrayBuffer(46 + nameBytes.length + extraLen));
+  b.setUint32(0, 0x02014b50, true);
+  b.setUint16(4, 45, true);                  // made by
+  b.setUint16(6, z64 ? 45 : 20, true);
+  b.setUint16(8, 0x0800, true);
+  b.setUint16(10, 0, true);
+  b.setUint16(12, dt.time, true); b.setUint16(14, dt.date, true);
+  b.setUint32(16, it.crc, true);
+  b.setUint32(20, z64 ? ZIP_LIM : it.size, true);
+  b.setUint32(24, z64 ? ZIP_LIM : it.size, true);
+  b.setUint16(28, nameBytes.length, true);
+  b.setUint16(30, extraLen, true);
+  b.setUint32(42, z64 ? ZIP_LIM : offset, true);
+  new Uint8Array(b.buffer).set(nameBytes, 46);
+  if (z64) {
+    const o = 46 + nameBytes.length;
+    b.setUint16(o, 1, true); b.setUint16(o + 2, 24, true);
+    b.setBigUint64(o + 4, BigInt(it.size), true);
+    b.setBigUint64(o + 12, BigInt(it.size), true);
+    b.setBigUint64(o + 20, BigInt(offset), true);
+  }
+  return new Uint8Array(b.buffer);
+}
+
+async function buildGeosBlob(onProgress) {
+  const enc = new TextEncoder();
+  const items = [{ name: 'project.geov',
+                   data: new Blob([JSON.stringify(buildProjectData())], { type: 'application/json' }) }];
+  const seen = new Set();
+  for (const m of media) {
+    if (!m.file || seen.has(m.fileName)) continue;
+    seen.add(m.fileName);
+    items.push({ name: 'media/' + safeZipName(m.fileName), data: m.file });
+  }
+  const totalBytes = items.reduce((s, i) => s + i.data.size, 0) || 1;
+  // pass 1: CRC every byte (streamed — memory stays flat)
+  let doneBytes = 0;
+  for (const it of items) {
+    it.size = it.data.size;
+    it.crc = await crc32OfBlob(it.data, b => onProgress((doneBytes + b) / totalBytes, it.name));
+    if (it.crc === null) return null;        // cancelled
+    doneBytes += it.size;
+  }
+  // pass 2: assemble — headers are tiny arrays, footage goes in BY REFERENCE
+  const dt = dosNow();
+  const parts = [], central = [];
+  let offset = 0;
+  for (const it of items) {
+    const nameBytes = enc.encode(it.name);
+    const lfh = zipLFH(it, nameBytes, dt);
+    central.push(zipCDH(it, nameBytes, offset, dt));
+    parts.push(lfh, it.data);
+    offset += lfh.byteLength + it.size;
+  }
+  const cdSize = central.reduce((s, c) => s + c.byteLength, 0);
+  parts.push(...central);
+  const needZ64 = items.length > 0xFFFF || offset >= ZIP_LIM || cdSize >= ZIP_LIM;
+  if (needZ64) {
+    const z = new DataView(new ArrayBuffer(56 + 20));
+    z.setUint32(0, 0x06064b50, true);                       // zip64 EOCD
+    z.setBigUint64(4, 44n, true);
+    z.setUint16(12, 45, true); z.setUint16(14, 45, true);
+    z.setBigUint64(24, BigInt(items.length), true);
+    z.setBigUint64(32, BigInt(items.length), true);
+    z.setBigUint64(40, BigInt(cdSize), true);
+    z.setBigUint64(48, BigInt(offset), true);
+    z.setUint32(56, 0x07064b50, true);                      // zip64 locator
+    z.setBigUint64(64, BigInt(offset + cdSize), true);
+    z.setUint32(72, 1, true);
+    parts.push(new Uint8Array(z.buffer));
+  }
+  const e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true);
+  e.setUint16(8, Math.min(items.length, 0xFFFF), true);
+  e.setUint16(10, Math.min(items.length, 0xFFFF), true);
+  e.setUint32(12, Math.min(cdSize, ZIP_LIM), true);
+  e.setUint32(16, Math.min(offset, ZIP_LIM), true);
+  parts.push(new Uint8Array(e.buffer));
+  return new Blob(parts, { type: 'application/zip' });
+}
+
+async function saveBundle() {
+  if (!media.length) { toast('nothing to pack yet — add some clips first'); return; }
+  const missing = media.filter(m => m.missing);
+  if (missing.length) {
+    const go = await showCaution(
+      `<b>${missing.length} piece${missing.length > 1 ? 's' : ''} of footage ${missing.length > 1 ? 'are' : 'is'} missing</b> (the red cards).<br><br>` +
+      'The bundle will pack everything that IS here — the missing pieces will still be missing when it opens on the other device.',
+      [{ id: 'go', label: 'PACK ANYWAY', primary: true }, { id: 'no', label: 'GO BACK' }]);
+    if (go !== 'go') return;
+  }
+  exportCancelled = false;
+  modalShow('📦 Packing your movie…', 'checking every file byte by byte');
+  keepAwake(true);
+  try {
+    const blob = await buildGeosBlob((frac, name) =>
+      modalProgress(frac * 0.98, `packing ${name.replace(/^media\//, '')}`));
+    if (!blob || exportCancelled) { $('modal-backdrop').style.display = 'none'; return; }
+    downloadBlob(blob, exportName('geos'), 600000);   // big file: give Safari 10 min to read it
+    modalDone('📦 Bundle packed!',
+      `your WHOLE movie in one ${fmtBytes(blob.size)} file — upload it to Drive, AirDrop it, anything. Open it in GeoV on any device and every clip comes with it.`);
+  } catch (err) {
+    console.error(err);
+    modalDone('😕 packing hit a wall', 'something went wrong: ' + err.message + ' — your project is untouched, try 💾 SAVE as a backup.');
+  } finally { keepAwake(false); }
+}
+
+// ── reading a .geos back in ──
+async function parseZip(file) {
+  const tailLen = Math.min(file.size, 66000);
+  const tail = new DataView(await file.slice(file.size - tailLen).arrayBuffer());
+  let e = -1;
+  for (let i = tail.byteLength - 22; i >= 0; i--)
+    if (tail.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) throw new Error('no zip directory — is this really a .geos?');
+  let count = tail.getUint16(e + 10, true);
+  let cdSize = tail.getUint32(e + 12, true);
+  let cdOff = tail.getUint32(e + 16, true);
+  if (count === 0xFFFF || cdOff === ZIP_LIM || cdSize === ZIP_LIM) {   // zip64
+    const lp = e - 20;
+    if (lp >= 0 && tail.getUint32(lp, true) === 0x07064b50) {
+      const zOff = Number(tail.getBigUint64(lp + 8, true));
+      const z = new DataView(await file.slice(zOff, zOff + 56).arrayBuffer());
+      count = Number(z.getBigUint64(32, true));
+      cdSize = Number(z.getBigUint64(40, true));
+      cdOff = Number(z.getBigUint64(48, true));
+    }
+  }
+  const cd = new DataView(await file.slice(cdOff, cdOff + cdSize).arrayBuffer());
+  const dec = new TextDecoder();
+  const entries = [];
+  let p = 0;
+  for (let i = 0; i < count; i++) {
+    if (cd.getUint32(p, true) !== 0x02014b50) throw new Error('bundle directory is scrambled');
+    const method = cd.getUint16(p + 10, true);
+    let csize = cd.getUint32(p + 20, true), usize = cd.getUint32(p + 24, true);
+    const nLen = cd.getUint16(p + 28, true), eLen = cd.getUint16(p + 30, true), cLen = cd.getUint16(p + 32, true);
+    let lfhOff = cd.getUint32(p + 42, true);
+    const name = dec.decode(new Uint8Array(cd.buffer, p + 46, nLen));
+    let q = p + 46 + nLen; const qEnd = q + eLen;
+    while (q + 4 <= qEnd) {                                  // zip64 extra field
+      const tag = cd.getUint16(q, true), sz = cd.getUint16(q + 2, true);
+      if (tag === 1) {
+        let r = q + 4;
+        if (usize === ZIP_LIM) { usize = Number(cd.getBigUint64(r, true)); r += 8; }
+        if (csize === ZIP_LIM) { csize = Number(cd.getBigUint64(r, true)); r += 8; }
+        if (lfhOff === ZIP_LIM) { lfhOff = Number(cd.getBigUint64(r, true)); }
+      }
+      q += 4 + sz;
+    }
+    entries.push({ name, method, csize, usize, lfhOff });
+    p += 46 + nLen + eLen + cLen;
+  }
+  return entries;
+}
+async function entryBlob(file, ent) {
+  const lh = new DataView(await file.slice(ent.lfhOff, ent.lfhOff + 30).arrayBuffer());
+  if (lh.getUint32(0, true) !== 0x04034b50) throw new Error('bundle piece is scrambled');
+  const dataStart = ent.lfhOff + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+  const raw = file.slice(dataStart, dataStart + ent.csize);
+  if (ent.method === 0) return raw;                          // zero-copy slice 🧊
+  if (ent.method === 8)                                      // re-zipped on a Mac? inflate it
+    return await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
+  throw new Error('unknown compression inside bundle');
+}
+async function openBundleFile(file) {
+  try {
+    const entries = await parseZip(file);
+    const projEnt = entries.find(en => /\.geov$/i.test(en.name));
+    if (!projEnt) throw new Error('no project inside this bundle');
+    const data = JSON.parse(await (await entryBlob(file, projEnt)).text());
+    if (data.app !== 'geov') throw new Error('not a GeoV project');
+    if (timeline.length && !confirm('Open this bundle? Your current timeline will be replaced.')) return;
+    exportCancelled = false;                                 // STOP button in the modal = stop linking
+    modalShow('📦 Opening bundle…', 'unpacking your project');
+    await openProjectData(data);
+    // relink footage straight out of the bundle — zero-copy slices
+    const byName = new Map(entries.map(en => [en.name.split('/').pop(), en]));
+    const todo = media.filter(m => m.missing && byName.has(m.fileName));
+    let linked = 0;
+    for (const m of todo) {
+      modalProgress((linked + 1) / (todo.length + 1), `linking ${m.fileName}`);
+      try {
+        const f = new File([await entryBlob(file, byName.get(m.fileName))], m.fileName, { type: extMime(m.fileName) });
+        m.kind === 'audio' ? await relinkAudio(m, f) : await relinkMedia(m, f);
+        stashFile(f);                                        // crash recovery works on THIS device now too
+        linked++;
+      } catch (err) { console.error('bundle relink failed:', m.fileName, err); }
+      if (exportCancelled) break;
+    }
+    $('modal-backdrop').style.display = 'none';
+    const nMissing = media.filter(m => m.missing).length;
+    toast(nMissing
+      ? `📦 bundle open — ${linked} linked, ${nMissing} still missing (red cards)`
+      : `📦 bundle open — everything came along! ${linked ? linked + ' clips linked.' : ''}`);
+    scheduleAutosave();
+  } catch (err) {
+    console.error(err);
+    $('modal-backdrop').style.display = 'none';
+    caution('bundle-open', 'couldn’t open that bundle',
+      'that .geos file didn’t unpack. If it came through Drive, make sure it finished downloading (tap it in Files first). If someone unzipped and re-zipped it, open the .geov inside instead.');
+  }
 }
 
 async function openProjectFile(file) {
