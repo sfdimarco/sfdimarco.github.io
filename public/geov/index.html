@@ -4540,8 +4540,10 @@ $('code-done-btn').addEventListener('click', () => {
 // Captures ARE flipbook frames: they save, export, and can be
 // drawn on later in the Raster Flipbook (sparks! speech bubbles!).
 // ════════════════════════════════════════════════════════════
-const sm = { open: false, mediaId: null, stream: null, playing: false, playTimer: null, playIdx: 0 };
-const smVideo = $('sm-video'), smGhost = $('sm-ghost'), smGhostCtx = smGhost.getContext('2d');
+const sm = { open: false, mediaId: null, stream: null, playing: false, playTimer: null, playIdx: 0,
+             framesLive: false, probeTimer: null, rescueStep: 0 };
+let smVideo = $('sm-video');                       // `let` — the rescue ladder can swap in a fresh element
+const smGhost = $('sm-ghost'), smGhostCtx = smGhost.getContext('2d');
 function smMedia() { return media.find(m => m.id === sm.mediaId); }
 function smCells() { const m = smMedia(); return m ? m.layers[0].cells : []; }
 
@@ -4557,6 +4559,9 @@ $('flipbook-sm-btn').addEventListener('click', async () => {
   };
   media.push(item);
   sm.mediaId = item.id; sm.open = true; sm.playing = false;
+  // iOS has a hard cap on live video decoders — a 200-clip project can starve
+  // the camera into a black feed. Park every timeline decoder first.
+  try { parkFarElements(-1e9); } catch (e) {}
   $('sm-name').value = item.name;
   $('sm-count').textContent = '0 frames';
   $('sm-overlay').classList.add('open');
@@ -4575,6 +4580,7 @@ $('flipbook-sm-btn').addEventListener('click', async () => {
 let smConnectSeq = 0;
 async function smConnect(deviceId) {
   smStopCamera();
+  sm.rescueStep = 0;                       // fresh connect = fresh ladder
   const mySeq = ++smConnectSeq;
   const nocam = $('sm-nocam');
   nocam.style.display = 'flex';
@@ -4633,21 +4639,94 @@ function smAdopt(stream) {
     }
   };
   smVideo.srcObject = stream;
-  const onLive = () => { if (sm.open && sm.stream === stream && smVideo.videoWidth) nocam.style.display = 'none'; };
-  smVideo.addEventListener('playing', onLive, { once: true });
-  smVideo.play().then(onLive).catch(() => {
+  smVideo.play().catch(() => {
     // autoplay refused (Low Power Mode) — the tap handler plays, and a tap is a gesture
     nocam.style.display = 'flex';
     nocam.innerHTML = '📷 camera is ready — <b>tap here to start</b><br><span style="font-size:12px">(battery-saver mode wants a tap first)</span>';
   });
-  // watchdog: stream but no picture after 4s → offer the tap
-  setTimeout(() => {
-    if (sm.open && sm.stream === stream && !smVideo.videoWidth) {
-      nocam.style.display = 'flex';
-      nocam.innerHTML = '📷 camera connected but no picture — <b>tap here</b>';
-    }
-  }, 4000);
+  smStartProbe(stream);   // the overlay clears only when actual LIGHT arrives
   smListCameras();
+}
+
+// ── proof-of-life probe + rescue ladder ──
+// The Air-3 signature bug: track says 'live', permission granted, videoWidth
+// fine — and every frame is black. So we stop trusting the plumbing and
+// sample real pixels. Only light clears the overlay. Darkness walks a ladder
+// of known iOS fixes, gentlest first.
+const smProbeCv = document.createElement('canvas');
+smProbeCv.width = 32; smProbeCv.height = 18;
+const smProbeCx = smProbeCv.getContext('2d', { willReadFrequently: true });
+
+function smBrightness() {
+  try {
+    if (!smVideo.videoWidth) return -1;                     // no frame yet
+    smProbeCx.drawImage(smVideo, 0, 0, 32, 18);
+    const d = smProbeCx.getImageData(0, 0, 32, 18).data;
+    let mx = 0;
+    for (let i = 0; i < d.length; i += 4) { const v = d[i] + d[i + 1] + d[i + 2]; if (v > mx) mx = v; }
+    return mx;                                              // 0 = pitch black
+  } catch (e) { return -1; }
+}
+
+function smStartProbe(stream) {
+  clearInterval(sm.probeTimer);
+  sm.framesLive = false;
+  let darkMs = 0;
+  sm.probeTimer = setInterval(() => {
+    if (!sm.open || sm.stream !== stream) { clearInterval(sm.probeTimer); return; }
+    if (smBrightness() > 12) {                              // real light (12 ≈ above sensor noise)
+      sm.framesLive = true; darkMs = 0; sm.rescueStep = 0;
+      $('sm-nocam').style.display = 'none';
+      return;
+    }
+    sm.framesLive = false;
+    darkMs += 600;
+    if (darkMs >= 3000) { darkMs = 0; smRescue(stream); }   // 3s of black → next rung
+  }, 600);
+}
+
+async function smRescue(stream) {
+  if (!sm.open || sm.stream !== stream) return;
+  sm.rescueStep = (sm.rescueStep || 0) + 1;
+  console.warn('camera sending black — rescue step', sm.rescueStep);
+  if (sm.rescueStep === 1) {
+    // gentlest: detach + reattach nudges the iOS compositor awake
+    smVideo.srcObject = null;
+    await new Promise(r => setTimeout(r, 80));
+    smVideo.srcObject = stream;
+    smVideo.play().catch(() => {});
+  } else if (sm.rescueStep === 2) {
+    // a stuck <video> is a known iOS state — swap in a brand-new element
+    const fresh = document.createElement('video');
+    fresh.id = 'sm-video';
+    fresh.autoplay = true; fresh.muted = true; fresh.playsInline = true;
+    fresh.setAttribute('autoplay', ''); fresh.setAttribute('muted', ''); fresh.setAttribute('playsinline', '');
+    smVideo.replaceWith(fresh);
+    smVideo = fresh;
+    smVideo.srcObject = stream;
+    smVideo.play().catch(() => {});
+  } else if (sm.rescueStep === 3) {
+    // some iPads only deliver frames without size hints — ask again, simpler
+    smConnectFallback({ video: { facingMode: 'environment' }, audio: false });
+  } else if (sm.rescueStep === 4) {
+    smConnectFallback({ video: true, audio: false });       // simplest possible ask
+  } else {
+    // honest sign — and keep the gentle rescues cycling in case light arrives
+    const nocam = $('sm-nocam');
+    nocam.style.display = 'flex';
+    nocam.innerHTML = '📷 the camera is on but sending black…<br><span style="font-size:12px">cover + uncover the lens, or close other camera apps.<br>Still black? Open GeoV in <b>Safari itself</b> (not the home-screen icon) — some iPads only show the camera there. Your frames are safe.</span>';
+    sm.rescueStep = 1;
+  }
+}
+
+async function smConnectFallback(constraints) {
+  try {
+    const s = await navigator.mediaDevices.getUserMedia(constraints);
+    if (!sm.open) { try { s.getTracks().forEach(t => t.stop()); } catch (e) {} return; }
+    const step = sm.rescueStep;
+    smAdopt(s);                    // adopt stops the old stream + restarts the probe
+    sm.rescueStep = step;          // remember how far down the ladder we are
+  } catch (e) { console.warn('fallback camera ask failed:', e); }
 }
 async function smListCameras() {
   try {
@@ -4679,6 +4758,8 @@ document.addEventListener('visibilitychange', () => {
 });
 
 function smStopCamera() {
+  clearInterval(sm.probeTimer);
+  sm.framesLive = false;
   if (sm.stream) { for (const t of sm.stream.getTracks()) t.stop(); sm.stream = null; }
   smVideo.srcObject = null;
 }
@@ -4692,9 +4773,8 @@ function smStopPlay() {
 // 📸 the button — draw the live feed into a real flipbook cell
 function smCapture() {
   const m = smMedia();
-  const track = sm.stream && sm.stream.getVideoTracks()[0];
-  if (!m || !smVideo.videoWidth || smVideo.readyState < 2 || (track && track.muted)) {
-    toast('📷 no picture yet — wait for the camera'); return;   // never shoot a black frame
+  if (!m || !smVideo.videoWidth || !sm.framesLive || smBrightness() <= 12) {
+    toast('📷 no picture yet — wait for the camera'); return;   // never, ever shoot a black frame
   }
   if (sm.playing) smStopPlay();
   const c = newFrameCanvas();
