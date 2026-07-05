@@ -471,7 +471,7 @@
   #sm-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; border-radius: 8px; transition: opacity 0.18s; }
   #sm-nocam {
     position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
-    color: var(--muted); font-size: 15px; text-align: center; padding: 30px;
+    color: var(--muted); font-size: 15px; text-align: center; padding: 30px; cursor: pointer;
   }
   #sm-strip { grid-area: smstrip; background: var(--panel); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 10px 14px; overflow-x: auto; }
   .sm-frame { position: relative; flex: none; width: 150px; height: 84px; border-radius: 8px; outline: 2px solid var(--border); background: #000; }
@@ -950,6 +950,7 @@
       <option value="12" selected>12 fps — classic</option>
       <option value="24">24 fps — smooth</option>
     </select>
+    <select id="sm-cam" title="which camera to use" style="display:none;max-width:150px"></select>
     <span style="font-size:11px;color:var(--muted)">🧅 GHOST</span>
     <input type="range" id="sm-onion" min="0" max="80" value="45" style="width:90px">
     <button class="tlb-btn" id="sm-play-btn" title="flip through what you've shot">▶ PREVIEW</button>
@@ -1972,7 +1973,7 @@ function clipSurface(clip, srcT, forScrub) {
     const c = renderCodeFrame(m, srcT);
     return { img: c, sw: c.width, sh: c.height };
   }
-  const v = videoPool.get(m.id);
+  const v = armVideo(m);   // parked elements wake here; proxies cover the gap
   const videoReady = v && v.readyState >= 2 && !v.seeking && Math.abs(v.currentTime - srcT) < 0.35;
   if ((forScrub && !videoReady) || !v || v.readyState < 2) {
     const pf = proxyFrameFor(m, srcT);          // ⬡ GEO proxy — instant scrub
@@ -2048,8 +2049,53 @@ function audioElFor(clip) {
     a.preload = 'auto'; a.playsInline = true; a.src = m.url;
     audioPool.set(clip.tid, a);
     routeThroughGraph(a);   // volume works on iPad only through the gain graph
+  } else if (a.__parked) {
+    const m = mediaOf(clip);
+    if (m && m.url) { a.src = m.url; a.__parked = false; try { a.load(); } catch (e) {} }
   }
   return a;
+}
+
+// ── 🧊 element parking — every live <video>/<audio> holds a decoder (tens of
+// MB each on iOS). A 200-clip movie would eat a 3GB iPad alive. Elements whose
+// clips are far from the playhead give their decoder back; they re-arm the
+// moment the playhead comes near. Parked media still scrub fine — ⬡ proxies.
+const PARK_HORIZON = 25;   // seconds of timeline around the playhead kept live
+function parkFarElements(t) {
+  const liveCap = touchDevice ? 8 : 24;
+  const nearVideo = new Set(), nearClip = new Set();
+  for (const c of timeline) {
+    if (t > c.start - PARK_HORIZON && t < clipEnd(c) + PARK_HORIZON) {
+      nearClip.add(c.tid);
+      const m = mediaOf(c);
+      if (m && m.kind === 'video') nearVideo.add(m.id);
+    }
+  }
+  const park = (el) => {
+    if (el.__parked || !el.src) return;
+    el.__parked = true;
+    try { el.pause(); el.removeAttribute('src'); el.load(); } catch (e) {}
+  };
+  for (const [id, v] of videoPool) {
+    const m = media.find(x => x.id === id);
+    if (!m || m.kind !== 'video') continue;   // audio bin elements are tiny — leave them
+    if (!nearVideo.has(id)) park(v);
+  }
+  for (const [tid, a] of audioPool) {
+    if (!nearClip.has(tid)) park(a);
+  }
+  // still over budget? (kid stacked 30 videos in one minute) — park farthest first
+  const live = [...videoPool.entries()].filter(([id, v]) => !v.__parked && v.src && (media.find(x => x.id === id) || {}).kind === 'video');
+  if (live.length > liveCap) {
+    const dist = (id) => Math.min(...timeline.filter(c => c.mediaId === id).map(c => Math.abs(t - (c.start + clipDur(c) / 2))), 1e9);
+    live.sort((a, b) => dist(b[0]) - dist(a[0]));
+    for (let i = 0; i < live.length - liveCap; i++) park(live[i][1]);
+  }
+}
+function armVideo(m) {   // wake a parked element before use
+  const v = videoPool.get(m.id);
+  if (v && v.__parked && m.url) { v.src = m.url; v.__parked = false; try { v.load(); } catch (e) {} }
+  return v;
 }
 
 function syncVideos(t, wantPlaying) {
@@ -2083,7 +2129,7 @@ function syncVideos(t, wantPlaying) {
 
     if (m.kind !== 'video') continue;   // flipbooks are silent pictures
     activeVideoIds.add(m.id);
-    const v = videoPool.get(m.id);
+    const v = armVideo(m);
     if (!v) continue;
     if (!mediaOwned.has(m.id)) {
       mediaOwned.add(m.id);   // first clip of this footage drives the shared element
@@ -2161,7 +2207,7 @@ function playbackTick() {
     drawFrame(); updatePlayheadUI();
     return;
   }
-  if (playhead - lastPrefetchT > 0.5) { lastPrefetchT = playhead; prefetchProxiesAhead(playhead); }
+  if (playhead - lastPrefetchT > 0.5) { lastPrefetchT = playhead; prefetchProxiesAhead(playhead); parkFarElements(playhead); }
   syncVideos(playhead, true);
   drawFrame();
   updatePlayheadUI();
@@ -2223,6 +2269,7 @@ function seekTo(t) {
     scrubbing = false;
     playhead = scrubTarget;
     syncVideos(playhead, false);  // the ONE real seek
+    parkFarElements(playhead);    // far decoders give their memory back
     drawFrame();
     // redraw once the decoder actually lands on the frame
     for (const clip of activeClipsAt(playhead)) {
@@ -2482,6 +2529,12 @@ $('tl-scroll').addEventListener('wheel', e => {
   const endP = e => { tlPointers.delete(e.pointerId); if (tlPointers.size < 2) pinchStart = null; };
   sc.addEventListener('pointerup', endP, true);
   sc.addEventListener('pointercancel', endP, true);
+  // 🐛 v9 freeze bug: a touch that STARTED on the timeline but ended somewhere
+  // else (studio overlay, modal…) never hit sc's pointerup → the entry leaked,
+  // tlPointers.size stayed ≥2, and every clip drag returned early = "clips
+  // frozen in place". Window-level capture sees every pointer end, everywhere.
+  window.addEventListener('pointerup', endP, true);
+  window.addEventListener('pointercancel', endP, true);
 }
 $('snap-btn').addEventListener('click', () => {
   snapOn = !snapOn;
@@ -3059,7 +3112,7 @@ const fb = {
   palette: '🌈 bold',
 };
 const fbDraw = $('fb-draw');
-const fbDrawCtx = fbDraw.getContext('2d', { willReadFrequently: true });
+const fbDrawCtx = fbDraw.getContext('2d');   // GPU path — nothing reads these pixels back
 const fbGhost = $('fb-ghost');
 const fbGhostCtx = fbGhost.getContext('2d');
 const fbStrokeBuf = document.createElement('canvas');
@@ -3132,10 +3185,10 @@ function renderFbFrame(m, i, opts = {}) {
   migrateFlipbook(m);
   i = Math.max(0, Math.min(m.frameCount - 1, i));
   const cacheable = !opts.excludeLid;
+  const key = m.id + ':' + i;
   if (cacheable) {
-    if (!m._cache) m._cache = new Map();
-    const hit = m._cache.get(i);
-    if (hit) return hit;
+    const hit = fbFrameCache.get(key);
+    if (hit) { fbFrameCache.delete(key); fbFrameCache.set(key, hit); return hit; }   // LRU refresh
   }
   const out = newFrameCanvas();
   const ctx = out.getContext('2d');
@@ -3145,15 +3198,18 @@ function renderFbFrame(m, i, opts = {}) {
     if (cc) ctx.drawImage(cc.c, 0, 0);
   }
   if (cacheable) {
-    m._cache.set(i, out);
-    // 240 cached 1280×720 canvases ≈ 885MB — an iPad killer. Touch devices get 48 (~175MB max, usually far less).
-    const cap = touchDevice ? 48 : 240;
-    if (m._cache.size > cap) m._cache.delete(m._cache.keys().next().value);
+    fbFrameCache.set(key, out);
+    while (fbFrameCache.size > FB_CACHE_MAX) fbFrameCache.delete(fbFrameCache.keys().next().value);
   }
   return out;
 }
+// ONE cache for ALL flipbooks — per-media caches could stack to gigabytes on a
+// 200-clip movie. Global LRU: 36 frames ≈ 130MB worst case on iPad, 160 on desktop.
+const fbFrameCache = new Map();   // 'mediaId:frame' → canvas
+const FB_CACHE_MAX = touchDevice ? 36 : 160;
 function bumpFb(m) {   // any edit: kill cache, recompute duration, clamp timeline clips
-  m._cache = null;
+  for (const k of [...fbFrameCache.keys()]) if (k.startsWith(m.id + ':')) fbFrameCache.delete(k);
+  fbSheetDirty = true;
   m.duration = m.frameCount / m.fps;
   scheduleAutosave();
   for (const c of timeline) {
@@ -3360,10 +3416,24 @@ function fbNav(idx) {
   const m = fbMedia();
   fb.cur = Math.max(0, Math.min(m.frameCount - 1, idx));
   loadFbView();
-  renderFbSheet();
+  // 📖 flipping should feel like paper: full sheet rebuild only when it changed,
+  // otherwise just slide the cursor highlight (cheap enough for 60fps scrubs)
+  if (fbSheetDirty) renderFbSheet(); else updateFbSheetCursor();
   renderFbLayers();
   buildFbTools();
   $('fb-frame-label').textContent = `frame ${fb.cur + 1} / ${m.frameCount}`;
+}
+function updateFbSheetCursor() {
+  const sheet = $('fb-sheet');
+  sheet.querySelectorAll('.fhead.cur, td.cell.curcol, td.cell.sel').forEach(el => el.classList.remove('cur', 'curcol', 'sel'));
+  sheet.querySelectorAll(`th.fhead[data-f="${fb.cur}"]`).forEach(h => h.classList.add('cur'));
+  sheet.querySelectorAll(`td.cell[data-f="${fb.cur}"]`).forEach(td => {
+    td.classList.add('curcol');
+    if (parseInt(td.dataset.lid) === fb.activeLid) td.classList.add('sel');
+  });
+  sheet.querySelectorAll('th.lhead[data-lid]').forEach(lh => {
+    lh.style.color = parseInt(lh.dataset.lid) === fb.activeLid ? 'var(--pink)' : '';
+  });
 }
 function loadFbView() {
   const layer = activeLayer();
@@ -3400,14 +3470,17 @@ function drawFbGhost() {
   if (!m) return;
 
   if (fb.roto) {
-    const t = fbFrameTimelineTime(fb.cur);
+    // 🛡 trace must never take the studio (or the timeline) down with it
     fbGhostCtx.save();
-    fbGhostCtx.globalAlpha = 0.45;
-    syncVideos(t, false);
-    for (const clip of activeClipsAt(t)) {
-      if (clip.mediaId === fb.mediaId) continue;
-      drawClipLayer(fbGhostCtx, FB_W, FB_H, clip, clip.in + (t - clip.start), true, false);
-    }
+    try {
+      const t = fbFrameTimelineTime(fb.cur);
+      fbGhostCtx.globalAlpha = 0.45;
+      syncVideos(t, false);
+      for (const clip of activeClipsAt(t)) {
+        if (clip.mediaId === fb.mediaId) continue;
+        drawClipLayer(fbGhostCtx, FB_W, FB_H, clip, clip.in + (t - clip.start), true, false);
+      }
+    } catch (err) { console.warn('trace ghost skipped:', err); }
     fbGhostCtx.restore();
   }
   if (fb.onion.on) {
@@ -3429,9 +3502,16 @@ function drawFbGhost() {
 }
 
 // ── brush engine: stroke builds on a buffer, composites once (clean ink) ──
+// ⚡ A12 fast path: pointer events queue up (with Apple Pencil coalesced points),
+// one rAF flush draws them, and ONLY the dirty rectangle gets recomposited —
+// base snapshot + buffer slice — instead of two full 1280×720 passes per move.
 let fbStroking = false, fbLast = null, fbPressure = 0.5;
+let fbDrawRect = null, fbPendingPts = null, fbStrokeRAF = 0;
+const fbBaseSnap = document.createElement('canvas');
+fbBaseSnap.width = FB_W; fbBaseSnap.height = FB_H;
+const fbBaseSnapCtx = fbBaseSnap.getContext('2d');
 function fbPos(e) {
-  const r = fbDraw.getBoundingClientRect();
+  const r = fbDrawRect || fbDraw.getBoundingClientRect();
   return { x: (e.clientX - r.left) / r.width * FB_W, y: (e.clientY - r.top) / r.height * FB_H };
 }
 // glass panes: drawing on an empty frame starts a FRESH drawing (one frame long).
@@ -3485,7 +3565,8 @@ fbDraw.addEventListener('pointerdown', e => {
   if (fb.playing) return;
   const layer = activeLayer();
   if (!layer) return;
-  fbDraw.setPointerCapture(e.pointerId);
+  try { fbDraw.setPointerCapture(e.pointerId); } catch (_) {}   // a dead pointer must not kill the stroke
+  fbDrawRect = fbDraw.getBoundingClientRect();   // cached for the whole stroke
   const p = fbPos(e);
   if (fb.tool === 'fill') {          // 🪣 one tap, no stroke
     pushFbUndo();
@@ -3493,7 +3574,7 @@ fbDraw.addEventListener('pointerdown', e => {
     if (base) {
       fbFloodFill(base, Math.round(p.x), Math.round(p.y));
       bumpFb(fbMedia());
-      loadFbView(); renderFbSheet();
+      loadFbView(); scheduleFbSheet();
     }
     return;
   }
@@ -3501,56 +3582,125 @@ fbDraw.addEventListener('pointerdown', e => {
   fbPressure = (e.pointerType === 'pen' && e.pressure > 0) ? e.pressure : 0.5;
   pushFbUndo();
   fbStrokeCtx.clearRect(0, 0, FB_W, FB_H);
+  // snapshot what's under the stroke ONCE — dirty-rect repaints read from here
+  fbBaseSnapCtx.clearRect(0, 0, FB_W, FB_H);
+  fbBaseSnapCtx.drawImage(fbDraw, 0, 0);
+  fbPendingPts = [];
   fbLast = p;
-  fbStrokeSeg(p, p, fbPressure);
+  const r0 = fbStrokeSeg(p, p, fbPressure);
+  repaintStrokeRegion(p.x - r0, p.y - r0, p.x + r0, p.y + r0);
 });
 fbDraw.addEventListener('pointermove', e => {
   if (!fbStroking) return;
-  const raw = fbPos(e);
-  // CALM: an EMA stabilizer — the line follows your hand like a brush through honey
-  const k = 1 - 0.82 * fb.smooth;
-  const p = { x: fbLast.x + (raw.x - fbLast.x) * k, y: fbLast.y + (raw.y - fbLast.y) * k };
-  const pr = (e.pointerType === 'pen' && e.pressure > 0) ? e.pressure : 0.5;
-  fbPressure = fbPressure + (pr - fbPressure) * 0.35;
-  fbStrokeSeg(fbLast, p, fbPressure);
-  fbLast = p;
+  // Apple Pencil reports up to 240 points/s — take them ALL, draw once per frame
+  // (some browsers hand back an EMPTY coalesced list — fall back to the event itself)
+  let evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
+  if (!evs || !evs.length) evs = [e];
+  for (const ev of evs) {
+    fbPendingPts.push({ p: fbPos(ev), pr: (ev.pointerType === 'pen' && ev.pressure > 0) ? ev.pressure : 0.5 });
+  }
+  if (!fbStrokeRAF) fbStrokeRAF = requestAnimationFrame(flushStroke);
 });
+function flushStroke() {
+  fbStrokeRAF = 0;
+  if (!fbStroking || !fbPendingPts || !fbPendingPts.length) return;
+  const pts = fbPendingPts;
+  fbPendingPts = [];
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, rMax = 0;
+  const k = 1 - 0.82 * fb.smooth;   // CALM: EMA stabilizer — brush through honey
+  for (const { p: raw, pr } of pts) {
+    const p = { x: fbLast.x + (raw.x - fbLast.x) * k, y: fbLast.y + (raw.y - fbLast.y) * k };
+    fbPressure = fbPressure + (pr - fbPressure) * 0.35;
+    rMax = Math.max(rMax, fbStrokeSeg(fbLast, p, fbPressure));
+    x0 = Math.min(x0, fbLast.x, p.x); y0 = Math.min(y0, fbLast.y, p.y);
+    x1 = Math.max(x1, fbLast.x, p.x); y1 = Math.max(y1, fbLast.y, p.y);
+    fbLast = p;
+  }
+  repaintStrokeRegion(x0 - rMax, y0 - rMax, x1 + rMax, y1 + rMax);
+}
 window.addEventListener('pointerup', () => {
-  if (fbStroking) { fbStroking = false; commitFbStroke(); }
+  if (fbStroking) {
+    if (fbStrokeRAF) { cancelAnimationFrame(fbStrokeRAF); fbStrokeRAF = 0; }
+    flushStroke();        // drain queued points BEFORE the flag drops — order matters
+    fbStroking = false;
+    commitFbStroke();
+  }
 });
+// draws ONE segment into the stroke buffer, returns the brush's dirty radius
 function fbStrokeSeg(a, b, pressure) {
   const B = FB_BRUSHES[fb.tool] || FB_BRUSHES.ink;
   const sc = fbStrokeCtx;
+  let rad;
   if (B.line) {
     const pw = B.pressure ? (0.35 + 1.3 * pressure) : 1;
-    sc.lineCap = 'round'; sc.lineJoin = 'round';
-    sc.lineWidth = Math.max(0.8, fb.size * B.widthMul * pw);
-    sc.strokeStyle = B.erase ? '#ffffff' : fb.color;
-    sc.beginPath(); sc.moveTo(a.x, a.y); sc.lineTo(b.x, b.y); sc.stroke();
+    const w = Math.max(0.8, fb.size * B.widthMul * pw);
+    const col = B.erase ? '#ffffff' : fb.color;
+    if (a.x === b.x && a.y === b.y) {
+      // a tap is a dot — zero-length strokes paint nothing in Chrome
+      sc.fillStyle = col;
+      sc.beginPath(); sc.arc(a.x, a.y, w / 2, 0, Math.PI * 2); sc.fill();
+    } else {
+      sc.lineCap = 'round'; sc.lineJoin = 'round';
+      sc.lineWidth = w;
+      sc.strokeStyle = col;
+      sc.beginPath(); sc.moveTo(a.x, a.y); sc.lineTo(b.x, b.y); sc.stroke();
+    }
+    rad = w / 2 + 2;
   } else {
-    // stamp brushes: dab along the segment
     const dist = Math.hypot(b.x - a.x, b.y - a.y);
     const gap = Math.max(1.5, fb.size * B.spacing);
     const n = Math.max(1, Math.ceil(dist / gap));
+    const rAir = Math.max(3, fb.size * 1.4);
     for (let i = 0; i <= n; i++) {
       const t = i / n;
       const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
       if (B.stamp === 'air') {
-        const r = Math.max(3, fb.size * 1.4);
-        const g = sc.createRadialGradient(x, y, 0, x, y, r);
+        const g = sc.createRadialGradient(x, y, 0, x, y, rAir);
         const [cr, cg, cb] = hsvToRgb(fb.hue, fb.sat, fb.val);
         g.addColorStop(0, `rgba(${cr},${cg},${cb},${0.10 + 0.12 * pressure})`);
         g.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
         sc.fillStyle = g;
-        sc.beginPath(); sc.arc(x, y, r, 0, Math.PI * 2); sc.fill();
+        sc.beginPath(); sc.arc(x, y, rAir, 0, Math.PI * 2); sc.fill();
       } else {   // crayon
         const st = crayonStamp();
         const jx = (Math.random() - 0.5) * fb.size * 0.14, jy = (Math.random() - 0.5) * fb.size * 0.14;
         sc.drawImage(st, x - st.width / 2 + jx, y - st.height / 2 + jy);
       }
     }
+    rad = (B.stamp === 'air' ? rAir : fb.size * 0.8) + 3;
   }
-  repaintDrawView();
+  if (B.blur) rad += Math.max(1, fb.size / 6) * 3;   // marker blur bleeds past the line
+  return rad;
+}
+// recomposite ONLY the dirty rect: base snapshot + buffer slice (exact result)
+function repaintStrokeRegion(x0, y0, x1, y1) {
+  const B = FB_BRUSHES[fb.tool] || FB_BRUSHES.ink;
+  const bx = Math.max(0, Math.floor(x0)), by = Math.max(0, Math.floor(y0));
+  const bw = Math.min(FB_W, Math.ceil(x1)) - bx, bh = Math.min(FB_H, Math.ceil(y1)) - by;
+  if (bw <= 0 || bh <= 0) return;
+  const ctx = fbDrawCtx;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(bx, by, bw, bh); ctx.clip();
+  ctx.clearRect(bx, by, bw, bh);
+  ctx.drawImage(fbBaseSnap, bx, by, bw, bh, bx, by, bw, bh);
+  if (B.erase) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.globalAlpha = fb.brushAlpha;
+    ctx.drawImage(fbStrokeBuf, bx, by, bw, bh, bx, by, bw, bh);
+  } else {
+    ctx.globalAlpha = fb.brushAlpha * (B.alphaMul || 1);
+    if (B.blur) {
+      // blur needs headroom around the slice or it seams at the edges
+      const pad = Math.ceil(Math.max(1, fb.size / 6) * 3);
+      const sx = Math.max(0, bx - pad), sy = Math.max(0, by - pad);
+      const sw = Math.min(FB_W, bx + bw + pad) - sx, sh = Math.min(FB_H, by + bh + pad) - sy;
+      ctx.filter = `blur(${Math.max(1, fb.size / 6)}px)`;
+      ctx.drawImage(fbStrokeBuf, sx, sy, sw, sh, sx, sy, sw, sh);
+    } else {
+      ctx.drawImage(fbStrokeBuf, bx, by, bw, bh, bx, by, bw, bh);
+    }
+  }
+  ctx.restore();
 }
 function brushCompositeInto(ctx) {
   const B = FB_BRUSHES[fb.tool] || FB_BRUSHES.ink;
@@ -3565,10 +3715,6 @@ function brushCompositeInto(ctx) {
   ctx.drawImage(fbStrokeBuf, 0, 0);
   ctx.restore();
 }
-function repaintDrawView() {
-  loadFbViewBaseOnly();
-  brushCompositeInto(fbDrawCtx);
-}
 function loadFbViewBaseOnly() {
   const layer = activeLayer();
   fbDrawCtx.clearRect(0, 0, FB_W, FB_H);
@@ -3576,14 +3722,20 @@ function loadFbViewBaseOnly() {
   const cc = cellAt(layer, fb.cur);
   if (cc) fbDrawCtx.drawImage(cc.c, 0, 0);
 }
+// dope-sheet refresh is heavy (table + thumbs) — never let it ride the pen
+let fbSheetTimer = 0;
+function scheduleFbSheet() {
+  clearTimeout(fbSheetTimer);
+  fbSheetTimer = setTimeout(() => { if (fb.open) renderFbSheet(); }, 220);
+}
 function commitFbStroke() {
   const base = getEditableBase(true);
   if (!base) return;
   brushCompositeInto(base.getContext('2d'));
   fbStrokeCtx.clearRect(0, 0, FB_W, FB_H);
   bumpFb(fbMedia());
-  loadFbView();
-  renderFbSheet();
+  // fbDraw already shows the exact result — no full redraw, just the sheet later
+  scheduleFbSheet();
 }
 // 🪣 scanline flood fill — respects the alpha channel, ~32 tolerance
 function fbFloodFill(canvas, sx, sy) {
@@ -3644,8 +3796,9 @@ $('fb-clear-btn').addEventListener('click', () => {
 });
 
 // ── dope sheet: rows = layers (top first), columns = frames ──
-let fbThumbGen = 0;
+let fbThumbGen = 0, fbSheetDirty = true;
 function renderFbSheet() {
+  fbSheetDirty = false;
   const m = fbMedia();
   if (!m || !fb.open) return;
   const sheet = $('fb-sheet');
@@ -3694,6 +3847,7 @@ function renderFbSheet() {
     const tr = document.createElement('tr');
     const lh = document.createElement('th');
     lh.className = 'lhead';
+    lh.dataset.lid = layer.lid;
     lh.textContent = `✏️ ${layer.name}`;
     lh.style.color = layer.lid === fb.activeLid ? 'var(--pink)' : '';
     tr.appendChild(lh);
@@ -3707,6 +3861,7 @@ function renderFbSheet() {
         + (v ? ' run' : '')
         + (isEnd ? ' runend' : '');
       td.dataset.f = f;
+      td.dataset.lid = layer.lid;
       td.innerHTML = v ? (v === 'H' ? '<span class="dot held">━</span>' : '<span class="dot">●</span>') : '';
       attachCellPointer(td, layer, f);
       tr.appendChild(td);
@@ -3966,7 +4121,7 @@ $('fb-play-btn').addEventListener('click', () => {
       fb.cur = (fb.cur + 1) % m.frameCount;
       loadFbView();
       $('fb-frame-label').textContent = `frame ${fb.cur + 1} / ${m.frameCount}`;
-      if (m.frameCount <= 48) renderFbSheet();
+      if (fbSheetDirty) renderFbSheet(); else updateFbSheetCursor();
     }, 1000 / m.fps);
   } else {
     fbNav(fb.cur);
@@ -4402,25 +4557,73 @@ $('flipbook-sm-btn').addEventListener('click', async () => {
   $('sm-name').value = item.name;
   $('sm-count').textContent = '0 frames';
   $('sm-overlay').classList.add('open');
-  $('sm-nocam').style.display = 'flex';
   smRenderStrip(); smDrawGhost();
-  try {
-    sm.stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'environment' },
-      audio: false,
-    });
-    smVideo.srcObject = sm.stream;
-    await smVideo.play().catch(() => {});
-    $('sm-nocam').style.display = 'none';
-  } catch (err) {
-    console.warn('camera failed:', err);
-    caution('camera', 'the camera said no',
-      err && err.name === 'NotAllowedError'
-        ? 'camera permission was blocked. Tap the 🎥 icon in the address bar (or AA menu on iPad) and allow the camera, then try again.'
-        : 'this device doesn’t seem to have a usable camera — the iPads do! You can still draw frames in the 🎨 RASTER FLIPBOOK.');
-    $('sm-nocam').innerHTML = '📷 no camera — press ✅ DONE and try on an iPad';
-  }
+  smConnect();
 });
+
+// ── camera connect: constraint ladder + deadline + picker ──
+// Old iPads (Air 3) sometimes grant permission and then just… never deliver a
+// stream. So: release any old track first, try strict → loose → anything, put
+// an 8s deadline on every try, and give the kid a picker + tap-to-retry.
+async function smConnect(deviceId) {
+  smStopCamera();
+  const nocam = $('sm-nocam');
+  nocam.style.display = 'flex';
+  nocam.innerHTML = '📷 waiting for the camera…<br><span style="font-size:12px">if nothing shows up in a few seconds, tap here to try again</span>';
+  const ladder = deviceId
+    ? [{ video: { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+       { video: { deviceId: { exact: deviceId } }, audio: false }]
+    : [{ video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'environment' }, audio: false },
+       { video: { facingMode: 'environment' }, audio: false },
+       { video: true, audio: false }];
+  let lastErr = null;
+  for (const constraints of ladder) {
+    try {
+      const attempt = navigator.mediaDevices.getUserMedia(constraints);
+      // if the deadline wins but the camera answers later, close that orphan stream
+      attempt.then(s => { if (sm.stream !== s) { try { s.getTracks().forEach(t => t.stop()); } catch (e) {} } }).catch(() => {});
+      const s = await Promise.race([
+        attempt,
+        new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('camera timed out'), { name: 'TimeoutError' })), 8000)),
+      ]);
+      sm.stream = s;
+      break;
+    } catch (err) {
+      lastErr = err;
+      sm.stream = null;
+      if (err && err.name === 'NotAllowedError') break;   // blocked — no point retrying looser
+    }
+  }
+  if (!sm.stream) {
+    console.warn('camera failed:', lastErr);
+    const blocked = lastErr && lastErr.name === 'NotAllowedError';
+    caution('camera', blocked ? '📷 camera blocked' : '📷 camera won’t connect',
+      blocked
+        ? 'camera permission was blocked. Tap the AA (or 🎥) icon in the address bar, allow the camera, then tap the preview to retry.'
+        : 'the camera didn’t answer. Close other apps that might be using it, then tap the preview to retry — or pick a different camera up top.');
+    nocam.innerHTML = '📷 camera didn’t connect — <b>tap here to retry</b><br><span style="font-size:12px">or pick another camera in the menu up top · drawing still works in 🎨 RASTER FLIPBOOK</span>';
+    smListCameras();
+    return false;
+  }
+  smVideo.srcObject = sm.stream;
+  try { await smVideo.play(); } catch (e) {}
+  nocam.style.display = 'none';
+  smListCameras();
+  return true;
+}
+async function smListCameras() {
+  try {
+    const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    const sel = $('sm-cam');
+    if (cams.length < 2 && !sm.stream) { sel.style.display = 'none'; return; }
+    const curId = sm.stream ? (sm.stream.getVideoTracks()[0].getSettings() || {}).deviceId : null;
+    sel.innerHTML = cams.map((c, i) =>
+      `<option value="${c.deviceId}" ${c.deviceId === curId ? 'selected' : ''}>${c.label || `camera ${i + 1}`}</option>`).join('');
+    sel.style.display = cams.length > 1 ? '' : 'none';
+  } catch (e) {}
+}
+$('sm-cam').addEventListener('change', e => { if (sm.open) smConnect(e.target.value); });
+$('sm-nocam').addEventListener('click', () => { if (sm.open && !sm.stream) smConnect(); });
 
 function smStopCamera() {
   if (sm.stream) { for (const t of sm.stream.getTracks()) t.stop(); sm.stream = null; }
@@ -4651,7 +4854,7 @@ function renderVecFrame(m, i) {
     ctx.restore();
   }
   m._cache.set(i, out);
-  const cap = touchDevice ? 48 : 240;
+  const cap = touchDevice ? 24 : 120;   // shares RAM with the raster cache — stay modest
   if (m._cache.size > cap) m._cache.delete(m._cache.keys().next().value);
   return out;
 }
@@ -5312,9 +5515,20 @@ $('export-btn').addEventListener('click', async () => {
   if (verdict === '720') $('export-res').value = '720';
   exportCancelled = false;
   keepAwake(true);
+  // 🧹 hand the encoder ALL the memory: caches out, decoders parked.
+  // (Exports read files with their own readers — the preview pools just sit
+  // there holding RAM. This is why long sessions used to fail at the last lap.)
+  fbFrameCache.clear();
+  proxyBmCache.forEach(bm => { try { bm.close(); } catch (e) {} });
+  proxyBmCache.clear();
+  parkFarElements(-1e9);   // playhead "nowhere" = park everything parkable
   try {
     if (engine.fast) await exportFast();
     else await exportRealtime();
+    localStorage.removeItem('geov-export-failed');
+  } catch (err) {
+    // exportFast handles its own errors; this catches anything that escapes
+    console.error('export outer failure:', err);
   } finally {
     keepAwake(false);
   }
@@ -5506,7 +5720,12 @@ async function exportFast() {
       return;
     }
     console.error('export failed:', err);
-    modalDone('😕 Export hit a snag', String(err.message || err));
+    try { localStorage.setItem('geov-export-failed', '1'); } catch (e) {}
+    const was1080 = $('export-res').value !== '720';
+    if (was1080) $('export-res').value = '720';   // next try = lighter, automatically
+    modalDone('😕 Export hit a snag', String(err.message || err) + (was1080
+      ? ' — I switched the size to 720p for you. Press EXPORT again; smaller almost always makes it through. 💪'
+      : ' — try closing other tabs, then press EXPORT again.'));
   }
 }
 
@@ -5844,8 +6063,10 @@ document.addEventListener('visibilitychange', () => {
 refresh();
 checkEngine();
 offerRecovery();                                   // 🛟 the tab closed? the movie didn't die
+// 📉 a past export failed on this device → default to 720p (kid can still pick 1080)
+try { if (localStorage.getItem('geov-export-failed') && touchDevice) $('export-res').value = '720'; } catch (e) {}
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-console.log('%c⬡ GeoV Studio v9 — 🎨 cel flipbook · 📐 vector · 📷 stop motion · ✨ code · 🎤 dub · 🎚 real mixing', 'color:#00E5FF;font-size:16px;font-weight:bold');
+console.log('%c⬡ GeoV Studio v10 — ⚡ fast ink · 🧊 element parking · 📷 camera ladder · 🛡 A12-hardened', 'color:#00E5FF;font-size:16px;font-weight:bold');
 console.log('%cSPACE=play · ←→=frame step (shift=1s) · S=split · DEL=remove · CTRL+Z=undo · wheel=zoom timeline · shift+drag=snap', 'color:#8888a0');
 </script>
 </body>
