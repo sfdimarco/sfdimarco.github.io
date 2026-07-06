@@ -457,8 +457,12 @@
   #sm-head { grid-area: smhead; display: flex; align-items: center; gap: 10px; padding: 0 14px; background: var(--panel); border-bottom: 1px solid var(--border); }
   #sm-head .logo { color: var(--yellow); }
   #sm-name { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; font-size: 13px; width: 150px; }
-  #sm-main { grid-area: smmain; position: relative; display: flex; align-items: center; justify-content: center; background: #0a0a12; min-height: 0; }
-  #sm-stage { position: relative; max-width: 92%; max-height: 92%; aspect-ratio: 16/9; }
+  #sm-main { grid-area: smmain; position: relative; display: flex; align-items: center; justify-content: center; background: #0a0a12; min-height: 0; overflow: hidden; }
+  /* iPad Safari REFUSES to play a zero-area <video>. An aspect-ratio box with only
+     max-* and absolutely-positioned children can compute to 0×0 in WebKit (fine in
+     Chrome — the desktop-test blind spot). width:92% + aspect-ratio gives a definite,
+     non-zero fallback; smFitStage() then sets exact px. Never 0. */
+  #sm-stage { position: relative; width: 92%; aspect-ratio: 16/9; max-height: 92%; }
   #sm-video, #sm-ghost { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 8px; }
   #sm-video { object-fit: contain; background: #000; transform: none; }
   #sm-ghost { pointer-events: none; }
@@ -473,6 +477,13 @@
     position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
     color: var(--muted); font-size: 15px; text-align: center; padding: 30px; cursor: pointer;
   }
+  #sm-hud {
+    position: absolute; left: 8px; top: 8px; z-index: 6; pointer-events: none;
+    font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace; color: #7CFC9A;
+    background: rgba(0,0,0,0.55); border: 1px solid rgba(124,252,154,0.35);
+    border-radius: 6px; padding: 4px 7px; max-width: 88%; white-space: normal; word-break: break-word;
+  }
+  #sm-diag { cursor: pointer; font-size: 14px; opacity: 0.7; user-select: none; }
   #sm-strip { grid-area: smstrip; background: var(--panel); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 10px 14px; overflow-x: auto; }
   .sm-frame { position: relative; flex: none; width: 150px; height: 84px; border-radius: 8px; outline: 2px solid var(--border); background: #000; }
   .sm-frame img, .sm-frame canvas { width: 100%; height: 100%; border-radius: 8px; display: block; }
@@ -954,6 +965,7 @@
     <select id="sm-cam" title="which camera to use" style="display:none;max-width:150px"></select>
     <span style="font-size:11px;color:var(--muted)">🧅 GHOST</span>
     <input type="range" id="sm-onion" min="0" max="80" value="45" style="width:90px">
+    <span id="sm-diag" title="show/hide the camera status readout">🐞</span>
     <button class="tlb-btn" id="sm-play-btn" title="flip through what you've shot">▶ PREVIEW</button>
     <span id="sm-count" style="font-size:12px;color:var(--yellow);min-width:80px"></span>
     <div class="header-spacer"></div>
@@ -965,6 +977,7 @@
       <canvas id="sm-ghost" width="1280" height="720"></canvas>
       <div id="sm-flash"></div>
       <div id="sm-nocam">📷 waiting for the camera…<br><span style="font-size:12px">if nothing appears, this device may not have one — the iPads do!</span></div>
+      <div id="sm-hud"></div>
     </div>
     <button id="sm-capture" title="snap this frame! (space)">📸</button>
   </div>
@@ -4547,6 +4560,62 @@ const smGhost = $('sm-ghost'), smGhostCtx = smGhost.getContext('2d');
 function smMedia() { return media.find(m => m.id === sm.mediaId); }
 function smCells() { const m = smMedia(); return m ? m.layers[0].cells : []; }
 
+// ── stage sizing (THE iPad fix) ──
+// WebKit refuses to PLAY a zero-area <video>, and the CSS 16:9 box could collapse
+// to 0×0 in Safari while looking fine in Chrome. Size it in JS from the real
+// container box so it is always a solid, non-zero rectangle the camera can live in.
+function smFitStage() {
+  const main = $('sm-main'), stage = $('sm-stage');
+  if (!main || !stage || !sm.open) return;
+  const aw = main.clientWidth, ah = main.clientHeight;
+  if (aw < 4 || ah < 4) { requestAnimationFrame(smFitStage); return; }   // layout not settled yet
+  const pad = 0.94;
+  let w = aw * pad, h = w * 9 / 16;
+  if (h > ah * pad) { h = ah * pad; w = h * 16 / 9; }
+  stage.style.width = Math.round(w) + 'px';
+  stage.style.height = Math.round(h) + 'px';
+}
+window.addEventListener('resize', () => { if (sm.open) smFitStage(); });
+window.addEventListener('orientationchange', () => { if (sm.open) setTimeout(smFitStage, 300); });
+
+// ── hardened play: size first, muted+inline always, remember the error ──
+function smTryPlay(stream) {
+  smFitStage();                                   // non-zero area BEFORE play, or WebKit refuses
+  smVideo.muted = true; smVideo.defaultMuted = true; smVideo.playsInline = true;
+  smVideo.setAttribute('playsinline', ''); smVideo.setAttribute('webkit-playsinline', '');
+  smVideo.setAttribute('muted', ''); smVideo.setAttribute('autoplay', '');
+  const nocam = $('sm-nocam');
+  const p = smVideo.play();
+  if (p && p.then) p.then(() => {
+    sm.lastPlayErr = null;
+    if (smVideo.videoWidth && smBrightness() > 12) nocam.style.display = 'none';
+  }).catch(err => {
+    sm.lastPlayErr = (err && err.name) || 'PlayError';
+    nocam.style.display = 'flex';
+    nocam.innerHTML = '📷 camera is ready — <b>tap here to start</b><br><span style="font-size:12px">(tap once to wake the picture)</span>';
+  });
+}
+
+// ── on-device diagnostic HUD ── the iPad reports its own state, so we stop guessing
+let smHudTimer = null;
+function smStartHud() { clearInterval(smHudTimer); smUpdateHud(); smHudTimer = setInterval(smUpdateHud, 500); }
+function smUpdateHud() {
+  const el = $('sm-hud');
+  if (!el) return;
+  if (!sm.open) { clearInterval(smHudTimer); return; }
+  const st = $('sm-stage');
+  const trk = sm.stream && sm.stream.getVideoTracks()[0];
+  const vw = smVideo.videoWidth || 0, vh = smVideo.videoHeight || 0;
+  el.innerHTML =
+    'gUM ' + (sm.stream ? '✓' : '…') +
+    ' · trk ' + (trk ? (trk.readyState + (trk.muted ? '/muted' : '')) : '—') +
+    ' · vid ' + vw + '×' + vh +
+    ' · rs ' + smVideo.readyState + ' · paused ' + smVideo.paused +
+    ' · stage ' + (st ? st.clientWidth + '×' + st.clientHeight : '—') +
+    ' · lux ' + smBrightness() +
+    (sm.lastPlayErr ? ' · play✗ ' + sm.lastPlayErr : ' · play ' + (smVideo.paused ? 'paused' : 'ok'));
+}
+
 $('flipbook-sm-btn').addEventListener('click', async () => {
   // a stop motion IS a flipbook — one draw layer, cells = captures
   const item = {
@@ -4565,8 +4634,16 @@ $('flipbook-sm-btn').addEventListener('click', async () => {
   $('sm-name').value = item.name;
   $('sm-count').textContent = '0 frames';
   $('sm-overlay').classList.add('open');
+  // size the stage BEFORE the camera arrives (WebKit won't play a 0-area video),
+  // twice across frames so it catches the grid settling
+  requestAnimationFrame(() => { smFitStage(); requestAnimationFrame(smFitStage); });
   smRenderStrip(); smDrawGhost();
+  smStartHud();
   smConnect();
+});
+// 🐞 toggle the on-device camera status readout
+$('sm-diag').addEventListener('click', () => {
+  const el = $('sm-hud'); if (el) el.style.display = (el.style.display === 'none') ? 'block' : 'none';
 });
 
 // ── camera connect: ONE forgiving ask + late-stream adoption ──
@@ -4638,12 +4715,11 @@ function smAdopt(stream) {
       nocam.innerHTML = '📷 the camera fell asleep — <b>tap here to wake it up</b>';
     }
   };
+  smFitStage();                          // give the element real size FIRST
   smVideo.srcObject = stream;
-  smVideo.play().catch(() => {
-    // autoplay refused (Low Power Mode) — the tap handler plays, and a tap is a gesture
-    nocam.style.display = 'flex';
-    nocam.innerHTML = '📷 camera is ready — <b>tap here to start</b><br><span style="font-size:12px">(battery-saver mode wants a tap first)</span>';
-  });
+  smVideo.onloadedmetadata = () => { smFitStage(); smTryPlay(stream); };
+  smVideo.onplaying = () => { smFitStage(); if (smVideo.videoWidth && smBrightness() > 12) $('sm-nocam').style.display = 'none'; };
+  smTryPlay(stream);
   smStartProbe(stream);   // the overlay clears only when actual LIGHT arrives
   smListCameras();
 }
@@ -4694,17 +4770,17 @@ async function smRescue(stream) {
     smVideo.srcObject = null;
     await new Promise(r => setTimeout(r, 80));
     smVideo.srcObject = stream;
-    smVideo.play().catch(() => {});
+    smFitStage(); smTryPlay(stream);
   } else if (sm.rescueStep === 2) {
     // a stuck <video> is a known iOS state — swap in a brand-new element
     const fresh = document.createElement('video');
     fresh.id = 'sm-video';
     fresh.autoplay = true; fresh.muted = true; fresh.playsInline = true;
-    fresh.setAttribute('autoplay', ''); fresh.setAttribute('muted', ''); fresh.setAttribute('playsinline', '');
+    fresh.setAttribute('autoplay', ''); fresh.setAttribute('muted', ''); fresh.setAttribute('playsinline', ''); fresh.setAttribute('webkit-playsinline', '');
     smVideo.replaceWith(fresh);
     smVideo = fresh;
     smVideo.srcObject = stream;
-    smVideo.play().catch(() => {});
+    smFitStage(); smTryPlay(stream);
   } else if (sm.rescueStep === 3) {
     // some iPads only deliver frames without size hints — ask again, simpler
     smConnectFallback({ video: { facingMode: 'environment' }, audio: false });
@@ -4744,9 +4820,11 @@ $('sm-nocam').addEventListener('click', () => {
   if (!sm.open) return;
   const live = sm.stream && sm.stream.getVideoTracks().some(t => t.readyState === 'live');
   if (live) {
-    // stream exists, picture doesn't — the tap IS the gesture play() wanted
-    smVideo.play().then(() => { if (smVideo.videoWidth) $('sm-nocam').style.display = 'none'; }).catch(() => {});
-    setTimeout(() => { if (sm.open && !smVideo.videoWidth) smConnect(); }, 1200);
+    // stream exists, picture doesn't — the tap IS the gesture play() wanted.
+    // Re-fit first: a zero-area video is why WebKit refused in the first place.
+    smFitStage();
+    smTryPlay(sm.stream);
+    setTimeout(() => { if (sm.open && (!smVideo.videoWidth || smVideo.paused)) smConnect(); }, 1400);
   } else smConnect();
 });
 // back from the home screen / another app: iOS usually killed the track
@@ -4754,7 +4832,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible' || !sm.open) return;
   const live = sm.stream && sm.stream.getVideoTracks().some(t => t.readyState === 'live' && !t.muted);
   if (!live) smConnect();
-  else smVideo.play().catch(() => {});
+  else { smFitStage(); smTryPlay(sm.stream); }
 });
 
 function smStopCamera() {
@@ -4822,8 +4900,15 @@ function smRenderStrip(scrollEnd) {
     tc.width = 150; tc.height = 84;
     tc.getContext('2d').drawImage(c, 0, 0, 150, 84);
     d.appendChild(tc);
-    d.innerHTML += `<span class="n">${i + 1}</span><button class="x" title="delete this frame">✕</button>`;
-    d.querySelector('.x').addEventListener('click', () => {
+    // build label + delete button as DOM nodes — NOT innerHTML.
+    // (innerHTML += here would re-parse the div and WIPE the canvas bitmap,
+    //  which is why every thumbnail used to render black.)
+    const n = document.createElement('span');
+    n.className = 'n'; n.textContent = i + 1;
+    const x = document.createElement('button');
+    x.className = 'x'; x.title = 'delete this frame'; x.textContent = '✕';
+    d.appendChild(n); d.appendChild(x);
+    x.addEventListener('click', () => {
       const m = smMedia();
       m.layers[0].cells.splice(i, 1);
       m.frameCount = m.layers[0].cells.length;
@@ -4862,6 +4947,7 @@ $('sm-done-btn').addEventListener('click', () => {
   const m = smMedia();
   smStopPlay();
   smStopCamera();                      // 🔴 camera light OFF — always
+  clearInterval(smHudTimer);
   sm.open = false;
   $('sm-overlay').classList.remove('open');
   if (!m) return;
@@ -6497,7 +6583,7 @@ offerRecovery();                                   // 🛟 the tab closed? the m
 // 📉 a past export failed on this device → default to 720p (kid can still pick 1080)
 try { if (localStorage.getItem('geov-export-failed') && touchDevice) $('export-res').value = '720'; } catch (e) {}
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-console.log('%c⬡ GeoV Studio v10 — ⚡ fast ink · 🧊 element parking · 📷 camera ladder · 🛡 A12-hardened', 'color:#00E5FF;font-size:16px;font-weight:bold');
+console.log('%c⬡ GeoV Studio v14 — 📷 iPad camera FIX: non-zero stage · hardened play · 🐞 on-device HUD', 'color:#00E5FF;font-size:16px;font-weight:bold');
 console.log('%cSPACE=play · ←→=frame step (shift=1s) · S=split · DEL=remove · CTRL+Z=undo · wheel=zoom timeline · shift+drag=snap', 'color:#8888a0');
 </script>
 </body>
