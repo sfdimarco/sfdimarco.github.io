@@ -1176,6 +1176,12 @@ function isAudioRole(clip) {
 function clipGain(clip) {
   return clip.muted ? 0 : Math.max(0, Math.min(1, clip.volume)) * masterVol;
 }
+// 🔊 EXPORT gain — masterVol is a MONITOR (headphones) control and must NEVER
+// be baked into the file. v14 bug: a project saved with master volume at 0
+// exported silent MP4s forever, on every device. Exports use clip volume only.
+function exportGain(clip) {
+  return clip.muted ? 0 : Math.max(0, Math.min(1, clip.volume));
+}
 // ◢◣ fade envelope at timeline time t (0..1 multiplier on top of clipGain)
 function fadeMultAt(clip, t) {
   const fi = clip.fadeIn || 0, fo = clip.fadeOut || 0;
@@ -1203,7 +1209,32 @@ function fmtTime(s) {
 function clipDur(c) { return c.out - c.in; }
 function clipEnd(c) { return c.start + clipDur(c); }
 function totalDuration() {
-  return timeline.reduce((mx, c) => Math.max(mx, clipEnd(c)), 0);
+  // ignore non-finite ends — one broken clip must never freeze the transport
+  return timeline.reduce((mx, c) => { const e = clipEnd(c); return Number.isFinite(e) ? Math.max(mx, e) : mx; }, 0);
+}
+// 🛡 NaN QUARANTINE — one clip with a broken number (NaN/Infinity start/in/out,
+// e.g. from trimming media whose duration hadn't loaded yet) used to lock the
+// whole timeline AND poison the saved project (JSON turns NaN into null).
+// This repairs clips in place, so old "corrupted" projects heal on open.
+function sanitizeTimeline() {
+  let fixed = 0;
+  for (const c of timeline) {
+    if (!Number.isFinite(c.in) || c.in < 0) { c.in = 0; fixed++; }
+    if (!Number.isFinite(c.start) || c.start < 0) { c.start = 0; fixed++; }
+    if (!Number.isFinite(c.out) || c.out <= c.in) {
+      const m = mediaOf(c);
+      const d = (m && Number.isFinite(m.duration) && m.duration > c.in) ? Math.min(m.duration - c.in, 5) : 3;
+      c.out = c.in + Math.max(0.2, d); fixed++;
+    }
+    if (!Number.isFinite(c.track)) { c.track = isAudioRole(c) ? -1 : 0; fixed++; }
+    if (!Number.isFinite(c.volume)) { c.volume = 1; fixed++; }
+    if (!Number.isFinite(c.opacity)) { c.opacity = 1; fixed++; }
+    if (!Number.isFinite(c.fadeIn) || c.fadeIn < 0) { c.fadeIn = 0; fixed++; }
+    if (!Number.isFinite(c.fadeOut) || c.fadeOut < 0) { c.fadeOut = 0; fixed++; }
+  }
+  if (fixed) caution('sanitize', '🛠 repaired some clips',
+    'a few clips had broken numbers from an earlier bug — I fixed them in place. Nothing is lost!');
+  return fixed;
 }
 function maxTrack() {
   return timeline.reduce((mx, c) => Math.max(mx, c.track), 0);
@@ -2647,8 +2678,11 @@ function attachClipPointer(el, tid) {
         if (nIn >= 0 && nIn <= maxIn && nStart >= 0) { clip.in = nIn; clip.start = nStart; }
       } else if (isEdgeR) {
         let nOut = orig.out + dx;
-        // code clips are generative — stretch them as long as you like
-        const maxOut = m ? (m.kind === 'code' ? Infinity : m.duration) : nOut;
+        // code clips are generative — stretch them as long as you like.
+        // 🛡 if media duration isn't a real number yet (still probing, or broken
+        // metadata), the clip keeps its current length — NaN must never enter.
+        const durOK = m && Number.isFinite(m.duration) && m.duration > 0;
+        const maxOut = (m && m.kind === 'code') ? Infinity : (durOK ? m.duration : orig.out);
         nOut = Math.max(orig.in + MIN_CLIP, Math.min(maxOut, nOut));
         const snappedEnd = maybeSnap(clip.start + (nOut - clip.in), tid, ev.shiftKey);
         nOut = Math.max(orig.in + MIN_CLIP, Math.min(maxOut, clip.in + (snappedEnd - clip.start)));
@@ -2919,6 +2953,7 @@ $('detach-btn').addEventListener('click', () => {
 $('master-vol').addEventListener('input', e => {
   masterVol = parseInt(e.target.value) / 100;
   $('master-val').textContent = e.target.value + '%';
+  if (masterVol === 0) toast('🔇 headphone volume is at zero — you won’t hear anything here, but your EXPORT still gets full sound');
 });
 
 // ── 🎤 MIC RECORDING — dub + foley, straight onto the timeline ──
@@ -3101,6 +3136,7 @@ $('fb-edit-btn').addEventListener('click', () => {
 });
 
 function refresh() {
+  sanitizeTimeline();   // 🛡 heal broken clip numbers before any layout math runs
   renderTimeline();
   drawFrame();
   renderBin();
@@ -4507,6 +4543,8 @@ function openCodeStudio(mediaId) {
   const m = media.find(x => x.id === mediaId);
   if (!m || m.kind !== 'code') return;
   if (playing) stopPlayback();
+  caution('codeclip', '🧪 code clips are experimental',
+    'code is the newest part of GeoV — save your project (💾) before big code edits, just in case. If anything looks stuck, saving + reopening fixes it.');
   codeS.open = true; codeS.mediaId = mediaId;
   codeS.playing = true; codeS.t0 = 0; codeS.wall = performance.now();
   $('code-name').value = m.name;
@@ -5745,8 +5783,22 @@ $('export-btn').addEventListener('click', async () => {
   proxyBmCache.clear();
   parkFarElements(-1e9);   // playhead "nowhere" = park everything parkable
   try {
-    if (engine.fast) await exportFast();
-    else await exportRealtime();
+    // 🔇 NEVER silently ship a soundless movie: if the fast encoder has no audio
+    // codec on this device but the movie HAS sound, record it in realtime instead
+    // (the recorder captures the play graph, so the sound makes it into the file).
+    const hasAudible = timeline.some(c => {
+      const m = mediaOf(c);
+      return m && !m.missing && m.file && m.kind !== 'flipbook' && exportGain(c) > 0;
+    });
+    if (engine.fast && hasAudible && !engine.audioCodec) {
+      caution('silent-fast', '🔊 keeping your sound safe',
+        'this device’s fast encoder can’t write sound, so I’m using the realtime recorder instead — it takes as long as your movie but the audio comes with it.');
+      await exportRealtime();
+    } else if (engine.fast) {
+      await exportFast();
+    } else {
+      await exportRealtime();
+    }
     localStorage.removeItem('geov-export-failed');
   } catch (err) {
     // exportFast handles its own errors; this catches anything that escapes
@@ -5875,19 +5927,24 @@ async function exportFast() {
 
     // ── AUDIO: mix in 20s windows (everything audible plays together) ──
     if (wantAudio) {
-      const SR = 48000, WIN = 20;
+      const SR = 48000, WIN = 20, PRE = 0.5;   // PRE = limiter warm-up seconds, trimmed before mux
       const audioClips = timeline.filter(c => {
         const m = mediaOf(c);
         if (!m || m.missing || !m.file) return false;
         if (m.kind === 'flipbook') return false;
-        return clipGain(c) > 0;   // muted / zeroed clips don't reach the mix
+        return exportGain(c) > 0;   // muted clips stay out — masterVol does NOT apply to exports
       });
       let winIdx = 0;
       const nWins = Math.ceil(total / WIN);
       for (let w0 = 0; w0 < total; w0 += WIN, winIdx++) {
         if (exportCancelled) throw new Error('cancelled');
         const w1 = Math.min(total, w0 + WIN);
-        const len = Math.max(1, Math.round((w1 - w0) * SR));
+        // each window renders [w0-preS, w1]; the warm-up head is cut off after
+        // rendering. This puts the compressor in its mid-song state at w0 so
+        // window seams don't click or jump (v14: fresh compressor every 20s).
+        const preS = w0 > 0 ? PRE : 0;
+        const wA = w0 - preS;
+        const len = Math.max(1, Math.round((w1 - wA) * SR));
         const off = new OfflineAudioContext(2, len, SR);
         // 🛡 same limiter as the preview bus — the export sounds like what you heard
         const bus = off.createDynamicsCompressor();
@@ -5895,7 +5952,7 @@ async function exportFast() {
         bus.ratio.value = 12; bus.attack.value = 0.003; bus.release.value = 0.25;
         bus.connect(off.destination);
         for (const clip of audioClips) {
-          const ov0 = Math.max(clip.start, w0), ov1 = Math.min(clipEnd(clip), w1);
+          const ov0 = Math.max(clip.start, wA), ov1 = Math.min(clipEnd(clip), w1);
           if (ov1 - ov0 <= 0.001) continue;
           const m = mediaOf(clip);
           const aTrack = await getInput(m).getPrimaryAudioTrack();
@@ -5905,26 +5962,33 @@ async function exportFast() {
           const aSink = new Mediabunny.AudioBufferSink(aTrack);
           // ONE gain per clip per window: base volume + the ◢◣ fade envelope
           const gain = off.createGain();
-          const base = clipGain(clip);
+          const base = exportGain(clip);
           const corners = [];
           if (clip.fadeIn > 0)  corners.push(clip.start, clip.start + clip.fadeIn);
           if (clip.fadeOut > 0) corners.push(clipEnd(clip) - clip.fadeOut, clipEnd(clip));
-          const pts = [...new Set(corners.filter(tl => tl > w0 && tl < w1))].sort((a, b) => a - b);
-          gain.gain.setValueAtTime(base * fadeMultAt(clip, w0), 0);
-          for (const tl of pts) gain.gain.linearRampToValueAtTime(base * fadeMultAt(clip, tl), tl - w0);
-          gain.gain.linearRampToValueAtTime(base * fadeMultAt(clip, w1), w1 - w0);
+          const pts = [...new Set(corners.filter(tl => tl > wA && tl < w1))].sort((a, b) => a - b);
+          gain.gain.setValueAtTime(base * fadeMultAt(clip, wA), 0);
+          for (const tl of pts) gain.gain.linearRampToValueAtTime(base * fadeMultAt(clip, tl), tl - wA);
+          gain.gain.linearRampToValueAtTime(base * fadeMultAt(clip, w1), w1 - wA);
           gain.connect(bus);
           for await (const wb of aSink.buffers(src0, src1)) {
             const node = off.createBufferSource();
             node.buffer = wb.buffer;
             node.connect(gain);
-            const startAt = clip.start + (wb.timestamp - clip.in) - w0;
+            const startAt = clip.start + (wb.timestamp - clip.in) - wA;
             if (startAt >= 0) node.start(startAt);
             else node.start(0, -startAt);
           }
         }
         modalProgress(0.85 + 0.13 * (winIdx / nWins), `🔊 mixing sound · part ${winIdx + 1} / ${nWins}`);
-        await audioSource.add(await off.startRendering());
+        let rendered = await off.startRendering();
+        if (preS > 0) {   // ✂ drop the warm-up head — only [w0, w1] reaches the file
+          const skip = Math.round(preS * SR);
+          const trimmed = new AudioBuffer({ numberOfChannels: 2, length: rendered.length - skip, sampleRate: SR });
+          for (let ch = 0; ch < 2; ch++) trimmed.copyToChannel(rendered.getChannelData(ch).subarray(skip), ch);
+          rendered = trimmed;
+        }
+        await audioSource.add(rendered);
       }
     }
 
@@ -5969,6 +6033,10 @@ function wireAudioGraph() {
 async function exportRealtime() {
   const total = totalDuration();
   modalShow('🐢 Recording your movie…', 'this plays the whole movie once while recording — keep this tab open!');
+  // 🔊 monitor volume must not shape the file: record at full master volume,
+  // put the knob back afterwards (same rule as the fast path).
+  const savedVol = masterVol;
+  masterVol = 1;
   try {
     const graph = wireAudioGraph();
     if (graph.ctx) await graph.ctx.resume();
@@ -6000,6 +6068,8 @@ async function exportRealtime() {
   } catch (err) {
     console.error(err);
     modalDone('😕 Export hit a snag', String(err.message || err));
+  } finally {
+    masterVol = savedVol;   // the knob goes back where the kid left it
   }
 }
 
@@ -6103,11 +6173,11 @@ async function offerRecovery() {
 }
 
 function buildProjectData() {
+  sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 6,
+    app: 'geov', version: 7,
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
-    masterVol,
     timeline,
     media: media.map(m => ({
       id: m.id, kind: m.kind, name: m.name,
@@ -6506,9 +6576,11 @@ async function openProjectData(data) {
       media.push(item);
     }
     timeline = (data.timeline || []).map(c => ({ ...defaultClipFX(), ...c, chroma: { ...defaultClipFX().chroma, ...(c.chroma || {}) } }));
-    masterVol = data.masterVol !== undefined ? data.masterVol : 1;
-    $('master-vol').value = Math.round(masterVol * 100);
-    $('master-val').textContent = Math.round(masterVol * 100) + '%';
+    // 🔊 masterVol is monitor-only session state — old projects saved it (and a
+    // saved 0 made every reopen + export of that project silent). Always reset.
+    masterVol = 1;
+    $('master-vol').value = 100;
+    $('master-val').textContent = '100%';
     audioPool.clear();
     mediaCounter = Math.max(0, ...media.map(m => m.id));
     tidCounter = Math.max(0, ...timeline.map(c => c.tid));
@@ -6583,7 +6655,7 @@ offerRecovery();                                   // 🛟 the tab closed? the m
 // 📉 a past export failed on this device → default to 720p (kid can still pick 1080)
 try { if (localStorage.getItem('geov-export-failed') && touchDevice) $('export-res').value = '720'; } catch (e) {}
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-console.log('%c⬡ GeoV Studio v14 — 📷 iPad camera FIX: non-zero stage · hardened play · 🐞 on-device HUD', 'color:#00E5FF;font-size:16px;font-weight:bold');
+console.log('%c⬡ GeoV Studio v15 — 🔊 sound-safe exports: masterVol never baked in · silent-export fallback · seam-free mix · 🛡 NaN quarantine heals stuck timelines', 'color:#00E5FF;font-size:16px;font-weight:bold');
 console.log('%cSPACE=play · ←→=frame step (shift=1s) · S=split · DEL=remove · CTRL+Z=undo · wheel=zoom timeline · shift+drag=snap', 'color:#8888a0');
 </script>
 </body>
