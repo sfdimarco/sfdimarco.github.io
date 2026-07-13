@@ -356,6 +356,41 @@
   @keyframes mic-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,23,68,0.7); } 50% { box-shadow: 0 0 0 7px rgba(255,23,68,0); } }
   #mic-btn.rec { border-color: var(--red); color: var(--red); animation: mic-pulse 1s infinite; }
 
+  /* ── 🎙 SOUND DECK — sound is built ON the timeline, like stacking film ── */
+  #snd-deck { display: none; flex-direction: column; gap: 6px; padding: 6px 8px; background: var(--panel); border-bottom: 1px solid var(--border); flex: 0 0 auto; }
+  #snd-deck.open { display: flex; }
+  #sound-btn.on { border-color: var(--green); color: var(--green); }
+  #snd-top { display: flex; align-items: center; gap: 8px; overflow-x: auto; min-height: 44px; }
+  #snd-rec-btn {
+    flex: 0 0 auto; height: 40px; padding: 0 16px; border-radius: 20px; cursor: pointer;
+    background: var(--card); border: 2px solid var(--red); color: var(--red);
+    font-size: 14px; font-weight: 700;
+  }
+  #snd-rec-btn.rec { background: var(--red); color: #fff; animation: mic-pulse 1s infinite; }
+  .snd-toggle { flex: 0 0 auto; height: 36px; padding: 0 10px; border-radius: 8px; cursor: pointer; background: var(--card); border: 2px solid var(--border); color: var(--muted); font-size: 12px; }
+  .snd-toggle.on { border-color: var(--green); color: var(--green); }
+  #snd-voice { height: 36px; background: var(--card); border: 2px solid var(--border); color: var(--text); border-radius: 8px; font-size: 13px; padding: 0 6px; }
+  #snd-takes { flex: 1 1 auto; display: flex; gap: 6px; overflow-x: auto; align-items: center; min-width: 60px; }
+  .snd-take { flex: 0 0 auto; display: flex; align-items: center; gap: 5px; background: var(--card); border: 1px solid var(--green); border-radius: 8px; padding: 3px 7px; font-size: 11px; color: var(--green); }
+  .snd-take button { background: none; border: none; color: var(--green); cursor: pointer; font-size: 13px; padding: 2px; }
+  .snd-take input[type=range] { width: 54px; -webkit-appearance: none; height: 3px; background: var(--border); border-radius: 2px; cursor: pointer; }
+  .snd-take .x { color: var(--muted); }
+  #snd-bounce-btn { flex: 0 0 auto; height: 40px; padding: 0 14px; border-radius: 8px; cursor: pointer; background: var(--card); border: 2px solid var(--green); color: var(--green); font-size: 13px; font-weight: 700; }
+  #snd-bounce-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  #snd-body { display: flex; gap: 8px; align-items: stretch; }
+  #snd-pads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; flex: 0 0 200px; }
+  .snd-pad {
+    border-radius: 10px; cursor: pointer; min-height: 48px;
+    background: var(--card); border: 2px solid var(--border); color: var(--text); font-size: 12px;
+  }
+  .snd-pad:active, .snd-pad.hit { border-color: var(--yellow); background: #2a2a10; }
+  #snd-keys { flex: 1 1 auto; position: relative; display: flex; min-height: 110px; border-radius: 8px; overflow: hidden; }
+  .snd-wkey { flex: 1; position: relative; background: #e8e8f0; border: 1px solid #999; border-radius: 0 0 6px 6px; cursor: pointer; min-width: 26px; }
+  .snd-wkey.down { background: #b8ffd8; }
+  .snd-wkey .strip { position: absolute; bottom: 0; left: 0; right: 0; height: 14px; border-radius: 0 0 5px 5px; opacity: 0.9; pointer-events: none; }
+  .snd-bkey { position: absolute; top: 0; width: 7%; height: 58%; background: #14141c; border: 1px solid #000; border-radius: 0 0 5px 5px; cursor: pointer; z-index: 2; }
+  .snd-bkey.down { background: #3a5a4a; }
+
   /* main area */
   #fb-main { grid-area: fbmain; display: flex; align-items: stretch; justify-content: center; gap: 10px; padding: 10px; min-height: 0; position: relative; }
   #fb-tools { display: flex; flex-direction: column; gap: 7px; align-self: center; flex: 0 0 auto; }
@@ -850,6 +885,7 @@
     <button class="tlb-btn" id="zoom-in-btn" title="zoom in (or scroll wheel)">+</button>
     <button class="tlb-btn" id="fit-btn" title="fit the whole movie">⤢ FIT</button>
     <button class="tlb-btn" id="assembly-btn" title="assembly view — see everything big">🗺 ASSEMBLY</button>
+    <button class="tlb-btn" id="sound-btn" title="sound deck — record, play keys + pads, stack sound onto your picture">🎙 SOUND</button>
     <button class="tlb-btn" id="frames-btn" title="show frames instead of seconds">SEC</button>
     <button class="tlb-btn" id="snap-btn" title="magnet: clips snap to edges + playhead (same as holding shift)">🧲</button>
     <button class="tlb-btn" id="multi-btn" title="select many: tap clips to add them to the selection (same as shift-click)">✚</button>
@@ -860,6 +896,27 @@
     </div>
     <button class="tlb-btn" id="mic-btn" title="record your voice or sound effects while the movie plays — headphones on!">🎤 REC</button>
     <span class="note">scroll = zoom · shift+drag clip = snap · drag clip up = new layer · 🎵 audio lanes live below</span>
+  </div>
+  <!-- 🎙 SOUND DECK — sits right on the timeline so stacking sound onto picture
+       feels like the same act as stacking clips. Takes live here until BOUNCE
+       drops them onto an audio lane as one ordinary clip (with a waveform). -->
+  <div id="snd-deck">
+    <div id="snd-top">
+      <button id="snd-rec-btn" title="record a take — the movie rolls from the playhead so you can match sound to picture">⏺ RECORD</button>
+      <button class="snd-toggle" id="snd-mic-toggle" title="also record the microphone during a take — headphones on!">🎤 MIC</button>
+      <select id="snd-voice" title="instrument for the keys">
+        <option value="piano">🎹 piano</option>
+        <option value="pluck">🎸 pluck</option>
+        <option value="pad">🌊 waves</option>
+        <option value="robot">🤖 robot</option>
+      </select>
+      <div id="snd-takes"><span class="note" id="snd-takes-hint">takes appear here — layer a few, then BOUNCE ⬇ to the timeline</span></div>
+      <button id="snd-bounce-btn" disabled title="mix all takes into ONE sound clip and drop it on the timeline">⬇ BOUNCE</button>
+    </div>
+    <div id="snd-body">
+      <div id="snd-pads"></div>
+      <div id="snd-keys"></div>
+    </div>
   </div>
   <div id="tl-scroll">
     <div id="tl-inner">
@@ -2678,11 +2735,14 @@ function attachClipPointer(el, tid) {
         if (nIn >= 0 && nIn <= maxIn && nStart >= 0) { clip.in = nIn; clip.start = nStart; }
       } else if (isEdgeR) {
         let nOut = orig.out + dx;
-        // code clips are generative — stretch them as long as you like.
+        // code clips are generative and drawings/vector/stop-motion hold their
+        // last frame — stretch them as long as you like. Only real footage
+        // (video/audio) stops at its recorded length.
         // 🛡 if media duration isn't a real number yet (still probing, or broken
         // metadata), the clip keeps its current length — NaN must never enter.
+        const stretchy = m && (m.kind === 'code' || m.kind === 'flipbook' || m.kind === 'vector');
         const durOK = m && Number.isFinite(m.duration) && m.duration > 0;
-        const maxOut = (m && m.kind === 'code') ? Infinity : (durOK ? m.duration : orig.out);
+        const maxOut = stretchy ? Infinity : (durOK ? m.duration : orig.out);
         nOut = Math.max(orig.in + MIN_CLIP, Math.min(maxOut, nOut));
         const snappedEnd = maybeSnap(clip.start + (nOut - clip.in), tid, ev.shiftKey);
         nOut = Math.max(orig.in + MIN_CLIP, Math.min(maxOut, clip.in + (snappedEnd - clip.start)));
@@ -3046,6 +3106,386 @@ async function importMicTake(file, t0) {
   }
 }
 
+// ════════════════════════════════════════════════════════════
+// 🎙 SOUND DECK — keys, pads, mic takes, bounce-to-timeline.
+// Design rule: the deck NEVER owns audio hardware of its own. Live sound goes
+// through the SAME playCtx/playBus limiter as the movie (what you hear is what
+// exports), and every bounce renders in a fresh OfflineAudioContext — the same
+// rock-solid path as the movie export. Sound on the timeline stays ordinary
+// audio clips with waveforms: film-strip for the ears.
+// ════════════════════════════════════════════════════════════
+const snd = { open: false, prevTlH: '', voice: 'piano', micOn: false, rec: null, takes: [], counter: 0, live: new Map(), preview: [], midiWired: false, keysBuilt: false };
+
+// shared 1s noise buffer per context (live ctx AND each offline render)
+function sndNoise(ctx) {
+  if (ctx.__noise) return ctx.__noise;
+  const b = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+  const d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  ctx.__noise = b;
+  return b;
+}
+
+// one synth voice — SAME function drives live playing and offline bounce,
+// so the bounced clip sounds exactly like what the kid played
+function sndVoiceStart(ctx, dest, note, voice, at) {
+  const f = 440 * Math.pow(2, (note - 69) / 12);
+  const g = ctx.createGain(); g.connect(dest);
+  const parts = [];
+  const mk = (type, freq, det, into) => {
+    const o = ctx.createOscillator(); o.type = type; o.frequency.value = freq;
+    if (det) o.detune.value = det;
+    o.connect(into || g); o.start(at); parts.push(o); return o;
+  };
+  let peak = 0.22, atk = 0.01, sus = 0.10, rel = 0.25;
+  if (voice === 'piano') { mk('triangle', f); mk('triangle', f * 2, 4); peak = 0.25; sus = 0.07; rel = 0.3; }
+  else if (voice === 'pluck') {
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(Math.min(f * 6, 12000), at);
+    lp.frequency.exponentialRampToValueAtTime(Math.max(f * 1.5, 80), at + 0.3);
+    lp.connect(g); mk('sawtooth', f, 0, lp);
+    peak = 0.3; atk = 0.003; sus = 0.002; rel = 0.1;
+  }
+  else if (voice === 'pad') { mk('sine', f); mk('sine', f * 1.004); peak = 0.18; atk = 0.22; sus = 0.16; rel = 0.6; }
+  else { mk('square', f); peak = 0.13; sus = 0.08; rel = 0.15; }   // robot
+  g.gain.setValueAtTime(0.0001, at);
+  g.gain.exponentialRampToValueAtTime(peak, at + atk);
+  g.gain.exponentialRampToValueAtTime(Math.max(sus, 0.0001), at + atk + 0.3);
+  let stopped = false;
+  return {
+    stop(when) {
+      if (stopped) return; stopped = true;
+      try {
+        g.gain.cancelScheduledValues(when);
+        g.gain.setValueAtTime(Math.max(sus, 0.0001), when);
+        g.gain.exponentialRampToValueAtTime(0.0001, when + rel);
+        for (const o of parts) o.stop(when + rel + 0.05);
+      } catch (e) { try { for (const o of parts) o.stop(); } catch (e2) {} }
+    }
+  };
+}
+
+// one-shot foley/drum pads — same dual live/offline contract as the keys
+const SND_PADS = [
+  { id: 'kick',  label: '🥁 kick'  }, { id: 'clap', label: '👏 clap' },
+  { id: 'hat',   label: '🎩 tss'   }, { id: 'boom', label: '💥 boom' },
+  { id: 'drip',  label: '💧 drip'  }, { id: 'zap',  label: '⚡ zap'  },
+];
+function sndPadHit(ctx, dest, pad, at) {
+  const g = ctx.createGain(); g.connect(dest);
+  const noise = (into) => { const s = ctx.createBufferSource(); s.buffer = sndNoise(ctx); s.connect(into); return s; };
+  const env = (v0, t) => { g.gain.setValueAtTime(v0, at); g.gain.exponentialRampToValueAtTime(0.001, at + t); };
+  if (pad === 'kick') {
+    const o = ctx.createOscillator(); o.frequency.setValueAtTime(140, at);
+    o.frequency.exponentialRampToValueAtTime(40, at + 0.22); o.connect(g);
+    env(0.7, 0.3); o.start(at); o.stop(at + 0.32);
+  } else if (pad === 'clap') {
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1600; bp.Q.value = 1.2; bp.connect(g);
+    env(0.5, 0.18);
+    for (const d of [0, 0.02, 0.041]) { const s = noise(bp); s.start(at + d); s.stop(at + d + 0.09); }
+  } else if (pad === 'hat') {
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7000; hp.connect(g);
+    env(0.35, 0.07); const s = noise(hp); s.start(at); s.stop(at + 0.08);
+  } else if (pad === 'boom') {
+    const o = ctx.createOscillator(); o.frequency.setValueAtTime(55, at); o.connect(g);
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 220; lp.connect(g);
+    env(0.6, 0.9); const s = noise(lp); s.start(at); s.stop(at + 0.9); o.start(at); o.stop(at + 0.92);
+  } else if (pad === 'drip') {
+    const o = ctx.createOscillator(); o.frequency.setValueAtTime(900, at);
+    o.frequency.exponentialRampToValueAtTime(280, at + 0.12); o.connect(g);
+    env(0.4, 0.16); o.start(at); o.stop(at + 0.18);
+  } else {   // zap
+    const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(1400, at);
+    o.frequency.exponentialRampToValueAtTime(120, at + 0.22); o.connect(g);
+    env(0.3, 0.24); o.start(at); o.stop(at + 0.26);
+  }
+}
+
+// ── keys: C4–E5, Boomwhacker color strips (C red, D orange, E yellow,
+//    F green, G teal, A purple, B pink — the school-music standard) ──
+const SND_BW = { 0: '#FF1744', 2: '#FF9100', 4: '#FFD600', 5: '#00E676', 7: '#00E5FF', 9: '#D500F9', 11: '#FF4081' };
+function sndBuildKeys() {
+  if (snd.keysBuilt) return;
+  snd.keysBuilt = true;
+  const keysEl = $('snd-keys');
+  const whites = [];
+  for (let n = 60; n <= 76; n++) {
+    const pc = n % 12;
+    if ([1, 3, 6, 8, 10].includes(pc)) continue;
+    const k = document.createElement('div');
+    k.className = 'snd-wkey'; k.dataset.note = n;
+    const strip = document.createElement('div');
+    strip.className = 'strip'; strip.style.background = SND_BW[pc];
+    k.appendChild(strip); keysEl.appendChild(k); whites.push({ n, el: k });
+  }
+  for (let n = 60; n <= 76; n++) {
+    if (![1, 3, 6, 8, 10].includes(n % 12)) continue;
+    const leftWhite = whites.findIndex(w => w.n === n - 1);
+    const k = document.createElement('div');
+    k.className = 'snd-bkey'; k.dataset.note = n;
+    k.style.left = ((leftWhite + 1) / whites.length * 100 - 3.5) + '%';
+    keysEl.appendChild(k);
+  }
+  // multi-touch: each pointer owns the key it landed on
+  keysEl.addEventListener('pointerdown', e => {
+    const k = e.target.closest('[data-note]'); if (!k) return;
+    e.preventDefault();
+    try { k.setPointerCapture(e.pointerId); } catch (_) {}
+    sndNoteOn(+k.dataset.note, e.pointerId, k);
+  });
+  const end = e => {
+    const k = e.target.closest('[data-note]'); if (!k) return;
+    sndNoteOff(+k.dataset.note, e.pointerId, k);
+  };
+  keysEl.addEventListener('pointerup', end);
+  keysEl.addEventListener('pointercancel', end);
+  const padsEl = $('snd-pads');
+  for (const p of SND_PADS) {
+    const b = document.createElement('button');
+    b.className = 'snd-pad'; b.textContent = p.label; b.dataset.pad = p.id;
+    b.addEventListener('pointerdown', e => { e.preventDefault(); sndPad(p.id, b); });
+    padsEl.appendChild(b);
+  }
+}
+
+function sndNoteOn(note, pid, el) {
+  ensurePlayGraph();
+  if (!playCtx) return;
+  const key = pid + ':' + note;
+  if (snd.live.has(key)) return;
+  const v = sndVoiceStart(playCtx, playBus, note, snd.voice, playCtx.currentTime);
+  v.__note = note; v.__t = playCtx.currentTime;
+  snd.live.set(key, v);
+  if (el) el.classList.add('down');
+  if (snd.rec) snd.rec.events.push(v.__ev = { k: 'n', t: playCtx.currentTime - snd.rec.t0w, note, voice: snd.voice, dur: 0.25 });
+}
+function sndNoteOff(note, pid, el) {
+  const key = pid + ':' + note;
+  const v = snd.live.get(key);
+  if (!v) return;
+  snd.live.delete(key);
+  if (el) el.classList.remove('down');
+  const now = playCtx ? playCtx.currentTime : 0;
+  v.stop(now);
+  if (v.__ev) v.__ev.dur = Math.max(0.05, now - v.__t);
+}
+function sndPad(pad, el) {
+  ensurePlayGraph();
+  if (!playCtx) return;
+  sndPadHit(playCtx, playBus, pad, playCtx.currentTime);
+  if (el) { el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 120); }
+  if (snd.rec) snd.rec.events.push({ k: 'p', t: playCtx.currentTime - snd.rec.t0w, pad });
+}
+
+// 🚨 panic: silence every live voice + preview node. Export's full reset calls
+// this first so a held key can never bleed into a render.
+function sndPanic() {
+  const now = playCtx ? playCtx.currentTime : 0;
+  for (const v of snd.live.values()) { try { v.stop(now); } catch (e) {} }
+  snd.live.clear();
+  for (const n of snd.preview) { try { n.stop ? n.stop() : n.disconnect(); } catch (e) {} }
+  snd.preview = [];
+  document.querySelectorAll('.snd-wkey.down, .snd-bkey.down').forEach(k => k.classList.remove('down'));
+}
+
+// ── ⏺ takes: the movie rolls from the playhead while you perform ──
+$('snd-rec-btn').addEventListener('click', () => snd.rec ? sndRecStop() : sndRecStart());
+$('snd-mic-toggle').addEventListener('click', () => {
+  snd.micOn = !snd.micOn;
+  $('snd-mic-toggle').classList.toggle('on', snd.micOn);
+  if (snd.micOn) toast('🎤 mic will record with your next take — 🎧 headphones on!');
+});
+$('snd-voice').addEventListener('change', e => { snd.voice = e.target.value; });
+
+async function sndRecStart() {
+  ensurePlayGraph();
+  if (!playCtx) { caution('snd', '🎙 no sound engine', 'this browser can’t make sound.'); return; }
+  let mic = null;
+  if (snd.micOn) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      const mime = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
+      const chunks = [];
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+      rec.start(250);
+      mic = { rec, stream, chunks };
+    } catch (err) {
+      caution('snd', '🎤 microphone blocked', 'allow the microphone and try again — recording keys + pads only for now.');
+    }
+  }
+  snd.rec = { t0w: playCtx.currentTime, t0: playhead, events: [], mic };
+  $('snd-rec-btn').classList.add('rec');
+  $('snd-rec-btn').textContent = '⏹ STOP';
+  if (timeline.length && !playing) startPlayback();   // sound rolls WITH picture
+}
+async function sndRecStop(discard) {
+  const rec = snd.rec;
+  if (!rec) return;
+  snd.rec = null;
+  $('snd-rec-btn').classList.remove('rec');
+  $('snd-rec-btn').textContent = '⏺ RECORD';
+  if (playing) stopPlayback();
+  // keys still held when STOP lands: close their events at the take's end
+  const noww = playCtx.currentTime;
+  for (const v of snd.live.values()) if (v.__ev) v.__ev.dur = Math.max(0.05, noww - v.__t);
+  sndPanic();
+  let dur = playCtx.currentTime - rec.t0w;
+  let buf = null;
+  if (rec.mic) {
+    await new Promise(res => { rec.mic.rec.onstop = res; try { rec.mic.rec.stop(); } catch (e) { res(); } });
+    rec.mic.stream.getTracks().forEach(tr => tr.stop());
+    if (rec.mic.chunks.length && !discard) {
+      try {
+        const blob = new Blob(rec.mic.chunks, { type: rec.mic.rec.mimeType || 'audio/webm' });
+        buf = await playCtx.decodeAudioData(await blob.arrayBuffer());
+        dur = Math.max(dur, buf.duration);
+      } catch (e) { caution('snd', '🎤 take lost', 'the mic part of that take couldn’t be decoded.'); }
+    }
+  }
+  if (discard) return;
+  if (!rec.events.length && !buf) { toast('🎙 nothing played — take skipped'); return; }
+  if (snd.takes.length >= 6) { caution('snd', '🎙 deck is full', 'six takes max — BOUNCE (or ✕) some first.'); return; }
+  snd.takes.push({ id: ++snd.counter, name: `take ${snd.counter}`, t0: rec.t0, dur: dur + 0.1, events: rec.events, buf, gain: 1 });
+  sndRenderTakes();
+  toast(`🎙 take ${snd.counter} saved — ${fmtTime(dur)} at ${fmtTime(rec.t0)}`);
+}
+
+function sndRenderTakes() {
+  const wrap = $('snd-takes');
+  wrap.innerHTML = '';
+  if (!snd.takes.length) {
+    const hint = document.createElement('span');
+    hint.className = 'note';
+    hint.textContent = 'takes appear here — layer a few, then BOUNCE ⬇ to the timeline';
+    wrap.appendChild(hint);
+  }
+  for (const t of snd.takes) {
+    const chip = document.createElement('div');
+    chip.className = 'snd-take';
+    const name = document.createElement('span');
+    name.textContent = `${t.name} · ${fmtTime(t.dur)}`;
+    const play = document.createElement('button');
+    play.textContent = '▶'; play.title = 'hear this take';
+    play.addEventListener('click', () => sndPreviewTake(t));
+    const vol = document.createElement('input');
+    vol.type = 'range'; vol.min = 0; vol.max = 150; vol.value = Math.round(t.gain * 100);
+    vol.title = 'take volume in the mix';
+    vol.addEventListener('input', e => { t.gain = +e.target.value / 100; });
+    const x = document.createElement('button');
+    x.textContent = '✕'; x.className = 'x'; x.title = 'throw this take away';
+    x.addEventListener('click', () => { snd.takes = snd.takes.filter(q => q.id !== t.id); sndRenderTakes(); });
+    chip.append(play, name, vol, x);
+    wrap.appendChild(chip);
+  }
+  $('snd-bounce-btn').disabled = !snd.takes.length;
+}
+
+function sndScheduleTake(ctx, dest, take, at) {
+  const tg = ctx.createGain(); tg.gain.value = take.gain; tg.connect(dest);
+  const nodes = [tg];
+  if (take.buf) {
+    const s = ctx.createBufferSource(); s.buffer = take.buf; s.connect(tg);
+    s.start(at); nodes.push(s);
+  }
+  for (const ev of take.events) {
+    if (ev.k === 'n') {
+      const v = sndVoiceStart(ctx, tg, ev.note, ev.voice, at + ev.t);
+      v.stop(at + ev.t + Math.max(ev.dur, 0.05));
+    } else sndPadHit(ctx, tg, ev.pad, at + ev.t);
+  }
+  return nodes;
+}
+function sndPreviewTake(take) {
+  ensurePlayGraph();
+  if (!playCtx) return;
+  sndPanic();
+  snd.preview = sndScheduleTake(playCtx, playBus, take, playCtx.currentTime + 0.05);
+}
+
+// ── ⬇ BOUNCE: offline mix of every take → one WAV → ordinary timeline clip ──
+function sndWavFile(buf, name) {
+  const ch = Math.min(2, buf.numberOfChannels), n = buf.length, bytes = n * ch * 2;
+  const ab = new ArrayBuffer(44 + bytes), dv = new DataView(ab);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); dv.setUint32(4, 36 + bytes, true); w(8, 'WAVE'); w(12, 'fmt ');
+  dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, ch, true);
+  dv.setUint32(24, buf.sampleRate, true); dv.setUint32(28, buf.sampleRate * ch * 2, true);
+  dv.setUint16(32, ch * 2, true); dv.setUint16(34, 16, true);
+  w(36, 'data'); dv.setUint32(40, bytes, true);
+  let o = 44;
+  const chans = []; for (let c = 0; c < ch; c++) chans.push(buf.getChannelData(c));
+  for (let i = 0; i < n; i++) for (let c = 0; c < ch; c++) {
+    const v = Math.max(-1, Math.min(1, chans[c][i]));
+    dv.setInt16(o, v < 0 ? v * 0x8000 : v * 0x7FFF, true); o += 2;
+  }
+  return new File([ab], name + '.wav', { type: 'audio/wav' });
+}
+let sndBounceCounter = 0;
+$('snd-bounce-btn').addEventListener('click', async () => {
+  if (!snd.takes.length) return;
+  sndPanic();
+  try {
+    const t0 = Math.min(...snd.takes.map(t => t.t0));
+    const end = Math.max(...snd.takes.map(t => t.t0 + t.dur)) + 0.6;   // release tail
+    const SR = 48000;
+    const off = new OfflineAudioContext(2, Math.max(1, Math.ceil((end - t0) * SR)), SR);
+    // 🛡 the deck mixes through the SAME limiter as playback and export
+    const bus = off.createDynamicsCompressor();
+    bus.threshold.value = -6; bus.knee.value = 4;
+    bus.ratio.value = 12; bus.attack.value = 0.003; bus.release.value = 0.25;
+    bus.connect(off.destination);
+    for (const take of snd.takes) sndScheduleTake(off, bus, take, take.t0 - t0);
+    const rendered = await off.startRendering();
+    const clip = await importMicTake(sndWavFile(rendered, `my sound ${++sndBounceCounter}`), t0);
+    if (clip) { snd.takes = []; sndRenderTakes(); toast('⬇ bounced! your sound is on the timeline — waveform and all'); }
+  } catch (err) {
+    console.error('bounce failed:', err);
+    caution('snd', '🎙 bounce hiccup', 'that mix didn’t render — your takes are still here, try BOUNCE again.');
+  }
+});
+
+// ── deck open/close (timeline area grows to hold it; splitter value restored) ──
+$('sound-btn').addEventListener('click', () => snd.open ? sndClose() : sndOpen());
+function sndOpen() {
+  snd.open = true;
+  sndBuildKeys();
+  ensurePlayGraph();
+  $('snd-deck').classList.add('open');
+  $('sound-btn').classList.add('on');
+  snd.prevTlH = document.body.style.getPropertyValue('--tl-h');
+  const cur = parseFloat(getComputedStyle(document.body).getPropertyValue('--tl-h')) || 230;
+  document.body.style.setProperty('--tl-h', (cur + 190) + 'px');
+  renderTimeline();
+  sndWireMIDI();   // desktop bonus: a real MIDI keyboard just works
+}
+function sndClose() {
+  snd.open = false;
+  if (snd.rec) sndRecStop(true);
+  sndPanic();
+  $('snd-deck').classList.remove('open');
+  $('sound-btn').classList.remove('on');
+  if (snd.prevTlH) document.body.style.setProperty('--tl-h', snd.prevTlH);
+  else document.body.style.removeProperty('--tl-h');
+  renderTimeline();
+}
+function sndWireMIDI() {
+  if (snd.midiWired || !navigator.requestMIDIAccess) return;
+  snd.midiWired = true;
+  navigator.requestMIDIAccess().then(acc => {
+    const wire = inp => { inp.onmidimessage = m => {
+      const [st, note, vel] = m.data;
+      const cmd = st & 0xF0;
+      const el = document.querySelector(`[data-note="${note}"]`);
+      if (cmd === 0x90 && vel > 0) sndNoteOn(note, 'midi', el);
+      else if (cmd === 0x80 || (cmd === 0x90 && vel === 0)) sndNoteOff(note, 'midi', el);
+    }; };
+    acc.inputs.forEach(wire);
+    acc.onstatechange = e => { if (e.port.type === 'input' && e.port.state === 'connected') wire(e.port); };
+    if (acc.inputs.size) toast('🎹 MIDI keyboard connected!');
+  }).catch(() => {});
+}
+
 $('undo-btn').addEventListener('click', doUndo);
 $('redo-btn').addEventListener('click', doRedo);
 function doUndo() {
@@ -3264,9 +3704,10 @@ function bumpFb(m) {   // any edit: kill cache, recompute duration, clamp timeli
   fbSheetDirty = true;
   m.duration = m.frameCount / m.fps;
   scheduleAutosave();
+  // clips may be stretched past the drawing's length (they hold the last
+  // frame) — editing the flipbook must not shrink them back. Only keep in<out.
   for (const c of timeline) {
     if (c.mediaId !== m.id) continue;
-    c.out = Math.min(c.out, m.duration);
     c.in = Math.min(c.in, Math.max(0, c.out - MIN_CLIP));
   }
 }
@@ -5121,9 +5562,9 @@ function renderVecFrame(m, i) {
 function bumpVec(m) {
   m._cache = null;
   m.duration = m.frameCount / m.fps;
+  // stretched clips hold their last pose — editing the animation must not shrink them
   for (const c of timeline) {
     if (c.mediaId !== m.id) continue;
-    c.out = Math.min(c.out, m.duration);
     c.in = Math.min(c.in, Math.max(0, c.out - MIN_CLIP));
   }
   scheduleAutosave();
@@ -5764,6 +6205,40 @@ async function keepAwake(on) {
   } catch (e) {}
 }
 
+// ── 🔌 EXPORT PRE-FLIGHT: full audio reset ──
+// Before any export: live playheads pause, every decoder rewinds to 0, pending
+// scrub timers are flushed, and the live graph lets go of the speakers (so
+// nothing pops while elements get parked). The offline render then starts from
+// true silence instead of whatever the preview was doing.
+async function resetAudioForExport() {
+  // 0) sound deck goes silent — a held synth key must never bleed into a render
+  try { if (typeof sndPanic === 'function') sndPanic(); } catch (e) {}
+  try { if (typeof snd === 'object' && snd.rec) await sndRecStop(true); } catch (e) {}
+  // 1) flush pending scrub work — no timer may poke a decoder mid-export
+  clearTimeout(scrubSettleTimer); scrubSettleTimer = null;
+  if (scrubRaf) { cancelAnimationFrame(scrubRaf); scrubRaf = 0; }
+  scrubbing = false;
+  // 2) explicit state disconnection: pause + rewind every pooled element to 0
+  for (const el of [...videoPool.values(), ...audioPool.values()]) {
+    try { el.pause(); if (!el.__parked && el.src) el.currentTime = 0; } catch (e) {}
+  }
+  // 3) unhook the live bus from the hardware, then park the whole context
+  try { if (playBus) playBus.disconnect(); } catch (e) {}
+  try { if (playCtx && playCtx.state === 'running') await playCtx.suspend(); } catch (e) {}
+  // 4) the waveform-peaks decoder holds an audio context too — release it fully
+  //    (it re-creates itself lazily the next time a waveform needs drawing)
+  try { if (peaksCtx) { await peaksCtx.close(); peaksCtx = null; } } catch (e) {}
+}
+function restoreAudioAfterExport() {
+  // duplicate connect() calls between the same nodes are ignored by WebAudio,
+  // so calling this twice (realtime path + finally) is safe
+  try {
+    if (playBus && playCtx) playBus.connect(playCtx.destination);
+    if (playBus && audioGraph) playBus.connect(audioGraph.dest);  // recorder tap back on
+  } catch (e) {}
+  try { if (playCtx && playCtx.state === 'suspended') playCtx.resume().catch(() => {}); } catch (e) {}
+}
+
 $('export-btn').addEventListener('click', async () => {
   if (timeline.length === 0) { toast('add clips to your movie first! 🎞'); return; }
   if (media.some(m => m.missing && timeline.some(c => c.mediaId === m.id))) {
@@ -5781,6 +6256,8 @@ $('export-btn').addEventListener('click', async () => {
   fbFrameCache.clear();
   proxyBmCache.forEach(bm => { try { bm.close(); } catch (e) {} });
   proxyBmCache.clear();
+  // 🔌 full reset FIRST (speakers unhooked → parking can't pop the hardware)
+  await resetAudioForExport();
   parkFarElements(-1e9);   // playhead "nowhere" = park everything parkable
   try {
     // 🔇 NEVER silently ship a soundless movie: if the fast encoder has no audio
@@ -5793,10 +6270,12 @@ $('export-btn').addEventListener('click', async () => {
     if (engine.fast && hasAudible && !engine.audioCodec) {
       caution('silent-fast', '🔊 keeping your sound safe',
         'this device’s fast encoder can’t write sound, so I’m using the realtime recorder instead — it takes as long as your movie but the audio comes with it.');
+      restoreAudioAfterExport();   // realtime records THROUGH the live graph
       await exportRealtime();
     } else if (engine.fast) {
       await exportFast();
     } else {
+      restoreAudioAfterExport();   // realtime records THROUGH the live graph
       await exportRealtime();
     }
     localStorage.removeItem('geov-export-failed');
@@ -5805,6 +6284,7 @@ $('export-btn').addEventListener('click', async () => {
     console.error('export outer failure:', err);
   } finally {
     keepAwake(false);
+    restoreAudioAfterExport();   // speakers come back for the preview
   }
 });
 
@@ -5936,13 +6416,12 @@ async function exportFast() {
       });
       let winIdx = 0;
       const nWins = Math.ceil(total / WIN);
-      for (let w0 = 0; w0 < total; w0 += WIN, winIdx++) {
-        if (exportCancelled) throw new Error('cancelled');
-        const w1 = Math.min(total, w0 + WIN);
-        // each window renders [w0-preS, w1]; the warm-up head is cut off after
-        // rendering. This puts the compressor in its mid-song state at w0 so
-        // window seams don't click or jump (v14: fresh compressor every 20s).
-        const preS = w0 > 0 ? PRE : 0;
+      // one window = one FRESH OfflineAudioContext. The browser renders it
+      // deterministically off the main thread — real-time hardware hiccups
+      // can't touch it. Each window renders [w0-preS, w1]; the warm-up head is
+      // cut off after rendering. This puts the compressor in its mid-song
+      // state at w0 so window seams don't click or jump.
+      const renderWin = async (w0, w1, preS) => {
         const wA = w0 - preS;
         const len = Math.max(1, Math.round((w1 - wA) * SR));
         const off = new OfflineAudioContext(2, len, SR);
@@ -5980,13 +6459,32 @@ async function exportFast() {
             else node.start(0, -startAt);
           }
         }
-        modalProgress(0.85 + 0.13 * (winIdx / nWins), `🔊 mixing sound · part ${winIdx + 1} / ${nWins}`);
         let rendered = await off.startRendering();
         if (preS > 0) {   // ✂ drop the warm-up head — only [w0, w1] reaches the file
           const skip = Math.round(preS * SR);
           const trimmed = new AudioBuffer({ numberOfChannels: 2, length: rendered.length - skip, sampleRate: SR });
           for (let ch = 0; ch < 2; ch++) trimmed.copyToChannel(rendered.getChannelData(ch).subarray(skip), ch);
           rendered = trimmed;
+        }
+        return rendered;
+      };
+      for (let w0 = 0; w0 < total; w0 += WIN, winIdx++) {
+        if (exportCancelled) throw new Error('cancelled');
+        const w1 = Math.min(total, w0 + WIN);
+        const preS = w0 > 0 ? PRE : 0;
+        modalProgress(0.85 + 0.13 * (winIdx / nWins), `🔊 mixing sound · part ${winIdx + 1} / ${nWins}`);
+        let rendered;
+        try {
+          rendered = await renderWin(w0, w1, preS);
+        } catch (err) {
+          if (exportCancelled) throw err;
+          // 🔁 hiccup → FULL RESET, then one retry: throw away this window's
+          // file readers (fresh decoders, buffers back to 0), give the device a
+          // breath, and re-render the window in a brand-new offline context.
+          console.warn('audio window hiccup — full reset, retrying once:', err);
+          for (const c of audioClips) { const m = mediaOf(c); if (m) inputCache.delete(m.id); }
+          await new Promise(r => setTimeout(r, 250));
+          rendered = await renderWin(w0, w1, preS);
         }
         await audioSource.add(rendered);
       }
@@ -6655,7 +7153,7 @@ offerRecovery();                                   // 🛟 the tab closed? the m
 // 📉 a past export failed on this device → default to 720p (kid can still pick 1080)
 try { if (localStorage.getItem('geov-export-failed') && touchDevice) $('export-res').value = '720'; } catch (e) {}
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-console.log('%c⬡ GeoV Studio v15 — 🔊 sound-safe exports: masterVol never baked in · silent-export fallback · seam-free mix · 🛡 NaN quarantine heals stuck timelines', 'color:#00E5FF;font-size:16px;font-weight:bold');
+console.log('%c⬡ GeoV Studio v16 — 🎙 SOUND DECK (keys · pads · mic takes · bounce) + ↔ stretchy drawing clips + 🔌 export full-reset', 'color:#00E5FF;font-size:16px;font-weight:bold');
 console.log('%cSPACE=play · ←→=frame step (shift=1s) · S=split · DEL=remove · CTRL+Z=undo · wheel=zoom timeline · shift+drag=snap', 'color:#8888a0');
 </script>
 </body>
