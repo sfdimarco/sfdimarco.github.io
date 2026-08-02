@@ -396,6 +396,36 @@
   /* ── 🎙 SOUND DECK — sound is built ON the timeline, like stacking film ── */
   #snd-deck { display: none; flex-direction: column; gap: 6px; padding: 6px 8px; background: var(--panel); border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   #snd-deck.open { display: flex; }
+
+  /* ═══ v18: ⚡ FX DECK — compositing as a flowchart (clip → effect → effect → screen) ═══ */
+  #fx-deck { display: none; flex-direction: column; gap: 8px; padding: 8px 10px; background: var(--panel); border-bottom: 1px solid var(--border); flex: 0 0 auto; }
+  #fx-deck.open { display: flex; }
+  #fx-flow { display: flex; align-items: center; gap: 7px; overflow-x: auto; padding: 2px; }
+  .fxf-node { display: flex; align-items: center; gap: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 10px; padding: 7px 10px; font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer; flex-shrink: 0; }
+  .fxf-node.sel { border-color: var(--yellow); color: var(--yellow); }
+  .fxf-node.io { border-style: dashed; cursor: default; color: var(--muted); font-weight: 400; }
+  .fxf-arrow { color: var(--muted); flex-shrink: 0; font-size: 14px; }
+  .fxf-node .fx-x { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 11px; padding: 0 2px; font-family: inherit; }
+  .fxf-node .fx-x:hover { color: var(--red); }
+  #fx-params { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-height: 30px; }
+  #fx-params .fxp { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  #fx-params .fxp input { width: 150px; }
+  #fx-params .fxp .v { color: var(--yellow); font-weight: 700; min-width: 42px; font-variant-numeric: tabular-nums; }
+  #fx-params .fxp-move { background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 8px; padding: 4px 9px; cursor: pointer; font-family: inherit; font-size: 12px; }
+  #fx-params .fxp-move:hover:not(:disabled) { color: var(--yellow); border-color: var(--yellow); }
+  #fx-params .fxp-move:disabled { opacity: 0.3; cursor: default; }
+  #fx-add-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  #fx-add-row .lbl { font-size: 10px; color: var(--muted); letter-spacing: 2px; }
+  .fx-add-btn { background: none; border: 2px dashed var(--border); color: var(--muted); border-radius: 10px; padding: 6px 10px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700; }
+  .fx-add-btn:hover:not(:disabled) { border-color: var(--yellow); color: var(--yellow); }
+  .fx-add-btn:disabled { opacity: 0.35; cursor: default; }
+
+  /* ═══ v18: ⛶ fullscreen clip library ═══ */
+  #bin-max-btn { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; font-size: 14px; padding: 2px 10px; cursor: pointer; font-family: inherit; }
+  #bin-max-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+  #bin.bin-max { position: fixed; inset: 0; z-index: 400; width: auto; }
+  #bin.bin-max #bin-list { grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); }
+  #bin.bin-max #bin-max-btn { color: var(--cyan); border-color: var(--cyan); }
   #sound-btn.on { border-color: var(--green); color: var(--green); }
   #snd-top { display: flex; align-items: center; gap: 8px; overflow-x: auto; min-height: 44px; }
   #snd-rec-btn {
@@ -769,8 +799,27 @@
   #code-left { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   #code-editwrap { flex: 1; display: flex; background: #0d0d14; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; min-height: 0; }
   #code-gutter { padding: 12px 7px; color: var(--muted); font: 14px/1.5 ui-monospace, Menlo, Consolas, monospace; text-align: right; min-width: 34px; overflow: hidden; user-select: none; background: #12121a; margin: 0; }
+  #code-edstack { position: relative; flex: 1; min-width: 0; display: flex; }
   #code-editor { flex: 1; background: transparent; color: var(--text); border: none; outline: none; resize: none; padding: 12px; font: 14px/1.5 ui-monospace, Menlo, Consolas, monospace; tab-size: 2; white-space: pre; overflow: auto; }
-  @media (pointer: coarse) { #code-editor, #code-gutter { font-size: 16px; } }  /* no iOS zoom-on-focus */
+  /* 🎛 v18: mirror layer ON TOP of the textarea — invisible text, glowing pills
+     behind every number. Pills catch taps (slider opens, iPad keyboard stays
+     closed); everywhere else taps fall through to the editor. Metrics MUST
+     match #code-editor exactly or pills drift off their numbers. */
+  #code-hl { position: absolute; inset: 0; margin: 0; padding: 12px; pointer-events: none; color: transparent; font: 14px/1.5 ui-monospace, Menlo, Consolas, monospace; tab-size: 2; white-space: pre; overflow: hidden; z-index: 2; }
+  #code-hl .tkn { pointer-events: auto; cursor: pointer; border-radius: 5px; background: rgba(255,214,0,0.14); box-shadow: inset 0 0 0 1.5px rgba(255,214,0,0.5); }
+  #code-hl .tkn:hover, #code-hl .tkn.hot { background: rgba(255,214,0,0.3); box-shadow: inset 0 0 0 2px var(--yellow), 0 0 10px rgba(255,214,0,0.35); }
+  #tk-bubble { position: fixed; z-index: 260; display: none; background: var(--panel); border: 1.5px solid var(--yellow); border-radius: 12px; padding: 10px 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.65); width: 260px; }
+  #tk-bubble .tkb-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; }
+  #tk-bubble .tkb-val { color: var(--yellow); font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; flex: 1; }
+  #tk-bubble .tkb-x { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; font-family: inherit; }
+  #tk-bubble input[type=range] { width: 100%; }
+  #tinker { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; max-height: 170px; overflow-y: auto; }
+  #tinker-title { font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-bottom: 4px; }
+  #tinker .tk-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+  #tinker .tk-name { width: 108px; font-size: 12px; font-weight: 700; color: var(--yellow); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+  #tinker .tk-row input { flex: 1; min-width: 0; }
+  #tinker .tk-val { width: 54px; text-align: right; font-size: 12px; color: var(--text); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  @media (pointer: coarse) { #code-editor, #code-gutter, #code-hl { font-size: 16px; } }  /* no iOS zoom-on-focus */
   #code-error { min-height: 42px; margin-top: 8px; padding: 9px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5; background: var(--card); border: 1px solid var(--border); color: var(--muted); }
   #code-error.bad { border-color: var(--red); color: #ff8a9d; }
   #code-error.good { border-color: var(--green); color: var(--green); }
@@ -818,7 +867,7 @@
 
 <!-- MEDIA BIN -->
 <div id="bin">
-  <div id="bin-header"><span>🎞 MY CLIPS</span></div>
+  <div id="bin-header"><span>🎞 MY CLIPS</span><button id="bin-max-btn" title="fill the whole screen — organize with room to breathe">⛶</button></div>
   <div class="bin-btns">
     <button id="import-btn">📂 ADD VIDEO<br>+ MUSIC</button>
     <button id="flipbook-new-btn" title="draw frame by frame — like a paper flipbook">🎨 RASTER<br>FLIPBOOK</button>
@@ -885,6 +934,7 @@
       <option value="difference">DIFFERENCE</option>
     </select>
   </div>
+  <button class="tool-btn" id="fx-btn" title="⚡ stack effects on this clip — picture flows through them like a flowchart" disabled><span class="ico">⚡</span> FX<span id="fx-count"></span></button>
   <span class="divider"></span>
   <div class="insp-group">
     <button class="tool-btn" id="chroma-toggle" title="green-screen: make one color invisible" disabled><span class="ico">🎯</span> KEY</button>
@@ -941,6 +991,11 @@
   <!-- 🎙 SOUND DECK — sits right on the timeline so stacking sound onto picture
        feels like the same act as stacking clips. Takes live here until BOUNCE
        drops them onto an audio lane as one ordinary clip (with a waveform). -->
+  <div id="fx-deck">
+    <div id="fx-flow"></div>
+    <div id="fx-params"></div>
+    <div id="fx-add-row"><span class="lbl">ADD AN EFFECT:</span></div>
+  </div>
   <div id="snd-deck">
     <div id="snd-top">
       <button id="snd-rec-btn" title="record a take — the movie rolls from the playhead so you can match sound to picture">⏺ RECORD</button>
@@ -1174,7 +1229,10 @@
     <div id="code-left">
       <div id="code-editwrap">
         <pre id="code-gutter">1</pre>
-        <textarea id="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"></textarea>
+        <div id="code-edstack">
+          <textarea id="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"></textarea>
+          <pre id="code-hl"></pre>
+        </div>
       </div>
       <div id="code-error">type code — it runs by itself as you type</div>
     </div>
@@ -1185,9 +1243,14 @@
         <input type="range" id="code-scrub" min="0" max="1000" value="0" title="scrub through time">
         <span id="code-time">0.0s</span>
       </div>
-      <div id="code-hint"><b>t</b> = time in seconds · <b>clear()</b> = see-through background (layers over your movie!) · <b>background('black')</b> = solid · canvas is <b>1280 × 720</b></div>
+      <div id="tinker"><div id="tinker-title">🎛 TINKER — drag a slider, the code changes itself</div><div id="tinker-rows"></div></div>
+      <div id="code-hint"><b>t</b> = time in seconds · <b>clear()</b> = see-through background (layers over your movie!) · tap any <b>glowing number</b> in the code to get a slider · canvas is <b>1280 × 720</b></div>
     </div>
   </div>
+</div>
+<div id="tk-bubble">
+  <div class="tkb-row"><span id="tkb-label">NUMBER</span><span class="tkb-val" id="tkb-val">0</span><button class="tkb-x" id="tkb-close">✕</button></div>
+  <input type="range" id="tkb-slider">
 </div>
 
 <!-- CAUTION SIGN -->
@@ -1264,6 +1327,7 @@ function defaultClipFX() {
     chroma: { on: false, color: [0, 255, 0], thresh: 45, soft: 20 },
     volume: 1, muted: false, audioOnly: false,
     fadeIn: 0, fadeOut: 0,   // seconds of audio fade at each end
+    fx: [],                  // ⚡ v18: effect chain [{id, p:{...}}] — picture flows through in order
   };
 }
 // audio-role clips live on the green lanes (track < 0): music files + detached audio
@@ -1329,6 +1393,18 @@ function sanitizeTimeline() {
     if (!Number.isFinite(c.opacity)) { c.opacity = 1; fixed++; }
     if (!Number.isFinite(c.fadeIn) || c.fadeIn < 0) { c.fadeIn = 0; fixed++; }
     if (!Number.isFinite(c.fadeOut) || c.fadeOut < 0) { c.fadeOut = 0; fixed++; }
+    // ⚡ v18: never trust an fx list at face value — unknown ids out, params clamped
+    if (!Array.isArray(c.fx)) { if (c.fx != null) fixed++; c.fx = []; }
+    else for (let i = c.fx.length - 1; i >= 0; i--) {
+      const e = c.fx[i], d = e && FX_DEFS[e.id];
+      if (!d) { c.fx.splice(i, 1); fixed++; continue; }
+      if (!e.p || typeof e.p !== 'object') e.p = {};
+      for (const k in d.params) {
+        const pd = d.params[k], v = Number(e.p[k]);
+        e.p[k] = Number.isFinite(v) ? Math.max(pd.min, Math.min(pd.max, v)) : pd.def;
+      }
+    }
+    if (c.fx.length > FX_MAX) { c.fx.length = FX_MAX; fixed++; }
   }
   if (fixed) caution('sanitize', '🛠 repaired some clips',
     'a few clips had broken numbers from an earlier bug — I fixed them in place. Nothing is lost!');
@@ -2073,6 +2149,13 @@ function makeBinCard(m, inFolder) {
     return card;
 }
 
+// ⛶ v18: fullscreen library — organizing needs elbow room
+$('bin-max-btn').addEventListener('click', () => {
+  const on = $('bin').classList.toggle('bin-max');
+  $('bin-max-btn').textContent = on ? '✕ BACK TO EDITING' : '⛶';
+  if (on) toast('🗂 the whole screen is your library — ⛶ or ESC brings the editor back');
+});
+
 // 🗂＋ new folder / 🔎 live search
 $('bin-folder-btn').addEventListener('click', () => {
   const f = { fid: ++folderCounter, name: `folder ${folderCounter}`, open: true };
@@ -2218,6 +2301,140 @@ function clipSurface(clip, srcT, forScrub) {
   return { img: v, sw: v.videoWidth || m.width, sh: v.videoHeight || m.height };
 }
 
+// ════════════════════════════════════════════════════════════
+// ⚡ FX — v18 "code as compositing" phase A. Every effect is a pure
+// picture-in → picture-out step; a clip's chain runs IDENTICALLY in
+// preview and export (same function, same order, t = clip-local time
+// so exports are deterministic). Drawn to kids as a flowchart:
+//   🎬 clip → [effect] → [effect] → 🖥 screen
+// ════════════════════════════════════════════════════════════
+const FX_MAX = 5;   // enough to learn chaining, not enough to melt an iPad
+const FX_DEFS = {
+  invert:   { label: '🙃 INVERT',     params: { amount:   { def: 100, min: 0,   max: 100, step: 1,   name: 'HOW MUCH' } } },
+  hue:      { label: '🌈 COLOR SPIN', params: { spin:     { def: 180, min: 0,   max: 360, step: 1,   name: 'SPIN°' },
+                                                speed:    { def: 0,   min: 0,   max: 3,   step: 0.1, name: 'SPEED' } } },
+  pixelate: { label: '🟦 PIXELATE',   params: { size:     { def: 14,  min: 2,   max: 80,  step: 1,   name: 'BLOCK SIZE' } } },
+  glasses:  { label: '👓 3D GLASSES', params: { shift:    { def: 10,  min: 0,   max: 60,  step: 1,   name: 'DEPTH' } } },
+  glow:     { label: '✨ GLOW',       params: { strength: { def: 14,  min: 0,   max: 60,  step: 1,   name: 'STRENGTH' } } },
+  wiggle:   { label: '🌀 WIGGLE',     params: { amount:   { def: 18,  min: 0,   max: 120, step: 1,   name: 'AMOUNT' },
+                                                speed:    { def: 4,   min: 0.2, max: 15,  step: 0.1, name: 'SPEED' } } },
+};
+// ctx.filter exists everywhere except older iPad Safari — every effect has a
+// no-filter fallback so the fleet never sees a broken picture
+const FX_HAS_FILTER = (() => {
+  try { const c = document.createElement('canvas').getContext('2d'); c.filter = 'blur(2px)'; return c.filter === 'blur(2px)'; }
+  catch (e) { return false; }
+})();
+const fxA = document.createElement('canvas'), fxB = document.createElement('canvas'), fxT = document.createElement('canvas');
+const fxACtx = fxA.getContext('2d'), fxBCtx = fxB.getContext('2d'), fxTCtx = fxT.getContext('2d');
+
+function fxStep(e, src, dc, w, h, t) {
+  const p = e.p || {};
+  switch (e.id) {
+    case 'invert': {
+      const a = Math.max(0, Math.min(1, (p.amount ?? 100) / 100));
+      dc.drawImage(src, 0, 0);
+      if (a > 0) {
+        // difference-with-white = exact invert, no ctx.filter needed anywhere
+        dc.globalCompositeOperation = 'difference';
+        dc.globalAlpha = a;
+        dc.fillStyle = '#fff'; dc.fillRect(0, 0, w, h);
+        dc.globalAlpha = 1;
+        dc.globalCompositeOperation = 'destination-in';   // put the clip's transparency back
+        dc.drawImage(src, 0, 0);
+      }
+      break;
+    }
+    case 'hue': {
+      const deg = (((p.spin ?? 180) + (p.speed ?? 0) * t * 120) % 360 + 360) % 360;
+      if (FX_HAS_FILTER) {
+        dc.filter = `hue-rotate(${deg}deg)`; dc.drawImage(src, 0, 0); dc.filter = 'none';
+      } else {
+        // fallback: paint the hue over the picture (colorize — different, still fun)
+        dc.drawImage(src, 0, 0);
+        dc.globalCompositeOperation = 'hue';
+        dc.fillStyle = `hsl(${deg}, 90%, 50%)`; dc.fillRect(0, 0, w, h);
+        dc.globalCompositeOperation = 'destination-in';
+        dc.drawImage(src, 0, 0);
+      }
+      break;
+    }
+    case 'pixelate': {
+      const s = Math.max(2, Math.round(p.size ?? 14));
+      const pw = Math.max(1, Math.round(w / s)), ph = Math.max(1, Math.round(h / s));
+      dc.imageSmoothingEnabled = true;
+      dc.drawImage(src, 0, 0, w, h, 0, 0, pw, ph);          // tiny version…
+      dc.imageSmoothingEnabled = false;
+      dc.globalCompositeOperation = 'copy';                 // …blown back up, blocky
+      dc.drawImage(dc.canvas, 0, 0, pw, ph, 0, 0, w, h);
+      dc.imageSmoothingEnabled = true;
+      break;
+    }
+    case 'glasses': {
+      // anaglyph: the red eye slides left, the cyan eye slides right — 3D-movie style
+      const s = Math.round(p.shift ?? 10);
+      if (fxT.width !== w || fxT.height !== h) { fxT.width = w; fxT.height = h; }
+      const tc = fxTCtx;
+      const eye = (color) => {
+        tc.globalCompositeOperation = 'source-over'; tc.clearRect(0, 0, w, h); tc.drawImage(src, 0, 0);
+        tc.globalCompositeOperation = 'multiply'; tc.fillStyle = color; tc.fillRect(0, 0, w, h);
+        tc.globalCompositeOperation = 'destination-in'; tc.drawImage(src, 0, 0);
+      };
+      eye('#f00'); dc.drawImage(fxT, -s, 0);
+      eye('#0ff'); dc.globalCompositeOperation = 'lighter'; dc.drawImage(fxT, s, 0);
+      break;
+    }
+    case 'glow': {
+      const g = Math.round(p.strength ?? 14);
+      dc.drawImage(src, 0, 0);
+      if (g > 0) {
+        dc.globalCompositeOperation = 'lighter';
+        if (FX_HAS_FILTER) {
+          dc.globalAlpha = 0.85; dc.filter = `blur(${g}px)`; dc.drawImage(src, 0, 0);
+          dc.filter = 'none'; dc.globalAlpha = 1;
+        } else {
+          // shadow trick: draw offscreen, only the blurred shadow lands on canvas
+          dc.shadowColor = 'rgba(255,255,255,0.85)'; dc.shadowBlur = g; dc.shadowOffsetX = w;
+          dc.drawImage(src, -w, 0);
+          dc.shadowOffsetX = 0; dc.shadowBlur = 0; dc.shadowColor = 'transparent';
+        }
+      }
+      break;
+    }
+    case 'wiggle': {
+      const amp = p.amount ?? 18, sp = p.speed ?? 4;
+      dc.drawImage(src, Math.sin(t * sp * 6.2832) * amp, Math.cos(t * sp * 1.7 * 6.2832) * amp * 0.6);
+      break;
+    }
+  }
+}
+
+// run a clip's chain on a surface (already chroma-keyed). maxW caps working res
+// for preview speed; export passes a big cap = full res. Returns a scratch
+// canvas — caller must drawImage it before the next applyFxChain call.
+function applyFxChain(img, sw, sh, clip, t, maxW) {
+  const list = (clip.fx || []).filter(e => e && FX_DEFS[e.id]);
+  if (!list.length) return { img, sw, sh };
+  const w = Math.max(2, Math.min(sw, maxW)), h = Math.max(2, Math.round(sh * (w / sw)));
+  if (fxA.width !== w || fxA.height !== h) { fxA.width = w; fxA.height = h; }
+  if (fxB.width !== w || fxB.height !== h) { fxB.width = w; fxB.height = h; }
+  let src = fxA, sc = fxACtx, dc = fxBCtx;
+  sc.setTransform(1, 0, 0, 1, 0, 0); sc.globalAlpha = 1; sc.globalCompositeOperation = 'source-over';
+  if (FX_HAS_FILTER) sc.filter = 'none';
+  sc.clearRect(0, 0, w, h);
+  sc.drawImage(img, 0, 0, sw, sh, 0, 0, w, h);
+  for (const e of list) {
+    dc.setTransform(1, 0, 0, 1, 0, 0); dc.globalAlpha = 1; dc.globalCompositeOperation = 'source-over';
+    if (FX_HAS_FILTER) dc.filter = 'none';
+    dc.clearRect(0, 0, w, h);
+    fxStep(e, src, dc, w, h, t);
+    dc.globalCompositeOperation = 'source-over';
+    src = dc.canvas;
+    [sc, dc] = [dc, sc];
+  }
+  return { img: src, sw: w, sh: h };
+}
+
 function drawClipLayer(ctx, W, H, clip, srcT, forScrub, fullResKey) {
   const surf = clipSurface(clip, srcT, forScrub);
   if (!surf) return false;
@@ -2231,15 +2448,20 @@ function drawClipLayer(ctx, W, H, clip, srcT, forScrub, fullResKey) {
   const dw = sw * s, dh = sh * s;
   const dx = (W - dw) / 2, dy = (H - dh) / 2;
 
+  // order matters and is teachable: key the green screen FIRST, then the
+  // effects chain runs on the keyed picture (⚡ after 🎯 — like real comps)
   if (clip.chroma && clip.chroma.on) {
     // keying happens on a scratch canvas; preview keys at reduced res for speed
     const procW = fullResKey ? Math.round(dw) : Math.min(640, Math.round(dw));
     const procH = Math.max(1, Math.round(procW * (sh / sw)));
-    const keyed = chromaKeyed(img, sw, sh, procW, procH, clip.chroma);
-    ctx.drawImage(keyed, 0, 0, procW, procH, dx, dy, dw, dh);
-  } else {
-    ctx.drawImage(img, 0, 0, sw, sh, dx, dy, dw, dh);
+    img = chromaKeyed(img, sw, sh, procW, procH, clip.chroma);
+    sw = procW; sh = procH;
   }
+  if (clip.fx && clip.fx.length) {
+    const r = applyFxChain(img, sw, sh, clip, srcT, fullResKey ? 8192 : 640);
+    img = r.img; sw = r.sw; sh = r.sh;
+  }
+  ctx.drawImage(img, 0, 0, sw, sh, dx, dy, dw, dh);
   ctx.restore();
   return !!surf.proxy;
 }
@@ -2973,6 +3195,9 @@ function updateTools() {
   $('opacity-slider').disabled = !c || audioRole;
   $('blend-select').disabled = !c || audioRole;
   $('chroma-toggle').disabled = !c || audioRole;
+  $('fx-btn').disabled = !c || audioRole;
+  $('fx-count').textContent = (c && c.fx && c.fx.length) ? ' ' + c.fx.length : '';
+  if (fxUI.open) { if (!c) fxClose(); else fxRender(); }   // deck follows the selection
   $('chroma-pick').disabled = !c || audioRole || !c.chroma.on;
   $('chroma-thresh').disabled = !c || audioRole || !c.chroma.on;
   $('chroma-soft').disabled = !c || audioRole || !c.chroma.on;
@@ -3599,6 +3824,116 @@ function sndClose() {
   if (snd.prevTlH) document.body.style.setProperty('--tl-h', snd.prevTlH);
   else document.body.style.removeProperty('--tl-h');
   renderTimeline();
+}
+
+// ════════════════════════════════════════════════════════════
+// ⚡ FX DECK — the flowchart panel. 🎬 clip → [effect] → [effect] → 🖥 screen
+// tap a node to tinker its sliders · picture updates as you drag
+// ════════════════════════════════════════════════════════════
+const fxUI = { open: false, sel: 0, prevTlH: null };
+$('fx-btn').addEventListener('click', () => fxUI.open ? fxClose() : fxOpen());
+function fxOpen() {
+  if (!selClip()) return;
+  fxUI.open = true;
+  $('fx-deck').classList.add('open');
+  $('fx-btn').classList.add('on');
+  fxUI.prevTlH = document.body.style.getPropertyValue('--tl-h');
+  const cur = parseFloat(getComputedStyle(document.body).getPropertyValue('--tl-h')) || 230;
+  document.body.style.setProperty('--tl-h', (cur + 130) + 'px');
+  fxRender();
+  renderTimeline();
+}
+function fxClose() {
+  fxUI.open = false;
+  $('fx-deck').classList.remove('open');
+  $('fx-btn').classList.remove('on');
+  if (fxUI.prevTlH) document.body.style.setProperty('--tl-h', fxUI.prevTlH);
+  else document.body.style.removeProperty('--tl-h');
+  renderTimeline();
+}
+function fxTouch() {           // any fx change: repaint + quietly save
+  drawFrame();
+  renderTimelineLight(selTid);
+  scheduleAutosave();
+}
+function fxRender() {
+  if (!fxUI.open) return;
+  const c = selClip();
+  const flow = $('fx-flow'), params = $('fx-params'), addRow = $('fx-add-row');
+  flow.innerHTML = ''; params.innerHTML = '';
+  [...addRow.querySelectorAll('button')].forEach(b => b.remove());
+  if (!c || isAudioRole(c)) {
+    flow.innerHTML = '<span style="font-size:12px;color:var(--muted)">pick a picture clip on the timeline — then stack effects on it here ⚡</span>';
+    return;
+  }
+  const m = mediaOf(c);
+  if (fxUI.sel >= c.fx.length) fxUI.sel = c.fx.length - 1;
+  if (fxUI.sel < 0) fxUI.sel = 0;
+  // ── flow strip ──
+  const node = (txt, cls) => { const d = document.createElement('div'); d.className = 'fxf-node ' + (cls || ''); d.textContent = txt; return d; };
+  const arrow = () => { const s = document.createElement('span'); s.className = 'fxf-arrow'; s.textContent = '➜'; return s; };
+  flow.appendChild(node('🎬 ' + ((m && m.name) || 'clip'), 'io'));
+  c.fx.forEach((e, i) => {
+    flow.appendChild(arrow());
+    const n = node(FX_DEFS[e.id].label, i === fxUI.sel ? 'sel' : '');
+    const x = document.createElement('button');
+    x.className = 'fx-x'; x.textContent = '✕'; x.title = 'remove this effect';
+    x.addEventListener('click', ev => { ev.stopPropagation(); snapshot(); c.fx.splice(i, 1); if (fxUI.sel >= i) fxUI.sel--; fxRender(); fxTouch(); });
+    n.appendChild(x);
+    n.addEventListener('click', () => { fxUI.sel = i; fxRender(); });
+    flow.appendChild(n);
+  });
+  flow.appendChild(arrow());
+  flow.appendChild(node('🖥 SCREEN', 'io'));
+  // ── params for the selected node ──
+  const e = c.fx[fxUI.sel];
+  if (e) {
+    const def = FX_DEFS[e.id];
+    for (const k in def.params) {
+      const pd = def.params[k];
+      const wrap = document.createElement('div'); wrap.className = 'fxp';
+      const lab = document.createElement('span'); lab.textContent = pd.name;
+      const inp = document.createElement('input');
+      inp.type = 'range'; inp.min = pd.min; inp.max = pd.max; inp.step = pd.step; inp.value = e.p[k];
+      const val = document.createElement('span'); val.className = 'v'; val.textContent = e.p[k];
+      inp.addEventListener('input', () => { e.p[k] = parseFloat(inp.value); val.textContent = inp.value; fxTouch(); });
+      wrap.append(lab, inp, val);
+      params.appendChild(wrap);
+    }
+    const mkMove = (txt, d) => {
+      const b = document.createElement('button');
+      b.className = 'fxp-move'; b.textContent = txt; b.title = 'move this effect ' + (d < 0 ? 'earlier' : 'later') + ' in the chain';
+      b.disabled = fxUI.sel + d < 0 || fxUI.sel + d >= c.fx.length;
+      b.addEventListener('click', () => {
+        snapshot();
+        const [it] = c.fx.splice(fxUI.sel, 1);
+        c.fx.splice(fxUI.sel + d, 0, it);
+        fxUI.sel += d; fxRender(); fxTouch();
+      });
+      return b;
+    };
+    params.appendChild(mkMove('◀', -1));
+    params.appendChild(mkMove('▶', 1));
+  } else {
+    params.innerHTML = '<span style="font-size:12px;color:var(--muted)">no effects yet — add one below, the picture flows through them in order</span>';
+  }
+  // ── add buttons ──
+  for (const id in FX_DEFS) {
+    const b = document.createElement('button');
+    b.className = 'fx-add-btn'; b.textContent = '＋ ' + FX_DEFS[id].label;
+    b.disabled = c.fx.length >= FX_MAX;
+    b.title = c.fx.length >= FX_MAX ? `${FX_MAX} effects is the max — remove one first` : 'add to the end of the chain';
+    b.addEventListener('click', () => {
+      snapshot();
+      const p = {};
+      for (const k in FX_DEFS[id].params) p[k] = FX_DEFS[id].params[k].def;
+      c.fx.push({ id, p });
+      fxUI.sel = c.fx.length - 1;
+      fxRender(); fxTouch();
+      toast('⚡ ' + FX_DEFS[id].label + ' — drag its sliders, watch the picture');
+    });
+    addRow.appendChild(b);
+  }
 }
 function sndWireMIDI() {
   if (snd.midiWired || !navigator.requestMIDIAccess) return;
@@ -4783,66 +5118,83 @@ const CODE_W = 1280, CODE_H = 720;
 const CODE_TEMPLATES = [
   { name: '🌈 rainbow spiral', code:
 `// 🌈 rainbow spiral — t is time in seconds
-// clear() makes the background see-through,
-// so this layers on top of your movie!
+// 🎛 the glowing numbers slide — tap one!
+let dots = 60;
+let twirl = 2;
+let dotSize = 14;
+
 function draw() {
   clear();
   colorMode(HSB, 360, 100, 100);
   translate(width/2, height/2);
   noStroke();
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < dots; i++) {
     fill((t * 60 + i * 6) % 360, 90, 100);
-    const a = i * 0.35 + t * 2;
+    const a = i * 0.35 + t * twirl;
     const r = 12 + i * 5.5;
-    circle(cos(a) * r, sin(a) * r, 14 + i * 0.4);
+    circle(cos(a) * r, sin(a) * r, dotSize + i * 0.4);
   }
 }` },
   { name: '⚽ bouncy ball', code:
-`// ⚽ bouncy ball — change the colors and speed!
+`// ⚽ bouncy ball — 🎛 tinker the numbers!
+let ballSize = 95;
+let bounceSpeed = 5;
+let slideSpeed = 2;
+
 function draw() {
   clear();
-  const x = width/2 + sin(t * 2) * 340;
-  const y = height - 90 - abs(sin(t * 5)) * 400;
+  const x = width/2 + sin(t * slideSpeed) * 340;
+  const y = height - 90 - abs(sin(t * bounceSpeed)) * 400;
   noStroke();
   fill('#FFD600');
-  circle(x, y, 95);
+  circle(x, y, ballSize);
   // squash shadow
   fill('rgba(0,0,0,0.35)');
-  ellipse(x, height - 40, 130 - abs(sin(t * 5)) * 60, 22);
+  ellipse(x, height - 40, 130 - abs(sin(t * bounceSpeed)) * 60, 22);
 }` },
   { name: '🌧 rain', code:
 `// 🌧 rain — every drop follows math, not luck
+let drops = 90;
+let fallSpeed = 600;
+let thickness = 3;
+
 function draw() {
   clear();
   stroke('#00E5FF');
-  strokeWeight(3);
-  for (let i = 0; i < 90; i++) {
+  strokeWeight(thickness);
+  for (let i = 0; i < drops; i++) {
     const x = (i * 137.5) % width;
-    const y = (i * 271 + t * 600) % (height + 40) - 20;
+    const y = (i * 271 + t * fallSpeed) % (height + 40) - 20;
     line(x, y, x - 5, y + 24);
   }
 }` },
   { name: '⭐ starfield', code:
 `// ⭐ starfield — flying through space
+let stars = 140;
+let flySpeed = 220;
+
 function draw() {
   background(5, 5, 15);
   translate(width/2, height/2);
   noStroke();
   fill(255);
-  for (let i = 0; i < 140; i++) {
+  for (let i = 0; i < stars; i++) {
     const a = i * 2.399;                    // golden angle
-    const d = ((i * 37 + t * 220) % 700);
+    const d = ((i * 37 + t * flySpeed) % 700);
     const size = map(d, 0, 700, 0.5, 6);
     circle(cos(a) * d, sin(a) * d * 0.6, size);
   }
 }` },
   { name: '📝 title card', code:
 `// 📝 title card — change the words!
+let wordSize = 110;
+let wobble = 8;
+
 function draw() {
   clear();
   textAlign(CENTER, CENTER);
   textStyle(BOLD);
-  textSize(110 + sin(t * 3) * 8);
+  textSize(wordSize + sin(t * 3) * wobble);
   stroke('#D500F9');
   strokeWeight(8);
   fill('#00E5FF');
@@ -4851,6 +5203,8 @@ function draw() {
   { name: '⬛ start empty', code:
 `// your canvas: 1280 wide × 720 tall
 // t = time in seconds · draw() runs 30 times a second
+let size = 100;
+let speed = 4;
 
 function setup() {
   // runs once at the start
@@ -4860,7 +5214,7 @@ function draw() {
   clear();   // see-through background
   fill('#FF4081');
   noStroke();
-  circle(width/2, height/2, 100 + sin(t * 4) * 40);
+  circle(width/2, height/2, size + sin(t * speed) * 40);
 }` },
 ];
 
@@ -5028,23 +5382,199 @@ function codeMedia() { return media.find(m => m.id === codeS.mediaId); }
 }
 
 const codeEd = $('code-editor');
+const codeHl = $('code-hl');
 function updateGutter() {
   const n = codeEd.value.split('\n').length;
   $('code-gutter').textContent = Array.from({ length: n }, (_, i) => i + 1).join('\n');
 }
-codeEd.addEventListener('scroll', () => { $('code-gutter').scrollTop = codeEd.scrollTop; });
+codeEd.addEventListener('scroll', () => {
+  $('code-gutter').scrollTop = codeEd.scrollTop;
+  codeHl.scrollTop = codeEd.scrollTop;           // 🎛 pills ride along with the code
+  codeHl.scrollLeft = codeEd.scrollLeft;
+});
 codeEd.addEventListener('keydown', e => {
   if (e.key === 'Tab') {   // tab = 2 spaces, stay in the editor
     e.preventDefault();
     codeEd.setRangeText('  ', codeEd.selectionStart, codeEd.selectionEnd, 'end');
     codeApply();
+    tkScheduleHl();
   }
 });
 codeEd.addEventListener('input', () => {
   updateGutter();
+  tkCloseBubble();                               // hand-typing? the slider steps aside
+  tkScheduleHl();
   clearTimeout(codeS.debounce);
   codeS.debounce = setTimeout(codeApply, 500);   // live coding: runs as you type
 });
+
+// ════════════════════════════════════════════════════════════
+// 🎛 TINKER — every number in the code glows and slides.
+// A mirror <pre> sits exactly on top of the textarea: its text is invisible,
+// but every number gets a glowing pill that CATCHES taps (so on iPad the
+// keyboard stays closed and a slider pops instead). Everywhere else, taps
+// fall straight through to the editor. Named `let` numbers also appear in
+// the TINKER panel as labeled sliders.
+// ════════════════════════════════════════════════════════════
+const tk = { tokens: [], live: null, hlT: null, applyT: null };
+
+function tkTokenize(src) {
+  const tokens = [];
+  const re = /\d+(?:\.\d+)?/g;
+  let base = 0;
+  for (const line of src.split('\n')) {
+    const cut = line.indexOf('//');
+    const limit = cut >= 0 ? cut : line.length;   // numbers in comments stay quiet
+    re.lastIndex = 0;
+    let m2;
+    while ((m2 = re.exec(line))) {
+      if (m2.index >= limit) break;
+      const prev = line[m2.index - 1];
+      if (prev && /[\w$.]/.test(prev)) continue;  // part of a name like p5 or item2
+      let start = m2.index, txt = m2[0];
+      // pull a leading minus in when it's a sign, not a subtraction
+      if (prev === '-') {
+        const pb = line[start - 2];
+        if (!pb || !/[\w$)\].]/.test(pb)) { start--; txt = '-' + txt; }
+      }
+      tokens.push({ start: base + start, len: txt.length, val: parseFloat(txt) });
+    }
+    base += line.length + 1;
+  }
+  return tokens;
+}
+
+function tkRenderHl(skipPanel) {
+  const src = codeEd.value;
+  tk.tokens = tkTokenize(src);
+  const frag = document.createDocumentFragment();
+  let pos = 0;
+  tk.tokens.forEach((tok, i) => {
+    if (tok.start > pos) frag.appendChild(document.createTextNode(src.slice(pos, tok.start)));
+    const s = document.createElement('span');
+    s.className = 'tkn';
+    s.textContent = src.slice(tok.start, tok.start + tok.len);
+    s.dataset.i = i;
+    frag.appendChild(s);
+    pos = tok.start + tok.len;
+  });
+  frag.appendChild(document.createTextNode(src.slice(pos) + '\n'));
+  codeHl.textContent = '';
+  codeHl.appendChild(frag);
+  codeHl.scrollTop = codeEd.scrollTop;
+  codeHl.scrollLeft = codeEd.scrollLeft;
+  if (!skipPanel) tkRenderPanel();   // panel waits for drag-end so sliders don't vanish mid-drag
+}
+function tkScheduleHl(skipPanel) {
+  clearTimeout(tk.hlT);
+  tk.hlT = setTimeout(() => tkRenderHl(skipPanel), 140);
+}
+
+// slider range that feels right for the number you grabbed
+function tkRange(v) {
+  const a = Math.abs(v);
+  if (v === 0) return { min: -10, max: 10, step: 0.5 };
+  if (a <= 1)  return { min: v < 0 ? -2 : 0, max: 2, step: 0.01 };
+  if (a <= 10) return { min: v < 0 ? -Math.ceil(a * 3) : 0, max: Math.ceil(a * 3), step: 0.1 };
+  const top = Math.ceil(a * 3);
+  return { min: v < 0 ? -top : 0, max: top, step: 1 };
+}
+function tkFmt(n, step) { return step < 1 ? String(Math.round(n * 100) / 100) : String(Math.round(n)); }
+
+// live edit: replace a number in the code and keep tracking it while it drags
+function tkWrite(liveTok, newTxt) {
+  const before = codeEd.value;
+  codeEd.value = before.slice(0, liveTok.start) + newTxt + before.slice(liveTok.start + liveTok.len);
+  liveTok.len = newTxt.length;
+  // THROTTLE (not debounce): the picture keeps updating even mid-drag
+  if (!tk.applyT) tk.applyT = setTimeout(() => { tk.applyT = null; codeApply(); }, 150);
+  tkScheduleHl(true);
+}
+
+// ── the tap-a-number slider bubble ──
+codeHl.addEventListener('pointerdown', e => {
+  const el = e.target.closest ? e.target.closest('.tkn') : null;
+  if (!el) return;
+  e.preventDefault(); e.stopPropagation();       // iPad: keyboard stays closed
+  tkOpenBubble(parseInt(el.dataset.i), el);
+});
+function tkOpenBubble(i, chipEl) {
+  const tok = tk.tokens[i];
+  if (!tok) return;
+  tk.live = { start: tok.start, len: tok.len, val: tok.val };
+  const r = tkRange(tok.val);
+  const sl = $('tkb-slider');
+  sl.min = r.min; sl.max = r.max; sl.step = r.step; sl.value = tok.val;
+  $('tkb-label').textContent = '🎛 SLIDE ME';
+  $('tkb-val').textContent = tkFmt(tok.val, r.step);
+  const b = $('tk-bubble');
+  b.style.display = 'block';
+  const cr = chipEl.getBoundingClientRect();
+  const bw = 260, bh = 86;
+  let x = Math.max(8, Math.min(window.innerWidth - bw - 8, cr.left - 20));
+  let y = cr.bottom + 10;
+  if (y + bh > window.innerHeight - 8) y = cr.top - bh - 10;
+  b.style.left = x + 'px'; b.style.top = Math.max(8, y) + 'px';
+  [...codeHl.querySelectorAll('.tkn.hot')].forEach(el => el.classList.remove('hot'));
+  chipEl.classList.add('hot');
+}
+$('tkb-slider').addEventListener('input', () => {
+  if (!tk.live) return;
+  const step = parseFloat($('tkb-slider').step) || 1;
+  const txt = tkFmt(parseFloat($('tkb-slider').value), step);
+  $('tkb-val').textContent = txt;
+  tkWrite(tk.live, txt);
+});
+$('tkb-slider').addEventListener('change', () => {      // drag released → refresh everything
+  clearTimeout(tk.applyT); tk.applyT = null; codeApply();
+  tkRenderHl();
+  if (tk.live) { const fresh = tk.tokens.find(t2 => t2.start === tk.live.start); if (fresh) tk.live = { ...fresh }; }
+});
+function tkCloseBubble() {
+  tk.live = null;
+  $('tk-bubble').style.display = 'none';
+  [...codeHl.querySelectorAll('.tkn.hot')].forEach(el => el.classList.remove('hot'));
+}
+$('tkb-close').addEventListener('click', tkCloseBubble);
+document.addEventListener('pointerdown', e => {
+  if ($('tk-bubble').style.display !== 'block') return;
+  if (e.target.closest && (e.target.closest('#tk-bubble') || e.target.closest('.tkn'))) return;
+  tkCloseBubble();
+});
+
+// ── the TINKER panel: named `let` numbers become labeled sliders ──
+function tkRenderPanel() {
+  const rows = $('tinker-rows');
+  rows.textContent = '';
+  const src = codeEd.value;
+  const re = /(^|[\n;{}])\s*(?:let|const|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(-?\d+(?:\.\d+)?)\s*;/g;
+  let m2, n = 0;
+  while ((m2 = re.exec(src)) && n < 12) {
+    // note: the leading [\n;{}] guard keeps `for (let i = 0; …)` counters OUT —
+    // a loop counter is plumbing, not a knob a kid should be handed
+    const name = m2[2], valTxt = m2[3], val = parseFloat(valTxt);
+    const liveTok = { start: m2.index + m2[0].lastIndexOf(valTxt), len: valTxt.length, val };
+    const r = tkRange(val);
+    const row = document.createElement('div'); row.className = 'tk-row';
+    const nm = document.createElement('span'); nm.className = 'tk-name'; nm.textContent = name; nm.title = name;
+    const inp = document.createElement('input');
+    inp.type = 'range'; inp.min = r.min; inp.max = r.max; inp.step = r.step; inp.value = val;
+    const vv = document.createElement('span'); vv.className = 'tk-val'; vv.textContent = tkFmt(val, r.step);
+    inp.addEventListener('input', () => {
+      const txt = tkFmt(parseFloat(inp.value), r.step);
+      vv.textContent = txt;
+      tkWrite(liveTok, txt);
+    });
+    inp.addEventListener('change', () => {   // released → recompute every row's position
+      clearTimeout(tk.applyT); tk.applyT = null; codeApply();
+      tkRenderHl();
+    });
+    row.append(nm, inp, vv);
+    rows.appendChild(row);
+    n++;
+  }
+  $('tinker').style.display = n ? '' : 'none';
+}
 function codeApply() {
   const m = codeMedia();
   if (!m) return;
@@ -5056,6 +5586,7 @@ $('code-template').addEventListener('change', e => {
   if (!tp) return;
   codeEd.value = tp.code;
   updateGutter(); codeApply();
+  tkCloseBubble(); tkRenderHl();
   codeS.t0 = 0; codeS.wall = performance.now();
 });
 $('code-dur').addEventListener('change', e => {
@@ -5123,6 +5654,7 @@ function openCodeStudio(mediaId) {
   $('code-dur').value = m.duration;
   codeEd.value = m.code;
   updateGutter();
+  tkCloseBubble(); tkRenderHl();   // 🎛 numbers light up the moment the studio opens
   $('code-play-btn').textContent = '⏸';
   $('code-overlay').style.display = 'flex';
   cancelAnimationFrame(codeS.raf);
@@ -5133,6 +5665,8 @@ $('code-done-btn').addEventListener('click', () => {
   const m = codeMedia();
   if (!m) return;
   clearTimeout(codeS.debounce);
+  clearTimeout(tk.applyT); tk.applyT = null;
+  tkCloseBubble();
   codeApply();
   m.name = $('code-name').value.trim() || m.name;
   m.duration = Math.max(1, Math.min(600, parseFloat($('code-dur').value) || m.duration));
@@ -6526,12 +7060,16 @@ async function exportFast() {
         const s = Math.min(res.w / sw, res.h / sh);
         const dw = sw * s, dh = sh * s;
         const dx = (res.w - dw) / 2, dy = (res.h - dh) / 2;
+        // 🎯 key first, ⚡ then fx — the SAME order and functions as the preview
         if (clip.chroma && clip.chroma.on) {
-          const keyed = chromaKeyed(img, sw, sh, Math.round(dw), Math.round(dh), clip.chroma);
-          exCtx.drawImage(keyed, 0, 0, Math.round(dw), Math.round(dh), dx, dy, dw, dh);
-        } else {
-          exCtx.drawImage(img, 0, 0, sw, sh, dx, dy, dw, dh);
+          img = chromaKeyed(img, sw, sh, Math.round(dw), Math.round(dh), clip.chroma);
+          sw = Math.round(dw); sh = Math.round(dh);
         }
+        if (clip.fx && clip.fx.length) {
+          const fr = applyFxChain(img, sw, sh, clip, srcT, 8192);   // full res on export
+          img = fr.img; sw = fr.sw; sh = fr.sh;
+        }
+        exCtx.drawImage(img, 0, 0, sw, sh, dx, dy, dw, dh);
         exCtx.restore();
       }
       await videoSource.add(t, 1 / FPS);
@@ -6894,7 +7432,7 @@ async function offerRecovery() {
 function buildProjectData() {
   sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 8,
+    app: 'geov', version: 9,   // v9: clips carry ⚡ fx chains (plain JSON, rides in timeline)
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
     folders: binFolders.map(f => ({ fid: f.fid, name: f.name, open: f.open !== false })),   // 🗂 v8
@@ -7328,6 +7866,10 @@ async function openProjectData(data) {
 // ════════════════════════════════════════════════════════════
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  if ($('bin').classList.contains('bin-max')) {          // ⛶ v18 fullscreen library
+    if (e.key === 'Escape') $('bin-max-btn').click();
+    return;
+  }
   if (codeS.open) {
     if (e.key === 'Escape') $('code-done-btn').click();
     return;
@@ -7381,7 +7923,7 @@ offerRecovery();                                   // 🛟 the tab closed? the m
 // 📉 a past export failed on this device → default to 720p (kid can still pick 1080)
 try { if (localStorage.getItem('geov-export-failed') && touchDevice) $('export-res').value = '720'; } catch (e) {}
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-console.log('%c⬡ GeoV Studio v17 — 🗂 clip library (folders · search · no-squish cards) + 🎬 DONE joins the end + 🛟 per-tab autosave slots + 🌀 multi-turn spins', 'color:#00E5FF;font-size:16px;font-weight:bold');
+console.log('%c⬡ GeoV Studio v18 — 🎛 TINKER (tap the glowing numbers) + ⚡ FX flowchart compositing + ⛶ fullscreen clip library', 'color:#00E5FF;font-size:16px;font-weight:bold');
 console.log('%cSPACE=play · ←→=frame step (shift=1s) · S=split · DEL=remove · CTRL+Z=undo · wheel=zoom timeline · shift+drag=snap', 'color:#8888a0');
 </script>
 </body>
