@@ -5586,7 +5586,13 @@ function ensureCodeInstance(m) {
       'function __guard() { if (++__lc > 3000000) { const e = new Error("loop ran away"); e.__loop = true; throw e; } }\n' +
       '__guardReset.fn = () => { __lc = 0; };\n' +
       'with (p) {\n' + injectLoopGuards((projectBlocks ? projectBlocks + '\n' : '') + m.code) + '\n' +
-      'return { setup: (typeof setup === "function") ? setup : null, draw: (typeof draw === "function") ? draw : null };\n}');
+      // 🪤 v19.1 — `with(p)` means a bare `setup` falls through to p.setup, which is THIS
+      // function. A clip that writes draw() but no setup() used to hand its own harness
+      // back as api.setup, and `api.setup()` below re-entered forever:
+      // "Maximum call stack size exceeded", on a clip that is perfectly good code.
+      // Same trap for draw(). The identity check is the whole fix.
+      'return { setup: (typeof setup === "function" && setup !== p.setup) ? setup : null,' +
+      '         draw:  (typeof draw  === "function" && draw  !== p.draw ) ? draw  : null };\n}');
   } catch (err) { m._err = friendlyError(err); return null; }
   const holder = document.createElement('div');
   holder.style.cssText = 'position:fixed;left:-99999px;top:0;width:0;height:0;overflow:hidden;';
