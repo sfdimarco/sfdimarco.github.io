@@ -111,7 +111,10 @@
     letter-spacing: 2px; border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between;
   }
-  .bin-btns { display: flex; gap: 8px; padding: 10px 12px 4px; }
+  /* 🩹 v19 — flex-wrap. Five buttons at flex:1 in a 250px panel pushed ✨ NEW CODE and
+     📷 STOP MOTION off-panel and unreachable. Reported in SIGNAL, HAMSOCKS and GEOV-101.
+     Two of six studios were invisible to a new kid for three test flights. One word. */
+  .bin-btns { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px 4px; }
   .bin-btns button {
     flex: 1;
     background: none; border: 2px dashed var(--cyan); color: var(--cyan);
@@ -844,14 +847,124 @@
   #caution-msg li { margin-bottom: 6px; }
   #caution-msg .fine { color: var(--muted); font-size: 12px; }
   #caution-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ═══ v19 · 🏠 HOME — nothing opens until a human picks it ═══ */
+  #home-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 260; display: none; flex-direction: column; }
+  #home-overlay.open { display: flex; }
+  #home-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  #home-maker-chip { font-size: 12px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
+                     background: var(--card); cursor: pointer; white-space: nowrap; }
+  #home-maker-chip:hover { border-color: var(--cyan); }
+  #home-filters { display: flex; gap: 8px; padding: 12px 18px; align-items: center; flex-wrap: wrap; }
+  .home-f { background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 999px;
+            padding: 6px 14px; font-size: 11px; letter-spacing: .5px; cursor: pointer; font-family: inherit; }
+  .home-f.on { color: var(--text); border-color: var(--cyan); }
+  #home-search { flex: 1; min-width: 140px; max-width: 320px; background: var(--card); border: 1px solid var(--border);
+                 color: var(--text); border-radius: 999px; padding: 7px 14px; font-family: inherit; font-size: 12px; }
+  #home-grid { flex: 1; overflow-y: auto; padding: 6px 18px 28px;
+               display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+               grid-auto-rows: max-content; gap: 16px; align-content: start; }
+  .home-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+               cursor: pointer; display: flex; flex-direction: column; }
+  .home-card:hover { border-color: var(--cyan); }
+  .home-card .shot { width: 100%; aspect-ratio: 16/9; background: #000; object-fit: cover; display: block; }
+  .home-card .shot.empty { display: flex; align-items: center; justify-content: center; font-size: 30px; color: #1e2430; }
+  .home-card .meta { padding: 9px 11px 11px; }
+  .home-card .nm { font-size: 13px; color: var(--text); margin-bottom: 3px; word-break: break-word; }
+  .home-card .by { font-size: 10px; color: var(--muted); }
+  .home-card .acts { display: flex; gap: 4px; padding: 0 8px 9px; }
+  .home-card .acts button { flex: 1; background: transparent; border: 1px solid var(--border); color: var(--muted);
+                            border-radius: 7px; padding: 5px 0; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .home-card .acts button:hover { color: var(--text); border-color: var(--cyan); }
+  .home-card .acts button.fav.on { color: var(--yellow); border-color: var(--yellow); }
+  #home-empty { color: var(--muted); font-size: 13px; padding: 40px 4px; line-height: 1.8; grid-column: 1/-1; }
+
+  /* ═══ v19 · 👋 who's working — a label, not an account ═══ */
+  #who-overlay { position: fixed; inset: 0; background: rgba(8,10,14,.94); z-index: 300;
+                 display: none; align-items: center; justify-content: center; }
+  #who-overlay.open { display: flex; }
+  #who-box { background: var(--card); border: 2px solid var(--cyan); border-radius: 18px; padding: 30px 32px; width: min(460px, 92vw); }
+  #who-box h2 { font-size: 20px; margin-bottom: 10px; color: var(--cyan); }
+  #who-box p { font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
+  #who-name { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+              border-radius: 10px; padding: 12px 14px; font-family: inherit; font-size: 16px; margin-bottom: 8px; }
+  #who-handle { font-size: 11px; color: var(--muted); margin-bottom: 14px; min-height: 15px; }
+  #who-go { width: 100%; background: var(--cyan); color: #061014; border: 0; border-radius: 10px;
+            padding: 12px; font-family: inherit; font-size: 14px; letter-spacing: 1px; cursor: pointer; }
+
+  /* ═══ v19 · 🧭 the tour — poster only until tapped (0 bytes on boot) ═══ */
+  #tour-overlay { position: fixed; inset: 0; background: rgba(4,5,8,.97); z-index: 320;
+                  display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
+  #tour-overlay.open { display: flex; }
+  #tour-video { width: min(1100px, 94vw); max-height: 76vh; border-radius: 12px; background: #000; }
+  #tour-skip { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 999px;
+               padding: 10px 26px; font-family: inherit; font-size: 13px; cursor: pointer; letter-spacing: .5px; }
+  #tour-skip:hover { border-color: var(--cyan); }
+
+  /* ═══ v19 · 👆 starter cues — a hand on the shoulder, not a tutorial ═══ */
+  #cue-layer { position: fixed; inset: 0; z-index: 240; pointer-events: none; display: none; }
+  #cue-layer.on { display: block; }
+
+  /* ═══ v19 · save nudge ═══ */
+  #nudge-bar { display: none; align-items: center; gap: 10px; padding: 7px 16px; background: rgba(255,214,0,.10);
+               border-bottom: 1px solid var(--yellow); font-size: 12px; color: var(--yellow); }
+  #nudge-bar.on { display: flex; }
+  #nudge-bar button { background: transparent; border: 1px solid var(--yellow); color: var(--yellow);
+                      border-radius: 7px; padding: 4px 12px; font-family: inherit; font-size: 11px; cursor: pointer; }
+  #save-btn.stale { border-color: var(--yellow) !important; color: var(--yellow) !important; }
+
+  /* ═══ v19 · per-studio heartbeat — the studios always saved, kids just couldn't see it ═══ */
+  .studio-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-left: 7px;
+                background: currentColor; opacity: .18; transition: opacity .18s; vertical-align: middle; }
+  .studio-dot.on { opacity: 1; }
 </style>
 </head>
 <body>
 
+<!-- 👋 WHO'S WORKING (v19) — one field, no password, no PII. A label, nothing more. -->
+<div id="who-overlay">
+  <div id="who-box">
+    <h2>👋 who's working today?</h2>
+    <p>Just your first name so your movies know they're yours. GeoV keeps this on <b>this device only</b> — it never leaves the iPad and there's no password to forget.</p>
+    <input id="who-name" placeholder="your first name" spellcheck="false" autocomplete="off" maxlength="24">
+    <div id="who-handle"></div>
+    <button id="who-go">LET'S GO →</button>
+  </div>
+</div>
+
+<!-- 🏠 HOME (v19) — GeoV opens here. Nothing loads until a human picks it. -->
+<div id="home-overlay">
+  <div id="home-head">
+    <span class="logo">⬡ GeoV</span>
+    <span id="home-maker-chip" title="tap to switch maker">👤</span>
+    <div class="header-spacer"></div>
+    <button class="hdr-btn" id="home-watch-btn" title="the 3-minute tour of every tool">🧭 TOUR</button>
+    <button class="hdr-btn" id="home-open-btn" title="open a .geov project or a 📦 .geos bundle">📂 OPEN A FILE</button>
+    <button class="hdr-btn" id="home-new-btn" style="border-color:var(--green);color:var(--green)">＋ NEW MOVIE</button>
+  </div>
+  <div id="home-filters">
+    <button class="home-f on" data-f="all">ALL</button>
+    <button class="home-f" data-f="fav">⭐ FAVOURITES</button>
+    <button class="home-f" data-f="mine">👤 MINE</button>
+    <input id="home-search" type="search" placeholder="🔎 find a movie…" spellcheck="false">
+  </div>
+  <div id="home-grid"></div>
+</div>
+
+<!-- 🧭 THE TOUR (v19) — poster only until tapped: costs 0 bytes on boot -->
+<div id="tour-overlay">
+  <video id="tour-video" preload="none" playsinline controls></video>
+  <button id="tour-skip">SKIP — take me to my movies →</button>
+</div>
+
+<!-- 👆 STARTER CUES (v19) — a ghost hand doing the first move, drawn live -->
+<div id="cue-layer"><canvas id="cue-canvas"></canvas></div>
+
 <!-- HEADER -->
 <div id="header">
   <span class="logo">⬡ GeoV</span>
-  <input id="project-name" value="my movie" spellcheck="false" title="project name">
+  <button class="hdr-btn" id="home-btn-hdr" title="all my movies">🏠</button>
+  <input id="project-name" value="" placeholder="name your movie" spellcheck="false" title="project name">
   <button class="hdr-btn" id="save-btn" title="save project file">💾 SAVE<span id="autosave-dot" title="autosave heartbeat"></span></button>
   <button class="hdr-btn" id="open-btn" title="open a .geov project or a 📦 .geos bundle">📂 OPEN</button>
   <button class="hdr-btn" id="bundle-btn" title="pack the project + ALL footage into ONE file — perfect for Drive or moving to another iPad">📦 PACK</button>
@@ -865,15 +978,24 @@
   <button id="export-btn">🎬 EXPORT</button>
 </div>
 
+<!-- ⏰ SAVE NUDGE (v19) — one line, dismissible, never modal, never during playback -->
+<div id="nudge-bar">
+  <span id="nudge-msg"></span>
+  <button id="nudge-save">💾 SAVE NOW</button>
+  <button id="nudge-hide">later</button>
+</div>
+
 <!-- MEDIA BIN -->
 <div id="bin">
   <div id="bin-header"><span>🎞 MY CLIPS</span><button id="bin-max-btn" title="fill the whole screen — organize with room to breathe">⛶</button></div>
   <div class="bin-btns">
-    <button id="import-btn">📂 ADD VIDEO<br>+ MUSIC</button>
-    <button id="flipbook-new-btn" title="draw frame by frame — like a paper flipbook">🎨 RASTER<br>FLIPBOOK</button>
-    <button id="flipbook-vec-btn" title="place shapes and animate them with keys — they tween by themselves">📐 VECTOR<br>FLIPBOOK</button>
-    <button id="flipbook-sm-btn" title="move something, snap a photo, move it again — stop motion!">📷 STOP<br>MOTION</button>
-    <button id="code-new-btn">✨ NEW<br>CODE</button>
+    <!-- 🎨 v19 studio colour map — one colour, one meaning, everywhere it appears.
+         These are Mook's own number colours, so the app stays synesthetically honest. -->
+    <button id="import-btn" style="color:var(--cyan)">📂 ADD VIDEO<br>+ MUSIC</button>
+    <button id="flipbook-new-btn" style="color:var(--pink)" title="draw frame by frame — like a paper flipbook">🎨 RASTER<br>FLIPBOOK</button>
+    <button id="flipbook-vec-btn" style="color:var(--purple)" title="place shapes and animate them with keys — they tween by themselves">📐 VECTOR<br>FLIPBOOK</button>
+    <button id="flipbook-sm-btn" style="color:var(--yellow)" title="move something, snap a photo, move it again — stop motion!">📷 STOP<br>MOTION</button>
+    <button id="code-new-btn" style="color:var(--green)">✨ NEW<br>CODE</button>
   </div>
   <div id="bin-tools">
     <input id="bin-search" type="search" placeholder="🔎 find a clip…" autocomplete="off" spellcheck="false">
@@ -917,6 +1039,8 @@
   <button class="tool-btn" id="group-btn" title="shift-click clips, then group them to move as one (ctrl+g)"><span class="ico">🔗</span> GROUP</button>
   <button class="tool-btn" id="ungroup-btn" title="release the group"><span class="ico">⛓️‍💥</span></button>
   <button class="tool-btn danger" id="delete-btn" title="remove clip (delete)"><span class="ico">🗑</span></button>
+  <span class="divider"></span>
+  <button class="tool-btn" id="loop-btn" title="LOOP — stretch this clip and its frames repeat instead of freezing. Walk in place, loop it, pan the background." disabled><span class="ico">🔁</span> LOOP</button>
   <span class="divider"></span>
   <div class="insp-group">
     <label>OPACITY</label>
@@ -1040,6 +1164,7 @@
     <button class="tlb-btn" id="fb-next-btn" title="forward one frame (→)">▶</button>
     <span id="fb-frame-label" style="font-size:12px;color:var(--pink);min-width:80px"></span>
     <div class="header-spacer"></div>
+    <span id="fb-dot" class="studio-dot" style="color:var(--pink)" title="saving"></span>
     <button class="hdr-btn" id="fb-done-btn" style="border-color:var(--pink);color:var(--pink)">✅ DONE</button>
   </div>
 
@@ -1122,6 +1247,7 @@
     <button class="tlb-btn" id="sm-play-btn" title="flip through what you've shot">▶ PREVIEW</button>
     <span id="sm-count" style="font-size:12px;color:var(--yellow);min-width:80px"></span>
     <div class="header-spacer"></div>
+    <span id="sm-dot" class="studio-dot" style="color:var(--yellow)" title="saving"></span>
     <button class="hdr-btn" id="sm-done-btn" style="border-color:var(--yellow);color:var(--yellow)">✅ DONE</button>
   </div>
   <div id="sm-main">
@@ -1153,6 +1279,7 @@
     <button class="tlb-btn" id="vf-play-btn" title="play (space)">▶ PLAY</button>
     <button class="tlb-btn" id="vf-fwd-btn" title="forward one frame (→)">▶</button>
     <span id="vf-frame-label" style="font-size:12px;color:var(--purple);min-width:86px"></span>
+    <span id="vf-dot" class="studio-dot" style="color:var(--purple)" title="saving"></span>
     <div class="header-spacer"></div>
     <button class="hdr-btn" id="vf-done-btn" style="border-color:var(--purple);color:var(--purple)">✅ DONE</button>
   </div>
@@ -1164,6 +1291,7 @@
     <button class="vft-btn" data-tool="triangle">🔺 TRI</button>
     <button class="vft-btn" data-tool="star">⭐ STAR</button>
     <button class="vft-btn" data-tool="scribble" title="draw a squiggle — it becomes an object you can animate">✏️ SQUIGGLE</button>
+    <button class="vft-btn" data-tool="pivot" title="tap the picked object to move its hinge — that's the spot it spins around">⊕ HINGE</button>
     <span class="divider"></span>
     <button class="vft-btn" id="vf-setkey" title="lock everything about this object at this frame">◆ SET KEY</button>
     <button class="vft-btn" id="vf-delkey" title="remove this object's keys at this frame">✕ KEY</button>
@@ -1185,6 +1313,25 @@
         <div class="vf-row"><label>SIZE</label><input type="range" id="vf-scale" min="10" max="300" value="100"><span class="vv" id="vf-scale-val">100</span></div>
         <div class="vf-row"><label>SPIN</label><input type="range" id="vf-rot" min="-1080" max="1080" value="0" title="3 full spins each way — 360 = one whole turn"><span class="vv" id="vf-rot-val">0</span></div>
         <div class="vf-row"><label>FADE</label><input type="range" id="vf-opacity" min="0" max="100" value="100"><span class="vv" id="vf-opacity-val">100</span></div>
+        <div class="vf-row"><label title="one slider — it always keeps the same amount of stuff, so it can never look wrong">🫸 SQUASH</label><input type="range" id="vf-squash" min="-60" max="60" value="0"><span class="vv" id="vf-squash-val">0</span></div>
+      </div>
+      <div class="vf-panel">
+        <h4>🧷 RIG</h4>
+        <div class="vf-row"><label title="pin this to another object — then it follows, and spins around THAT thing's hinge">PIN TO</label><select id="vf-parent" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-family:inherit;font-size:11px"></select></div>
+        <div class="vf-row"><label title="how far from the camera — far things drift slowly, close things race by">PLANE</label><select id="vf-plane" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-family:inherit;font-size:11px">
+          <option value="sky">☁ sky (barely moves)</option>
+          <option value="far">🏔 far</option>
+          <option value="mid" selected>🌳 mid (normal)</option>
+          <option value="near">🌿 near</option>
+          <option value="hand">✋ hand (whooshes past)</option>
+        </select></div>
+        <div class="vf-row"><button class="vft-btn" id="vf-group-btn" title="make an empty group — pin things to it and move them all at once" style="flex:1">＋ GROUP</button><button class="vft-btn" id="vf-pivot-reset" title="put the hinge back in the middle" style="flex:1">⊕ CENTRE</button></div>
+      </div>
+      <div class="vf-panel">
+        <h4>🎞 CAMERA <span style="float:right;font-weight:400">move the camera, not the art</span></h4>
+        <div class="vf-row"><label>PAN ↔</label><input type="range" id="vf-cam-x" min="-1200" max="1200" value="0"><span class="vv" id="vf-cam-x-val">0</span></div>
+        <div class="vf-row"><label>PAN ↕</label><input type="range" id="vf-cam-y" min="-800" max="800" value="0"><span class="vv" id="vf-cam-y-val">0</span></div>
+        <div class="vf-row"><label>ZOOM</label><input type="range" id="vf-cam-z" min="25" max="400" value="100"><span class="vv" id="vf-cam-z-val">100</span></div>
       </div>
       <div class="vf-panel">
         <h4>OBJECTS <span style="float:right;font-weight:400">top = in front</span></h4>
@@ -1206,6 +1353,7 @@
       <button class="vf-prop on" data-prop="s">⤢ SIZE</button>
       <button class="vf-prop" data-prop="r">↻ SPIN</button>
       <button class="vf-prop" data-prop="o">◐ FADE</button>
+      <button class="vf-prop" data-prop="q">🫸 SQUASH</button>
     </div>
     <canvas id="vf-curve" height="170"></canvas>
   </div>
@@ -1222,8 +1370,10 @@
     <input id="code-dur" type="number" min="1" max="600" step="1" value="6" title="how many seconds long">
     <span style="font-size:11px;color:var(--muted)">s</span>
     <button class="tlb-btn" id="code-run-btn" title="run your code now">▶ RUN</button>
+    <button class="tlb-btn" id="code-blocks-btn" title="MY BLOCKS — write a helper once, use it in every code clip in this movie">📎 MY BLOCKS</button>
+    <span id="code-dot" class="studio-dot" style="color:var(--green)" title="saving"></span>
     <div class="header-spacer"></div>
-    <button class="hdr-btn" id="code-done-btn" style="border-color:var(--purple);color:var(--purple)">✅ DONE</button>
+    <button class="hdr-btn" id="code-done-btn" style="border-color:var(--green);color:var(--green)">✅ DONE</button>
   </div>
   <div id="code-main">
     <div id="code-left">
@@ -1415,11 +1565,36 @@ function maxTrack() {
 }
 function mediaOf(c) { return media.find(m => m.id === c.mediaId); }
 // clips under the playhead time t, bottom track first (render order)
+// ════════════════════════════════════════════════════════════
+// 🔁 LOOP (v19) — cycle animation, the single biggest idea in 2D animation
+//
+// Stretched studio clips HOLD their last frame. That's right for a title card and wrong
+// for a walk. To walk Hamsocks across a roof for 10 seconds I placed ten copies of a
+// 1-second cycle by hand. With LOOP on, stretching the clip REPEATS its frames instead:
+// walk in place → loop it → pan the background on a far plane. Same handle, one toggle.
+// ════════════════════════════════════════════════════════════
+function studioFrameIndex(m, clip, srcT) {
+  const n = Math.max(1, m.frameCount | 0);
+  let f = Math.floor(srcT * m.fps);
+  if (clip && clip.loop) return ((f % n) + n) % n;
+  return Math.max(0, Math.min(n - 1, f));
+}
 function activeClipsAt(t) {
-  return timeline
+  const out = timeline
     .filter(c => t >= c.start - 1e-6 && t < clipEnd(c) - 1e-6)
     .sort((a, b) => a.track - b.track || timeline.indexOf(a) - timeline.indexOf(b));
+  // 📌 v19 — pin the code clips that are on screen for THIS moment. Every composite path
+  // calls activeClipsAt() immediately before drawing, so the pin always matches the frame
+  // about to be built. See notePS5Use(): a pinned instance can never be evicted mid-frame,
+  // which is what was letting the compositor draw another clip's stale canvas.
+  p5PinSet = new Set();
+  for (const c of out) {
+    const m = media.find(x => x.id === c.mediaId);
+    if (m && m.kind === 'code') p5PinSet.add(m.id);
+  }
+  return out;
 }
+let p5PinSet = new Set();
 function toast(msg, ms = 2600) {
   const el = $('toast');
   el.textContent = msg;
@@ -2280,11 +2455,11 @@ function clipSurface(clip, srcT, forScrub) {
   if (!m || m.missing) return null;
   if (isAudioRole(clip)) return null;   // audio lanes draw nothing — they sing
   if (m.kind === 'flipbook') {
-    const f = renderFbFrame(m, Math.floor(srcT * m.fps));
+    const f = renderFbFrame(m, studioFrameIndex(m, clip, srcT));
     return { img: f, sw: FB_W, sh: FB_H };
   }
   if (m.kind === 'vector') {
-    const f = renderVecFrame(m, Math.floor(srcT * m.fps));
+    const f = renderVecFrame(m, studioFrameIndex(m, clip, srcT));
     return { img: f, sw: VF_W, sh: VF_H };
   }
   if (m.kind === 'code') {
@@ -3206,6 +3381,10 @@ function updateTools() {
   $('fadeout-slider').disabled = !canSound;
   $('mute-btn').disabled = !canSound;
   $('detach-btn').disabled = !c || audioRole || !(m && m.kind === 'video') || c.muted;
+  // 🔁 v19 — LOOP only means something for a clip made of FRAMES (raster / vector)
+  const loopable = !!(c && m && (m.kind === 'flipbook' || m.kind === 'vector') && m.frameCount > 1);
+  $('loop-btn').disabled = !loopable;
+  $('loop-btn').classList.toggle('on', !!(c && c.loop));
   const editKind = m && (m.kind === 'flipbook' || m.kind === 'code' || m.kind === 'vector') ? m.kind : null;
   $('fb-edit-btn').style.display = editKind ? '' : 'none';
   if (editKind) $('fb-edit-btn').innerHTML = editKind === 'code'
@@ -4209,6 +4388,7 @@ function openFlipbook(mediaId, clip) {
   buildFbTools();
   buildColorUI();
   fbNav(0);
+  setTimeout(() => showCue('raster'), 700);   // 👆 v19
 }
 
 // ── tools + toolbar state ──
@@ -4487,18 +4667,102 @@ function getEditableBase(create) {
     cell = newFrameCanvas();
     layer.cells[fb.cur] = cell;
   }
+  // 🗜 v19 — THE ONLY gateway to a writable cel. Every pixel that ever changes in a
+  // drawing passes through this line, so invalidating the PNG cache here is airtight:
+  // there is no other path that mutates a cel's pixels. (Reassignment and .splice move
+  // canvas REFERENCES, and each canvas carries its own cache — safe by construction.)
+  if (cell && cell !== 'H') cell._png = null;
   return cell;
 }
 function cellSnapshot(v) { return (v && v !== 'H') ? cloneCanvas(v) : v; }
-function pushFbUndo() {
+
+// ════════════════════════════════════════════════════════════
+// 🗜 v19 — THE CEL PNG CACHE (the single biggest speed win in this build)
+//
+// MEASURED on v18: buildProjectData() called toDataURL() on EVERY cel of EVERY layer,
+// and scheduleAutosave() fires 1.5s after every stroke. So drawing ONE line in a
+// 100-cel film re-encoded 100 full 1280×720 PNGs on the main thread, every 1.5s.
+//
+// Real ink coverage on real cels measures 0.1%–3.7% (sampled from SIGNAL.geov).
+// ~99% of that work was re-deriving pixels that had not moved. This is the GEO idea
+// applied to the DELTA instead of the file: don't re-derive what didn't change.
+// ════════════════════════════════════════════════════════════
+let celEncodes = 0, celCacheHits = 0;
+function celPNG(c) {
+  if (!c || c === 'H') return c || null;
+  if (c._png) { celCacheHits++; return c._png; }
+  celEncodes++;
+  return (c._png = c.toDataURL('image/png'));
+}
+
+// ── undo: bounding-box patches instead of whole-canvas copies ──
+// v18 stored a full 3.7MB canvas per step and capped at 30 — expensive AND shallow,
+// the worst combination. A stroke touches 1–4% of the cel, so storing only its dirty
+// box makes each step ~25–1000× smaller, which buys 240-deep undo for LESS total RAM.
+const FB_UNDO_MAX = 240, FB_UNDO_BYTES = 64 * 1024 * 1024;
+function undoBytes(rec) {
+  if (!rec) return 0;
+  if (rec.type === 'patch') return rec.box ? rec.box[2] * rec.box[3] * 4 : 0;
+  if (rec.type === 'row') return (rec.cells ? rec.cells.length : 0) * 8;   // refs, not pixels
+  return (rec.prev && rec.prev !== 'H') ? FB_W * FB_H * 4 : 0;
+}
+function trimFbUndo() {
+  let bytes = 0;
+  for (const r of fb.undo) bytes += undoBytes(r);
+  while (fb.undo.length > FB_UNDO_MAX || (bytes > FB_UNDO_BYTES && fb.undo.length > 8)) {
+    bytes -= undoBytes(fb.undo.shift());
+  }
+}
+// a stroke's dirty box, accumulated live as the kid draws
+let fbStrokeBox = null, fbLiveUndoRec = null;
+function fbGrowStrokeBox(x0, y0, x1, y1) {
+  if (!fbStrokeBox) fbStrokeBox = { x0, y0, x1, y1 };
+  else {
+    fbStrokeBox.x0 = Math.min(fbStrokeBox.x0, x0); fbStrokeBox.y0 = Math.min(fbStrokeBox.y0, y0);
+    fbStrokeBox.x1 = Math.max(fbStrokeBox.x1, x1); fbStrokeBox.y1 = Math.max(fbStrokeBox.y1, y1);
+  }
+}
+// Pushed at pointer-DOWN, filled in at commit — because the dirty box isn't known yet.
+// If the cel didn't exist (null) or was a hold ('H'), undo must restore that exactly,
+// so those keep the old cheap record (no pixels involved either way).
+function pushFbStrokeUndo() {
+  const layer = activeLayer();
+  if (!layer) { fbLiveUndoRec = null; return; }
+  const v = layer.cells[fb.cur];
+  const rec = (v && v !== 'H')
+    ? { lid: layer.lid, type: 'patch', frame: fb.cur, box: null, patch: null }
+    : { lid: layer.lid, type: 'cell', frame: fb.cur, prev: v || null };
+  fb.undo.push(rec);
+  fbLiveUndoRec = rec.type === 'patch' ? rec : null;
+  trimFbUndo();
+}
+// Called from commitFbStroke BEFORE compositing — `base` still holds the pre-stroke pixels.
+function captureStrokeUndoPatch(base) {
+  const rec = fbLiveUndoRec; fbLiveUndoRec = null;
+  if (!rec || rec.type !== 'patch') return;
+  const b = fbStrokeBox;
+  if (!b) { const i = fb.undo.indexOf(rec); if (i >= 0) fb.undo.splice(i, 1); return; }
+  // pad to cover the brush's blur headroom — the same maths repaintStrokeRegion uses.
+  // Over-restoring is always safe (it's the true before-image); under-restoring is not.
+  const pad = Math.ceil(Math.max(1, fb.size / 6) * 3) + 8;
+  const x0 = Math.max(0, Math.floor(b.x0 - pad)), y0 = Math.max(0, Math.floor(b.y0 - pad));
+  const x1 = Math.min(FB_W, Math.ceil(b.x1 + pad)), y1 = Math.min(FB_H, Math.ceil(b.y1 + pad));
+  const w = x1 - x0, h = y1 - y0;
+  if (w <= 0 || h <= 0) { const i = fb.undo.indexOf(rec); if (i >= 0) fb.undo.splice(i, 1); return; }
+  const p = document.createElement('canvas'); p.width = w; p.height = h;
+  p.getContext('2d').drawImage(base, x0, y0, w, h, 0, 0, w, h);
+  rec.box = [x0, y0, w, h]; rec.patch = p;
+  trimFbUndo();
+}
+function pushFbUndo() {   // full-cel snapshot — kept for 🪣 fill, whose reach is unbounded
   const layer = activeLayer();
   if (!layer) return;
   fb.undo.push({ lid: layer.lid, type: 'cell', frame: fb.cur, prev: cellSnapshot(layer.cells[fb.cur]) });
-  if (fb.undo.length > 30) fb.undo.shift();
+  trimFbUndo();
 }
 function pushFbRowUndo(layer) {   // structural ops: snapshot the whole row (refs, not pixels)
   fb.undo.push({ lid: layer.lid, type: 'row', cells: [...layer.cells] });
-  if (fb.undo.length > 30) fb.undo.shift();
+  trimFbUndo();
 }
 // crayon stamp — a waxy speckle disc, rebuilt when color or size changes
 let fbCrayonStamp = null, fbCrayonKey = '';
@@ -4539,7 +4803,8 @@ fbDraw.addEventListener('pointerdown', e => {
   }
   fbStroking = true;
   fbPressure = (e.pointerType === 'pen' && e.pressure > 0) ? e.pressure : 0.5;
-  pushFbUndo();
+  fbStrokeBox = null;            // 🗜 v19 — start accumulating this stroke's dirty box
+  pushFbStrokeUndo();
   fbStrokeCtx.clearRect(0, 0, FB_W, FB_H);
   // snapshot what's under the stroke ONCE — dirty-rect repaints read from here
   fbBaseSnapCtx.clearRect(0, 0, FB_W, FB_H);
@@ -4547,6 +4812,7 @@ fbDraw.addEventListener('pointerdown', e => {
   fbPendingPts = [];
   fbLast = p;
   const r0 = fbStrokeSeg(p, p, fbPressure);
+  fbGrowStrokeBox(p.x - r0, p.y - r0, p.x + r0, p.y + r0);
   repaintStrokeRegion(p.x - r0, p.y - r0, p.x + r0, p.y + r0);
 });
 fbDraw.addEventListener('pointermove', e => {
@@ -4575,6 +4841,7 @@ function flushStroke() {
     x1 = Math.max(x1, fbLast.x, p.x); y1 = Math.max(y1, fbLast.y, p.y);
     fbLast = p;
   }
+  fbGrowStrokeBox(x0 - rMax, y0 - rMax, x1 + rMax, y1 + rMax);
   repaintStrokeRegion(x0 - rMax, y0 - rMax, x1 + rMax, y1 + rMax);
 }
 window.addEventListener('pointerup', () => {
@@ -4689,7 +4956,8 @@ function scheduleFbSheet() {
 }
 function commitFbStroke() {
   const base = getEditableBase(true);
-  if (!base) return;
+  if (!base) { fbLiveUndoRec = null; return; }
+  captureStrokeUndoPatch(base);   // 🗜 BEFORE compositing — `base` is still the before-image
   brushCompositeInto(base.getContext('2d'));
   fbStrokeCtx.clearRect(0, 0, FB_W, FB_H);
   bumpFb(fbMedia());
@@ -4737,6 +5005,20 @@ function fbUndoOnce() {
   const layer = m.layers.find(l => l.lid === op.lid);
   if (!layer) return;
   if (op.type === 'row') layer.cells = op.cells;
+  else if (op.type === 'patch') {
+    // 🗜 v19 — stamp the saved before-image back over just the box the stroke touched
+    const cell = layer.cells[op.frame];
+    if (cell && cell !== 'H' && op.patch) {
+      const cx = cell.getContext('2d');
+      const [x, y, w, h] = op.box;
+      cx.save();
+      cx.globalCompositeOperation = 'source-over';
+      cx.clearRect(x, y, w, h);
+      cx.drawImage(op.patch, x, y);
+      cx.restore();
+      cell._png = null;
+    }
+  }
   else layer.cells[op.frame] = op.prev;
   bumpFb(m);
   fbNav(fb.cur);
@@ -5261,20 +5543,39 @@ function disposeCodeInstance(m) {
 }
 // 🚧 memory guard: each live p5 instance holds a 1280×720 canvas + engine.
 // Keep at most N alive (LRU); the rest re-create instantly when scrubbed to.
-const P5_MAX_LIVE = touchDevice ? 3 : 6;
+// 🔧 v19 — THE PREVIEW USED TO LIE. v18 capped live instances at 3 (iPad) / 6 (desktop)
+// and evicted strict-LRU. With more code clips stacked at one moment than the cap, an
+// instance got disposed *in the middle of compositing that very frame*, and the
+// compositor drew a stale canvas — the wrong shot, with total confidence. Two fixes:
+//   1. 📌 pinning — a clip on screen right now is never evictable (see activeClipsAt)
+//   2. the cap scales with the device instead of assuming a 3GB iPad
+let P5_CAP = 0;
+function p5MaxLive() {
+  if (!P5_CAP) {
+    const mem = navigator.deviceMemory || (touchDevice ? 3 : 8);
+    P5_CAP = Math.max(4, Math.min(24, Math.round(mem * 2)));
+  }
+  return P5_CAP;
+}
 const p5Live = [];   // mediaIds, most recent last
 function notePS5Use(m) {
   const i = p5Live.indexOf(m.id);
   if (i >= 0) p5Live.splice(i, 1);
   p5Live.push(m.id);
-  while (p5Live.length > P5_MAX_LIVE) {
-    const oldId = p5Live.shift();
+  const keepId = codeS.open ? codeS.mediaId : -1;
+  let guard = p5Live.length + 1;               // pinned-only lists must still terminate
+  while (p5Live.length > p5MaxLive() && guard-- > 0) {
+    const oldId = p5Live[0];
+    if (p5PinSet.has(oldId) || oldId === keepId) { p5Live.push(p5Live.shift()); continue; }
+    p5Live.shift();
     const om = media.find(x => x.id === oldId);
-    if (om && om.id !== (codeS.open ? codeS.mediaId : -1)) disposeCodeInstance(om);
+    if (om) disposeCodeInstance(om);
   }
 }
 function ensureCodeInstance(m) {
-  if (m._p5 && m._p5code === m.code) { notePS5Use(m); return m._p5; }
+  // 📎 the compile key covers MY BLOCKS too, so editing a shared helper rebuilds every clip
+  const srcKey = (projectBlocks || '') + ' ' + m.code;
+  if (m._p5 && m._p5code === srcKey) { notePS5Use(m); return m._p5; }
   disposeCodeInstance(m);
   m._err = null;
   if (typeof p5 === 'undefined') { m._err = '📦 p5.js library missing — lib/p5.min.js did not load'; return null; }
@@ -5284,7 +5585,7 @@ function ensureCodeInstance(m) {
       'let __lc = 0;\n' +
       'function __guard() { if (++__lc > 3000000) { const e = new Error("loop ran away"); e.__loop = true; throw e; } }\n' +
       '__guardReset.fn = () => { __lc = 0; };\n' +
-      'with (p) {\n' + injectLoopGuards(m.code) + '\n' +
+      'with (p) {\n' + injectLoopGuards((projectBlocks ? projectBlocks + '\n' : '') + m.code) + '\n' +
       'return { setup: (typeof setup === "function") ? setup : null, draw: (typeof draw === "function") ? draw : null };\n}');
   } catch (err) { m._err = friendlyError(err); return null; }
   const holder = document.createElement('div');
@@ -5323,7 +5624,7 @@ function ensureCodeInstance(m) {
       };
     }, holder);
   } catch (err) { m._err = friendlyError(err); holder.remove(); return null; }
-  m._p5 = inst; m._p5code = m.code; m._holder = holder; m._guardReset = guardReset;
+  m._p5 = inst; m._p5code = srcKey; m._holder = holder; m._guardReset = guardReset;
   notePS5Use(m);
   return inst;
 }
@@ -5578,6 +5879,14 @@ function tkRenderPanel() {
 function codeApply() {
   const m = codeMedia();
   if (!m) return;
+  // 📎 while MY BLOCKS is open the editor buffer belongs to the shared source, not the clip
+  if (blocksMode) {
+    if (projectBlocks !== codeEd.value) {
+      projectBlocks = codeEd.value;
+      for (const x of media) if (x.kind === 'code') disposeCodeInstance(x);
+    }
+    return;
+  }
   m.code = codeEd.value;
 }
 $('code-run-btn').addEventListener('click', () => { codeApply(); codeS.t0 = 0; codeS.wall = performance.now(); });
@@ -5642,9 +5951,68 @@ $('code-new-btn').addEventListener('click', () => {
   openCodeStudio(item.id);
 });
 
+// ════════════════════════════════════════════════════════════
+// 📎 MY BLOCKS (v19) — shared code, once per movie
+//
+// Building GEOV-101 inside v18 made this unmissable: all 16 shots carried a full copy of
+// the same 200-line drawing kit — 170 KB of measured duplication in one project file.
+// Change one helper, rebuild sixteen clips. For a kid it's worse: write a nice star() in
+// clip 3 and you simply cannot use it in clip 4. That was the hard ceiling on making
+// anything LONG in the code studio.
+//
+// MY BLOCKS is one shared source, prepended to every code clip before compiling. Same
+// compile path, same loop guards, same friendly errors — nothing new to secure.
+// ════════════════════════════════════════════════════════════
+let projectBlocks = '';
+let blocksMode = false;   // the editor is showing MY BLOCKS instead of this clip
+const BLOCKS_STARTER = `// 📎 MY BLOCKS — helpers every code clip in this movie can use.
+// Write it once here, use it everywhere. Change it here, every shot updates.
+
+function star5(x, y, r, col) {
+  push(); translate(x, y); fill(col); noStroke();
+  beginShape();
+  for (let i = 0; i < 10; i++) {
+    const rr = i % 2 ? r * 0.45 : r;
+    const a = i * PI / 5 - PI / 2;
+    vertex(cos(a) * rr, sin(a) * rr);
+  }
+  endShape(CLOSE); pop();
+}
+
+// 🎲 random() re-rolls EVERY frame (the seed advances with the frame, on purpose).
+// Use wiggle() when you want something that jitters but STAYS PUT.
+function wiggle(seed, speed) {
+  return noise(seed * 37.1, (t || 0) * (speed || 1)) * 2 - 1;
+}
+`;
+$('code-blocks-btn').addEventListener('click', () => {
+  const m = codeMedia(); if (!m) return;
+  if (!blocksMode) {
+    codeApply();                       // bank the clip's edits before swapping the buffer
+    blocksMode = true;
+    if (!projectBlocks.trim()) projectBlocks = BLOCKS_STARTER;
+    codeEd.value = projectBlocks;
+    $('code-blocks-btn').textContent = '↩ BACK TO THIS CLIP';
+    $('code-blocks-btn').style.color = 'var(--green)';
+    toast('📎 MY BLOCKS — anything you write here works in EVERY code clip in this movie');
+  } else {
+    projectBlocks = codeEd.value;
+    blocksMode = false;
+    codeEd.value = m.code;
+    $('code-blocks-btn').textContent = '📎 MY BLOCKS';
+    $('code-blocks-btn').style.color = '';
+    for (const x of media) if (x.kind === 'code') disposeCodeInstance(x);   // everyone recompiles
+    scheduleAutosave();
+  }
+  updateGutter(); tkRenderHl(); codeApply();
+});
+
 function openCodeStudio(mediaId) {
   const m = media.find(x => x.id === mediaId);
   if (!m || m.kind !== 'code') return;
+  blocksMode = false;
+  $('code-blocks-btn').textContent = '📎 MY BLOCKS';
+  $('code-blocks-btn').style.color = '';
   if (playing) stopPlayback();
   caution('codeclip', '🧪 code clips are experimental',
     'code is the newest part of GeoV — save your project (💾) before big code edits, just in case. If anything looks stuck, saving + reopening fixes it.');
@@ -5657,6 +6025,7 @@ function openCodeStudio(mediaId) {
   tkCloseBubble(); tkRenderHl();   // 🎛 numbers light up the moment the studio opens
   $('code-play-btn').textContent = '⏸';
   $('code-overlay').style.display = 'flex';
+  setTimeout(() => showCue('code'), 700);   // 👆 v19
   cancelAnimationFrame(codeS.raf);
   codeTick();
 }
@@ -5778,6 +6147,7 @@ $('flipbook-sm-btn').addEventListener('click', async () => {
   $('sm-name').value = item.name;
   $('sm-count').textContent = '0 frames';
   $('sm-overlay').classList.add('open');
+  setTimeout(() => showCue('stopmo'), 700);   // 👆 v19
   // size the stage BEFORE the camera arrives (WebKit won't play a 0-area video),
   // twice across frames so it catches the grid settling
   requestAnimationFrame(() => { smFitStage(); requestAnimationFrame(smFitStage); });
@@ -6115,8 +6485,59 @@ $('sm-done-btn').addEventListener('click', () => {
 // move something at any frame and the tween builds itself.
 // ════════════════════════════════════════════════════════════
 const VF_W = 1280, VF_H = 720;
-const VF_DEFS = { x: 0, y: 0, s: 100, r: 0, o: 100 };
+const VF_DEFS = { x: 0, y: 0, s: 100, r: 0, o: 100, q: 0 };
 let vfObjCounter = 0;
+
+// ════════════════════════════════════════════════════════════
+// 📐 v19 — THE RIG: pin · pivot · plane · squash
+//
+// v18's contract was { oid, name, shape, tracks:{x,y,s,r,o} }, a flat list composited by
+// array order. Rotation pivoted at each object's OWN origin, which is why a head turn on
+// HAMSOCKS had to be baked in Python — rotating a head means rotating skull + ear + eye
+// + snout around the NECK, not each around its own belly button.
+//
+// Three fields turn that flat list into a puppet:
+//   parent      → an oid. Children compose the parent's transform. Grouping AND joints.
+//   shape.pivot → [px,py]. Rotation happens about the pivot. Parent + pivot = a HINGE.
+//   plane       → a named parallax depth. Kids move the CAMERA, not the art.
+// plus one track:
+//   q           → 🫸 squash, volume-preserving: sx = 1+q, sy = 1/(1+q). One slider,
+//                 always looks right, impossible to make ugly. The first principle of
+//                 animation, and v18 could not express it at all.
+//
+// Named speeds over numbers is straight from OctoStudio — it teaches the concept
+// instead of the maths.
+// ════════════════════════════════════════════════════════════
+const PLANE_F = { sky: 0.1, far: 0.35, mid: 1.0, near: 1.8, hand: 3.0 };
+const PLANE_ORDER = ['sky', 'far', 'mid', 'near', 'hand'];
+function vecCamAt(m, f) {
+  const c = m.camera || {};
+  return {
+    px: vecTrackVal(c.px, f, 0),
+    py: vecTrackVal(c.py, f, 0),
+    z:  vecTrackVal(c.z,  f, 100),
+  };
+}
+// walk to the root, refusing cycles — a kid WILL pin A to B to A
+function vecChain(m, obj) {
+  const out = [];
+  const seen = new Set();
+  let cur = obj, guard = 0;
+  while (cur && guard++ < 40 && !seen.has(cur.oid)) {
+    seen.add(cur.oid);
+    out.unshift(cur);                       // root first
+    cur = cur.parent ? m.objects.find(o => o.oid === cur.parent) : null;
+  }
+  return out;
+}
+function vecWouldCycle(m, obj, newParentOid) {
+  let cur = m.objects.find(o => o.oid === newParentOid), guard = 0;
+  while (cur && guard++ < 40) {
+    if (cur.oid === obj.oid) return true;
+    cur = cur.parent ? m.objects.find(o => o.oid === cur.parent) : null;
+  }
+  return false;
+}
 
 // ── track math: keys are {f, v, ho:[dx,dy]?, hi:[dx,dy]?} — bezier in (frame,value) space.
 // Default handles = flat thirds → AE "easy ease". Handles clamp inside the segment
@@ -6164,7 +6585,24 @@ function vecObjAt(obj, f) {
     s: vecTrackVal(obj.tracks.s, f, VF_DEFS.s),
     r: vecTrackVal(obj.tracks.r, f, VF_DEFS.r),
     o: vecTrackVal(obj.tracks.o, f, VF_DEFS.o),
+    q: vecTrackVal(obj.tracks.q, f, VF_DEFS.q),   // 🫸 v19
   };
+}
+// lay down one object's own transform (used for the whole parent chain)
+function vecApplyLocal(ctx, obj, f) {
+  const p = vecObjAt(obj, f);
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.r * Math.PI / 180);
+  const s = p.s / 100;
+  const q = Math.max(-0.8, Math.min(0.8, (p.q || 0) / 100));
+  ctx.scale(s * (1 + q), s / (1 + q));           // 🫸 volume-preserving squash
+  return p;
+}
+// opacity multiplies down the chain — fading a group fades everything pinned to it
+function vecEffOpacity(m, obj, f) {
+  let o = 1;
+  for (const node of vecChain(m, obj)) o *= vecTrackVal(node.tracks.o, f, VF_DEFS.o) / 100;
+  return o;
 }
 
 // ── shape rendering (centered at origin, pre-transform) ──
@@ -6208,14 +6646,26 @@ function renderVecFrame(m, i) {
   const out = document.createElement('canvas');
   out.width = VF_W; out.height = VF_H;
   const ctx = out.getContext('2d');
+  const cam = vecCamAt(m, i);
   for (const obj of m.objects) {          // index 0 = back, last = front
-    const p = vecObjAt(obj, i);
-    if (p.o <= 0) continue;
+    if (!obj.shape) continue;             // a group is a transform with no picture
+    const eff = vecEffOpacity(m, obj, i);
+    if (eff <= 0) continue;
     ctx.save();
-    ctx.globalAlpha = Math.max(0, Math.min(1, p.o / 100));
-    ctx.translate(VF_W/2 + p.x, VF_H/2 + p.y);
-    ctx.rotate(p.r * Math.PI / 180);
-    ctx.scale(p.s / 100, p.s / 100);
+    ctx.globalAlpha = Math.max(0, Math.min(1, eff));
+    // 🎞 THE MULTIPLANE DOWNSHOOTER: one camera, layers at different distances from the
+    // lens. Objects move by camera.pan × their plane's factor — sky drifts, hand races.
+    ctx.translate(VF_W / 2, VF_H / 2);
+    const z = Math.max(0.05, (cam.z || 100) / 100);
+    ctx.scale(z, z);
+    const pf = PLANE_F[obj.plane] != null ? PLANE_F[obj.plane] : 1;
+    ctx.translate(-cam.px * pf, -cam.py * pf);
+    // 🧷 the parent chain, root first — this is what makes a jointed character possible
+    for (const node of vecChain(m, obj)) vecApplyLocal(ctx, node, i);
+    // 🎯 the pivot is applied to the PICTURE only, never to the chain — so the object's
+    // x/y names where its hinge sits, and anything pinned to it orbits that hinge.
+    const pv = obj.shape.pivot;
+    if (pv && (pv[0] || pv[1])) ctx.translate(-pv[0], -pv[1]);
     drawVecShape(ctx, obj.shape);
     ctx.restore();
   }
@@ -6259,21 +6709,44 @@ function newVecObject(type, x, y) {
   return {
     oid: ++vfObjCounter,
     name: `${names[type] || type} ${vfObjCounter}`,
-    shape: { type, w: 160, h: 160, fill: $('vf-fill').value, stroke: $('vf-stroke').value, strokeW: parseInt($('vf-strokew').value) || 0, points: null },
-    tracks: { x: [{ f: 0, v: x }], y: [{ f: 0, v: y }], s: [], r: [], o: [] },
+    parent: null,          // 🧷 v19
+    plane: 'mid',          // 🎞 v19
+    shape: { type, w: 160, h: 160, fill: $('vf-fill').value, stroke: $('vf-stroke').value, strokeW: parseInt($('vf-strokew').value) || 0, points: null, pivot: [0, 0] },
+    tracks: { x: [{ f: 0, v: x }], y: [{ f: 0, v: y }], s: [], r: [], o: [], q: [] },
   };
+}
+// 🧷 a GROUP is just an object with no shape and its own tracks — one concept, not two
+function newVecGroup(x, y) {
+  return {
+    oid: ++vfObjCounter,
+    name: `group ${vfObjCounter}`,
+    parent: null, plane: 'mid', shape: null,
+    tracks: { x: [{ f: 0, v: x || 0 }], y: [{ f: 0, v: y || 0 }], s: [], r: [], o: [], q: [] },
+  };
+}
+// every object that arrives from an older file gets the v19 fields
+function migrateVecObject(o) {
+  o.parent = o.parent != null ? o.parent : null;
+  o.plane = o.plane || 'mid';
+  o.tracks = o.tracks || {};
+  for (const k of ['x','y','s','r','o','q']) o.tracks[k] = o.tracks[k] || [];
+  if (o.shape && !o.shape.pivot) o.shape.pivot = [0, 0];
+  return o;
 }
 
 // ── open / close ──
 function openVectorStudio(mediaId) {
   vf.mediaId = mediaId; vf.open = true; vf.cur = 0; vf.playing = false; vf.undo = [];
   const m = vfMedia();
+  m.objects.forEach(migrateVecObject);              // v19 fields on older animations
+  if (!m.camera) m.camera = { px: [], py: [], z: [] };
   vfObjCounter = Math.max(vfObjCounter, ...m.objects.map(o => o.oid), 0);
   vf.selOid = m.objects.length ? m.objects[m.objects.length-1].oid : null;
   $('vf-name').value = m.name;
   $('vf-fps').value = m.fps;
   $('vf-len').value = m.frameCount;
   $('vf-overlay').classList.add('open');
+  setTimeout(() => showCue('vector'), 700);   // 👆 v19
   vfSizeCurve();
   vfNav(0);
 }
@@ -6351,17 +6824,43 @@ function vfRepaint() {
   vfCtx.drawImage(renderVecFrame(m, vf.cur), 0, 0);
   const sel = vfSel();
   if (sel && !vf.playing) {
-    const p = vecObjAt(sel, vf.cur);
-    const bb = vecBBox(sel.shape);
+    const mat = vecSelfMatrix(m, sel, vf.cur);
+    const pv = (sel.shape && sel.shape.pivot) || [0, 0];
+    const sc = Math.max(0.05, Math.hypot(mat.a, mat.b));
     vfCtx.save();
-    vfCtx.translate(VF_W/2 + p.x, VF_H/2 + p.y);
-    vfCtx.rotate(p.r * Math.PI/180);
-    vfCtx.scale(p.s/100, p.s/100);
-    vfCtx.strokeStyle = '#D500F9';
-    vfCtx.lineWidth = 3 / (p.s/100);
-    vfCtx.setLineDash([8, 6]);
-    vfCtx.strokeRect(bb.x - 8, bb.y - 8, bb.w + 16, bb.h + 16);
+    vfCtx.setTransform(mat.a, mat.b, mat.c, mat.d, mat.e, mat.f);
+    vfCtx.translate(-pv[0], -pv[1]);
+    if (sel.shape) {
+      const bb = vecBBox(sel.shape);
+      vfCtx.strokeStyle = '#D500F9';
+      vfCtx.lineWidth = 3 / sc;
+      vfCtx.setLineDash([8 / sc, 6 / sc]);
+      vfCtx.strokeRect(bb.x - 8, bb.y - 8, bb.w + 16, bb.h + 16);
+    }
+    // ⊕ the hinge — the one thing that has to be visible for parenting to make sense
+    vfCtx.setLineDash([]);
+    vfCtx.strokeStyle = '#FFD600';
+    vfCtx.lineWidth = 2.5 / sc;
+    const r = 13 / sc;
+    vfCtx.beginPath(); vfCtx.arc(pv[0], pv[1], r, 0, Math.PI * 2); vfCtx.stroke();
+    vfCtx.beginPath();
+    vfCtx.moveTo(pv[0] - r * 1.6, pv[1]); vfCtx.lineTo(pv[0] + r * 1.6, pv[1]);
+    vfCtx.moveTo(pv[0], pv[1] - r * 1.6); vfCtx.lineTo(pv[0], pv[1] + r * 1.6);
+    vfCtx.stroke();
     vfCtx.restore();
+    vfCtx.setTransform(1, 0, 0, 1, 0, 0);
+    // 🧷 a dotted leash to whatever it's pinned to — the rig has to be legible
+    if (sel.parent) {
+      const par = m.objects.find(o => o.oid === sel.parent);
+      if (par) {
+        const a = vecSelfMatrix(m, sel, vf.cur), b = vecSelfMatrix(m, par, vf.cur);
+        vfCtx.save();
+        vfCtx.strokeStyle = 'rgba(255,214,0,.55)';
+        vfCtx.lineWidth = 2; vfCtx.setLineDash([5, 5]);
+        vfCtx.beginPath(); vfCtx.moveTo(a.e, a.f); vfCtx.lineTo(b.e, b.f); vfCtx.stroke();
+        vfCtx.restore();
+      }
+    }
   }
 }
 function vecBBox(sh) {
@@ -6376,18 +6875,52 @@ function vfCanvasPos(e) {
   const r = vfCanvas.getBoundingClientRect();
   return { x: (e.clientX - r.left) / r.width * VF_W, y: (e.clientY - r.top) / r.height * VF_H };
 }
+// where a NEW object should be born so it lands under the finger (new objects are
+// parentless and on the mid plane, so the camera is the only thing to undo)
+function vecPlacePos(m, pos) {
+  const cam = vecCamAt(m, vf.cur);
+  const z = Math.max(0.05, (cam.z || 100) / 100);
+  return { x: (pos.x - VF_W / 2) / z + cam.px, y: (pos.y - VF_H / 2) / z + cam.py };
+}
+// ── v19: ONE transform, shared by render, hit-test, drag and the hinge tool.
+// If these ever disagree the kid can see their drawing but not click it, so they are
+// built from the same chain in the same order, every time.
+function vecParentMatrix(m, obj, f) {
+  const cam = vecCamAt(m, f);
+  let mat = new DOMMatrix().translate(VF_W / 2, VF_H / 2);
+  const z = Math.max(0.05, (cam.z || 100) / 100);
+  mat = mat.scale(z, z);
+  const pf = PLANE_F[obj.plane] != null ? PLANE_F[obj.plane] : 1;
+  mat = mat.translate(-cam.px * pf, -cam.py * pf);
+  for (const node of vecChain(m, obj)) {
+    if (node.oid === obj.oid) break;                 // stop before self
+    const p = vecObjAt(node, f);
+    const s = p.s / 100, q = Math.max(-0.8, Math.min(0.8, (p.q || 0) / 100));
+    mat = mat.translate(p.x, p.y).rotate(p.r).scale(s * (1 + q), s / (1 + q));
+  }
+  return mat;
+}
+function vecSelfMatrix(m, obj, f) {
+  const p = vecObjAt(obj, f);
+  const s = p.s / 100, q = Math.max(-0.8, Math.min(0.8, (p.q || 0) / 100));
+  return vecParentMatrix(m, obj, f).translate(p.x, p.y).rotate(p.r).scale(s * (1 + q), s / (1 + q));
+}
+// screen point → this object's own shape coordinates (undoes the pivot offset too)
+function vecToLocal(m, obj, f, cx, cy) {
+  const pv = (obj.shape && obj.shape.pivot) || [0, 0];
+  let p;
+  try { p = vecSelfMatrix(m, obj, f).inverse().transformPoint(new DOMPoint(cx, cy)); }
+  catch (e) { return { x: 0, y: 0 }; }               // singular matrix (scale 0)
+  return { x: p.x + pv[0], y: p.y + pv[1] };
+}
 function vfHit(m, cx, cy) {
   for (let i = m.objects.length - 1; i >= 0; i--) {   // front first
     const obj = m.objects[i];
-    const p = vecObjAt(obj, vf.cur);
-    if (p.o <= 0) continue;
-    // into object space
-    const dx = cx - (VF_W/2 + p.x), dy = cy - (VF_H/2 + p.y);
-    const a = -p.r * Math.PI/180, sc = 100 / Math.max(1, p.s);
-    const ox = (dx * Math.cos(a) - dy * Math.sin(a)) * sc;
-    const oy = (dx * Math.sin(a) + dy * Math.cos(a)) * sc;
+    if (!obj.shape) continue;                         // groups aren't clickable pictures
+    if (vecEffOpacity(m, obj, vf.cur) <= 0) continue;
+    const lp = vecToLocal(m, obj, vf.cur, cx, cy);
     const bb = vecBBox(obj.shape);
-    if (ox >= bb.x - 14 && ox <= bb.x + bb.w + 14 && oy >= bb.y - 14 && oy <= bb.y + bb.h + 14) return obj;
+    if (lp.x >= bb.x - 14 && lp.x <= bb.x + bb.w + 14 && lp.y >= bb.y - 14 && lp.y <= bb.y + bb.h + 14) return obj;
   }
   return null;
 }
@@ -6405,10 +6938,33 @@ vfCanvas.addEventListener('pointerdown', e => {
     vfScribble = [[pos.x, pos.y]];
     return;
   }
+  // ⊕ v19 HINGE TOOL — tap the picked object to move the spot it spins around.
+  // The object must not JUMP when the hinge moves, so x/y compensate by exactly
+  // R·(newPivot − oldPivot), where R is this object's own rotate+scale.
+  if (vf.tool === 'pivot') {
+    const sel = vfSel();
+    if (!sel || !sel.shape) { toast('⊕ pick an object first, then tap where its hinge should go'); return; }
+    vfPushUndo();
+    const pv = sel.shape.pivot || [0, 0];
+    const np = vecToLocal(m, sel, vf.cur, pos.x, pos.y);
+    const p = vecObjAt(sel, vf.cur);
+    const s = p.s / 100, q = Math.max(-0.8, Math.min(0.8, (p.q || 0) / 100));
+    const R = new DOMMatrix().rotate(p.r).scale(s * (1 + q), s / (1 + q));
+    const d = R.transformPoint(new DOMPoint(np.x - pv[0], np.y - pv[1]));
+    const dx = d.x - R.e, dy = d.y - R.f;      // direction only — drop any translation
+    sel.shape.pivot = [np.x, np.y];
+    vecSetKey(sel.tracks.x, vf.cur, Math.round(p.x + dx));
+    vecSetKey(sel.tracks.y, vf.cur, Math.round(p.y + dy));
+    vfSetTool('move');
+    bumpVec(m); vfRepaint(); vfSyncInspect(); vfRenderSheet(); vfDrawCurve();
+    toast('⊕ hinge moved — spin it now, and anything pinned to it swings around this spot');
+    return;
+  }
   if (vf.tool !== 'move') {
     // place a new shape where the finger lands
     vfPushUndo();
-    const obj = newVecObject(vf.tool, pos.x - VF_W/2, pos.y - VF_H/2);
+    const pp = vecPlacePos(m, pos);   // v19: land where the finger is, whatever the camera is doing
+    const obj = newVecObject(vf.tool, pp.x, pp.y);
     m.objects.push(obj);
     vf.selOid = obj.oid;
     vfSetTool('move');   // straight back to move — place, then play with it
@@ -6420,7 +6976,10 @@ vfCanvas.addEventListener('pointerdown', e => {
   if (hit) {
     vf.selOid = hit.oid;
     const p = vecObjAt(hit, vf.cur);
-    vfDrag = { obj: hit, startX: pos.x, startY: pos.y, origX: p.x, origY: p.y, moved: false };
+    // drags happen in the PARENT's space, so dragging a pinned arm still tracks the finger
+    let pinv = null;
+    try { pinv = vecParentMatrix(m, hit, vf.cur).inverse(); } catch (e) {}
+    vfDrag = { obj: hit, startX: pos.x, startY: pos.y, origX: p.x, origY: p.y, moved: false, pinv };
     vfRepaint(); vfRenderObjects(); vfSyncInspect(); vfDrawCurve();
   } else {
     vf.selOid = null;
@@ -6445,8 +7004,14 @@ vfCanvas.addEventListener('pointermove', e => {
   }
   if (!vfDrag) return;
   if (!vfDrag.moved) { vfDrag.moved = true; vfPushUndo(); }
-  const nx = vfDrag.origX + (pos.x - vfDrag.startX);
-  const ny = vfDrag.origY + (pos.y - vfDrag.startY);
+  let ddx = pos.x - vfDrag.startX, ddy = pos.y - vfDrag.startY;
+  if (vfDrag.pinv) {
+    const a = vfDrag.pinv.transformPoint(new DOMPoint(vfDrag.startX, vfDrag.startY));
+    const b = vfDrag.pinv.transformPoint(new DOMPoint(pos.x, pos.y));
+    ddx = b.x - a.x; ddy = b.y - a.y;
+  }
+  const nx = vfDrag.origX + ddx;
+  const ny = vfDrag.origY + ddy;
   vecSetKey(vfDrag.obj.tracks.x, vf.cur, Math.round(nx));   // 🪄 auto-key
   vecSetKey(vfDrag.obj.tracks.y, vf.cur, Math.round(ny));
   vfRepaint();
@@ -6459,7 +7024,8 @@ window.addEventListener('pointerup', () => {
       let cx = 0, cy = 0;
       for (const [px, py] of vfScribble) { cx += px; cy += py; }
       cx /= vfScribble.length; cy /= vfScribble.length;
-      const obj = newVecObject('scribble', cx - VF_W/2, cy - VF_H/2);
+      const pp = vecPlacePos(m, { x: cx, y: cy });
+      const obj = newVecObject('scribble', pp.x, pp.y);
       obj.shape.points = vfScribble.map(([px, py]) => [px - cx, py - cy]);
       obj.shape.strokeW = 6;
       m.objects.push(obj);
@@ -6496,36 +7062,107 @@ $('vf-strokew').addEventListener('input', e => {
   const sel = vfSel(); if (!sel) return;
   sel.shape.strokeW = parseInt(e.target.value); bumpVec(vfMedia()); vfRepaint();
 });
-$('vf-fill').addEventListener('input', e => { const sel = vfSel(); if (sel) { sel.shape.fill = e.target.value; bumpVec(vfMedia()); vfRepaint(); vfRenderObjects(); } });
-$('vf-stroke').addEventListener('input', e => { const sel = vfSel(); if (sel) { sel.shape.stroke = e.target.value; bumpVec(vfMedia()); vfRepaint(); } });
+$('vf-fill').addEventListener('input', e => { const sel = vfSel(); if (sel && sel.shape) { sel.shape.fill = e.target.value; bumpVec(vfMedia()); vfRepaint(); vfRenderObjects(); } });
+$('vf-stroke').addEventListener('input', e => { const sel = vfSel(); if (sel && sel.shape) { sel.shape.stroke = e.target.value; bumpVec(vfMedia()); vfRepaint(); } });
+
+// ── 🫸 SQUASH · 🧷 PIN · 🎞 PLANE · CAMERA (v19) ──
+$('vf-squash').addEventListener('input', e => { $('vf-squash-val').textContent = e.target.value; vfAutoKeyProp('q', parseInt(e.target.value)); });
+$('vf-parent').addEventListener('change', e => {
+  const m = vfMedia(), sel = vfSel(); if (!sel) return;
+  const oid = parseInt(e.target.value) || 0;
+  if (oid && vecWouldCycle(m, sel, oid)) {
+    toast('🔄 that would pin it to itself in a circle — pick something else');
+    vfSyncInspect(); return;
+  }
+  vfPushUndo();
+  sel.parent = oid || null;
+  bumpVec(m); vfRepaint(); vfRenderObjects(); vfSyncInspect();
+  toast(oid ? '🧷 pinned — spin the other thing and this follows it around' : '🧷 unpinned');
+});
+$('vf-plane').addEventListener('change', e => {
+  const sel = vfSel(); if (!sel) return;
+  vfPushUndo();
+  sel.plane = e.target.value;
+  bumpVec(vfMedia()); vfRepaint();
+  toast('🎞 on the ' + e.target.value + ' plane — now pan the CAMERA and watch it drift');
+});
+$('vf-group-btn').addEventListener('click', () => {
+  const m = vfMedia(); if (!m) return;
+  vfPushUndo();
+  const g = newVecGroup(0, 0);
+  m.objects.push(g);
+  vf.selOid = g.oid;
+  bumpVec(m); vfRepaint(); vfRenderObjects(); vfRenderSheet(); vfSyncInspect();
+  toast('🧷 empty group — now PIN TO it and everything moves together');
+});
+$('vf-pivot-reset').addEventListener('click', () => {
+  const sel = vfSel(); if (!sel || !sel.shape) return;
+  vfPushUndo();
+  sel.shape.pivot = [0, 0];
+  bumpVec(vfMedia()); vfRepaint();
+});
+function vfCamKey(k, v) {
+  const m = vfMedia(); if (!m) return;
+  if (!m.camera) m.camera = { px: [], py: [], z: [] };
+  vfPushUndo();
+  vecSetKey(m.camera[k], vf.cur, v);
+  bumpVec(m); vfRepaint();
+}
+$('vf-cam-x').addEventListener('input', e => { $('vf-cam-x-val').textContent = e.target.value; vfCamKey('px', parseInt(e.target.value)); });
+$('vf-cam-y').addEventListener('input', e => { $('vf-cam-y-val').textContent = e.target.value; vfCamKey('py', parseInt(e.target.value)); });
+$('vf-cam-z').addEventListener('input', e => { $('vf-cam-z-val').textContent = e.target.value; vfCamKey('z', parseInt(e.target.value)); });
 
 function vfSyncInspect() {
+  const m = vfMedia();
   const sel = vfSel();
   const on = !!sel;
-  ['vf-scale','vf-rot','vf-opacity','vf-strokew','vf-obj-up','vf-obj-down','vf-obj-dup','vf-obj-del','vf-setkey','vf-delkey'].forEach(id => $(id).disabled = !on);
-  if (!sel) return;
+  ['vf-scale','vf-rot','vf-opacity','vf-squash','vf-parent','vf-plane','vf-pivot-reset',
+   'vf-strokew','vf-obj-up','vf-obj-down','vf-obj-dup','vf-obj-del','vf-setkey','vf-delkey']
+    .forEach(id => { const el = $(id); if (el) el.disabled = !on; });
+  // 🎞 the camera belongs to the CLIP, so it stays live even with nothing selected
+  if (m) {
+    const c = vecCamAt(m, vf.cur);
+    $('vf-cam-x').value = Math.round(c.px); $('vf-cam-x-val').textContent = Math.round(c.px);
+    $('vf-cam-y').value = Math.round(c.py); $('vf-cam-y-val').textContent = Math.round(c.py);
+    $('vf-cam-z').value = Math.round(c.z);  $('vf-cam-z-val').textContent = Math.round(c.z);
+  }
+  if (!sel) { $('vf-parent').innerHTML = ''; return; }
   const p = vecObjAt(sel, vf.cur);
   $('vf-scale').value = Math.round(p.s);   $('vf-scale-val').textContent = Math.round(p.s);
   // v17: no more ±180 wrap — multi-turn spins are real values now (clamp to slider reach only)
   $('vf-rot').value = Math.max(-1080, Math.min(1080, Math.round(p.r))); $('vf-rot-val').textContent = Math.round(p.r);
   $('vf-opacity').value = Math.round(p.o); $('vf-opacity-val').textContent = Math.round(p.o);
-  $('vf-strokew').value = sel.shape.strokeW || 0; $('vf-strokew-val').textContent = sel.shape.strokeW || 0;
-  $('vf-fill').value = sel.shape.fill;
-  $('vf-stroke').value = sel.shape.stroke;
+  $('vf-squash').value = Math.round(p.q);  $('vf-squash-val').textContent = Math.round(p.q);
+  $('vf-plane').value = sel.plane || 'mid';
+  // 🧷 PIN TO — everything except itself and its own descendants (no loops possible)
+  const opts = ['<option value="0">— nothing —</option>'];
+  for (const o of m.objects) {
+    if (o.oid === sel.oid || vecWouldCycle(m, o, sel.oid)) continue;
+    opts.push(`<option value="${o.oid}"${sel.parent === o.oid ? ' selected' : ''}>${o.shape ? '' : '🧷 '}${o.name}</option>`);
+  }
+  $('vf-parent').innerHTML = opts.join('');
+  $('vf-parent').value = String(sel.parent || 0);
+  const hasShape = !!sel.shape;
+  ['vf-strokew','vf-fill','vf-stroke'].forEach(id => { const el = $(id); if (el) el.disabled = !hasShape; });
+  if (hasShape) {
+    $('vf-strokew').value = sel.shape.strokeW || 0; $('vf-strokew-val').textContent = sel.shape.strokeW || 0;
+    $('vf-fill').value = sel.shape.fill;
+    $('vf-stroke').value = sel.shape.stroke;
+  }
 }
 
 $('vf-setkey').addEventListener('click', () => {
   const sel = vfSel(); if (!sel) return;
   vfPushUndo();
   const p = vecObjAt(sel, vf.cur);
-  for (const k of ['x','y','s','r','o']) vecSetKey(sel.tracks[k], vf.cur, Math.round(p[k]));
+  for (const k of ['x','y','s','r','o','q']) vecSetKey(sel.tracks[k], vf.cur, Math.round(p[k]));
   bumpVec(vfMedia()); vfRenderSheet(); vfDrawCurve();
   toast('◆ everything about this object is locked at this frame');
 });
 $('vf-delkey').addEventListener('click', () => {
   const sel = vfSel(); if (!sel) return;
   vfPushUndo();
-  for (const k of ['x','y','s','r','o']) {
+  for (const k of ['x','y','s','r','o','q']) {
     const t = sel.tracks[k];
     const i = t.findIndex(key => key.f === vf.cur);
     if (i < 0) continue;
@@ -6544,7 +7181,10 @@ function vfRenderObjects() {
   [...m.objects].reverse().forEach(obj => {   // top of list = front
     const d = document.createElement('div');
     d.className = 'vf-obj' + (obj.oid === vf.selOid ? ' sel' : '');
-    d.innerHTML = `<span class="sw" style="background:${obj.shape.fill}"></span><span>${obj.name}</span>`;
+    const pinned = obj.parent ? ' 🧷' : '';
+    d.innerHTML = obj.shape
+      ? `<span class="sw" style="background:${obj.shape.fill}"></span><span>${obj.name}${pinned}</span>`
+      : `<span class="sw" style="background:transparent;border:1px dashed var(--yellow)"></span><span style="color:var(--yellow)">🧷 ${obj.name}${pinned}</span>`;
     d.addEventListener('click', () => { vf.selOid = obj.oid; vfRepaint(); vfRenderObjects(); vfSyncInspect(); vfRenderSheet(); vfDrawCurve(); });
     list.appendChild(d);
   });
@@ -6604,7 +7244,7 @@ function vfRenderSheet() {
     tr.appendChild(lh);
     const keyFrames = new Set();
     let lastKey = 0;
-    for (const k of ['x','y','s','r','o']) for (const key of obj.tracks[k]) { keyFrames.add(key.f); lastKey = Math.max(lastKey, key.f); }
+    for (const k of ['x','y','s','r','o','q']) for (const key of obj.tracks[k]) { keyFrames.add(key.f); lastKey = Math.max(lastKey, key.f); }
     for (let f = 0; f < m.frameCount; f++) {
       const td = document.createElement('td');
       td.className = 'cell' + (f === vf.cur ? ' curcol' : '');
@@ -6911,11 +7551,13 @@ function restoreAudioAfterExport() {
   try { if (playCtx && playCtx.state === 'suspended') playCtx.resume().catch(() => {}); } catch (e) {}
 }
 
-$('export-btn').addEventListener('click', async () => {
+$('export-btn').addEventListener('click', () => guard('export', async () => {
   if (timeline.length === 0) { toast('add clips to your movie first! 🎞'); return; }
   if (media.some(m => m.missing && timeline.some(c => c.mediaId === m.id))) {
     toast('⚠️ relink the missing footage first (red cards in MY CLIPS)'); return;
   }
+  // 🏷 v19 — never let another my-movie (7).mp4 into the shared Drive folder
+  if (!ensureProjectName('export')) return;
   if (playing) stopPlayback();
   const verdict = await exportCautionCheck();
   if (verdict === 'stop') return;
@@ -6958,7 +7600,7 @@ $('export-btn').addEventListener('click', async () => {
     keepAwake(false);
     restoreAudioAfterExport();   // speakers come back for the preview
   }
-});
+}));
 
 // sequential frame reader per video clip (output frames advance monotonically)
 class ClipReader {
@@ -7034,10 +7676,10 @@ async function exportFast() {
         const srcT = clip.in + (t - clip.start);
         let img = null, sw = 0, sh = 0;
         if (m.kind === 'flipbook') {
-          img = renderFbFrame(m, Math.floor(srcT * m.fps));
+          img = renderFbFrame(m, studioFrameIndex(m, clip, srcT));
           sw = FB_W; sh = FB_H;
         } else if (m.kind === 'vector') {
-          img = renderVecFrame(m, Math.floor(srcT * m.fps));
+          img = renderVecFrame(m, studioFrameIndex(m, clip, srcT));
           sw = VF_W; sh = VF_H;
         } else if (m.kind === 'code') {
           img = renderCodeFrame(m, srcT);
@@ -7250,14 +7892,20 @@ async function exportRealtime() {
 // ════════════════════════════════════════════════════════════
 // PROJECT SAVE / LOAD (.geov)
 // ════════════════════════════════════════════════════════════
-$('save-btn').addEventListener('click', saveProject);
+$('save-btn').addEventListener('click', () => guard('save', async () => {
+  if (!ensureProjectName('save')) return;
+  saveProject(); noteFileSaved();
+}));
 $('open-btn').addEventListener('click', () => $('project-input').click());
 $('project-input').addEventListener('change', e => {
   const f = e.target.files[0];
   if (f) /\.geos$/i.test(f.name) ? openBundleFile(f) : openProjectFile(f);
   e.target.value = '';
 });
-$('bundle-btn').addEventListener('click', saveBundle);
+$('bundle-btn').addEventListener('click', () => guard('pack', async () => {
+  if (!ensureProjectName('pack')) return;
+  await saveBundle(); noteFileSaved();
+}));
 
 // ════════════════════════════════════════════════════════════
 // 🛟 AUTOSAVE + CRASH RECOVERY — IndexedDB (localStorage is ~5MB; a project
@@ -7331,30 +7979,197 @@ async function stashFile(file) {
 // kids on one login) can never overwrite each other anymore. Tiny 'meta-*'
 // records carry {savedAt, name} so recovery can pick the newest without
 // reading megabytes of project JSON.
-const AUTOSAVE_MAX_SLOTS = 6;
-let autosaveSlot = null;
-try {
-  autosaveSlot = sessionStorage.getItem('geov-autosave-slot');
-  if (!autosaveSlot) {
-    autosaveSlot = 'slot-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
-    sessionStorage.setItem('geov-autosave-slot', autosaveSlot);
+// ════════════════════════════════════════════════════════════
+// 🛡 CLICK ARMOR (v19)
+//
+// Mook: "they click A LOT, so account for that so they can't break it by spamming
+// commands or behaving like frustrated children."
+//
+// Two halves, because rage-clicking is two different things at once:
+//
+//  1. DEFENCE — every slow or destructive action runs through guard(). A second press
+//     while the first is still running is a NO-OP with a friendly line, never a queue
+//     and never a second encoder. Double-tapping 🎬 EXPORT used to start two of them.
+//
+//  2. DIAGNOSIS — Momentum Lab's point: a click-storm isn't misbehaviour, it's a bug
+//     report a nine-year-old can't write. It marks the exact spot the app went
+//     unresponsive. So we COUNT it, name the control, and keep the last 20 in a ring
+//     buffer readable at GeoV.rage() — that's next Tuesday's fix list, from the room.
+// ════════════════════════════════════════════════════════════
+const busyActions = new Set();
+async function guard(key, fn) {
+  if (busyActions.has(key)) { toast('⏳ still working on that one — one press is enough 🙂'); return; }
+  busyActions.add(key);
+  document.body.style.cursor = 'progress';
+  try { await fn(); }
+  catch (e) { console.error('[geov] ' + key, e); }
+  finally { busyActions.delete(key); document.body.style.cursor = ''; }
+}
+const rageLog = [];
+let rageLast = { el: null, n: 0, t: 0 };
+document.addEventListener('pointerdown', e => {
+  const el = e.target.closest('button, .vft-btn, .fb-tool, .home-card, [data-tool]');
+  if (!el) return;
+  const now = Date.now();
+  if (rageLast.el === el && now - rageLast.t < 600) rageLast.n++;
+  else rageLast = { el, n: 1, t: now };
+  rageLast.t = now;
+  if (rageLast.n === 5) {
+    const what = (el.id || el.textContent || 'a button').trim().slice(0, 40).replace(/\s+/g, ' ');
+    rageLog.unshift({ at: new Date().toISOString(), control: what, presses: rageLast.n });
+    if (rageLog.length > 20) rageLog.pop();
+    toast('😮‍💨 GeoV heard you — it\'s working on it. Nothing is broken.', 3200);
   }
-} catch (e) { autosaveSlot = 'slot-' + Math.random().toString(36).slice(2, 10); }
+}, true);
+window.GeoV = window.GeoV || {};
+window.GeoV.rage = () => rageLog;
+// 🗜 receipts for the compression work — run this after a drawing session
+window.GeoV.perf = () => {
+  let undoB = 0, cels = 0, cached = 0;
+  try {
+    for (const r of fb.undo) undoB += undoBytes(r);
+    for (const m of media) for (const l of (m.layers || [])) for (const c of (l.cells || [])) {
+      if (c && c !== 'H') { cels++; if (c._png) cached++; }
+    }
+  } catch (e) {}
+  return {
+    celEncodes, celCacheHits,
+    celCacheHitRate: (celCacheHits + celEncodes) ? (celCacheHits / (celCacheHits + celEncodes) * 100).toFixed(1) + '%' : 'n/a',
+    cels, celsCached: cached,
+    undoSteps: (typeof fb !== 'undefined' && fb.undo) ? fb.undo.length : 0,
+    undoMB: (undoB / 1048576).toFixed(2),
+    undoMB_v18equivalent: (((typeof fb !== 'undefined' && fb.undo) ? fb.undo.length : 0) * FB_W * FB_H * 4 / 1048576).toFixed(2),
+    p5Cap: p5MaxLive(), p5Live: p5Live.length,
+  };
+};
+
+// ════════════════════════════════════════════════════════════
+// 👤 v19 — WHO'S WORKING (the fix that outranks every feature)
+//
+// v18 minted the autosave slot from sessionStorage: it survived a refresh and died on
+// tab close, so a kid who came back was a stranger. And offerRecovery() then GUESSED —
+// it offered the newest slot on the whole machine, which after a class rotation is
+// somebody else's movie.
+//
+// v19: the slot key is DETERMINISTIC — handle + '·' + project name. Same kid + same
+// movie = same slot, forever. Two kids on one iPad get slots that cannot collide.
+//
+// The handle is minted locally and is the only key the storage layer ever sees; the
+// typed first name is a display label. That's COPPA-clean by construction and it's the
+// exact shape student accounts need next week — swap the ProjectStore backend and the
+// UI above it doesn't change.
+//
+// Handle grammar is Mook's: the colour word IS the first digit. 47 → 4 is orange →
+// "orange-fox-47". The name is a number you can read.
+// ════════════════════════════════════════════════════════════
+const GEO_COLOR_WORDS = ['cyan','red','blue','yellow','orange','green','purple','pink','black','white'];
+const HANDLE_ANIMALS = ['fox','owl','moth','crab','wolf','frog','hawk','eel','bear','lynx',
+                        'moose','otter','raven','shark','toad','wasp','yak','bat','crow','deer'];
+function mintHandle() {
+  const n = 10 + Math.floor(Math.random() * 90);
+  return `${GEO_COLOR_WORDS[Math.floor(n / 10)]}-${HANDLE_ANIMALS[Math.floor(Math.random() * HANDLE_ANIMALS.length)]}-${n}`;
+}
+let maker = { name: '', handle: '' };
+function loadMaker() {
+  try {
+    const raw = localStorage.getItem('geov-maker');
+    if (raw) { const m = JSON.parse(raw); if (m && m.handle) { maker = m; return true; } }
+  } catch (e) {}
+  return false;
+}
+function saveMaker(name) {
+  maker = { name: (name || '').trim() || 'friend', handle: maker.handle || mintHandle() };
+  try { localStorage.setItem('geov-maker', JSON.stringify(maker)); } catch (e) {}
+  paintMakerChip();
+}
+function paintMakerChip() {
+  const c = $('home-maker-chip');
+  if (c) c.textContent = `👤 ${maker.name || 'who?'}  ·  ${maker.handle || ''}`;
+}
+// keys are normalised so "Hope", "hope" and "HOPE " are one kid, not three
+function normKey(s) { return (s || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, ''); }
+function slotKeyFor(name) { return 'p·' + (maker.handle || 'anon') + '·' + (normKey(name) || 'untitled'); }
+
+const AUTOSAVE_MAX_SLOTS = 24;   // metas are bytes — keep the CARDS for everything
+const AUTOSAVE_MAX_PAYLOADS = 8; // only the heaviest few keep their full blob
+let autosaveSlot = null;
+let slotBlessed = false;   // true once a human explicitly chose this slot (NEW / card / file)
 
 let autosaveTimer = null, autosaveBusy = false;
 function scheduleAutosave() {
   clearTimeout(autosaveTimer);
   autosaveTimer = setTimeout(doAutosave, 1500);
 }
+// ════════════════════════════════════════════════════════════
+// 🩸 THE CLOBBER GUARD — this is the bug that was eating children's work
+//
+// v18: snapshot() → scheduleAutosave() on every structural change. After a refresh the
+// timeline is empty and the slot key was UNCHANGED, so the moment a kid touched anything
+// an almost-empty project was written OVER their good autosave — before they ever
+// answered the recovery bar. That is "someone refreshed and it deleted my work."
+//
+// The fix is a COLLAPSE CONDITION, not a heuristic:
+//
+//     COLLAPSE(slot ← incoming) REQUIRES  info(incoming) ≥ info(held)
+//                               UNLESS    intent = NEW | CONFIRMED
+//
+// info() is monotone in real work. A refresh produces info = 0, and 0 is never ≥ n, so
+// the write is refused by grammar rather than by luck. (KIRA's reading: annihilation is
+// only legal between IDENTICAL states — state^state=void. XORing a full project against
+// an empty one isn't annihilation, it's erasure.)
+//
+// When it trips we do NOT throw a modal at a kid mid-draw. We re-route the new work to a
+// fresh slot, so neither side is ever lost.
+// ════════════════════════════════════════════════════════════
+function projectInfo(d) {
+  if (!d) return 0;
+  let cels = 0, objs = 0;
+  for (const m of (d.media || [])) {
+    for (const l of (m.layers || [])) for (const c of (l.cells || [])) if (c) cels++;
+    objs += (m.objects || []).length;
+    if (m.code) objs += 1;
+  }
+  return (d.timeline || []).length * 100 + (d.media || []).length * 10 + cels + objs;
+}
+let lastThumbAt = 0;
+function projectThumb() {
+  try {
+    const c = document.createElement('canvas');
+    c.width = 240; c.height = 135;
+    c.getContext('2d').drawImage(pvCanvas, 0, 0, 240, 135);
+    return c.toDataURL('image/jpeg', 0.55);
+  } catch (e) { return null; }
+}
 async function doAutosave() {
   if (autosaveBusy) { scheduleAutosave(); return; }
+  if (!autosaveSlot) autosaveSlot = slotKeyFor($('project-name').value);
   autosaveBusy = true;
   try {
     const data = buildProjectData();
     data.savedAt = Date.now();
+    data.maker = maker.name; data.handle = maker.handle;
+    const info = projectInfo(data);
+
+    const held = await idbGet('autosave', 'meta-' + autosaveSlot);
+    if (held && (held.info | 0) > info && !slotBlessed) {
+      // ⛔ COLLAPSE REFUSED — never overwrite more work with less.
+      autosaveSlot = slotKeyFor(($('project-name').value || 'movie') + '-' + Date.now().toString(36).slice(-4));
+      slotBlessed = true;
+      toast('🛟 kept “' + (held.name || 'your other movie') + '” safe — this one saves separately', 5200);
+    }
+
     await idbPut('autosave', autosaveSlot, JSON.stringify(data));
-    await idbPut('autosave', 'meta-' + autosaveSlot, { savedAt: data.savedAt, name: data.name || 'my movie' });
+    const meta = {
+      savedAt: data.savedAt, name: data.name || 'untitled', info,
+      maker: maker.name, handle: maker.handle,
+      clips: (data.timeline || []).length,
+      fav: (held && held.fav) || false,
+      thumb: (held && held.thumb) || null,
+    };
+    if (Date.now() - lastThumbAt > 30000 || !meta.thumb) { const t = projectThumb(); if (t) { meta.thumb = t; lastThumbAt = Date.now(); } }
+    await idbPut('autosave', 'meta-' + autosaveSlot, meta);
     $('autosave-dot').classList.add('on');
+    pulseStudioDots();
     setTimeout(() => $('autosave-dot').classList.remove('on'), 900);
     pruneAutosaveSlots();   // fire and forget
   } catch (e) {
@@ -7363,23 +8178,72 @@ async function doAutosave() {
   }
   autosaveBusy = false;
 }
+// 💓 v19 — the studios always autosaved; a kid inside one just couldn't SEE it, because
+// the heartbeat dot lives in the main header, behind the studio overlay. Six dots, each
+// in its own studio's colour. Do not rebuild the save layer — it was already fine.
+function pulseStudioDots() {
+  document.querySelectorAll('.studio-dot').forEach(d => {
+    d.classList.add('on');
+    setTimeout(() => d.classList.remove('on'), 900);
+  });
+}
+// ════════════════════════════════════════════════════════════
+// 🗄 ProjectStore — the ONLY thing the home screen talks to.
+// Backed by IndexedDB today. Next week student accounts swap this object for one that
+// talks to a server and the entire UI above it is unchanged. That's the whole reason
+// it exists as a seam.
+// ════════════════════════════════════════════════════════════
+const ProjectStore = {
+  async list() {
+    const out = [];
+    try {
+      const keys = await idbKeys('autosave');
+      for (const k of keys) {
+        if (typeof k === 'string' && k.startsWith('meta-')) {
+          const meta = await idbGet('autosave', k);
+          if (meta) out.push({ slot: k.slice(5), ...meta });
+        }
+      }
+    } catch (e) {}
+    out.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+    return out;
+  },
+  async load(slot) {
+    try { const raw = await idbGet('autosave', slot); return raw ? JSON.parse(raw) : null; }
+    catch (e) { return null; }
+  },
+  async remove(slot) {
+    try { await idbDel('autosave', slot); await idbDel('autosave', 'meta-' + slot); } catch (e) {}
+  },
+  async patchMeta(slot, patch) {
+    try { const m = (await idbGet('autosave', 'meta-' + slot)) || {}; await idbPut('autosave', 'meta-' + slot, { ...m, ...patch }); } catch (e) {}
+  },
+  async duplicate(slot) {
+    const data = await this.load(slot); if (!data) return null;
+    const meta = (await idbGet('autosave', 'meta-' + slot)) || {};
+    data.name = (data.name || 'movie') + ' copy';
+    const ns = slotKeyFor(data.name + '-' + Date.now().toString(36).slice(-4));
+    await idbPut('autosave', ns, JSON.stringify(data));
+    await idbPut('autosave', 'meta-' + ns, { ...meta, slot: undefined, name: data.name, savedAt: Date.now(), fav: false });
+    return ns;
+  },
+};
+// v19: keep the CARDS for everything (metas are bytes) but cap the heavy payloads, so a
+// kid can always see that their movie existed even if the blob had to be evicted.
 async function pruneAutosaveSlots() {
   try {
-    const keys = await idbKeys('autosave');
-    const metas = [];
-    for (const k of keys) {
-      if (typeof k === 'string' && k.startsWith('meta-')) {
-        const meta = await idbGet('autosave', k);
-        metas.push({ slot: k.slice(5), savedAt: (meta && meta.savedAt) || 0 });
-      }
-    }
-    metas.sort((a, b) => b.savedAt - a.savedAt);
+    const metas = await ProjectStore.list();
     for (const s of metas.slice(AUTOSAVE_MAX_SLOTS)) {
       if (s.slot === autosaveSlot) continue;
-      await idbDel('autosave', s.slot);
-      await idbDel('autosave', 'meta-' + s.slot);
+      await ProjectStore.remove(s.slot);
     }
-    // legacy single slot from v16 and earlier — retire it once a real slot exists
+    const keep = metas.slice(0, AUTOSAVE_MAX_PAYLOADS).map(s => s.slot);
+    for (const s of metas.slice(AUTOSAVE_MAX_PAYLOADS, AUTOSAVE_MAX_SLOTS)) {
+      if (s.slot === autosaveSlot || keep.includes(s.slot) || s.evicted) continue;
+      await idbDel('autosave', s.slot);
+      await ProjectStore.patchMeta(s.slot, { evicted: true });
+    }
+    const keys = await idbKeys('autosave');
     if (keys.includes('current') && metas.length) await idbDel('autosave', 'current');
   } catch (e) {}
 }
@@ -7392,47 +8256,316 @@ function fmtAge(ms) {
   const d = Math.round(hr / 24);
   return d + (d === 1 ? ' day ago' : ' days ago');
 }
-async function offerRecovery() {
-  // gather every slot's tiny meta, plus the legacy 'current' slot, newest first
-  let best = null;
-  try {
-    const keys = await idbKeys('autosave');
-    const cands = [];
-    for (const k of keys) {
-      if (typeof k === 'string' && k.startsWith('meta-')) {
-        const meta = await idbGet('autosave', k);
-        if (meta) cands.push({ key: k.slice(5), savedAt: meta.savedAt || 0 });
-      }
-    }
-    if (keys.includes('current')) {
-      const raw = await idbGet('autosave', 'current');
-      try { const d = JSON.parse(raw); if (d.timeline && d.timeline.length) cands.push({ key: 'current', savedAt: d.savedAt || 0 }); } catch (e) {}
-    }
-    cands.sort((a, b) => b.savedAt - a.savedAt);
-    best = cands[0];
-  } catch (e) { return; }
-  if (!best) return;
-  const raw = await idbGet('autosave', best.key);
-  if (!raw) return;
-  let data;
-  try { data = JSON.parse(raw); } catch (e) { return; }
-  if (!data.timeline || !data.timeline.length) return;
-  const bar = $('recover-bar');
-  const age = best.savedAt ? ' · ' + fmtAge(Date.now() - best.savedAt) : '';
-  $('recover-name').textContent = `“${data.name || 'my movie'}”${age}`;
-  bar.style.display = 'flex';
-  $('recover-yes').onclick = async () => {
-    bar.style.display = 'none';
-    await openProjectData(data);
-    toast('🛟 project restored — right where you left off');
-  };
-  $('recover-no').onclick = () => { bar.style.display = 'none'; };
+// ════════════════════════════════════════════════════════════
+// 🏠 HOME — GeoV opens on a grid of project cards, not on an empty timeline.
+// offerRecovery()'s guess is DELETED. Nothing opens until a human picks it.
+// ════════════════════════════════════════════════════════════
+let homeFilter = 'all';
+async function renderHome() {
+  const grid = $('home-grid');
+  grid.innerHTML = '';
+  const q = normKey($('home-search').value);
+  let rows = await ProjectStore.list();
+  if (homeFilter === 'fav') rows = rows.filter(r => r.fav);
+  if (homeFilter === 'mine') rows = rows.filter(r => r.handle === maker.handle);
+  if (q) rows = rows.filter(r => normKey(r.name).includes(q) || normKey(r.maker || '').includes(q));
+
+  if (!rows.length) {
+    const d = document.createElement('div');
+    d.id = 'home-empty';
+    d.innerHTML = rows.length === 0 && !q
+      ? `👋 No movies here yet.<br><br>Hit <b style="color:var(--green)">＋ NEW MOVIE</b> to start one — or <b style="color:var(--cyan)">🧭 TOUR</b> to see what GeoV can do in three minutes.`
+      : `Nothing matches “${$('home-search').value}”.`;
+    grid.appendChild(d);
+    return;
+  }
+  for (const r of rows) {
+    const card = document.createElement('div');
+    card.className = 'home-card';
+    const age = r.savedAt ? fmtAge(Date.now() - r.savedAt) : '';
+    const shot = r.thumb
+      ? `<img class="shot" src="${r.thumb}" alt="">`
+      : `<div class="shot empty">⬡</div>`;
+    card.innerHTML = `${shot}
+      <div class="meta">
+        <div class="nm">${(r.name || 'untitled')}${r.evicted ? ' <span style="color:var(--muted);font-size:10px">(card only)</span>' : ''}</div>
+        <div class="by">👤 ${r.maker || 'someone'} · ${r.clips || 0} clip${r.clips === 1 ? '' : 's'} · ${age}</div>
+      </div>
+      <div class="acts">
+        <button class="fav${r.fav ? ' on' : ''}" title="favourite">${r.fav ? '⭐' : '☆'}</button>
+        <button class="dup" title="duplicate">⧉</button>
+        <button class="del" title="delete">🗑</button>
+      </div>`;
+    card.querySelector('.shot').addEventListener('click', () => openFromCard(r));
+    card.querySelector('.meta').addEventListener('click', () => openFromCard(r));
+    card.querySelector('.fav').addEventListener('click', async e => {
+      e.stopPropagation(); await ProjectStore.patchMeta(r.slot, { fav: !r.fav }); renderHome();
+    });
+    card.querySelector('.dup').addEventListener('click', async e => {
+      e.stopPropagation(); await ProjectStore.duplicate(r.slot); toast('⧉ copied'); renderHome();
+    });
+    card.querySelector('.del').addEventListener('click', async e => {
+      e.stopPropagation();
+      if (!confirm(`Delete “${r.name || 'untitled'}”?\n\nThis can't be undone.`)) return;
+      await ProjectStore.remove(r.slot); toast('🗑 deleted'); renderHome();
+    });
+    grid.appendChild(card);
+  }
 }
+async function openFromCard(r) {
+  if (r.evicted) {
+    caution('evicted', 'this one is a card, not a movie',
+      'GeoV kept the name and the picture, but the iPad needed the room back so the full project was let go. If you 💾 SAVED a .geov file, use 📂 OPEN A FILE to bring it back.');
+    return;
+  }
+  const data = await ProjectStore.load(r.slot);
+  if (!data) { toast('😕 that movie could not be opened'); return; }
+  autosaveSlot = r.slot;
+  slotBlessed = true;                 // ✅ a human picked this — writes to it are intended
+  await openProjectData(data);
+  closeHome();
+  toast('🛟 “' + (data.name || 'your movie') + '” — right where you left off');
+}
+function openHome() { $('home-overlay').classList.add('open'); paintMakerChip(); renderHome(); }
+function closeHome() { $('home-overlay').classList.remove('open'); }
+
+async function startNewMovie() {
+  await openProjectData({ app: 'geov', version: 10, name: '', fps: FPS, folders: [], timeline: [], media: [] });
+  $('project-name').value = '';
+  autosaveSlot = null;
+  slotBlessed = true;                 // ✅ explicit NEW — an empty project here is intended
+  lastFileSave = Date.now();
+  closeHome();
+  setTimeout(() => { $('project-name').focus(); }, 120);
+  toast('✨ new movie — give it a name up top so you can always find it');
+}
+
+$('home-new-btn').addEventListener('click', () => guard('new', startNewMovie));
+$('home-open-btn').addEventListener('click', () => $('project-input').click());
+$('home-btn-hdr').addEventListener('click', openHome);
+$('loop-btn').addEventListener('click', () => {
+  const c = selClip();
+  if (!c) return;
+  snapshot();
+  c.loop = !c.loop;
+  updateTools();
+  refresh(); drawFrame();
+  toast(c.loop
+    ? '🔁 LOOP on — stretch this clip and it plays again instead of freezing'
+    : '🔁 LOOP off — stretching now holds the last frame');
+});
+$('home-search').addEventListener('input', renderHome);
+document.querySelectorAll('.home-f').forEach(b => b.addEventListener('click', () => {
+  homeFilter = b.dataset.f;
+  document.querySelectorAll('.home-f').forEach(x => x.classList.toggle('on', x === b));
+  renderHome();
+}));
+$('home-maker-chip').addEventListener('click', () => {
+  $('who-name').value = maker.name || '';
+  $('who-handle').textContent = maker.handle ? 'your private name stays ' + maker.handle : '';
+  $('who-overlay').classList.add('open');
+  setTimeout(() => $('who-name').focus(), 80);
+});
+
+// ── 👋 who's working ──
+$('who-name').addEventListener('input', () => {
+  if (!maker.handle) maker.handle = mintHandle();
+  $('who-handle').textContent = 'GeoV will call you ' + maker.handle + ' behind the scenes 🔒';
+});
+function whoDone() {
+  const n = $('who-name').value.trim();
+  if (!n) { $('who-name').focus(); return; }
+  saveMaker(n);
+  $('who-overlay').classList.remove('open');
+  openHome();
+}
+$('who-go').addEventListener('click', whoDone);
+$('who-name').addEventListener('keydown', e => { if (e.key === 'Enter') whoDone(); });
+
+// ════════════════════════════════════════════════════════════
+// 🧭 THE TOUR — first run only, then it waits behind a button.
+// preload="none" + no src until tapped: the 12.8MB file costs ZERO bytes on boot, so
+// 25 iPads opening GeoV at once don't fight over the school wifi before anyone can work.
+// ════════════════════════════════════════════════════════════
+const TOUR_SRC = 'GEOV-101.mp4';
+let tourMissing = false;
+function openTour(auto) {
+  if (tourMissing) { toast('🧭 the tour video isn\'t on this device yet'); if (!auto) return; openHome(); return; }
+  const v = $('tour-video');
+  if (!v.getAttribute('src')) v.setAttribute('src', TOUR_SRC);   // ← the ONLY moment it downloads
+  $('tour-overlay').classList.add('open');
+  v.currentTime = 0;
+  const p = v.play(); if (p && p.catch) p.catch(() => {});
+  if (auto) { try { localStorage.setItem('geov-saw-tour', '1'); } catch (e) {} }
+}
+// 🛟 if GEOV-101.mp4 isn't deployed beside index.html, a kid's FIRST EVER run must not be
+// a broken video player. Fail silently to the home screen — the tour is a bonus, not a gate.
+$('tour-video').addEventListener('error', () => {
+  tourMissing = true;
+  $('home-watch-btn').style.display = 'none';
+  const wasOpen = $('tour-overlay').classList.contains('open');
+  $('tour-overlay').classList.remove('open');
+  if (wasOpen) openHome();
+}, true);
+function closeTour() {
+  const v = $('tour-video');
+  try { v.pause(); } catch (e) {}
+  $('tour-overlay').classList.remove('open');
+  if (!$('home-overlay').classList.contains('open') && !timeline.length) openHome();
+}
+$('tour-skip').addEventListener('click', closeTour);
+$('tour-video').addEventListener('ended', closeTour);
+$('home-watch-btn').addEventListener('click', () => openTour(false));
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('tour-overlay').classList.contains('open')) closeTour();
+});
+
+// ── ⏰ save nudge: amber after 20 min of edits with no file. Never modal, never mid-play.
+let lastFileSave = Date.now(), nudgeHiddenUntil = 0;
+function noteFileSaved() { lastFileSave = Date.now(); $('save-btn').classList.remove('stale'); $('nudge-bar').classList.remove('on'); }
+setInterval(() => {
+  if (playing || !timeline.length) return;
+  if ($('home-overlay').classList.contains('open')) return;
+  const mins = Math.floor((Date.now() - lastFileSave) / 60000);
+  if (mins < 20) return;
+  $('save-btn').classList.add('stale');
+  if (Date.now() < nudgeHiddenUntil) return;
+  $('nudge-msg').textContent = `⏰ ${mins} minutes since your last saved file — 💾 SAVE keeps a copy you can take home.`;
+  $('nudge-bar').classList.add('on');
+}, 30000);
+$('nudge-save').addEventListener('click', () => { $('nudge-bar').classList.remove('on'); saveProject(); });
+$('nudge-hide').addEventListener('click', () => { $('nudge-bar').classList.remove('on'); nudgeHiddenUntil = Date.now() + 10 * 60000; });
+
+// ════════════════════════════════════════════════════════════
+// 👆 STARTER CUES (v19) — designed by /anima
+//
+// A video that plays every time you open the app is a toll booth: by day three the kids
+// have muscle memory for the skip button, and that memory transfers to EVERY card you
+// ever show them. So the tour plays once and then waits.
+//
+// This is the thing that actually teaches: a ghost hand doing the first move, in the room
+// where the move happens, the first time you walk into that room. It dies the moment the
+// kid touches anything — because the point is to hand over, not to hold the floor.
+//
+// Anima's timing (this is the whole craft of it):
+//   0–380ms   REACH   the hand travels in, ease-out — it arrives, it doesn't teleport
+//   380–560ms PRESS   it lands: the ring snaps in and the hand dips 3px. Contact needs weight.
+//   560–1100  HOLD    the label reads. Nothing moves. Let them look.
+//   1100–1500 RELEASE the hand lifts and fades; the ring keeps pulsing where it landed
+//   then loops twice more, slower each time, then gives up and gets out of the way.
+//
+// ~2 KB of canvas drawing. No video, no network, works offline, nothing to skip.
+// ════════════════════════════════════════════════════════════
+const CUES = {
+  raster:  { sel: '#fb-tools .fb-tool', label: 'pick a brush — then just draw on the big white page', colour: '#FF4081' },
+  vector:  { sel: '#vf-toolbar [data-tool="scribble"]', label: 'the squiggle IS the drawing tool — draw a shape, then move it on another frame', colour: '#D500F9' },
+  code:    { sel: '#code-blocks-btn', label: 'tap any glowing number to slide it — nothing here can break', colour: '#00E676' },
+  stopmo:  { sel: '#sm-capture', label: 'move your thing a little, then snap. Move a little, snap again.', colour: '#FFD600' },
+};
+let cueRAF = 0;
+function cueSeen(k) { try { return !!localStorage.getItem('geov-cue-' + k); } catch (e) { return true; } }
+function markCueSeen(k) { try { localStorage.setItem('geov-cue-' + k, '1'); } catch (e) {} }
+function stopCue() {
+  cancelAnimationFrame(cueRAF); cueRAF = 0;
+  $('cue-layer').classList.remove('on');
+}
+function showCue(kind) {
+  const def = CUES[kind];
+  if (!def || cueSeen(kind)) return;
+  const target = document.querySelector(def.sel);
+  if (!target) return;
+  markCueSeen(kind);
+  const layer = $('cue-layer'), cv = $('cue-canvas');
+  const W = window.innerWidth, H = window.innerHeight;
+  cv.width = W; cv.height = H; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  const ctx = cv.getContext('2d');
+  const r = target.getBoundingClientRect();
+  const tx = r.left + r.width / 2, ty = r.top + r.height / 2;
+  const t0 = performance.now();
+  const CYCLE = 1500;
+  const ease = u => 1 - Math.pow(1 - u, 3);        // ease-out: arrives, doesn't teleport
+  layer.classList.add('on');
+  function frame(now) {
+    const el = now - t0;
+    const pass = Math.floor(el / CYCLE);
+    if (pass >= 3) { stopCue(); return; }
+    const u = (el % CYCLE) / CYCLE;
+    const fade = 1 - pass * 0.28;                   // quieter each time, then gone
+    ctx.clearRect(0, 0, W, H);
+
+    // the ring where the finger lands
+    let ringR = 0, ringA = 0;
+    if (u > 0.253) {
+      const k = Math.min(1, (u - 0.253) / 0.18);
+      ringR = 16 + ease(k) * 26;
+      ringA = (1 - k) * 0.9;
+    }
+    if (ringA > 0) {
+      ctx.beginPath(); ctx.arc(tx, ty, ringR, 0, Math.PI * 2);
+      ctx.strokeStyle = def.colour; ctx.globalAlpha = ringA * fade; ctx.lineWidth = 3; ctx.stroke();
+    }
+    ctx.globalAlpha = fade * (u < 0.253 ? 0.55 : 0.9);
+    ctx.beginPath(); ctx.arc(tx, ty, 15, 0, Math.PI * 2);
+    ctx.fillStyle = def.colour; ctx.globalAlpha = fade * 0.22; ctx.fill();
+
+    // the hand: REACH → PRESS → HOLD → RELEASE
+    let hx, hy, ha = 1;
+    if (u < 0.253) { const k = ease(u / 0.253); hx = tx - 120 * (1 - k); hy = ty + 90 * (1 - k); }
+    else if (u < 0.373) { hx = tx; hy = ty + 3; }                       // contact has weight
+    else if (u < 0.733) { hx = tx; hy = ty + 3; }                       // hold — let them read
+    else { const k = (u - 0.733) / 0.267; hx = tx; hy = ty - 26 * ease(k); ha = 1 - k; }
+    ctx.globalAlpha = ha * fade;
+    ctx.font = '34px system-ui, sans-serif';
+    ctx.fillText('👆', hx - 10, hy + 34);
+
+    // the label, once the hand has landed
+    if (u > 0.253) {
+      ctx.globalAlpha = Math.min(1, (u - 0.253) / 0.12) * fade;
+      ctx.font = '600 14px system-ui, sans-serif';
+      const tw = ctx.measureText(def.label).width;
+      const bx = Math.max(12, Math.min(W - tw - 34, tx - tw / 2 - 11)), by = ty + 62;
+      ctx.fillStyle = 'rgba(10,10,15,.93)';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(bx, by, tw + 22, 34, 10);   // older Safari has no roundRect
+      else ctx.rect(bx, by, tw + 22, 34);
+      ctx.fill();
+      ctx.strokeStyle = def.colour; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = '#e8e8f0';
+      ctx.fillText(def.label, bx + 11, by + 22);
+    }
+    ctx.globalAlpha = 1;
+    cueRAF = requestAnimationFrame(frame);
+  }
+  cueRAF = requestAnimationFrame(frame);
+}
+// any touch anywhere hands control straight back to the kid
+['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, () => { if (cueRAF) stopCue(); }, true));
+
+// ── 🏷 name it before you can lose it ──
+// The field always existed and defaulted to "my movie" — which is why the shared Drive
+// folder fills with my-movie (7).mp4. The field wasn't missing; the PROMPT was.
+function ensureProjectName(why) {
+  const el = $('project-name');
+  if (el.value.trim()) return true;
+  const suggestion = (normKey(maker.name || 'my') + '-movie-' +
+                      new Date().toLocaleDateString('en', { month: 'short', day: 'numeric' }).toLowerCase().replace(/\s+/g, ''));
+  const got = prompt(`What's this movie called?\n\n(It names your file, so you can find it again.)`, suggestion);
+  if (got === null) return false;            // never block — they can cancel and carry on
+  el.value = got.trim() || suggestion;
+  el.dispatchEvent(new Event('change'));
+  return true;
+}
+$('project-name').addEventListener('change', () => {
+  // renaming re-homes the autosave slot so the deterministic key follows the new name
+  if (slotBlessed) autosaveSlot = slotKeyFor($('project-name').value);
+  scheduleAutosave();
+});
 
 function buildProjectData() {
   sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 9,   // v9: clips carry ⚡ fx chains (plain JSON, rides in timeline)
+    app: 'geov', version: 10,   // v10: 🧷 rig (parent/pivot/plane/squash) + 🎞 camera + 🔁 loop + 📎 blocks
+    blocks: projectBlocks || '',   // 📎 shared code every code clip can use
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
     folders: binFolders.map(f => ({ fid: f.fid, name: f.name, open: f.open !== false })),   // 🗂 v8
@@ -7447,10 +8580,11 @@ function buildProjectData() {
       code: m.kind === 'code' ? m.code : undefined,
       seed: m.kind === 'code' ? m.seed : undefined,
       objects: m.kind === 'vector' ? m.objects : undefined,
+      camera: m.kind === 'vector' ? (m.camera || null) : undefined,   // 🎞 v19 multiplane
       frameCount: m.kind === 'flipbook' || m.kind === 'vector' ? m.frameCount : undefined,
       layers: m.kind === 'flipbook' ? (migrateFlipbook(m), m.layers.map(l => (
         { lid: l.lid, name: l.name, kind: 'draw', visible: l.visible,
-          cells: l.cells.map(c => c ? (c === 'H' ? 'H' : c.toDataURL('image/png')) : null) }
+          cells: l.cells.map(c => c ? celPNG(c) : null) }   // 🗜 v19 — cached, only re-encodes touched cels
       ))) : undefined,
     })),
   };
@@ -7793,7 +8927,8 @@ async function openProjectData(data) {
         item.seed = md.seed || 1;
       }
       if (md.kind === 'vector') {
-        item.objects = (md.objects || []).map(o => ({ ...o, tracks: { x: o.tracks.x || [], y: o.tracks.y || [], s: o.tracks.s || [], r: o.tracks.r || [], o: o.tracks.o || [] } }));
+        item.objects = (md.objects || []).map(o => migrateVecObject({ ...o, tracks: { ...(o.tracks || {}) } }));
+        item.camera = md.camera || { px: [], py: [], z: [] };   // 🎞 v19
         item.frameCount = md.frameCount || 24;
         item.fps = md.fps || 12;
         item.previewOK = true; item.missing = false;
@@ -7849,7 +8984,11 @@ async function openProjectData(data) {
     mediaCounter = Math.max(0, ...media.map(m => m.id));
     tidCounter = Math.max(0, ...timeline.map(c => c.tid));
     selTid = null; playhead = 0; undoStack = []; redoStack = [];
-    $('project-name').value = data.name || 'my movie';
+    $('project-name').value = data.name || '';
+    projectBlocks = typeof data.blocks === 'string' ? data.blocks : '';   // 📎 v19
+    for (const x of media) if (x.kind === 'code') disposeCodeInstance(x);
+    lastFileSave = Date.now();
+    $('save-btn').classList.remove('stale'); $('nudge-bar').classList.remove('on');
     refresh();
     // 🛟 silent relink: if the footage files were stashed in IndexedDB, pull them
     // back automatically so nobody has to hunt for files after a crash
@@ -7919,11 +9058,35 @@ document.addEventListener('visibilitychange', () => {
 // ════════════════════════════════════════════════════════════
 refresh();
 checkEngine();
-offerRecovery();                                   // 🛟 the tab closed? the movie didn't die
+// ════════════════════════════════════════════════════════════
+// 🚀 v19 BOOT — nothing opens until a human picks it.
+// offerRecovery()'s guess is gone. It sorted every autosave on the machine by time and
+// opened cands[0] — which, after a class rotation, is somebody else's project, with no
+// way for a kid to say "no, mine is the one from this morning."
+// ════════════════════════════════════════════════════════════
+(function bootV19() {
+  const known = loadMaker();
+  paintMakerChip();
+  let sawTour = false;
+  try { sawTour = !!localStorage.getItem('geov-saw-tour'); } catch (e) {}
+  if (!known) {
+    $('who-overlay').classList.add('open');
+    setTimeout(() => $('who-name').focus(), 200);
+  } else if (!sawTour) {
+    openTour(true);
+  } else {
+    openHome();
+  }
+  // first-ever run: the tour plays once, after they've said who they are
+  $('who-go').addEventListener('click', () => {
+    if (!sawTour) { sawTour = true; setTimeout(() => openTour(true), 150); }
+  });
+})();
 // 📉 a past export failed on this device → default to 720p (kid can still pick 1080)
 try { if (localStorage.getItem('geov-export-failed') && touchDevice) $('export-res').value = '720'; } catch (e) {}
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-console.log('%c⬡ GeoV Studio v18 — 🎛 TINKER (tap the glowing numbers) + ⚡ FX flowchart compositing + ⛶ fullscreen clip library', 'color:#00E5FF;font-size:16px;font-weight:bold');
+console.log('%c⬡ GeoV Studio v19 — 🏠 HOME + 👤 makers + 🩸 clobber guard · 🗜 cel cache + patch undo · 🧷 PIN/PIVOT · 📎 MY BLOCKS · 🔁 LOOP · 🫸 SQUASH · 🎞 PLANES', 'color:#00E5FF;font-size:16px;font-weight:bold');
+console.log('%cGeoV.rage() → where kids clicked hardest (that\'s the bug list) · GeoV.perf() → cel cache + undo numbers', 'color:#00E676');
 console.log('%cSPACE=play · ←→=frame step (shift=1s) · S=split · DEL=remove · CTRL+Z=undo · wheel=zoom timeline · shift+drag=snap', 'color:#8888a0');
 </script>
 </body>
