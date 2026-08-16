@@ -278,18 +278,61 @@
   .tb-bar { display: flex; align-items: center; gap: 6px; padding: 4px 8px;
             border-bottom: 1px solid var(--border); }
   .tb-bar .tb-title { font-size: 11px; color: #C9CBDE; letter-spacing: 1px; font-weight: 700; }
-  .tb-bar .tb-note  { font-size: 10px; color: #8C8EA6; margin-left: auto; }
+  .tb-bar .tb-note  { font-size: 10px; color: #8C8EA6; margin-left: auto;
+                      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tb-master .tb-note { margin-left: auto; white-space: nowrap; overflow: hidden;
+                      text-overflow: ellipsis; flex: 0 1 auto; min-width: 0; }
   .tb-zoom { background: var(--card); border: 1px solid var(--border); color: var(--text);
              font-family: inherit; font-size: 11px; font-weight: 700;
              padding: 2px 8px; border-radius: 7px; cursor: pointer; }
   .tb-zoom:hover { border-color: var(--cyan); }
-  .tb-scroll { overflow-x: auto; overflow-y: auto; position: relative; max-height: 210px; }
+  /* ⚠ v26 — a REAL track-header column. The labels used to float on top of the
+     lane, which was survivable while rows were empty; the moment every object
+     became a block sitting in its lane, the name was unreadable underneath it.
+     Every NLE solves this the same way: a fixed header column, a lane area that
+     scrolls. So does this. */
+  .tb-body { display: flex; min-height: 0; }
+  .tb-heads { flex: 0 0 132px; background: var(--panel); z-index: 9;
+              border-right: 1px solid var(--border); overflow: hidden; }
+  .tb-hcell { height: var(--rowh, 30px); display: flex; align-items: center; gap: 6px;
+              padding: 0 9px; font-size: 10px; color: #9EA0B8; letter-spacing: 0.6px;
+              font-weight: 700; white-space: nowrap; overflow: hidden;
+              text-overflow: ellipsis; cursor: pointer;
+              border-bottom: 1px dashed rgba(72,72,104,0.85); }
+  .tb-hcell.ruler { height: 31px; background: #16161f; cursor: default;
+                    border-bottom: 1px solid var(--border); color: #6E7090; }
+  .tb-hcell:hover { background: rgba(255,255,255,0.06); }
+  .tb-hcell.on { background: rgba(0,229,255,0.14); color: var(--cyan); }
+  .tb-hcell.keyed { color: #D8D8EA; }
+  /* ⟝ THE MASTER BLOCK — length IS the block's width. This replaces the LENGTH
+     number field and the TIME slider that used to sit in the studio headers. */
+  .tb-master { display: flex; align-items: center; gap: 9px; padding: 6px 9px;
+               background: #16161f; border-bottom: 1px solid var(--border); }
+  .tb-mlab { font-size: 10px; letter-spacing: 2px; color: var(--muted); font-weight: 700; }
+  .tb-mblk { position: relative; height: 26px; border-radius: 8px; flex: 0 0 auto;
+             border: 2px solid var(--cyan); color: var(--cyan);
+             background: rgba(0,229,255,0.10); display: flex; align-items: center;
+             padding: 0 22px 0 10px; font-size: 11px; font-weight: 800; letter-spacing: 1px;
+             white-space: nowrap; overflow: hidden; cursor: ew-resize; max-width: 100%;
+             box-shadow: 0 2px 0 rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.18); }
+  .tb-mblk .grip { position: absolute; right: 0; top: 0; bottom: 0; width: 14px;
+             background: repeating-linear-gradient(90deg, var(--cyan) 0 2px, transparent 2px 4px);
+             opacity: 0.7; }
+  .tb-mblk:hover .grip { opacity: 1; }
+  .tb-scroll { overflow-x: auto; overflow-y: auto; position: relative; max-height: 210px; flex: 1; }
   .tb-inner { position: relative; }
   .tb-ruler { display: block; position: sticky; top: 0; z-index: 6;
               background: #16161f; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .tb { --rowh: 34px; }
   .tb-rows { position: relative; }
-  .tb-row { position: relative; height: 26px; border-bottom: 1px dashed rgba(72,72,104,0.85);
+  .tb-row { position: relative; height: var(--rowh); border-bottom: 1px dashed rgba(72,72,104,0.85);
             cursor: pointer; background: rgba(255,255,255,0.022); }
+  /* The object's life in time, drawn as the same brick as everything else.
+     Two classes, not one: .blk sets position:relative and is declared later in
+     this sheet, so a single-class .tb-lane loses the cascade and the block
+     collapses to 6px. Specificity here is load-bearing — do not simplify it. */
+  .blk.tb-lane { position: absolute; top: 3px; bottom: 3px; }
+  .blk.tb-lane.locked { cursor: default; }    /* nothing keyed = no timing to drag */
   .tb-row:nth-child(even) { background: rgba(255,255,255,0.048); }
   .tb-row:hover { background: rgba(255,255,255,0.085); }
   .tb-row.on, .tb-row.on:nth-child(even) { background: rgba(0,229,255,0.14); }
@@ -300,9 +343,11 @@
             background: linear-gradient(90deg, var(--panel) 82%, transparent);
             white-space: nowrap; max-width: 128px; overflow: hidden; }
   .tb-row.on .tb-label { color: var(--cyan); }
-  .tb-key { position: absolute; top: 5px; width: 15px; height: 15px; margin-left: -7px;
+  /* ◆ the keys ride ON the block now, so they centre on the lane, not the row top */
+  .tb-key { position: absolute; top: 50%; width: 15px; height: 15px;
+            margin: -7.5px 0 0 -7px;
             background: var(--yellow); border: 1.5px solid rgba(0,0,0,0.55);
-            transform: rotate(45deg); border-radius: 3px; cursor: grab; z-index: 3; }
+            transform: rotate(45deg); border-radius: 3px; cursor: grab; z-index: 12; }
   .tb-key.cam { background: var(--cyan); }
   .tb-key.on  { background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.55); }
   .tb-key:active { cursor: grabbing; }
@@ -311,6 +356,11 @@
   .tb-head { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--cyan);
              pointer-events: none; z-index: 8; }
   .tb-empty { font-size: 10px; color: var(--muted); padding: 8px; }
+  /* ⟺ the block's trim handles, sitting above the key diamonds */
+  .tb-edge { position: absolute; top: 3px; bottom: 3px; width: 11px; z-index: 16;
+             cursor: ew-resize; border-radius: 4px; }
+  .tb-edge:hover, .tb-edge:active { background: rgba(255,255,255,0.30);
+             box-shadow: 0 0 8px rgba(255,255,255,0.35); }
 
   /* ═══ TIMELINE ═══ */
   #timeline {
@@ -372,12 +422,14 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 10px; font-weight: 800; color: #000; background: var(--cyan);
   }
-  .tl-clip .edge {
-    position: absolute; top: 0; bottom: 0; width: 9px; cursor: ew-resize; z-index: 3;
+  /* trim handles belong to THE BLOCK, not to the movie timeline. Scoped to
+     .tl-clip they were zero-size on every other block and could not be grabbed. */
+  .blk .edge {
+    position: absolute; top: 0; bottom: 0; width: 9px; cursor: ew-resize; z-index: 14;
   }
-  .tl-clip .edge.l { left: 0; }
-  .tl-clip .edge.r { right: 0; }
-  .tl-clip .edge:hover { background: rgba(255,255,255,0.25); }
+  .blk .edge.l { left: 0; }
+  .blk .edge.r { right: 0; }
+  .blk .edge:hover { background: rgba(255,255,255,0.25); }
   #tl-playhead {
     position: absolute; top: 0; bottom: 0; width: 3px;
     background: var(--cyan); pointer-events: none; z-index: 25;
@@ -391,6 +443,66 @@
     position: absolute; inset: 24px 0 0 0; display: flex; align-items: center; justify-content: center;
     color: var(--muted); font-size: 13px; pointer-events: none;
   }
+
+  /* ═══ ⬛ THE BLOCK — the ONE movable-piece primitive ═══
+     Every movable thing in GeoV is this same object: a clip on the movie
+     timeline, a card/floor/backdrop on the stage timebar, a row in the object
+     tower, a layer in a drawing. If it exists in time, it is a block.
+
+     It is a BRICK, not a sticker. The shape is carried by VALUE — a lit cap bar
+     with two studs, a bright top edge, a dark inner floor, a dropped shadow —
+     not by an outline. That is why it still reads as a grabbable thing at six
+     frames wide, where the old outline-only clip vanished into the row.
+
+     `color` drives the entire block; every part is currentColor. Set one
+     property and the whole brick is that colour. */
+  .blk {
+    position: relative; border-radius: 11px; overflow: hidden;
+    border: 3px solid currentColor; background: var(--card);
+    background-size: cover; background-position: center;
+    display: flex; flex-direction: column; cursor: grab; min-width: 14px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.55), 0 5px 10px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.20),
+                inset 0 -10px 14px -8px rgba(0,0,0,0.65);
+  }
+  .blk > .cap {
+    position: absolute; top: 0; left: 0; right: 0; height: 10px; z-index: 2;
+    background: linear-gradient(180deg, rgba(255,255,255,0.34), rgba(255,255,255,0) 62%, rgba(0,0,0,0.30));
+    background-color: currentColor;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.35);
+  }
+  .blk > .cap::before {                       /* the two studs */
+    content: ''; position: absolute; top: 3px; left: 6px;
+    width: 4px; height: 4px; border-radius: 50%;
+    background: rgba(0,0,0,0.5); box-shadow: 8px 0 0 rgba(0,0,0,0.5);
+  }
+  .blk .clip-badges { top: 13px; }            /* clear of the cap bar */
+  .blk.selected, .blk.sel {
+    box-shadow: 0 0 0 2px #fff, 0 3px 0 rgba(0,0,0,0.55),
+                0 6px 16px rgba(255,255,255,0.22), inset 0 1px 0 rgba(255,255,255,0.20);
+    z-index: 10;
+  }
+  /* A block read as a LIST ROW goes left→right: badge, then name. A bottom
+     label lands underneath the badge in a 40px row and becomes unreadable. */
+  .blk.list {
+    flex-direction: row; align-items: center; gap: 7px;
+    padding: 10px 9px 0 8px; height: 40px; cursor: pointer; width: 100%;
+  }
+  .blk.list .clip-badges { position: static; }
+  .blk.list .clip-label { margin: 0; background: none; padding: 0; font-size: 12px;
+                          flex: 1; text-align: left; }
+  .blk.mini .clip-label { display: none; }    /* too narrow to say anything */
+
+  /* ═══ ⇔ SPLITTER — the same grip the main window already uses, so the
+     studios resize with the gesture the kid already learned downstairs. ═══ */
+  .spl { background: var(--border); opacity: 0.85; position: relative; flex: 0 0 10px;
+         display: flex; align-items: center; justify-content: center; }
+  .spl.x { cursor: col-resize; }
+  .spl.y { cursor: row-resize; }
+  .spl.x::after { content: '⋮'; color: var(--muted); font-size: 14px; }
+  .spl.y::after { content: '• • •'; color: var(--muted); font-size: 9px; letter-spacing: 2px; }
+  .spl:hover { background: var(--cyan); }
+  .spl:hover::after { color: #000; }
 
   /* ═══ FLIPBOOK STUDIO v2 ═══ */
   #fb-overlay {
@@ -842,8 +954,8 @@
   #vsplit, #hsplit { z-index: 40; }
   #vsplit::before, #hsplit::before { content: ''; position: absolute; inset: -8px; }  /* fatter grab zone */
   @media (pointer: coarse) {
-    .tl-clip .edge { width: 16px; }
-    .tl-clip.selected .edge { background: rgba(255,255,255,0.22); }   /* trim handles visible, no hover needed */
+    .blk .edge { width: 16px; }
+    .blk.selected .edge { background: rgba(255,255,255,0.22); }   /* trim handles visible, no hover needed */
     .bin-plus { opacity: 1; }
   }
 
@@ -856,8 +968,19 @@
   /* ═══ CODE STUDIO (p5.js) ═══ */
   #stage-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 211; display: none; flex-direction: column; }
   #stage-main { flex: 1; display: flex; gap: 10px; padding: 10px; overflow: hidden; }
-  #stage-left { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; }
-  #stage-view { width: 960px; height: 540px; background: #101014; border-radius: 10px; cursor: grab; touch-action: none; }
+  #stage-left { flex: 0 0 720px; min-width: 340px; display: flex; flex-direction: column;
+                gap: 8px; min-height: 0; }
+  /* v26 — fluid, so the ⋮ grip actually resizes the picture. The backing buffer
+     stays 960×540 (stageTick owns it); only the presented size moves. */
+  /* the canvas takes whatever room is left and letterboxes inside it, so the
+     picture survives ANY panel size the grips are dragged to. */
+  #stage-view { flex: 1; min-height: 0; width: 100%; object-fit: contain;
+                background: #101014; border-radius: 10px; cursor: grab; touch-action: none; }
+  #stage-timebar { flex: 0 0 250px; min-height: 130px; overflow: hidden; display: flex; }
+  #stage-timebar .tb { height: 100%; flex: 1; min-width: 0; overflow: hidden; }
+  #stage-timebar .tb-body { flex: 1; min-height: 0; }
+  #stage-timebar .tb-scroll { max-height: none; }
+  #stage-timebar .tb-heads { overflow-y: hidden; }
   #stage-view.drag { cursor: grabbing; }
   #stage-right { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-width: 260px; }
   #stage-objs, #stage-props, #stage-light, #stage-cam { display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
@@ -919,8 +1042,6 @@
   #code-prevwrap .checker { position: absolute; inset: 0; border-radius: 8px; background: repeating-conic-gradient(#181822 0 25%, #202030 0 50%) 0 0/22px 22px; }
   #code-preview { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 8px; }
   #code-transport { display: flex; align-items: center; gap: 10px; }
-  #code-scrub { flex: 1; -webkit-appearance: none; height: 5px; background: var(--border); border-radius: 3px; cursor: pointer; }
-  #code-scrub::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--purple); cursor: pointer; }
   #code-time { font-size: 12px; color: var(--purple); font-variant-numeric: tabular-nums; min-width: 90px; }
   #code-hint { font-size: 12px; color: var(--muted); line-height: 1.7; }
   #code-hint b { color: var(--purple); }
@@ -1463,11 +1584,9 @@
   <div id="code-head">
     <span class="logo" style="color:var(--cyan)">⬡ STAGE</span>
     <input id="stage-name" value="my diorama" spellcheck="false">
-    <span style="font-size:11px;color:var(--muted)">LENGTH</span>
-    <input id="stage-dur" type="number" min="1" max="600" step="1" value="6">
-    <span style="font-size:11px;color:var(--muted)">s</span>
-    <span style="font-size:11px;color:var(--muted)">TIME</span>
-    <input id="stage-time" type="range" min="0" max="6" step="0.04" value="0" style="width:180px">
+    <!-- v26: LENGTH and TIME used to live here as a number field and a slider.
+         Both are gone. Length is now the master block's width on the timebar,
+         and time is the playhead. One gesture — trimming — does both jobs. -->
     <button class="tlb-btn" id="stage-live-btn" title="watch the camera keys play instead of walking around yourself">🎬 SHOT VIEW</button>
     <div class="header-spacer"></div>
     <button class="hdr-btn" id="stage-done-btn" style="border-color:var(--cyan);color:var(--cyan)">✅ DONE</button>
@@ -1480,8 +1599,10 @@
         <span class="lbl" style="width:auto">click something to pick it</span>
       </div>
       <span style="font-size:11px;color:var(--muted)">drag the picture to walk around · wheel to move closer · a card is flat, so give it a turn budget</span>
+      <div class="spl y" id="stage-vsplit" title="drag to give the timeline more room"></div>
       <div id="stage-timebar"></div>
     </div>
+    <div class="spl x" id="stage-hsplit" title="drag to resize the picture"></div>
     <div id="stage-right">
       <div id="stage-objs"></div><div id="stage-props"></div>
       <div id="stage-light"></div><div id="stage-cam"></div>
@@ -1493,9 +1614,7 @@
     <span class="logo">✨ CODE</span>
     <input id="code-name" value="my sketch" spellcheck="false">
     <select id="code-template" title="starter sketches — pick one, then change everything"></select>
-    <span style="font-size:11px;color:var(--muted)">LENGTH</span>
-    <input id="code-dur" type="number" min="1" max="600" step="1" value="6" title="how many seconds long">
-    <span style="font-size:11px;color:var(--muted)">s</span>
+    <!-- v26: LENGTH moved to the master block on the timebar below. -->
     <button class="tlb-btn" id="code-run-btn" title="run your code now">▶ RUN</button>
     <button class="tlb-btn" id="code-blocks-btn" title="MY BLOCKS — write a helper once, use it in every code clip in this movie">📎 MY BLOCKS</button>
     <span id="code-dot" class="studio-dot" style="color:var(--green)" title="saving"></span>
@@ -1513,12 +1632,13 @@
       </div>
       <div id="code-error">type code — it runs by itself as you type</div>
     </div>
+    <div class="spl x" id="code-hsplit" title="drag to resize the code"></div>
     <div id="code-right">
       <div id="code-prevwrap"><div class="checker"></div><canvas id="code-preview" width="1280" height="720"></canvas></div>
       <div id="code-transport">
         <button class="t-btn" id="code-play-btn" title="play / pause the sketch">⏸</button>
-        <input type="range" id="code-scrub" min="0" max="1000" value="0" title="scrub through time">
-        <span id="code-time">0.0s</span>
+        <!-- v26: the scrub slider is gone. The timebar playhead below scrubs. -->
+        <span id="code-time" style="margin-left:auto">0.0s</span>
       </div>
       <div id="code-timebar"></div>
       <div id="tinker"><div id="tinker-title">🎛 TINKER — drag a slider, the code changes itself</div><div id="tinker-rows"></div></div>
@@ -3334,6 +3454,7 @@ function renderStageFrame(m, srcT, camOverride){
 // ════════════════════════════════════════════════════════════
 // ⬡ THE STAGE STUDIO — drag to walk around the diorama
 // ════════════════════════════════════════════════════════════
+var stageSpanBase = {};   // key times as they were when the current span drag began
 var stS = { open:false, mediaId:null, sel:null, t:0, raf:null, mode:'walk',
             orb:{ yaw:0, pitch:0.16, dist:19, at:[0,4.6,-10] }, live:false };
 function stageMedia(){ return media.find(m => m.id === stS.mediaId); }
@@ -3347,7 +3468,7 @@ function openStageStudio(mediaId){
   if (playing) stopPlayback();
   stS.open=true; stS.mediaId=mediaId; stS.sel=null; stS.t=0; stS.live=false;
   if(!m.scene) m.scene=newStageScene();
-  $('stage-name').value=m.name; $('stage-dur').value=m.duration;
+  $('stage-name').value=m.name;
   $('stage-overlay').style.display='flex';
   stageRenderPanel(); stageTick();
 }
@@ -3384,12 +3505,14 @@ function stageRenderPanel(){
   const m=stageMedia(); if(!m) return;
   const sc=m.scene, objs=sc.objects||[];
   // ── object strip ──
+  // ⬛ THE TOWER — the panel list and the timebar row are the same object drawn
+  // twice, so they are the same brick. Stack them and it reads as a tower.
   const list=$('stage-objs'); list.innerHTML='<span class="lbl">IN THE SCENE:</span>';
   for(const o of objs){
-    const b=document.createElement('button');
-    b.className='st-obj'+(o.oid===stS.sel?' on':'');
     const skin=o.skin!=null?media.find(x=>x.id===o.skin):null;
-    b.textContent=(o.kind==='card'?'🃏 ':o.kind==='floor'?'🟫 ':'🌄 ')+(skin?skin.name:o.kind);
+    const n=(o.keys||[]).length;
+    const b=makeListBlock(o.kind, skin?skin.name:o.kind, n?['✥'+n]:[]);
+    if(o.oid===stS.sel) b.classList.add('selected');
     b.onclick=()=>{ stS.sel=o.oid; stageRenderPanel(); };
     list.appendChild(b);
   }
@@ -3463,7 +3586,7 @@ function stageRenderPanel(){
         const chip=document.createElement('div'); chip.className='st-key';
         const go=document.createElement('button'); go.className='st-obj';
         go.textContent='✥ '+k.t.toFixed(2)+'s';
-        go.onclick=()=>{ stS.t=k.t; $('stage-time').value=k.t; stageRenderPanel(); };
+        go.onclick=()=>{ stS.t=k.t; stageRenderPanel(); };
         chip.appendChild(go);
         if(i>0){ const fs=document.createElement('select');
           for(const f in CAM_FEELS){ const op=document.createElement('option');
@@ -3494,28 +3617,57 @@ function stageRenderPanel(){
   // ── ⏱ A ROW PER OBJECT. The keying UI was a list of chips, which meant you
   // could not see WHEN anything happened or how two things lined up. A scene is
   // several things moving at once; that needs a timeline, not a list.
+  const SDUR = Math.max(1, +m.duration || 6);
+  // a keyed thing's block spans first key → last key. An unkeyed thing just
+  // stands there for the whole scene, so its block fills the bar and locks.
+  const spanOf = (keys) => (keys && keys.length)
+    ? [Math.min(...keys.map(k => k.t)), Math.max(...keys.map(k => k.t))] : [0, SDUR];
   renderTimebar($('stage-timebar'), {
-    id: 'stage', dur: Math.max(1, +m.duration || 6), fps: FPS, t: stS.t,
-    title: '⏱ THIS DIORAMA',
-    rows: [{ label: '🎬 CAMERA', kind: 'cam', on: stS.sel == null,
+    id: 'stage', dur: SDUR, fps: FPS, t: stS.t,
+    title: '⏱ THIS DIORAMA', headTitle: 'IN THE SCENE', lengthLabel: 'THIS DIORAMA',
+    onLength: (d) => { snapshot(); m.duration = d; stS.t = Math.min(stS.t, d);
+                       stageRenderPanel(); stageTouch(); refresh(); },
+    rows: [{ label: '🎬 CAMERA', kind: 'cam', color: BLK_COLOR.cam, on: stS.sel == null,
+             span: spanOf(sc.camera.keys), keyed: !!(sc.camera.keys || []).length,
              keys: (sc.camera.keys || []).map(k => ({ t: k.t, feel: k.feel })) }]
       .concat(objs.filter(o => o.kind === 'card' || o.kind === 'floor' || o.kind === 'backdrop')
         .slice().sort((a, b) => ((b.keys || []).length ? 1 : 0) - ((a.keys || []).length ? 1 : 0))
         .map(o => {
           const sk = o.skin != null ? media.find(x => x.id === o.skin) : null;
           return { label: ((o.keys || []).length ? '✥ ' : '') +
-                          (o.kind === 'card' ? '🃏 ' : o.kind === 'floor' ? '🟫 ' : '🌄 ')
-                          + (sk ? sk.name : o.kind),
+                          (BLK_BADGE[o.kind] || '⬡') + ' ' + (sk ? sk.name : o.kind),
                    oid: o.oid, on: o.oid === stS.sel, keyed: !!(o.keys || []).length,
+                   color: BLK_COLOR[o.kind], span: spanOf(o.keys),
                    keys: (o.keys || []).map(k => ({ t: k.t, feel: k.feel })) };
         })),
-    onScrub: (t) => { stS.t = t; $('stage-time').value = t; stageRenderPanel(); },
+    // 🪄 drag the block = slide every key at once. Drag an edge = STRETCH the
+    // timing, keys scaling inside it, so a whole walk gets faster or slower in
+    // one gesture. The keys are remapped off the ORIGINAL span (s0), never off
+    // the live one, or the drag compounds and the timing runs away.
+    onSpan: (ri, ns, s0) => {
+      const list = ri === 0 ? sc.camera.keys : ((stageRowObj(ri) || {}).keys || []);
+      if (!list.length) return;
+      // re-seed the base at the start of each drag. s0 is constant for the whole
+      // of one drag and differs from the last one, so it identifies the gesture.
+      const b = stageSpanBase;
+      if (b.list !== list || !b.s0 || b.s0[0] !== s0[0] || b.s0[1] !== s0[1])
+        stageSpanBase = { list, s0: s0.slice(), k: list.map(k => k.t) };
+      const len0 = Math.max(1e-4, s0[1] - s0[0]), len = Math.max(1e-4, ns[1] - ns[0]);
+      list.forEach((k, i) => {
+        const src = stageSpanBase.k[i];
+        k.t = Math.max(0, Math.round((ns[0] + (src - s0[0]) / len0 * len) * FPS) / FPS);
+      });
+      list.sort((a, b) => a.t - b.t);
+      stageTouch(); stageRenderPanel();
+    },
+    onScrub: (t) => { stS.t = t; stageRenderPanel(); },
     onRowClick: (ri, t) => {
+      stageSpanBase = {};
       stS.sel = ri === 0 ? null : (stageRowObj(ri) || {}).oid;
-      stS.t = t; $('stage-time').value = t; stageRenderPanel();
+      stS.t = t; stageRenderPanel();
     },
     onKeyPick: (ri, ki, kt) => {
-      stS.t = kt; $('stage-time').value = kt;
+      stS.t = kt;
       if (ri === 0) {                                   // jump the view to a camera key
         const k = sc.camera.keys[ki];
         if (k) { stS.orb.at = k.at.slice();
@@ -3568,7 +3720,7 @@ function stageRenderPanel(){
     const chip=document.createElement('div'); chip.className='st-key';
     const go=document.createElement('button'); go.className='st-obj';
     go.textContent='◆ '+k.t.toFixed(2)+'s';
-    go.onclick=()=>{ stS.t=k.t; $('stage-time').value=k.t;
+    go.onclick=()=>{ stS.t=k.t;
       stS.orb.at=k.at.slice();
       const d=SV.sub(k.eye,k.at); stS.orb.dist=Math.hypot(d[0],d[1],d[2]);
       stS.orb.yaw=Math.atan2(d[0],d[2]); stS.orb.pitch=Math.asin(d[1]/(stS.orb.dist||1));
@@ -4011,7 +4163,9 @@ function renderTimeline() {
     const m = mediaOf(clip);
     const audioRole = isAudioRole(clip);
     const el = document.createElement('div');
-    el.className = 'tl-clip' + (selTids.has(clip.tid) || clip.tid === selTid ? ' selected' : '') + (audioRole ? ' audio' : '');
+    // ⬛ v26 — a movie clip IS the block. Same brick as a stage object, a tower
+    // row, a drawing layer. One primitive, so a kid learns to grab things once.
+    el.className = 'tl-clip blk' + (selTids.has(clip.tid) || clip.tid === selTid ? ' selected' : '') + (audioRole ? ' audio' : '');
     const wPx = Math.max(16, clipDur(clip) * pxPerSec);
     el.style.left = (clip.start * pxPerSec) + 'px';
     el.style.top = trackToY(clip.track) + 'px';
@@ -4072,7 +4226,7 @@ function renderTimeline() {
         el.style.background = color;
       }
     }
-    el.style.outline = `2px solid ${m && m.missing ? 'var(--red)' : color}`;
+    el.style.color = m && m.missing ? 'var(--red)' : color;   // drives the whole brick
     const fx = [];
     if (!audioRole && clip.opacity < 1) fx.push(Math.round(clip.opacity * 100) + '%');
     if (!audioRole && clip.blend !== 'source-over') fx.push('◈');
@@ -4086,6 +4240,7 @@ function renderTimeline() {
       : m && m.kind === 'stage' ? (((m.scene && m.scene.objects) || []).some(stageAnimated) ? '⬡✥' : '⬡')
       : clip.track + 1);
     el.innerHTML = `
+      <div class="cap"></div>
       <div class="clip-badges">
         <span class="clip-badge" style="background:${color}">${badge}</span>
         ${fx.map(x => `<span class="clip-badge" style="background:rgba(0,0,0,0.6);color:#fff">${x}</span>`).join('')}
@@ -6963,21 +7118,10 @@ $('code-template').addEventListener('change', e => {
   tkCloseBubble(); tkRenderHl();
   codeS.t0 = 0; codeS.wall = performance.now();
 });
-$('code-dur').addEventListener('change', e => {
-  const m = codeMedia(); if (!m) return;
-  m.duration = Math.max(1, Math.min(600, parseFloat(e.target.value) || 6));
-  e.target.value = m.duration;
-});
 $('code-play-btn').addEventListener('click', () => {
   codeS.playing = !codeS.playing;
   if (codeS.playing) { codeS.wall = performance.now(); }
   $('code-play-btn').textContent = codeS.playing ? '⏸' : '▶';
-});
-$('code-scrub').addEventListener('input', e => {
-  const m = codeMedia(); if (!m) return;
-  codeS.playing = false;
-  $('code-play-btn').textContent = '▶';
-  codeS.t0 = (parseInt(e.target.value) / 1000) * Math.max(0.1, m.duration);
 });
 
 function codeTick() {
@@ -6993,7 +7137,6 @@ function codeTick() {
     const cx = $('code-preview').getContext('2d');
     cx.clearRect(0, 0, CODE_W, CODE_H);
     cx.drawImage(cnv, 0, 0, CODE_W, CODE_H);
-    if (codeS.playing) $('code-scrub').value = Math.round(t / dur * 1000);
     $('code-time').textContent = t.toFixed(1) + 's / ' + m.duration + 's';
     const errBox = $('code-error');
     if (m._err) { errBox.textContent = m._err; errBox.className = 'bad'; }
@@ -7029,7 +7172,6 @@ $('stage-done-btn').addEventListener('click', () => {
   const m = stageMedia();
   if (m) {
     m.name = $('stage-name').value.trim() || m.name;
-    m.duration = Math.max(1, Math.min(600, parseFloat($('stage-dur').value) || m.duration));
     try { m.thumbURL = (() => { const c = document.createElement('canvas'); c.width = 240; c.height = 135;
       c.getContext('2d').drawImage(renderStageFrame(m, 0), 0, 0, 240, 135); return c.toDataURL('image/jpeg', 0.7); })(); }
     catch (e) {}
@@ -7039,17 +7181,18 @@ $('stage-done-btn').addEventListener('click', () => {
     renderBin(); refresh(); drawFrame(); scheduleAutosave();
   } else closeStageStudio();
 });
-$('stage-dur').addEventListener('change', () => {
-  const m = stageMedia(); if (!m) return;
-  m.duration = Math.max(1, Math.min(600, parseFloat($('stage-dur').value) || 6));
-  $('stage-time').max = m.duration; refresh();
-});
-$('stage-time').addEventListener('input', () => { stS.t = parseFloat($('stage-time').value) || 0; stageRenderPanel(); });
+// v26: the LENGTH field and the TIME slider are gone. Length is the master
+// block on the timebar (spec.onLength), time is the playhead (spec.onScrub).
 $('stage-live-btn').addEventListener('click', () => {
   stS.live = !stS.live;
   $('stage-live-btn').classList.toggle('on', stS.live);
   $('stage-live-btn').textContent = stS.live ? '🚶 WALK AROUND' : '🎬 SHOT VIEW';
 });
+// ⇔ v26 — the studios resize now. The main window already had these grips;
+// the studio panels were hard-coded (the stage view was a literal 960×540).
+makeSplit($('stage-hsplit'), $('stage-left'), 'x', 340);
+makeSplit($('stage-vsplit'), $('stage-timebar'), 'y', 130, -1);
+makeSplit($('code-hsplit'),  $('code-left'),  'x', 240);
 $('inspect-btn').addEventListener('click', () => runInspect());
 $('stage-walk-btn').addEventListener('click', () => stageSetMode('walk'));
 $('stage-move-btn').addEventListener('click', () => stageSetMode('move'));
@@ -7147,6 +7290,49 @@ function stageSetMode(md) {
 // ════════════════════════════════════════════════════════════
 const TB_ZOOMS = [30, 60, 120, 240, 480, 900];    // px per second
 const tbZoom = {};                                 // remembered per host id
+let tbDragging = false;                            // a drag is in flight somewhere
+
+// ⇔ makeSplit — one grip, every studio. `prev` is the element that gets sized;
+// everything after the splitter takes the remaining room. Matches #vsplit/#hsplit.
+// sign = +1 when the target sits BEFORE the grip (drag right/down = bigger),
+// -1 when it sits after (drag right/down = smaller).
+function makeSplit(spl, prev, axis, min, sign) {
+  if (!spl || !prev) return;
+  const horiz = axis === 'x', sg = sign || 1;
+  spl.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    const p0 = horiz ? e.clientX : e.clientY;
+    const b0 = horiz ? prev.offsetWidth : prev.offsetHeight;
+    const mv = ev => {
+      const d = ((horiz ? ev.clientX : ev.clientY) - p0) * sg;
+      const n = Math.max(min || 120, b0 + d);
+      prev.style.flex = '0 0 ' + n + 'px';
+      if (horiz) prev.style.width = n + 'px'; else prev.style.height = n + 'px';
+    };
+    const up = () => { window.removeEventListener('pointermove', mv);
+                       window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  });
+}
+
+// ⬛ one colour per KIND of thing, so a card is the same red in the tower, on the
+// stage timebar and in the bin. Colour is what the piece IS, not where it sits.
+const BLK_COLOR = { card: 'var(--red)', floor: 'var(--orange)', backdrop: 'var(--purple)',
+                    cam: 'var(--cyan)', flipbook: 'var(--pink)', vector: 'var(--purple)',
+                    code: 'var(--yellow)', audio: 'var(--green)', stage: 'var(--cyan)' };
+const BLK_BADGE = { card: '🃏', floor: '🟫', backdrop: '🌄', cam: '🎬',
+                    flipbook: '🎨', vector: '📐', code: '✨', audio: '🎵', stage: '⬡' };
+// build a list-shaped brick: [badge] name [chips]
+function makeListBlock(kind, name, chips) {
+  const el = document.createElement('div');
+  el.className = 'blk list';
+  el.style.color = BLK_COLOR[kind] || 'var(--muted)';
+  el.innerHTML = `<div class="cap"></div>
+    <div class="clip-badges"><span class="clip-badge">${BLK_BADGE[kind] || '⬡'}</span></div>
+    <span class="clip-label">${name}</span>` +
+    (chips || []).map(c => `<span class="clip-badge" style="background:rgba(0,0,0,0.55);color:#fff">${c}</span>`).join('');
+  return el;
+}
 
 function tbFmt(t) { return (t < 10 ? t.toFixed(2) : t.toFixed(1)) + 's'; }
 
@@ -7242,6 +7428,44 @@ function renderTimebar(host, spec) {
   bar.appendChild(note);
   host.appendChild(bar);
 
+  // ⟝ THE MASTER BLOCK — the movie's length as a thing you trim, not a number
+  // you type. Its width IS the duration; the playhead below IS the time slider.
+  if (spec.onLength) {
+    const mr = document.createElement('div'); mr.className = 'tb-master';
+    const ml = document.createElement('span'); ml.className = 'tb-mlab';
+    ml.textContent = spec.lengthLabel || 'LENGTH';
+    const mb = document.createElement('div'); mb.className = 'tb-mblk';
+    const MPPS = 70;                              // px per second for this bar only
+    const paint = (d) => { mb.style.width = Math.max(70, Math.min(880, d * MPPS)) + 'px';
+      mb.firstChild.textContent = `⬡ ${d.toFixed(2)}s · ${Math.round(d * (spec.fps || FPS))} frames`; };
+    mb.appendChild(document.createTextNode(''));
+    const grip = document.createElement('div'); grip.className = 'grip'; mb.appendChild(grip);
+    paint(spec.dur);
+    mb.title = 'drag → the movie gets longer. same gesture as trimming a clip.';
+    mb.onpointerdown = (e) => {
+      const x0 = e.clientX, d0 = spec.dur;
+      let d = d0;
+      tbDragging = true;
+      const mv = (ev) => { d = Math.max(1, Math.min(600,
+                    Math.round((d0 + (ev.clientX - x0) / MPPS) * 10) / 10)); paint(d); };
+      const up = () => { window.removeEventListener('pointermove', mv);
+                         window.removeEventListener('pointerup', up);
+                         tbDragging = false;
+                         if (d !== d0) spec.onLength(d); };
+      window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+    };
+    const nt = document.createElement('span'); nt.className = 'tb-note';
+    nt.textContent = '↔ drag to lengthen';
+    mr.append(ml, mb, nt); host.appendChild(mr);
+  }
+
+  const body = document.createElement('div'); body.className = 'tb-body';
+  const heads = document.createElement('div'); heads.className = 'tb-heads';
+  const rsp = document.createElement('div'); rsp.className = 'tb-hcell ruler';
+  rsp.textContent = spec.headTitle || 'TRACKS';
+  heads.appendChild(rsp);
+  body.appendChild(heads);
+
   const scroll = document.createElement('div'); scroll.className = 'tb-scroll';
   const inner = document.createElement('div'); inner.className = 'tb-inner';
   const cv = document.createElement('canvas'); cv.className = 'tb-ruler';
@@ -7249,8 +7473,16 @@ function renderTimebar(host, spec) {
   inner.style.width = W + 'px';
   inner.appendChild(cv);
 
+  // ⚠ RESOLVE THE LIVE ELEMENT EVERY CALL. Every drag callback re-renders the
+  // timebar, which detaches this render's `inner`; a detached element's
+  // getBoundingClientRect() is all zeros, so from the second pointermove onward
+  // the maths silently became `clientX / pps` — off by the whole left offset of
+  // the panel. Key retiming has been wrong since the timebar shipped; it only
+  // looked right when the result happened to hit a clamp. Do not close over
+  // `inner` here again.
   const timeAt = (e) => {
-    const r = inner.getBoundingClientRect();
+    const el = host.querySelector('.tb-inner') || inner;
+    const r = el.getBoundingClientRect();
     return Math.max(0, Math.min(spec.dur, (e.clientX - r.left) / pps));
   };
   cv.onpointerdown = (e) => {
@@ -7265,14 +7497,71 @@ function renderTimebar(host, spec) {
   const rowsEl = document.createElement('div'); rowsEl.className = 'tb-rows';
   (spec.rows || []).forEach((row, ri) => {
     const r = document.createElement('div');
-    r.className = 'tb-row' + (row.on ? ' on' : '') + (row.keyed || (row.keys || []).length ? ' keyed' : '');
-    const lb = document.createElement('span'); lb.className = 'tb-label';
-    lb.textContent = row.label; r.appendChild(lb);
+    const keyed = row.keyed || (row.keys || []).length;
+    r.className = 'tb-row' + (row.on ? ' on' : '') + (keyed ? ' keyed' : '');
+    // ── the track header, in its own fixed column ──
+    const hc = document.createElement('div');
+    hc.className = 'tb-hcell' + (row.on ? ' on' : '') + (keyed ? ' keyed' : '');
+    hc.textContent = row.label; hc.title = row.label;
+    hc.onpointerdown = () => { if (spec.onRowClick) spec.onRowClick(ri, spec.t || 0); };
+    heads.appendChild(hc);
+
+    // ── ⬛ THE BLOCK — this object's life in time, same brick as a movie clip.
+    // An object with keys is a real NLE clip: drag the body to slide every key
+    // at once, drag an edge to STRETCH the timing and all the keys scale inside
+    // it. An object with no keys just stands there the whole time, so it gets a
+    // block you can see but not drag — there is no timing to change. ──
     if (row.span) {
-      const sp = document.createElement('div'); sp.className = 'tb-span';
-      sp.style.left = (row.span[0] * pps) + 'px';
-      sp.style.width = Math.max(2, (row.span[1] - row.span[0]) * pps) + 'px';
-      r.appendChild(sp);
+      const lane = document.createElement('div');
+      lane.className = 'blk tb-lane' + (row.on ? ' selected' : '') + (keyed ? '' : ' locked');
+      lane.style.color = row.color || 'var(--muted)';
+      lane.style.left = (row.span[0] * pps) + 'px';
+      lane.style.width = Math.max(14, (row.span[1] - row.span[0]) * pps) + 'px';
+      lane.innerHTML = '<div class="cap"></div>';
+      if (keyed && spec.onSpan) {
+        // ⚠ The trim handles are ROW children, not lane children. Inside the lane
+        // they lose to the key diamonds (the last key sits exactly on the right
+        // handle) and .blk's overflow:hidden clips them. Out here they sit above
+        // the keys and stay grabbable. Do not move them back inside.
+        const mkEdge = (side) => {
+          const ed = document.createElement('div');
+          ed.className = 'tb-edge ' + side;
+          ed.style.left = side === 'l' ? (row.span[0] * pps) + 'px'
+                                       : (row.span[1] * pps - 11) + 'px';
+          ed.title = 'drag to stretch the timing — every key scales inside';
+          r.appendChild(ed);
+          return ed;
+        };
+        const drag = (mode) => (e) => {
+          e.stopPropagation();
+          const s0 = row.span.slice(), t0 = timeAt(e);
+          let moved = 0; tbDragging = true;
+          const mv = (ev) => {
+            moved++; if (moved <= 2) return;
+            const t = timeAt(ev);
+            let a = s0[0], b = s0[1];
+            if (mode === 'move') { const d = Math.max(-s0[0], Math.min(spec.dur - s0[1], t - t0));
+                                   a = s0[0] + d; b = s0[1] + d; }
+            else if (mode === 'l') a = Math.min(s0[1] - 1 / (spec.fps || FPS), t);
+            else                   b = Math.max(s0[0] + 1 / (spec.fps || FPS), t);
+            spec.onSpan(ri, [a, b], s0);
+          };
+          const up = () => { window.removeEventListener('pointermove', mv);
+                             window.removeEventListener('pointerup', up);
+                             tbDragging = false;
+                             if (moved <= 2 && spec.onRowClick) spec.onRowClick(ri, t0); };
+          window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+        };
+        r.__mkEdges = () => { mkEdge('l').onpointerdown = drag('l');
+                              mkEdge('r').onpointerdown = drag('r'); };
+        lane.onpointerdown = (e) => {
+          if (e.target.classList.contains('tb-key')) return;
+          drag('move')(e);
+        };
+      } else {
+        lane.onpointerdown = (e) => { if (spec.onRowClick) spec.onRowClick(ri, timeAt(e)); };
+      }
+      r.appendChild(lane);
     }
     (row.keys || []).forEach((k, ki) => {
       const d = document.createElement('div');
@@ -7282,18 +7571,21 @@ function renderTimebar(host, spec) {
       d.title = '◆ ' + tbFmt(k.t) + (k.feel ? ' · ' + k.feel : '') + ' — drag to retime';
       let moved = 0;
       d.onpointerdown = (e) => {
-        e.stopPropagation(); moved = 0;
+        e.stopPropagation(); moved = 0; tbDragging = true;
         const mv = (ev) => { moved++; if (moved > 2 && spec.onKeyMove)
                                spec.onKeyMove(ri, ki, timeAt(ev)); };
         const up = (ev) => {
           window.removeEventListener('pointermove', mv);
           window.removeEventListener('pointerup', up);
+          tbDragging = false;
           if (moved <= 2 && spec.onKeyPick) spec.onKeyPick(ri, ki, k.t);
         };
         window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
       };
       r.appendChild(d);
     });
+    // the trim handles go on LAST so they sit above the key diamonds
+    if (r.__mkEdges) r.__mkEdges();
     r.onpointerdown = (e) => { if (spec.onRowClick) spec.onRowClick(ri, timeAt(e)); };
     rowsEl.appendChild(r);
   });
@@ -7308,7 +7600,7 @@ function renderTimebar(host, spec) {
   head.style.left = ((spec.t || 0) * pps) + 'px';
   inner.appendChild(head);
 
-  scroll.appendChild(inner); host.appendChild(scroll);
+  scroll.appendChild(inner); body.appendChild(scroll); host.appendChild(body);
   // keep the playhead in view while scrubbing — nothing worse than losing it
   const hx = (spec.t || 0) * pps;
   if (hx < scroll.scrollLeft + 40 || hx > scroll.scrollLeft + scroll.clientWidth - 40)
@@ -7408,10 +7700,13 @@ function codeTimebar() {
   const m = codeMedia(); const host = $('code-timebar'); if (!m || !host) return;
   renderTimebar(host, { id: 'code', dur: Math.max(0.1, +m.duration || 6), fps: FPS,
     t: Math.max(0, Math.min(m.duration, codeS.t || 0)), title: '⏱ THIS SKETCH',
-    rows: [{ label: '✨ ' + (m.name || 'sketch'), span: [0, +m.duration || 6], keys: [] }],
+    headTitle: 'THIS SKETCH', lengthLabel: 'THIS SKETCH',
+    onLength: (d) => { m.duration = d; codeS.t = Math.min(codeS.t || 0, d);
+                       codeTimebar(); refresh(); scheduleAutosave(); },
+    rows: [{ label: '✨ ' + (m.name || 'sketch'), color: BLK_COLOR.code,
+             span: [0, +m.duration || 6], keys: [] }],
     onScrub: (t) => { codeS.t = t; codeS.playing = false;
       const b = $('code-play-btn'); if (b) b.textContent = '▶';
-      $('code-scrub').value = Math.round(t / (m.duration || 1) * 1000);
       $('code-time').textContent = t.toFixed(1) + 's';
       drawCodePreview(); codeTimebar(); },
   });
@@ -7422,8 +7717,9 @@ function fbTimebar() {
   const fps = m.fps || 12, n = m.frameCount || 1;
   renderTimebar(host, { id: 'fb', dur: n / fps, fps, t: (fb.cur || 0) / fps,
     title: '⏱ THIS FLIPBOOK',
+    headTitle: 'DRAWINGS',
     rows: (m.layers || []).map(L => ({ label: '🎨 ' + (L.name || 'drawing'),
-      span: [0, n / fps],
+      color: BLK_COLOR.flipbook, span: [0, n / fps],
       keys: (L.cels || []).map((c, i) => (c && !c.held) ? { t: i / fps } : null).filter(Boolean) })),
     onScrub: (t) => { fb.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps)));
       fbRefresh(); },
@@ -7437,8 +7733,9 @@ function vfTimebar() {
   const fps = m.fps || 12, n = m.frameCount || 24;
   renderTimebar(host, { id: 'vf', dur: n / fps, fps, t: (vf.cur || 0) / fps,
     title: '⏱ THIS ANIMATION',
+    headTitle: 'THINGS',
     rows: (m.objects || []).map(o => ({ label: '📐 ' + (o.kind || 'thing'),
-      on: o.oid === vf.sel, oid: o.oid, span: [0, n / fps],
+      color: BLK_COLOR.vector, on: o.oid === vf.sel, oid: o.oid, span: [0, n / fps],
       keys: Object.keys((o.tracks || {}).x || {}).map(f => ({ t: (+f) / fps })) })),
     onScrub: (t) => { vf.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps))); vfRefresh(); },
     onRowClick: (ri, t) => { const o = (m.objects || [])[ri]; if (o) vf.sel = o.oid;
@@ -7447,6 +7744,7 @@ function vfTimebar() {
 }
 // keep them fed without touching each studio's own refresh path
 function tbTick() {
+  if (tbDragging) return;      // never rebuild a timebar out from under a drag
   try { if (codeS.open) codeTimebar(); } catch (e) {}
   try { if (fb.open) fbTimebar(); } catch (e) {}
   try { if (vf.open) vfTimebar(); } catch (e) {}
@@ -7520,7 +7818,6 @@ function openCodeStudio(mediaId) {
   codeS.open = true; codeS.mediaId = mediaId;
   codeS.playing = true; codeS.t0 = 0; codeS.wall = performance.now();
   $('code-name').value = m.name;
-  $('code-dur').value = m.duration;
   codeEd.value = m.code;
   updateGutter();
   tkCloseBubble(); tkRenderHl();   // 🎛 numbers light up the moment the studio opens
@@ -7539,7 +7836,6 @@ $('code-done-btn').addEventListener('click', () => {
   tkCloseBubble();
   codeApply();
   m.name = $('code-name').value.trim() || m.name;
-  m.duration = Math.max(1, Math.min(600, parseFloat($('code-dur').value) || m.duration));
   // thumbnail from frame 0
   const t = document.createElement('canvas');
   t.width = 240; t.height = 135;
@@ -8683,13 +8979,16 @@ function vfRenderObjects() {
   const m = vfMedia(); if (!m) return;
   const list = $('vf-obj-list');
   list.innerHTML = '';
+  // ⬛ the same brick as everywhere else. Here the block IS the thing's colour,
+  // which is as literal as the primitive gets: the shape you drew, as a lego.
   [...m.objects].reverse().forEach(obj => {   // top of list = front
-    const d = document.createElement('div');
-    d.className = 'vf-obj' + (obj.oid === vf.selOid ? ' sel' : '');
     const pinned = obj.parent ? ' 🧷' : '';
-    d.innerHTML = obj.shape
-      ? `<span class="sw" style="background:${obj.shape.fill}"></span><span>${obj.name}${pinned}</span>`
-      : `<span class="sw" style="background:transparent;border:1px dashed var(--yellow)"></span><span style="color:var(--yellow)">🧷 ${obj.name}${pinned}</span>`;
+    const d = document.createElement('div');
+    d.className = 'blk list vf-obj' + (obj.oid === vf.selOid ? ' selected' : '');
+    d.style.color = obj.shape ? obj.shape.fill : 'var(--yellow)';
+    d.innerHTML = `<div class="cap"></div>
+      <div class="clip-badges"><span class="clip-badge">${obj.shape ? '📐' : '🧷'}</span></div>
+      <span class="clip-label">${obj.name}${pinned}</span>`;
     d.addEventListener('click', () => { vf.selOid = obj.oid; vfRepaint(); vfRenderObjects(); vfSyncInspect(); vfRenderSheet(); vfDrawCurve(); });
     list.appendChild(d);
   });
@@ -10058,7 +10357,7 @@ $('project-name').addEventListener('change', () => {
 function buildProjectData() {
   sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 15,   // v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
+    app: 'geov', version: 15,   // v26 UI-only: ⬛ THE BLOCK everywhere + NLE spans + length-as-block + studio grips (no format change) — v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
     blocks: projectBlocks || '',   // 📎 shared code every code clip can use
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
