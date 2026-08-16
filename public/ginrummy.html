@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gin Rummy — Mook DiMarco</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@600&display=swap');
+        body{font-family:'Inter',sans-serif;user-select:none;overflow:hidden;background-color:#064e3b;}
+        .game-board{max-width:1000px;margin:0 auto;height:100vh;display:flex;flex-direction:column;justify-content:space-between;}
+        .hand-container{display:flex;justify-content:center;align-items:center;padding:10px;min-height:150px;}
+        .card{width:80px;height:120px;border:1px solid #aaa;border-radius:8px;background-color:white;display:inline-flex;flex-direction:column;justify-content:space-between;padding:5px;font-size:24px;font-weight:600;font-family:'Poppins',sans-serif;position:relative;box-shadow:0 4px 6px rgba(0,0,0,.1);transition:all .2s ease-in-out;cursor:pointer;}
+        .card:not(:first-child){margin-left:-30px;}
+        .player-hand .card:hover{transform:translateY(-20px);z-index:100;}
+        .card.selected{transform:translateY(-15px);border:3px solid #3b82f6;box-shadow:0 6px 12px rgba(59,130,246,.4);}
+        .card.color-red{color:#ef4444;}.card.color-black{color:#1f2937;}
+        .card-top{text-align:left;}.card-bottom{text-align:right;transform:rotate(180deg);}
+        .card-suit{font-size:40px;text-align:center;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+        .card-back{background-color:#3b82f6;background-image:linear-gradient(135deg,#3b82f6 25%,#2563eb 25%,#2563eb 50%,#3b82f6 50%,#3b82f6 75%,#2563eb 75%,#2563eb 100%);background-size:28.28px 28.28px;color:transparent;}
+        .card-back .card-top,.card-back .card-bottom,.card-back .card-suit{display:none;}
+        .card.ghost{opacity:.4;border-style:dashed;}
+        .pile-container{position:relative;width:80px;height:120px;}
+        .pile-container .card{position:absolute;top:0;left:0;margin-left:0;}
+        .meld{border:2px dashed #059669;background-color:#d1fae5;border-radius:10px;padding:4px;margin:0 4px;}
+        .meld .card:not(:first-child){margin-left:-50px;}.meld .card{cursor:default;}.meld .card:hover{transform:none;}
+        .back-btn{position:fixed;top:16px;left:16px;background:#064e3b;border:1px solid #4ade80;color:#4ade80;padding:8px 16px;border-radius:6px;text-decoration:none;font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;z-index:200;}
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← BACK</a>
+    <div id="game-board" class="game-board p-4">
+        <div id="opponent-area">
+            <div class="flex justify-between items-center mb-2"><h2 class="text-xl font-semibold">Opponent</h2><div class="bg-gray-700 px-3 py-1 rounded-full"><span id="opponent-score">Score: 0</span></div></div>
+            <div id="opponent-hand" class="hand-container"></div>
+        </div>
+        <div id="middle-area">
+            <div class="flex justify-center items-center gap-8 my-8">
+                <div class="text-center"><div id="deck-pile" class="pile-container h-[120px] w-[80px] cursor-pointer"></div><div class="text-lg mt-2">Deck (<span id="deck-count">0</span>)</div></div>
+                <div id="message-area" class="text-center bg-black bg-opacity-30 p-4 rounded-lg shadow-lg w-64 min-h-[120px] flex items-center justify-center"><span id="message" class="text-xl font-semibold">Welcome to Gin Rummy!</span></div>
+                <div class="text-center"><div id="discard-pile" class="pile-container h-[120px] w-[80px] cursor-pointer"><div class="card ghost"></div></div><div class="text-lg mt-2">Discard</div></div>
+            </div>
+        </div>
+        <div id="player-area">
+            <div id="player-hand-display" class="hand-container flex-col">
+                <div id="player-hand-melds" class="hand-container mb-2"></div>
+                <div id="player-hand-deadwood" class="hand-container"></div>
+            </div>
+            <div class="flex justify-between items-center mt-2">
+                <div class="flex gap-4">
+                    <button id="knock-button" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded-lg shadow-md">Knock</button>
+                    <button id="gin-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md">Gin!</button>
+                    <button id="new-game-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md">New Game</button>
+                </div>
+                <div class="text-right"><h2 class="text-xl font-semibold">Player (You)</h2><div class="bg-gray-700 px-3 py-1 rounded-full mt-1"><span id="player-score">Score: 0</span></div><div class="bg-gray-700 px-3 py-1 rounded-full mt-1">Deadwood: <span id="deadwood-score">0</span></div></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const deckPileEl=document.getElementById('deck-pile'),discardPileEl=document.getElementById('discard-pile'),playerHandMeldsEl=document.getElementById('player-hand-melds'),playerHandDeadwoodEl=document.getElementById('player-hand-deadwood'),opponentHandEl=document.getElementById('opponent-hand'),messageEl=document.getElementById('message'),deckCountEl=document.getElementById('deck-count'),deadwoodScoreEl=document.getElementById('deadwood-score'),knockButton=document.getElementById('knock-button'),ginButton=document.getElementById('gin-button'),newGameButton=document.getElementById('new-game-button');
+        const SUITS=['♥','♦','♣','♠'],RANKS=['A','2','3','4','5','6','7','8','9','T','J','Q','K'],RANK_VALUES={A:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,T:10,J:10,Q:10,K:10},RANK_SORT={A:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,T:10,J:11,Q:12,K:13};
+        let deck=[],playerHand=[],opponentHand=[],discardPile=[],playerScore=0,opponentScore=0,playerTurn=true,gamePhase='draw',selectedCard=null;
+        function createDeck(){deck=[];for(const s of SUITS)for(const r of RANKS)deck.push({id:`${r}${s}`,rank:r,suit:s,value:RANK_VALUES[r],sort:RANK_SORT[r],color:(s==='♥'||s==='♦')?'red':'black'});}
+        function shuffle(){for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}}
+        function deal(){playerHand=[];opponentHand=[];discardPile=[];for(let i=0;i<10;i++){playerHand.push(deck.pop());opponentHand.push(deck.pop());}discardPile.push(deck.pop());}
+        function cardEl(card,back=false){const el=document.createElement('div');el.className=`card ${back?'card-back':`color-${card.color}`}`;el.dataset.cardId=card.id;el.innerHTML=`<div class="card-top"><div>${card.rank}</div><div>${card.suit}</div></div><div class="card-suit">${card.suit}</div><div class="card-bottom"><div>${card.rank}</div><div>${card.suit}</div></div>`;return el;}
+        function sortH(h){return h.sort((a,b)=>a.suit<b.suit?-1:a.suit>b.suit?1:a.sort-b.sort);}
+        function newGame(){createDeck();shuffle();deal();playerTurn=true;gamePhase='draw';selectedCard=null;updateState();render();}
+        function updateState(){const{deadwoodValue}=bestLayout(playerHand);deadwoodScoreEl.textContent=deadwoodValue;if(gamePhase==='discard'){knockButton.disabled=deadwoodValue>10;ginButton.disabled=deadwoodValue>0;}else{knockButton.disabled=true;ginButton.disabled=true;}}
+        function render(){playerHandMeldsEl.innerHTML='';playerHandDeadwoodEl.innerHTML='';const{melds,deadwoodCards}=bestLayout(playerHand);melds.forEach(meld=>{const mel=document.createElement('div');mel.className='meld hand-container';sortH(meld).forEach(c=>{const ce=cardEl(c);ce.addEventListener('click',()=>onCardClick(c));if(selectedCard&&selectedCard.id===c.id)ce.classList.add('selected');mel.appendChild(ce);});playerHandMeldsEl.appendChild(mel);});sortH(deadwoodCards).forEach(c=>{const ce=cardEl(c);ce.addEventListener('click',()=>onCardClick(c));if(selectedCard&&selectedCard.id===c.id)ce.classList.add('selected');playerHandDeadwoodEl.appendChild(ce);});opponentHandEl.innerHTML='';opponentHand.forEach(c=>opponentHandEl.appendChild(cardEl(c,true)));deckPileEl.innerHTML='';if(deck.length>0)deckPileEl.appendChild(cardEl(deck[deck.length-1],true));deckCountEl.textContent=deck.length;discardPileEl.innerHTML='';if(discardPile.length===0)discardPileEl.innerHTML='<div class="card ghost"></div>';else discardPile.slice(-4).forEach(c=>discardPileEl.appendChild(cardEl(c)));if(gamePhase==='ended')return;messageEl.textContent=playerTurn?(gamePhase==='draw'?'Draw from deck or discard.':'Discard a card or Knock/Gin.'):'Opponent is thinking...';}
+        function setMsg(m){messageEl.textContent=m;}
+        function findSets(h){const sets=[],br=h.reduce((a,c)=>{(a[c.rank]=a[c.rank]||[]).push(c);return a;},{});for(const r in br){if(br[r].length>=3){sets.push([br[r][0],br[r][1],br[r][2]]);if(br[r].length===4){sets.push([br[r][0],br[r][1],br[r][3]]);sets.push([br[r][0],br[r][2],br[r][3]]);sets.push([br[r][1],br[r][2],br[r][3]]);sets.push(br[r]);}}}return sets;}
+        function findRuns(h){const runs=[],bs=h.reduce((a,c)=>{(a[c.suit]=a[c.suit]||[]).push(c);return a;},{});for(const s in bs){if(bs[s].length<3)continue;const ss=bs[s].sort((a,b)=>a.sort-b.sort);for(let i=0;i<ss.length-2;i++){for(let j=i+2;j<ss.length;j++){let ok=true,run=[ss[i]];for(let k=i+1;k<=j;k++){if(ss[k].sort!==ss[k-1].sort+1){ok=false;break;}run.push(ss[k]);}if(ok)runs.push(run);}}}const uid=new Set(runs.map(r=>r.map(c=>c.id).join(',')));return Array.from(uid).map(s=>s.split(',').map(id=>h.find(c=>c.id===id)));}
+        function deadwoodVal(cards){return cards.reduce((s,c)=>s+c.value,0);}
+        function disjoint(melds){const ids=new Set();let tot=0;for(const m of melds){tot+=m.length;for(const c of m)ids.add(c.id);}return ids.size===tot;}
+        function bestLayout(h){const all=[...findSets(h),...findRuns(h)];let best={melds:[],deadwoodCards:h,deadwoodValue:deadwoodVal(h)};const n=all.length;for(let i=0;i<(1<<n);i++){let combo=[];for(let j=0;j<n;j++)if((i>>j)&1)combo.push(all[j]);if(disjoint(combo)){const ids=new Set(combo.flat().map(c=>c.id));const dw=h.filter(c=>!ids.has(c.id));const dv=deadwoodVal(dw);if(dv<best.deadwoodValue)best={melds:combo,deadwoodCards:dw,deadwoodValue:dv};}}return best;}
+        function onDeckClick(){if(!playerTurn||gamePhase!=='draw'||deck.length===0)return;playerHand.push(deck.pop());gamePhase='discard';updateState();render();}
+        function onDiscardClick(){if(!playerTurn||gamePhase!=='draw'||discardPile.length===0)return;playerHand.push(discardPile.pop());gamePhase='discard';updateState();render();}
+        function onCardClick(card){if(!playerTurn)return;if(gamePhase==='discard'){if(selectedCard&&selectedCard.id===card.id)doDiscard(card);else{selectedCard=card;render();}}}
+        function doDiscard(card){playerHand=playerHand.filter(c=>c.id!==card.id);discardPile.push(card);selectedCard=null;playerTurn=false;gamePhase='ai-turn';updateState();render();setTimeout(aiTurn,1500);}
+        function endHand(k,t){gamePhase='ended';const pl=bestLayout(playerHand),al=bestLayout(opponentHand);if(k==='player'){if(t==='gin'){setMsg(`GIN! You win!`);playerScore+=25+al.deadwoodValue;}else{if(pl.deadwoodValue<al.deadwoodValue){setMsg(`You knocked and won! (${pl.deadwoodValue} vs ${al.deadwoodValue})`);playerScore+=al.deadwoodValue-pl.deadwoodValue;}else{setMsg(`Undercut! (${pl.deadwoodValue} vs ${al.deadwoodValue})`);opponentScore+=25+(pl.deadwoodValue-al.deadwoodValue);}}}else{if(t==='gin'){setMsg(`AI GIN!`);opponentScore+=25+pl.deadwoodValue;}else{if(al.deadwoodValue<pl.deadwoodValue){setMsg(`AI knocked (AI:${al.deadwoodValue} You:${pl.deadwoodValue})`);opponentScore+=pl.deadwoodValue-al.deadwoodValue;}else{setMsg(`You undercut AI!`);playerScore+=25+(al.deadwoodValue-pl.deadwoodValue);}}}document.getElementById('player-score').textContent=`Score: ${playerScore}`;document.getElementById('opponent-score').textContent=`Score: ${opponentScore}`;knockButton.disabled=true;ginButton.disabled=true;opponentHandEl.innerHTML='';const{melds:am,deadwoodCards:ad}=al;am.forEach(m=>{const mel=document.createElement('div');mel.className='meld hand-container';sortH(m).forEach(c=>mel.appendChild(cardEl(c)));opponentHandEl.appendChild(mel);});sortH(ad).forEach(c=>opponentHandEl.appendChild(cardEl(c)));}
+        function aiTurn(){let drew=false;const top=discardPile[discardPile.length-1];if(top){const cur=bestLayout(opponentHand),nxt=bestLayout([...opponentHand,top]);if(nxt.deadwoodValue<cur.deadwoodValue){opponentHand.push(discardPile.pop());drew=true;}}if(!drew&&deck.length>0)opponentHand.push(deck.pop());else if(!drew){setMsg('Deck empty!');gamePhase='ended';render();return;}render();setTimeout(()=>{let best=null,toDiscard=null;for(const card of opponentHand){const tmp=opponentHand.filter(c=>c.id!==card.id),lay=bestLayout(tmp);if(!best||lay.deadwoodValue<best.deadwoodValue||(lay.deadwoodValue===best.deadwoodValue&&card.value>toDiscard.value)){best=lay;toDiscard=card;}}if(best.deadwoodValue===0){opponentHand=opponentHand.filter(c=>c.id!==toDiscard.id);discardPile.push(toDiscard);endHand('ai','gin');return;}if(best.deadwoodValue<=10){opponentHand=opponentHand.filter(c=>c.id!==toDiscard.id);discardPile.push(toDiscard);endHand('ai','knock');return;}opponentHand=opponentHand.filter(c=>c.id!==toDiscard.id);discardPile.push(toDiscard);playerTurn=true;gamePhase='draw';updateState();render();},1000);}
+        deckPileEl.addEventListener('click',onDeckClick);discardPileEl.addEventListener('click',onDiscardClick);knockButton.addEventListener('click',()=>{if(!playerTurn||gamePhase!=='discard'||knockButton.disabled)return;endHand('player','knock');});ginButton.addEventListener('click',()=>{if(!playerTurn||gamePhase!=='discard'||ginButton.disabled)return;endHand('player','gin');});newGameButton.addEventListener('click',newGame);
+        newGame();
+    </script>
+</body>
+</html>

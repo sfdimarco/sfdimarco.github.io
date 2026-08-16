@@ -1,0 +1,656 @@
+!DOCTYPE html
+html lang=en
+head
+    meta charset=UTF-8
+    meta name=viewport content=width=device-width, initial-scale=1.0
+    titleMyles Clickertitle
+    script src=httpscdn.tailwindcss.comscript
+    link href=httpsfonts.googleapis.comcss2family=Interwght@400;600;700&family=Pacifico&display=swap rel=stylesheet
+    style
+        body {
+            font-family 'Inter', sans-serif;
+            touch-action manipulation; 
+        }
+        .game-title { 
+            font-family 'Pacifico', cursive;
+        }
+        .click-button { 
+            transition transform 0.1s ease-out;
+            user-select none; 
+            -webkit-user-select none;
+            -moz-user-select none;
+            -ms-user-select none;
+            cursor pointer;
+        }
+        .click-buttonactive {
+            transform scale(0.9);
+        }
+        .upgrade-buttondisabled {
+            opacity 0.5;
+            cursor not-allowed;
+        }
+        .floating-text {
+            position absolute;
+            font-size 1.5rem;
+            font-weight bold;
+            color #fbbf24;  amber-400 
+            pointer-events none;
+            animation floatUp 1s ease-out forwards;
+            text-shadow 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        @keyframes floatUp {
+            0% { transform translateY(0); opacity 1; }
+            100% { transform translateY(-50px); opacity 0; }
+        }
+        .message-box {
+            position fixed;
+            bottom 20px;
+            left 50%;
+            transform translateX(-50%);
+            padding 10px 20px;
+            border-radius 8px;
+            box-shadow 0 4px 6px rgba(0,0,0,0.1);
+            z-index 1000;
+            opacity 0;
+            transition opacity 0.5s ease-in-out;
+        }
+        .message-box.show {
+            opacity 1;
+        }
+        .stickman-svg {
+            width 120px; 
+            height 120px; 
+        }
+        @media (min-width 768px) {  md breakpoint 
+            .stickman-svg {
+                width 150px;
+                height 150px;
+            }
+        }
+        .kirbin-time-text {
+            position fixed;
+            left 50%;
+            top 50%;
+            transform translate(-50%, -50%);
+            font-size 2.8rem; 
+            font-weight bold;
+            font-family 'Pacifico', cursive; 
+            color #10B981;  emerald-500 
+            text-shadow 2px 2px 0px #065f46, 
+                         4px 4px 0px #047857; 
+            z-index 2000; 
+            pointer-events none;
+            opacity 0;
+            transition opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            will-change opacity, transform; 
+        }
+        .kirbin-time-text.show {
+            opacity 1;
+            transform translate(-50%, -50%) scale(1.1); 
+        }
+         Travis Warning Style 
+        #travis-warning {
+            position fixed;
+            top 20px;  Positioned at the top 
+            left 50%;
+            transform translateX(-50%);
+            background-color #ef4444;  red-500 
+            color white;
+            padding 12px 24px;
+            border-radius 8px;
+            box-shadow 0 4px 8px rgba(0,0,0,0.2);
+            z-index 1500;  Above most elements but below Kirbin time text 
+            text-align center;
+            font-size 1.1rem;
+            font-weight bold;
+            transition opacity 0.5s ease-in-out, transform 0.3s ease-out;
+        }
+        #travis-warning.hidden {
+            opacity 0;
+            transform translateX(-50%) translateY(-100%);  Slide up when hidden 
+            pointer-events none;
+        }
+    style
+head
+body class=bg-sky-50 text-gray-800 flex flex-col items-center justify-center min-h-screen p-4 selectionbg-sky-300 selectiontext-sky-900
+
+    div id=travis-warning class=hidden
+        TRAVIS HAS APPEARED! You are losing points!
+    div
+
+    div class=w-full max-w-3xl bg-white shadow-xl rounded-lg p-6 mt-16 mdmt-10 header class=text-center mb-6
+            h1 class=text-5xl game-title text-sky-600Myles Clickerh1
+            p id=user-id-display class=text-xs text-gray-500 mt-1User ID Loading...p
+        header
+
+        main class=flex flex-col mdflex-row gap-6
+            section class=flex-1 flex flex-col items-center justify-center bg-sky-100 p-6 rounded-lg shadow relative
+                div id=points-display class=text-center mb-4
+                    p class=text-4xl font-bold text-sky-700span id=points-count0spanp
+                    p class=text-sm text-sky-600Pointsp
+                div
+                div id=stats-display class=text-center mb-4 text-sm text-sky-600
+                    pspan id=pps-display0span points per secondp
+                    pspan id=ppc-display1span point per clickp
+                div
+                div id=click-button-container class=relative
+                    button id=myles-button class=click-button p-2 rounded-full focusoutline-none focusring-4 focusring-sky-300 activebg-sky-200 aria-label=Click to get points
+                        svg class=stickman-svg viewBox=0 0 100 100 xmlns=httpwww.w3.org2000svg
+                            circle cx=50 cy=25 r=20 fill=#333 
+                            circle cx=40 cy=20 r=15 fill=#333 
+                            circle cx=60 cy=20 r=15 fill=#333 
+                            circle cx=50 cy=15 r=10 fill=#333 
+                            circle cx=45 cy=30 r=12 fill=#333 
+                            circle cx=55 cy=30 r=12 fill=#333 
+                            circle cx=50 cy=35 r=10 fill=#F0DBC1 stroke=#000 stroke-width=1
+                            line x1=50 y1=45 x2=50 y2=70 stroke=#000 stroke-width=2
+                            line x1=50 y1=55 x2=30 y2=45 stroke=#000 stroke-width=2 line x1=50 y1=55 x2=68 y2=65 stroke=#000 stroke-width=2 polygon points=60,70 80,70 70,45 fill=green stroke=darkgreen stroke-width=1
+                            line x1=50 y1=70 x2=40 y2=90 stroke=#000 stroke-width=2
+                            line x1=50 y1=70 x2=60 y2=90 stroke=#000 stroke-width=2
+                        svg
+                    button
+                div
+            section
+
+            section class=flex-1 bg-teal-50 p-6 rounded-lg shadow
+                h2 class=text-2xl font-semibold text-teal-700 mb-4 text-center mdtext-leftUpgradesh2
+                div id=upgrades-container class=space-y-3
+                    div
+            section
+        main
+
+        footer class=text-center mt-6
+            button id=reset-button class=px-4 py-2 bg-red-500 hoverbg-red-600 text-white rounded-md shadow text-smReset Gamebutton
+            p class=text-xs text-gray-400 mt-2Your progress is saved automatically!p
+        footer
+    div
+
+    div id=custom-message-box class=message-box bg-gray-800 text-white
+        span id=custom-message-textspan
+    div
+    
+    div id=confirmation-modal class=fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden z-50
+        div class=p-8 border w-96 shadow-lg rounded-md bg-white
+            div class=text-center
+                h3 class=text-2xl font-bold text-gray-900 id=modal-titleConfirm Actionh3
+                p class=text-sm text-gray-500 mt-2 mb-4 id=modal-messageAre you sure you want to proceedp
+                div class=flex justify-center space-x-4
+                    button id=modal-confirm-button class=px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md shadow-sm hoverbg-red-700 focusoutline-none focusring-2 focusring-red-300
+                        Confirm
+                    button
+                    button id=modal-cancel-button class=px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hoverbg-gray-300 focusoutline-none focusring-2 focusring-gray-300
+                        Cancel
+                    button
+                div
+            div
+        div
+    div
+
+
+    script type=module
+         Firebase imports
+        import { initializeApp } from httpswww.gstatic.comfirebasejs11.6.1firebase-app.js;
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from httpswww.gstatic.comfirebasejs11.6.1firebase-auth.js;
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, deleteDoc } from httpswww.gstatic.comfirebasejs11.6.1firebase-firestore.js;
+        import { setLogLevel } from httpswww.gstatic.comfirebasejs11.6.1firebase-firestore.js; 
+
+         Firebase configuration
+        const firebaseConfig = typeof __firebase_config !== 'undefined'  JSON.parse(__firebase_config)  { apiKey YOUR_API_KEY, authDomain YOUR_AUTH_DOMAIN, projectId YOUR_PROJECT_ID }; 
+        const appId = typeof __app_id !== 'undefined'  __app_id  'myles-clicker-dev'; 
+
+         Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        setLogLevel('debug'); 
+
+         Game state variables
+        let points = 0; 
+        let userId = null;
+        let isAuthReady = false;
+        let gameDocRef = null;
+        let unsubscribeGameState = null; 
+
+        const initialUpgrades = {
+            cursor { id 'cursor', name 'Super Clicker', type 'ppc', baseCost 15, baseValue 1, owned 0, icon '👆', description +1 point per click }, 
+            grandma { id 'grandma', name 'Grandma Myles', type 'pps', baseCost 100, baseValue 1, owned 0, icon '👵', description +1 point per second }, 
+            farm { id 'farm', name 'Point Farm', type 'pps', baseCost 1100, baseValue 8, owned 0, icon '🌾', description +8 points per second },
+            mine { id 'mine', name 'Point Mine', type 'pps', baseCost 12000, baseValue 47, owned 0, icon '⛏️', description +47 points per second },
+            factory { id 'factory', name 'Point Factory', type 'pps', baseCost 130000, baseValue 260, owned 0, icon '🏭', description +260 points per second },
+            bank { id 'bank', name 'Point Bank', type 'pps', baseCost 1400000, baseValue 1400, owned 0, icon '🏦', description +1.4k points per second },
+            temple { id 'temple', name 'Point Temple', type 'pps', baseCost 20000000, baseValue 7800, owned 0, icon '🏛️', description +7.8k points per second },
+        };
+        let upgrades = JSON.parse(JSON.stringify(initialUpgrades)); 
+
+         DOM Elements
+        const pointsCountDisplay = document.getElementById('points-count'); 
+        const mylesButton = document.getElementById('myles-button'); 
+        const clickButtonContainer = document.getElementById('click-button-container'); 
+        const ppsDisplay = document.getElementById('pps-display'); 
+        const ppcDisplay = document.getElementById('ppc-display'); 
+        const upgradesContainer = document.getElementById('upgrades-container');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const resetButton = document.getElementById('reset-button');
+        const travisWarningElement = document.getElementById('travis-warning');  Travis warning element
+        
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalConfirmButton = document.getElementById('modal-confirm-button');
+        const modalCancelButton = document.getElementById('modal-cancel-button');
+
+         Travis Event Variables
+        let isTravisActive = false;
+        let travisTimer = 0;  Counts down how long Travis is active
+        let nextTravisAttemptTimer = 20;  Initial timer for first Travis attempt (seconds)
+        const TRAVIS_BASE_DURATION_SECONDS = 15;  How long Travis stays
+        const TRAVIS_SPAWN_INTERVAL_SECONDS = 45;  Average time between spawn attempts
+        const TRAVIS_SPAWN_CHANCE = 0.30;  30% chance to spawn when interval hits
+
+         --- Authentication ---
+        onAuthStateChanged(auth, async (user) = {
+            if (user) {
+                userId = user.uid;
+                console.log(User signed in with UID, userId);
+                userIdDisplay.textContent = `User ID ${userId}`;
+                gameDocRef = doc(db, `artifacts${appId}users${userId}mylesClickergameState`); 
+                isAuthReady = true;
+                loadGameState(); 
+            } else {
+                console.log(User is signed out or auth not ready.);
+                userId = null;
+                isAuthReady = false;
+                userIdDisplay.textContent = User ID Not signed in;
+                if (unsubscribeGameState) unsubscribeGameState(); 
+                 If user signs out, deactivate Travis if active
+                if(isTravisActive) deactivateTravis(false);  Don't show Travis is gone message
+            }
+            updateDisplay(); 
+        });
+
+        async function initializeAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    console.log(Attempting to sign in with custom token...);
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    console.log(Attempting to sign in anonymously...);
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error(Error during sign-in, error);
+                userIdDisplay.textContent = User ID Sign-in error;
+                if (!auth.currentUser) {
+                    try {
+                        await signInAnonymously(auth);
+                        console.log(Fallback to anonymous sign-in successful.);
+                    } catch (anonError) {
+                        console.error(Error during anonymous fallback sign-in, anonError);
+                    }
+                }
+            }
+        }
+        
+         --- Game Logic ---
+        function calculatePointsPerClick() { 
+            let ppc = 1; 
+            for (const key in upgrades) {
+                if (upgrades[key].type === 'ppc') { 
+                    ppc += upgrades[key].baseValue  upgrades[key].owned;
+                }
+            }
+            return ppc;
+        }
+
+        function calculatePointsPerSecond() { 
+            let pps = 0;
+            for (const key in upgrades) {
+                if (upgrades[key].type === 'pps') { 
+                    pps += upgrades[key].baseValue  upgrades[key].owned;
+                }
+            }
+            return pps;
+        }
+
+        function getUpgradeCost(upgradeKey) {
+            const upgrade = upgrades[upgradeKey];
+            if (!upgrade) return Infinity;
+            return Math.ceil(upgrade.baseCost  Math.pow(1.15, upgrade.owned));
+        }
+        
+        function formatNumber(num) {
+            if (num  0) num = 0;  Ensure display doesn't show negative for points
+            if (num  1000) return num.toFixed(0);
+            if (num  1000000) return (num  1000).toFixed(1) + 'K';
+            if (num  1000000000) return (num  1000000).toFixed(1) + 'M';
+            return (num  1000000000).toFixed(1) + 'B';
+        }
+
+        function updateDisplay() {
+            if (!isAuthReady) {
+                pointsCountDisplay.textContent = '...'; 
+                return;
+            }
+            pointsCountDisplay.textContent = formatNumber(points); 
+            const currentPps = calculatePointsPerSecond(); 
+            const currentPpc = calculatePointsPerClick(); 
+            ppsDisplay.textContent = formatNumber(currentPps);
+            ppcDisplay.textContent = formatNumber(currentPpc);
+
+            if (isTravisActive) {
+                travisWarningElement.textContent = `TRAVIS HAS APPEARED! Losing points for ${travisTimer}s!`;
+            }
+
+            upgradesContainer.innerHTML = ''; 
+            Object.keys(upgrades).forEach(key = {
+                const upgrade = upgrades[key];
+                const cost = getUpgradeCost(key);
+                const upgradeElement = document.createElement('div');
+                upgradeElement.className = 'bg-white p-3 rounded-md shadow border border-teal-200 flex items-center justify-between';
+                upgradeElement.innerHTML = `
+                    div class=flex items-center
+                        span class=text-2xl mr-3${upgrade.icon}span
+                        div
+                            h3 class=font-semibold text-teal-600${upgrade.name} span class=text-xs text-gray-500(Owned ${upgrade.owned})spanh3
+                            p class=text-xs text-gray-500${upgrade.description}p
+                            p class=text-xs text-teal-500Cost ${formatNumber(cost)}p
+                        div
+                    div
+                    button data-upgrade-key=${key} class=buy-upgrade-button px-3 py-1.5 bg-teal-400 hoverbg-teal-500 text-white rounded-md text-sm shadow focusoutline-none focusring-2 focusring-teal-300Buybutton
+                `;
+                upgradesContainer.appendChild(upgradeElement);
+                const buyButton = upgradeElement.querySelector('.buy-upgrade-button');
+                if (points  cost) { 
+                    buyButton.disabled = true;
+                    buyButton.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                buyButton.addEventListener('click', () = buyUpgrade(key));
+            });
+        }
+
+        function clickMyles() { 
+            if (!isAuthReady) return;
+            const ppc = calculatePointsPerClick();
+            points += ppc; 
+            showFloatingText(`+${formatNumber(ppc)}`, mylesButton); 
+            updateDisplay();
+             Only save on click if not too frequent, or rely on periodicunload saves
+             saveGameState();  Potentially too many writes, consider removing or debouncing
+        }
+
+        function showKirbinTimeText() {
+            const kirbinText = document.createElement('div');
+            kirbinText.textContent = its kirbin time;
+            kirbinText.className = 'kirbin-time-text';
+
+            document.body.appendChild(kirbinText);
+
+            requestAnimationFrame(() = {
+                requestAnimationFrame(() = { 
+                    kirbinText.classList.add('show');
+                });
+            });
+            
+            setTimeout(() = {
+                kirbinText.classList.remove('show'); 
+                setTimeout(() = {
+                    if (kirbinText.parentNode) { 
+                       kirbinText.remove();
+                    }
+                }, 800); 
+            }, 1200); 
+        }
+
+
+        function buyUpgrade(key) {
+            if (!isAuthReady) return;
+            const upgrade = upgrades[key];
+            if (!upgrade) return;
+
+            const cost = getUpgradeCost(key);
+            if (points = cost) { 
+                points -= cost; 
+                upgrade.owned++;
+                showCustomMessage(`${upgrade.name} purchased!`, 'success');
+                showKirbinTimeText(); 
+                updateDisplay();
+                saveGameState();  Save after a significant change like buying an upgrade
+            } else {
+                showCustomMessage('Not enough points!', 'error'); 
+            }
+        }
+        
+        function showFloatingText(text, element) {
+            const floatingText = document.createElement('div');
+            floatingText.className = 'floating-text';
+            floatingText.textContent = text;
+            
+            const rect = element.getBoundingClientRect();
+            const containerRect = clickButtonContainer.getBoundingClientRect(); 
+            
+            floatingText.style.left = `${rect.left - containerRect.left + rect.width  2 - 15}px`; 
+            floatingText.style.top = `${rect.top - containerRect.top - 20}px`; 
+
+            clickButtonContainer.appendChild(floatingText);
+            floatingText.addEventListener('animationend', () = {
+                floatingText.remove();
+            });
+        }
+
+        let messageTimeout;
+        function showCustomMessage(message, type = 'info') {
+            const messageBox = document.getElementById('custom-message-box');
+            const messageText = document.getElementById('custom-message-text');
+
+            messageText.textContent = message;
+            messageBox.className = 'message-box show'; 
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-500', 'text-white');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-500', 'text-white');
+            } else { 
+                messageBox.classList.add('bg-sky-500', 'text-white'); 
+            }
+
+            clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() = {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+         --- Travis Event Logic ---
+        function activateTravis() {
+            if (!isAuthReady) return;  Don't activate if game not ready
+            isTravisActive = true;
+            travisTimer = TRAVIS_BASE_DURATION_SECONDS + Math.floor(Math.random()  6) - 2;  Duration 13-18s
+            travisWarningElement.textContent = `TRAVIS HAS APPEARED! Losing points for ${travisTimer}s!`;
+            travisWarningElement.classList.remove('hidden');
+            showCustomMessage('TRAVIS IS HERE! Watch your points!', 'error');
+            console.log(Travis activated for, travisTimer, seconds.);
+        }
+
+        function deactivateTravis(showMessage = true) {
+            isTravisActive = false;
+            travisWarningElement.classList.add('hidden');
+            if (showMessage) {
+                showCustomMessage('Travis is gone... for now.', 'success');
+            }
+            console.log(Travis deactivated.);
+        }
+
+         --- Game Loop (for PPS and Travis) ---
+        let lastSaveTime = Date.now();
+        const SAVE_INTERVAL = 10000;  Save every 10 seconds
+
+        setInterval(() = {
+            if (!isAuthReady  !userId) return;  Ensure user is authenticated and ready
+
+            const currentTime = Date.now();
+            let pps = calculatePointsPerSecond();
+            
+             PPS income
+            if (pps  0) {
+                points += pps; 
+            }
+
+             Travis Spawn Logic
+            nextTravisAttemptTimer--;
+            if (nextTravisAttemptTimer = 0) {
+                nextTravisAttemptTimer = TRAVIS_SPAWN_INTERVAL_SECONDS + Math.floor(Math.random()  20 - 10);  Reset timer with some variance
+                if (!isTravisActive && Math.random()  TRAVIS_SPAWN_CHANCE) {
+                    activateTravis();
+                }
+            }
+
+             Travis Active Logic
+            if (isTravisActive) {
+                travisTimer--;
+                 Point deduction 50% of PPS, minimum 2 pointssec, max 1000 pointssec (to prevent instant wipeout at very high PPS)
+                let deduction = Math.min(1000, Math.max(2, Math.floor(pps  0.5))); 
+                points -= deduction;
+                if (points  0) points = 0;  Prevent negative points
+
+                travisWarningElement.textContent = `TRAVIS HAS APPEARED! Losing points for ${travisTimer}s!`;
+
+                if (travisTimer = 0) {
+                    deactivateTravis();
+                }
+            }
+            
+            updateDisplay();
+
+             Periodic save
+            if (currentTime - lastSaveTime  SAVE_INTERVAL) {
+                saveGameState();
+                lastSaveTime = currentTime;
+            }
+
+        }, 1000);  Runs every second
+
+         --- Firestore Data Handling ---
+        async function saveGameState() {
+            if (!isAuthReady  !gameDocRef) {
+                 console.log(Cannot save Auth not ready or gameDocRef not set.);
+                return;
+            }
+            const gameState = {
+                points points, 
+                upgrades upgrades, 
+                timestamp new Date().toISOString()
+                 Not saving Travis state as it's a temporary event
+            };
+            try {
+                await setDoc(gameDocRef, gameState); 
+                console.log(Game state saved to Firestore periodically or on critical action.);
+            } catch (error) {
+                console.error(Error saving game state , error);
+                showCustomMessage('Error saving game!', 'error');
+            }
+        }
+
+        function loadGameState() {
+            if (!isAuthReady  !gameDocRef) {
+                 console.log(Cannot load Auth not ready or gameDocRef not set.);
+                return;
+            }
+            
+            if (unsubscribeGameState) unsubscribeGameState(); 
+
+            unsubscribeGameState = onSnapshot(gameDocRef, (docSnap) = {
+                if (!isAuthReady) return;  Prevent updates if auth state changed during snapshot
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    console.log(Game state loaded from Firestore, data);
+                    points = data.points  0; 
+                    
+                    const loadedUpgrades = data.upgrades  {};
+                    upgrades = JSON.parse(JSON.stringify(initialUpgrades)); 
+                    for (const key in upgrades) {
+                        if (loadedUpgrades[key]) {
+                            upgrades[key].owned = loadedUpgrades[key].owned  0;
+                        }
+                    }
+                } else {
+                    console.log(No saved game state found. Initializing new game.);
+                    points = 0; 
+                    upgrades = JSON.parse(JSON.stringify(initialUpgrades));
+                    saveGameState();  Save the initial state
+                }
+                updateDisplay();
+            }, (error) = {
+                console.error(Error listening to game state , error);
+                showCustomMessage('Error loading game data!', 'error');
+                 Fallback to local defaults if Firestore fails during listening
+                if (isAuthReady) {  Only reset if still considered authenticated
+                    points = 0; 
+                    upgrades = JSON.parse(JSON.stringify(initialUpgrades));
+                    updateDisplay();
+                }
+            });
+        }
+        
+         Confirmation Modal Logic
+        let confirmCallback = null;
+        function showConfirmationModal(title, message, onConfirm) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            confirmCallback = onConfirm;
+            confirmationModal.classList.remove('hidden');
+        }
+
+        modalConfirmButton.addEventListener('click', () = {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            confirmationModal.classList.add('hidden');
+            confirmCallback = null;
+        });
+
+        modalCancelButton.addEventListener('click', () = {
+            confirmationModal.classList.add('hidden');
+            confirmCallback = null;
+        });
+
+
+        async function resetGameData() {
+            if (!isAuthReady  !gameDocRef) {
+                showCustomMessage('Cannot reset Game not fully loaded.', 'error');
+                return;
+            }
+            showConfirmationModal(
+                'Reset Game',
+                'Are you sure you want to reset all your progress This cannot be undone.',
+                async () = {
+                    points = 0; 
+                    upgrades = JSON.parse(JSON.stringify(initialUpgrades)); 
+                    if(isTravisActive) deactivateTravis(false);  Deactivate Travis if active during reset
+                    try {
+                        await saveGameState();  Save the reset state
+                        console.log(Game state reset in Firestore.);
+                        showCustomMessage('Game has been reset!', 'success');
+                    } catch (error) {
+                        console.error(Error resetting game state , error);
+                        showCustomMessage('Error resetting game!', 'error');
+                    }
+                    updateDisplay(); 
+                }
+            );
+        }
+
+
+         Event Listeners
+        mylesButton.addEventListener('click', clickMyles); 
+        resetButton.addEventListener('click', resetGameData);
+
+         Initialize authentication
+        initializeAuth();
+        
+        window.addEventListener('beforeunload', () = {
+            if (isAuthReady && userId) { 
+                saveGameState();  Ensure game is saved when user leaves
+            }
+        });
+
+    script
+body
+html

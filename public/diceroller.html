@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Roller - Even More Dice!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align to top for scroll */
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+        }
+        .main-container {
+            width: 100%;
+            max-width: 500px; /* max-w-lg */
+        }
+        .game-section {
+            background-color: white;
+            padding: 1.5rem; /* p-6 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+            margin-bottom: 1.5rem; /* mb-6 */
+            text-align: center;
+        }
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem; /* gap-4 */
+            margin-bottom: 1.5rem; /* mb-6 */
+        }
+        .dice {
+            width: 80px; 
+            height: 80px; 
+            border: 2px solid #9ca3af; /* border-gray-400 */
+            border-radius: 0.5rem; /* rounded-lg */
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: transform 0.3s ease-out, background-color 0.2s;
+            position: relative; 
+        }
+        .dice-value {
+            font-size: 2.25rem; /* text-4xl */
+            line-height: 1;
+        }
+        .dice-pattern {
+            font-size: 0.875rem; /* text-sm */
+            line-height: 1;
+            margin-top: 0.125rem; /* mt-0.5 */
+        }
+        .dice.rolling {
+            transform: rotate(360deg) scale(0.8);
+        }
+        .score-display, .player-score-display {
+            margin-top: 0.5rem; /* mt-2 */
+            font-size: 1.125rem; /* text-lg */
+        }
+        .score-display span, .player-score-display span {
+            font-weight: bold;
+            color: #4f46e5; /* text-indigo-600 */
+        }
+        .player-score-display {
+            font-size: 1.25rem; /* text-xl */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        button {
+            background-color: #4f46e5; /* bg-indigo-600 */
+            color: white;
+            font-weight: 600; /* font-semibold */
+            padding: 0.6rem 1.2rem; /* py-2.5 px-5 */
+            border-radius: 0.5rem; /* rounded-lg */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+        button:hover:not(:disabled) {
+            background-color: #4338ca; /* hover:bg-indigo-700 */
+        }
+        button:disabled {
+            background-color: #a5b4fc; /* bg-indigo-300 */
+            cursor: not-allowed;
+        }
+        h1, h2 {
+            font-weight: bold;
+            color: #374151; /* text-gray-700 */
+        }
+        h1 {
+            font-size: 1.875rem; /* text-3xl */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        h2 {
+            font-size: 1.5rem; /* text-2xl */
+            margin-bottom: 1rem; /* mb-4 */
+            border-bottom: 2px solid #e5e7eb; /* border-b-2 border-gray-200 */
+            padding-bottom: 0.5rem; /* pb-2 */
+        }
+        .shop-item, .owned-dice-item {
+            background-color: #f9fafb; /* bg-gray-50 */
+            border: 1px solid #e5e7eb; /* border-gray-200 */
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1rem; /* p-4 */
+            margin-bottom: 0.75rem; /* mb-3 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .owned-dice-item.active {
+            border-width: 2px; 
+            border-color: #4f46e5; /* border-indigo-600 */
+            background-color: #e0e7ff; /* bg-indigo-100 */
+        }
+        .shop-item p, .owned-dice-item p {
+            margin: 0.25rem 0; /* my-1 */
+            color: #4b5563; /* text-gray-600 */
+            font-size: 0.875rem; /* text-sm */
+        }
+        .shop-item .dice-name, .owned-dice-item .dice-name {
+            font-weight: 600;
+            font-size: 1.125rem; /* text-lg */
+            color: #111827; /* text-gray-900 */
+        }
+        .shop-item-preview-dice, .owned-item-preview-dice {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.25rem; /* rounded-md */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem; /* mb-2 */
+            font-weight: bold;
+        }
+        .shop-item-preview-dice .value, .owned-item-preview-dice .value {
+            font-size: 1rem; line-height: 1;
+        }
+        .shop-item-preview-dice .pattern, .owned-item-preview-dice .pattern {
+            font-size: 0.6rem; line-height: 1;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="game-section">
+            <h1>Dice Roller Deluxe</h1>
+            <div class="player-score-display">
+                Total Score: <span id="playerScore">0</span>
+            </div>
+
+            <div class="dice-container">
+                <div id="dice1" class="dice">
+                    <span class="dice-value">?</span>
+                    <span class="dice-pattern"></span>
+                </div>
+                <div id="dice2" class="dice">
+                    <span class="dice-value">?</span>
+                    <span class="dice-pattern"></span>
+                </div>
+            </div>
+
+            <button id="rollButton">Roll Dice</button>
+
+            <div class="score-display">
+                Current Roll: <span id="currentRollScore">0</span>
+            </div>
+        </div>
+
+        <div class="game-section" id="ownedDiceSection">
+            <h2>Your Dice</h2>
+            <div id="ownedDiceContainer">
+                </div>
+        </div>
+
+        <div class="game-section" id="diceShopSection">
+            <h2>Dice Shop</h2>
+            <div id="diceShopContainer">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const dice1Element = document.getElementById('dice1');
+        const dice2Element = document.getElementById('dice2');
+        const rollButton = document.getElementById('rollButton');
+        const currentRollScoreElement = document.getElementById('currentRollScore');
+        const playerScoreElement = document.getElementById('playerScore');
+        const diceShopContainer = document.getElementById('diceShopContainer');
+        const ownedDiceContainer = document.getElementById('ownedDiceContainer');
+
+        // Game Data with Visuals
+        const diceTypes = [
+            { id: 'standard', name: 'Standard Dice', cost: 0, min: 1, max: 6, description: "Classic roll: 1-6.", owned: true, 
+              bgColor: '#e5e7eb', textColor: '#1f2937', patternChar: '●' }, 
+            { id: 'lucky', name: 'Lucky Dice', cost: 75, min: 2, max: 7, description: "A bit luckier: 2-7.", owned: false,
+              bgColor: '#dcfce7', textColor: '#166534', patternChar: '⭐'}, 
+            { id: 'power', name: 'Power Dice', cost: 200, min: 3, max: 8, description: "More potential: 3-8.", owned: false,
+              bgColor: '#fee2e2', textColor: '#991b1b', patternChar: '⚡'}, 
+            { id: 'shadow', name: 'Shadow Dice', cost: 350, min: 2, max: 9, description: "Mysterious rolls: 2-9.", owned: false,
+              bgColor: '#4b5563', textColor: '#f3f4f6', patternChar: '🌙'}, 
+            { id: 'elite', name: 'Elite Dice', cost: 500, min: 4, max: 10, description: "Top tier: 4-10!", owned: false,
+              bgColor: '#ede9fe', textColor: '#5b21b6', patternChar: '👑'},  
+            { id: 'cosmic', name: 'Cosmic Dice', cost: 750, min: 5, max: 12, description: "Out of this world: 5-12!", owned: false,
+              bgColor: '#312e81', textColor: '#e0e7ff', patternChar: '✨'},
+            // --- NEW DICE START ---
+            { id: 'gemstone', name: 'Gemstone Dice', cost: 1200, min: 6, max: 15, description: "Sparkling with potential: 6-15.", owned: false,
+              bgColor: '#ccfbf1', textColor: '#0f766e', patternChar: '💎'}, // bg-teal-100, text-teal-700
+            { id: 'ancient', name: 'Ancient Dice', cost: 2000, min: 10, max: 25, description: "Relic of power: 10-25!", owned: false,
+              bgColor: '#a8a29e', textColor: '#292524', patternChar: '📜'}  // bg-stone-400, text-stone-800
+            // --- NEW DICE END ---
+        ];
+
+        let playerScore = 0;
+        let activeDiceId = 'standard';
+
+        // --- Initialization ---
+        function initializeGame() {
+            loadGameData(); 
+            applyActiveDiceStyleToDisplay(); 
+            renderDiceShop();
+            renderOwnedDice();
+            updatePlayerScoreDisplay();
+            currentRollScoreElement.textContent = '0';
+        }
+        
+        function applyActiveDiceStyleToDisplay(value1 = '?', value2 = '?') {
+            const activeDie = diceTypes.find(d => d.id === activeDiceId);
+            if (!activeDie) return;
+
+            [dice1Element, dice2Element].forEach((el, index) => {
+                el.style.backgroundColor = activeDie.bgColor;
+                el.style.color = activeDie.textColor;
+                el.querySelector('.dice-value').textContent = index === 0 ? value1 : value2;
+                el.querySelector('.dice-pattern').textContent = activeDie.patternChar || '';
+            });
+        }
+
+
+        // --- Rendering Functions ---
+        function renderDiceShop() {
+            diceShopContainer.innerHTML = ''; 
+            diceTypes.forEach(die => {
+                if (die.cost === 0) return; 
+
+                const item = document.createElement('div');
+                item.classList.add('shop-item');
+
+                const previewDice = document.createElement('div');
+                previewDice.classList.add('shop-item-preview-dice');
+                previewDice.style.backgroundColor = die.bgColor;
+                previewDice.style.color = die.textColor;
+                const previewValue = document.createElement('span');
+                previewValue.classList.add('value');
+                previewValue.textContent = die.max; 
+                const previewPattern = document.createElement('span');
+                previewPattern.classList.add('pattern');
+                previewPattern.textContent = die.patternChar || '';
+                previewDice.appendChild(previewValue);
+                previewDice.appendChild(previewPattern);
+                item.appendChild(previewDice);
+                
+                const nameEl = document.createElement('h3');
+                nameEl.classList.add('dice-name');
+                nameEl.textContent = die.name;
+                item.appendChild(nameEl);
+
+                const descEl = document.createElement('p');
+                descEl.textContent = die.description;
+                item.appendChild(descEl);
+                
+                const costEl = document.createElement('p');
+                costEl.innerHTML = `Cost: <span class="font-semibold text-indigo-600">${die.cost}</span> points`;
+                item.appendChild(costEl);
+
+                const buyButton = document.createElement('button');
+                buyButton.textContent = die.owned ? 'Owned' : 'Buy';
+                buyButton.disabled = die.owned || playerScore < die.cost;
+                if (!die.owned) {
+                    buyButton.onclick = () => buyDie(die.id);
+                }
+                item.appendChild(buyButton);
+                diceShopContainer.appendChild(item);
+            });
+        }
+
+        function renderOwnedDice() {
+            ownedDiceContainer.innerHTML = ''; 
+            diceTypes.forEach(die => {
+                if (die.owned) {
+                    const item = document.createElement('div');
+                    item.classList.add('owned-dice-item', 'cursor-pointer', 'transition-all', 'duration-200', 'ease-in-out');
+                    if (die.id === activeDiceId) {
+                        item.classList.add('active');
+                    }
+                    item.onclick = () => selectDie(die.id);
+
+                    const previewDice = document.createElement('div');
+                    previewDice.classList.add('owned-item-preview-dice');
+                    previewDice.style.backgroundColor = die.bgColor;
+                    previewDice.style.color = die.textColor;
+                    const previewValue = document.createElement('span');
+                    previewValue.classList.add('value');
+                    previewValue.textContent = die.max; 
+                    const previewPattern = document.createElement('span');
+                    previewPattern.classList.add('pattern');
+                    previewPattern.textContent = die.patternChar || '';
+                    previewDice.appendChild(previewValue);
+                    previewDice.appendChild(previewPattern);
+                    item.appendChild(previewDice);
+
+                    const nameEl = document.createElement('h3');
+                    nameEl.classList.add('dice-name');
+                    nameEl.textContent = die.name;
+                    item.appendChild(nameEl);
+
+                    const descEl = document.createElement('p');
+                    descEl.textContent = die.description;
+                    item.appendChild(descEl);
+                    
+                    if (die.id === activeDiceId) {
+                        const activeText = document.createElement('p');
+                        activeText.textContent = "(Selected)";
+                        activeText.classList.add('text-indigo-600', 'font-semibold', 'text-xs', 'mt-1');
+                        item.appendChild(activeText);
+                    }
+                    ownedDiceContainer.appendChild(item);
+                }
+            });
+        }
+
+        function updatePlayerScoreDisplay() {
+            playerScoreElement.textContent = playerScore;
+        }
+
+        // --- Game Logic Functions ---
+        function rollSingleDie(dieId) {
+            const dieType = diceTypes.find(d => d.id === dieId);
+            if (!dieType) return Math.floor(Math.random() * 6) + 1; 
+            return Math.floor(Math.random() * (dieType.max - dieType.min + 1)) + dieType.min;
+        }
+
+        function updateDieVisual(dieElement, value) {
+            const activeDie = diceTypes.find(d => d.id === activeDiceId);
+            if (!activeDie) return;
+
+            dieElement.style.backgroundColor = activeDie.bgColor;
+            dieElement.style.color = activeDie.textColor;
+            dieElement.querySelector('.dice-value').textContent = value;
+            dieElement.querySelector('.dice-pattern').textContent = activeDie.patternChar || '';
+            
+            dieElement.classList.add('rolling');
+            const originalBgColor = activeDie.bgColor;
+            dieElement.style.backgroundColor = '#d1d5db'; // bg-gray-300 for rolling
+
+            setTimeout(() => {
+                dieElement.classList.remove('rolling');
+                dieElement.style.backgroundColor = originalBgColor; 
+            }, 300);
+        }
+
+        function handleRoll() {
+            rollButton.disabled = true;
+
+            const die1Value = rollSingleDie(activeDiceId);
+            const die2Value = rollSingleDie(activeDiceId);
+
+            setTimeout(() => updateDieVisual(dice1Element, die1Value), 100);
+            setTimeout(() => updateDieVisual(dice2Element, die2Value), 200);
+
+            const currentScore = die1Value + die2Value;
+
+            setTimeout(() => {
+                currentRollScoreElement.textContent = currentScore;
+                playerScore += currentScore; 
+                updatePlayerScoreDisplay();
+                saveGameData(); 
+                renderDiceShop(); 
+                rollButton.disabled = false;
+            }, 500);
+        }
+
+        function buyDie(dieId) {
+            const dieToBuy = diceTypes.find(d => d.id === dieId);
+            if (dieToBuy && !dieToBuy.owned && playerScore >= dieToBuy.cost) {
+                playerScore -= dieToBuy.cost;
+                dieToBuy.owned = true;
+                updatePlayerScoreDisplay();
+                renderDiceShop();
+                renderOwnedDice();
+                saveGameData();
+            }
+        }
+
+        function selectDie(dieId) {
+            const dieToSelect = diceTypes.find(d => d.id === dieId);
+            if (dieToSelect && dieToSelect.owned) {
+                activeDiceId = dieId;
+                applyActiveDiceStyleToDisplay(); 
+                renderOwnedDice(); 
+                saveGameData();
+            }
+        }
+
+        // --- Local Storage ---
+        function saveGameData() {
+            localStorage.setItem('diceGamePlayerScore', playerScore.toString());
+            const ownedDiceStatus = diceTypes.map(d => ({ id: d.id, owned: d.owned }));
+            localStorage.setItem('diceGameOwnedDice', JSON.stringify(ownedDiceStatus));
+            localStorage.setItem('diceGameActiveDiceId', activeDiceId);
+        }
+
+        function loadGameData() {
+            const storedScore = localStorage.getItem('diceGamePlayerScore');
+            if (storedScore) {
+                playerScore = parseInt(storedScore, 10);
+            }
+
+            const storedOwnedDice = localStorage.getItem('diceGameOwnedDice');
+            if (storedOwnedDice) {
+                const ownedStatus = JSON.parse(storedOwnedDice);
+                diceTypes.forEach(die => {
+                    const found = ownedStatus.find(s => s.id === die.id);
+                    if (found) {
+                        die.owned = found.owned;
+                    } else {
+                        die.owned = (die.cost === 0);
+                    }
+                });
+            } else {
+                 diceTypes.forEach(die => {
+                    die.owned = (die.cost === 0);
+                });
+            }
+
+            const standardDie = diceTypes.find(d => d.id === 'standard');
+            if (standardDie) standardDie.owned = true;
+
+
+            const storedActiveDiceId = localStorage.getItem('diceGameActiveDiceId');
+            if (storedActiveDiceId) {
+                const activeDieData = diceTypes.find(d => d.id === storedActiveDiceId);
+                if (activeDieData && activeDieData.owned) {
+                     activeDiceId = storedActiveDiceId;
+                } else {
+                    activeDiceId = 'standard'; 
+                }
+            } else {
+                 activeDiceId = 'standard'; 
+            }
+        }
+
+        // Event Listeners
+        rollButton.addEventListener('click', handleRoll);
+
+        // Initialize
+        window.onload = initializeGame;
+    </script>
+</body>
+</html>

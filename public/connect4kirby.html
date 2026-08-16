@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect 4 - Kirby & Among Us (Selectable AI Difficulty!)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        @keyframes animatedStripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #e0f7fa;
+            background-image: repeating-linear-gradient(
+                45deg,
+                #ffffff 0px, #ffffff 25px,
+                #cce7ff 25px, #cce7ff 50px
+            );
+            background-size: 50px 50px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0.5rem;
+            box-sizing: border-box;
+            animation: animatedStripes 10s linear infinite;
+        }
+
+        .screen { width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; }
+        #titleScreen { /* Default visible */ }
+        #gameScreen { display: none; /* Initially hidden */ }
+
+        h1 {
+            color: #2c3e50; text-shadow: 1px 1px 0px #fff, 2px 2px 0px #ccc;
+            font-size: 1.75rem; margin-bottom: 0.5rem; text-align: center;
+        }
+        #titleScreen h1 { font-size: 2rem; margin-bottom: 1rem; }
+
+        .mode-selection-container { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; margin-bottom: 1.5rem; }
+        .mode-button {
+            color: white; font-family: 'Press Start 2P', cursive; padding: 0.8rem 1.8rem;
+            border: none; border-radius: 10px; cursor: pointer; font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25); text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+        }
+        .mode-button.pvp { background-color: #4caf50; } .mode-button.pvp:hover { background-color: #388e3c; }
+        .mode-button.pvai { background-color: #f44336; } .mode-button.pvai:hover { background-color: #d32f2f; }
+
+        .difficulty-selector-container {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: rgba(255,255,255,0.7);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        .difficulty-selector-container label {
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+        #aiDifficultySelector {
+            font-family: 'Press Start 2P', cursive;
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 2px solid #607d8b;
+            background-color: #fff;
+            font-size: 0.85rem;
+            color: #37474f;
+            cursor: pointer;
+        }
+        .mode-button.play-selected-ai {
+            background-color: #2196F3; /* Blue */
+            font-size: 0.9rem;
+            padding: 0.7rem 1.5rem;
+        }
+        .mode-button.play-selected-ai:hover { background-color: #1976D2; }
+
+
+        .game-info-top {
+            display: flex; flex-direction: column; align-items: center;
+            width: 100%; max-width: 400px; margin-bottom: 0.5rem;
+        }
+        .score-tracker {
+            display: flex; justify-content: space-around; width: 100%;
+            padding: 0.5rem; background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .score-item { text-align: center; color: #37474f; }
+        .score-item span { font-weight: bold; font-size: 1rem; color: #1a237e; }
+
+        .ai-difficulty-display {
+            font-size: 0.8rem; color: #37474f;
+            background-color: rgba(220, 220, 255, 0.75); padding: 0.3rem 0.8rem;
+            border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: none;
+        }
+        .ai-difficulty-display span { font-weight: bold; color: #303f9f; }
+        .ai-difficulty-display span.evil { color: #c62828; text-shadow: 0 0 2px #fff; }
+
+        .controls-container {
+            display: flex; gap: 0.75rem; margin-bottom: 0.75rem; align-items: center;
+            flex-wrap: wrap; justify-content: center;
+        }
+        .game-button {
+            color: white; font-family: 'Press Start 2P', cursive; padding: 0.6rem 1.2rem;
+            border: none; border-radius: 8px; cursor: pointer; font-size: 0.875rem;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2); text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+        }
+        .reset-button { background-color: #ef5350; } .reset-button:hover { background-color: #e53935; }
+        .reset-button:active { background-color: #d32f2f; transform: translateY(1px); }
+        .music-button { background-color: #5c6bc0; } .music-button:hover { background-color: #3f51b5; }
+        .music-button:active { background-color: #303f9f; transform: translateY(1px); }
+        .music-button.playing { background-color: #7e57c2; } .music-button.playing:hover { background-color: #673ab7; }
+
+        .board {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+            background-color: #607d8b; border: 4px solid #37474f; border-radius: 8px; padding: 8px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.25), 0 5px 5px rgba(0, 0, 0, 0.2);
+            width: 100%; max-width: 480px;
+        }
+        .board-container { display: flex; justify-content: center; width: 100%; }
+
+        .cell {
+            aspect-ratio: 1 / 1; background-color: #b0bec5; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: background-color 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .cell:hover:not(.player1):not(.player2) { background-color: #90a4ae; }
+        .cell.player1 { background-color: #F781BE; box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
+        .cell.player1::before {
+            content: ''; position: absolute; top: 28%; left: 50%; transform: translateX(-50%);
+            width: 45%; height: 22%;
+            background-image: radial-gradient(ellipse, #222 45%, transparent 48%), radial-gradient(ellipse, #222 45%, transparent 48%);
+            background-size: 45% 100%; background-position: 0% center, 100% center;
+            background-repeat: no-repeat; z-index: 1;
+        }
+        .cell.player1::after {
+            content: ''; position: absolute; top: 45%; left: 50%; transform: translateX(-50%);
+            width: 65%; height: 18%;
+            background-image: radial-gradient(ellipse, #E15B99 50%, transparent 53%), radial-gradient(ellipse, #E15B99 50%, transparent 53%);
+            background-size: 30% 100%; background-position: 0% center, 100% center;
+            background-repeat: no-repeat; z-index: 1;
+        }
+        .cell.player2 { background-color: #ecc94b; box-shadow: inset 0 0 8px rgba(0,0,0,0.4); }
+        .cell.player2::before {
+            content: ''; position: absolute; top: 25%; left: 50%; transform: translateX(-50%);
+            width: 60%; height: 30%;
+            background-color: #7fdbff; border: 3px solid #2c3e50;
+            border-radius: 25% 25% 40% 40% / 45% 45% 55% 55%;
+            box-sizing: border-box; z-index: 1;
+            box-shadow: inset 2px 2px 3px rgba(255,255,255,0.3), inset -2px -2px 3px rgba(0,0,0,0.1);
+        }
+
+        .message-area {
+            color: #1f2937; background-color: rgba(255, 255, 255, 0.85);
+            padding: 0.6rem 1rem; border-radius: 8px; margin-bottom: 0.75rem;
+            font-size: 1rem; text-align: center; min-height: 1.8rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .winning-piece.player1 { animation: glowKirby 0.8s infinite alternate ease-in-out; }
+        .winning-piece.player2 { animation: glowYellowCrewmate 0.8s infinite alternate ease-in-out; }
+
+        @keyframes glowKirby {
+            from { box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 5px #F781BE, 0 0 10px #F781BE, 0 0 15px #F781BE; }
+            to { box-shadow: inset 0 0 10px rgba(0,0,0,0.7), 0 0 15px #FFA8D9, 0 0 25px #FFA8D9, 0 0 35px #FFA8D9; transform: scale(1.05); }
+        }
+        @keyframes glowYellowCrewmate {
+            from { box-shadow: inset 0 0 8px rgba(0,0,0,0.4), 0 0 5px #ecc94b, 0 0 10px #ecc94b, 0 0 15px #ecc94b; }
+            to { box-shadow: inset 0 0 8px rgba(0,0,0,0.6), 0 0 15px #ffeb84, 0 0 25px #ffeb84, 0 0 35px #ffeb84; transform: scale(1.05); }
+        }
+
+        @media (max-width: 450px) {
+            h1 { font-size: 1.4rem; } #titleScreen h1 { font-size: 1.6rem; }
+            .mode-button { font-size: 0.9rem; padding: 0.7rem 1.5rem; }
+            .difficulty-selector-container label { font-size: 0.8rem; }
+            #aiDifficultySelector { font-size: 0.75rem; padding: 0.4rem; }
+            .mode-button.play-selected-ai { font-size: 0.8rem; padding: 0.6rem 1.2rem; }
+            .score-tracker { font-size: 0.7rem; max-width: 95%; } .score-item span { font-size: 0.9rem; }
+            .ai-difficulty-display { font-size: 0.7rem; padding: 0.25rem 0.6rem; }
+            .game-button { font-size: 0.75rem; padding: 0.5rem 0.8rem; }
+            .message-area { font-size: 0.85rem; padding: 0.4rem 0.8rem;}
+            .board { max-width: 95%; gap: 3px; padding: 5px; border-width: 3px;}
+            .cell.player1::before { top: 29%; height: 18%; width: 40%; } .cell.player1::after { top: 48%; height: 14%; width: 55%; }
+            .cell.player2::before { top: 28%; width: 50%; height: 25%; border-width: 2px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="titleScreen" class="screen">
+        <h1>Connect 4 - Kirby & Among Us</h1>
+        <div class="mode-selection-container">
+            <button id="pvpButton" class="mode-button pvp">Player vs. Player</button>
+            <button id="pvaiButton" class="mode-button pvai">Player vs. AI (Progressive Difficulty)</button>
+        </div>
+        <div class="difficulty-selector-container">
+            <label for="aiDifficultySelector">Or, Start with Specific AI Difficulty:</label>
+            <select id="aiDifficultySelector">
+                </select>
+            <button id="playSelectedAiButton" class="mode-button play-selected-ai">Play Selected AI Level</button>
+        </div>
+    </div>
+
+    <div id="gameScreen" class="screen">
+        <h1>Connect 4 - Kirby & Among Us</h1>
+        <div class="game-info-top">
+            <div class="score-tracker">
+                <div class="score-item">Kirby Wins: <span id="kirbyScore">0</span></div>
+                <div class="score-item">Yellow Crewmate Wins: <span id="crewmateScore">0</span></div>
+            </div>
+            <div id="aiDifficultyDisplay" class="ai-difficulty-display">AI Level: <span>Easy</span></div>
+        </div>
+        <div id="messageArea" class="message-area">Player 1's Turn (Kirby)</div>
+        <div class="board-container">
+            <div id="board" class="board"></div>
+        </div>
+        <div class="controls-container">
+            <button id="resetButton" class="game-button reset-button">Change Mode</button>
+            <button id="musicButton" class="game-button music-button">Play Music</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Constants and Variables ---
+        const ROWS = 6;
+        const COLS = 7;
+        const WIN_ANIMATION_DURATION = 4000;
+        const MAX_AI_DIFFICULTY = 4; // 0: Easy, 1: Medium, 2: Hard, 3: Expert, 4: Evil
+        const AI_DIFFICULTY_NAMES = ["Easy", "Medium", "Hard", "Expert", "Evil"];
+        const EVIL_AI_LEVEL = 4;
+        const MINIMAX_DEPTH = 4;
+
+        const titleScreen = document.getElementById('titleScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const pvpButton = document.getElementById('pvpButton');
+        const pvaiButton = document.getElementById('pvaiButton'); // Progressive AI button
+        const aiDifficultySelector = document.getElementById('aiDifficultySelector');
+        const playSelectedAiButton = document.getElementById('playSelectedAiButton');
+        const boardElement = document.getElementById('board');
+        const messageArea = document.getElementById('messageArea');
+        const resetButton = document.getElementById('resetButton');
+        const musicButton = document.getElementById('musicButton');
+        const kirbyScoreElement = document.getElementById('kirbyScore');
+        const crewmateScoreElement = document.getElementById('crewmateScore');
+        const aiDifficultyDisplayElement = document.getElementById('aiDifficultyDisplay');
+        const aiDifficultyLevelSpan = aiDifficultyDisplayElement.querySelector('span');
+
+        let board = [];
+        let currentPlayer = 1;
+        let gameOver = false;
+        let gameMode = '';
+        let currentAiDifficulty = 0; // The difficulty for the current game round
+        let progressedAiDifficulty = 0; // The difficulty that gets saved and progresses
+        let isDifficultyManuallySelected = false;
+
+
+        let kirbyWins = 0;
+        let crewmateWins = 0;
+
+        let musicPlaying = false;
+        let musicSynth, musicLoop, clickSynth;
+
+        // --- Audio Functions ---
+        async function ensureAudioContext() { if (Tone.context.state !== 'running') { await Tone.start(); console.log("AudioContext started!"); } }
+        function initializeMusicSynth() { if (!musicSynth) { musicSynth = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.5 }, volume: -18 }).toDestination(); const melody = [ { time: "0:0:0", note: "C4", duration: "8n" }, { time: "0:0:2", note: "E4", duration: "8n" }, { time: "0:1:0", note: "G4", duration: "8n" }, { time: "0:1:2", note: "E4", duration: "8n" }, { time: "0:2:0", note: "C4", duration: "8n" }, { time: "0:2:2", note: "D4", duration: "8n" }, { time: "0:3:0", note: "F4", duration: "8n" }, { time: "0:3:2", note: "D4", duration: "8n" }]; musicLoop = new Tone.Part((time, value) => { musicSynth.triggerAttackRelease(value.note, value.duration, time); }, melody).start(0); musicLoop.loop = true; musicLoop.loopEnd = "1m"; musicLoop.humanize = true; } }
+        function initializeClickSynth() { if (!clickSynth) { clickSynth = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 3, oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.05, attackCurve: "exponential" }, volume: -10 }).toDestination(); } }
+        async function toggleMusic() { await ensureAudioContext(); initializeMusicSynth(); if (musicPlaying) { Tone.Transport.pause(); musicButton.textContent = "Play Music"; musicButton.classList.remove('playing'); } else { Tone.Transport.start(); musicButton.textContent = "Mute Music"; musicButton.classList.add('playing'); } musicPlaying = !musicPlaying; }
+        async function playClickSound() { await ensureAudioContext(); initializeClickSynth(); clickSynth.triggerAttackRelease("C5", "32n", Tone.now()); }
+
+        // --- Score and Difficulty Management ---
+        function loadGameSettings() {
+            kirbyWins = parseInt(localStorage.getItem('kirbyConnect4Wins')) || 0;
+            crewmateWins = parseInt(localStorage.getItem('crewmateConnect4Wins')) || 0;
+            progressedAiDifficulty = parseInt(localStorage.getItem('connect4ProgressedAiDifficulty')) || 0;
+            if (progressedAiDifficulty < 0 || progressedAiDifficulty > MAX_AI_DIFFICULTY) progressedAiDifficulty = 0;
+            // currentAiDifficulty is set when starting a game, not directly loaded here unless it's for progressive mode
+            updateScoreDisplay();
+            // updateAiDifficultyDisplay will be called after currentAiDifficulty is set for the game
+        }
+        function saveGameSettings() {
+            localStorage.setItem('kirbyConnect4Wins', kirbyWins);
+            localStorage.setItem('crewmateConnect4Wins', crewmateWins);
+            localStorage.setItem('connect4ProgressedAiDifficulty', progressedAiDifficulty);
+        }
+        function updateScoreDisplay() {
+            kirbyScoreElement.textContent = kirbyWins;
+            crewmateScoreElement.textContent = crewmateWins;
+        }
+        function updateAiDifficultyDisplay() {
+            if (gameMode === 'PvAI') {
+                aiDifficultyDisplayElement.style.display = 'block';
+                const difficultyName = AI_DIFFICULTY_NAMES[currentAiDifficulty] || "Easy";
+                aiDifficultyLevelSpan.textContent = difficultyName;
+                if (currentAiDifficulty === EVIL_AI_LEVEL) {
+                    aiDifficultyLevelSpan.classList.add('evil');
+                } else {
+                    aiDifficultyLevelSpan.classList.remove('evil');
+                }
+            } else {
+                aiDifficultyDisplayElement.style.display = 'none';
+            }
+        }
+        function populateDifficultySelector() {
+            AI_DIFFICULTY_NAMES.forEach((name, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = name;
+                aiDifficultySelector.appendChild(option);
+            });
+            aiDifficultySelector.value = progressedAiDifficulty; // Default selector to progressed difficulty
+        }
+
+
+        // --- Game Setup & Mode Selection ---
+        function startGame(mode, selectedDifficulty = -1) { // selectedDifficulty is optional
+            gameMode = mode;
+            if (mode === 'PvAI') {
+                if (selectedDifficulty !== -1) { // Difficulty was manually selected
+                    currentAiDifficulty = selectedDifficulty;
+                    isDifficultyManuallySelected = true;
+                } else { // Progressive AI mode
+                    currentAiDifficulty = progressedAiDifficulty;
+                    isDifficultyManuallySelected = false;
+                }
+            }
+            titleScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            initializeBoard(); // This will also call updateAiDifficultyDisplay
+        }
+        function resetGameToTitleScreen() {
+            titleScreen.style.display = 'flex';
+            gameScreen.style.display = 'none';
+            isDifficultyManuallySelected = false; // Reset this flag
+            if (musicPlaying) { toggleMusic(); }
+            // Update selector to reflect the current progressed difficulty when returning to title
+            aiDifficultySelector.value = progressedAiDifficulty;
+        }
+
+        // --- Game Initialization (for a new round) ---
+        function initializeBoard() {
+            board = [];
+            boardElement.innerHTML = '';
+            gameOver = false;
+            currentPlayer = 1;
+            loadGameSettings(); // Loads scores and progressedAiDifficulty
+            
+            // Set currentAiDifficulty based on how the game was started for this session of rounds
+            if (!isDifficultyManuallySelected && gameMode === 'PvAI') {
+                currentAiDifficulty = progressedAiDifficulty;
+            }
+            // If isDifficultyManuallySelected is true, currentAiDifficulty was already set by startGame and persists for rounds.
+
+            updateAiDifficultyDisplay(); // Update display based on currentAiDifficulty
+            updateMessage("Player 1's Turn (Kirby)");
+
+            document.querySelectorAll('.winning-piece').forEach(cell => cell.classList.remove('winning-piece'));
+            for (let r = 0; r < ROWS; r++) {
+                const rowArray = [];
+                for (let c = 0; c < COLS; c++) {
+                    rowArray.push(0);
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = r; cell.dataset.col = c;
+                    cell.addEventListener('click', () => handleCellClick(c));
+                    boardElement.appendChild(cell);
+                }
+                board.push(rowArray);
+            }
+
+            if (gameMode === 'PvAI' && currentAiDifficulty === EVIL_AI_LEVEL && !isBoardFull(board) && board.every(row => row.every(cell => cell === 0))) {
+                currentPlayer = 2;
+                updateMessage(`Yellow Crewmate (AI - ${AI_DIFFICULTY_NAMES[currentAiDifficulty]}) STARTS!`);
+                setTimeout(aiMove, 750);
+            }
+        }
+
+        // --- AI Helper Functions (getLowestEmptyRow, isWinningMove, findWinningMove, findSetupThreatMove, Minimax related) ---
+        // ... (These functions remain largely the same as the previous version) ...
+        function getLowestEmptyRow(col, boardToCheck = board) { for (let r = ROWS - 1; r >= 0; r--) { if (boardToCheck[r][col] === 0) { return r; } } return -1; }
+        function isWinningMove(boardState, col, player) { const r = getLowestEmptyRow(col, boardState); if (r === -1) return false; const tempBoard = boardState.map(row => [...row]); tempBoard[r][col] = player; const win = !!checkWinOnBoard(tempBoard, r, col, player); return win; }
+        function findWinningMove(boardState, player) { for (let c = 0; c < COLS; c++) { if (getLowestEmptyRow(c, boardState) !== -1) { if (isWinningMove(boardState, c, player)) { return c; } } } return -1; }
+        function findSetupThreatMove(boardState, player, piecesInRowToThreaten = 3) {
+            for (let c = 0; c < COLS; c++) {
+                const r = getLowestEmptyRow(c, boardState); if (r === -1) continue;
+                const tempBoard = boardState.map(row => [...row]); tempBoard[r][c] = player;
+                const directions = [{dr:0,dc:1}, {dr:1,dc:0}, {dr:1,dc:1}, {dr:1,dc:-1}];
+                for (const {dr, dc} of directions) {
+                    for (let startOffset = 1 - piecesInRowToThreaten; startOffset <= 0; startOffset++) {
+                        let matchCount = 0; let emptyPlayableSpots = 0; let lineFormsThroughCurrentMove = false;
+                        for (let k = 0; k < 4; k++) {
+                            const cur_r = r + dr * (startOffset + k); const cur_c = c + dc * (startOffset + k);
+                            if (cur_r === r && cur_c === c) lineFormsThroughCurrentMove = true;
+                            if (cur_r >= 0 && cur_r < ROWS && cur_c >= 0 && cur_c < COLS) {
+                                if (tempBoard[cur_r][cur_c] === player) { matchCount++; }
+                                else if (tempBoard[cur_r][cur_c] === 0) { if (cur_r === ROWS - 1 || (cur_r + 1 < ROWS && tempBoard[cur_r + 1][cur_c] !== 0)) { emptyPlayableSpots++; } else { matchCount = -99; break; } }
+                                else { matchCount = -99; break; }
+                            } else { matchCount = -99; break; }
+                        }
+                        if (lineFormsThroughCurrentMove && matchCount === piecesInRowToThreaten && emptyPlayableSpots === (4 - piecesInRowToThreaten)) { return c; }
+                    }
+                }
+            }
+            return -1;
+        }
+        function evaluateBoard(currentBoard, aiPlayerId) {
+            const humanPlayerId = (aiPlayerId === 1) ? 2 : 1; let score = 0;
+            if (checkTerminalState(currentBoard, aiPlayerId)) return 100000;
+            if (checkTerminalState(currentBoard, humanPlayerId)) return -100000;
+            if (isBoardFull(currentBoard)) return 0;
+            const directions = [ {dr:0,dc:1}, {dr:1,dc:0}, {dr:1,dc:1}, {dr:1,dc:-1} ];
+            for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { directions.forEach(({dr, dc}) => { if (c + 3 * dc < COLS && c + 3 * dc >= 0 && r + 3 * dr < ROWS && r + 3 * dr >= 0) { let window = []; for (let i = 0; i < 4; i++) { window.push(currentBoard[r + i * dr][c + i * dc]); } score += scoreWindow(window, aiPlayerId, humanPlayerId); } }); } }
+            for (let r = 0; r < ROWS; r++) { if (currentBoard[r][3] === aiPlayerId) score += 3; else if (currentBoard[r][3] === humanPlayerId) score -= 3; } return score;
+        }
+        function scoreWindow(window, aiPlayer, humanPlayer) {
+            let score = 0; const aiCount = window.filter(p => p === aiPlayer).length; const humanCount = window.filter(p => p === humanPlayer).length; const emptyCount = window.filter(p => p === 0).length;
+            if (aiCount === 4) score += 10000; else if (aiCount === 3 && emptyCount === 1) score += 100; else if (aiCount === 2 && emptyCount === 2) score += 10;
+            if (humanCount === 4) score -= 10000; else if (humanCount === 3 && emptyCount === 1) score -= 100; else if (humanCount === 2 && emptyCount === 2) score -= 10;
+            return score;
+        }
+        function checkTerminalState(currentBoard, player) { for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { if (currentBoard[r][c] === player) { if (checkWinOnBoard(currentBoard, r, c, player)) return true; } } } return false; }
+        function isBoardFull(currentBoard) { return currentBoard.every(row => row.every(cell => cell !== 0)); }
+        function minimax(currentBoard, depth, alpha, beta, maximizingPlayer, aiPlayerId) {
+            const humanPlayerId = (aiPlayerId === 1) ? 2 : 1;
+            if (depth === 0 || checkTerminalState(currentBoard, aiPlayerId) || checkTerminalState(currentBoard, humanPlayerId) || isBoardFull(currentBoard)) { return evaluateBoard(currentBoard, aiPlayerId); }
+            if (maximizingPlayer) {
+                let maxEval = -Infinity;
+                for (let c = 0; c < COLS; c++) { const r = getLowestEmptyRow(c, currentBoard); if (r !== -1) { currentBoard[r][c] = aiPlayerId; const evalScore = minimax(currentBoard, depth - 1, alpha, beta, false, aiPlayerId); currentBoard[r][c] = 0; maxEval = Math.max(maxEval, evalScore); alpha = Math.max(alpha, evalScore); if (beta <= alpha) break; } } return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (let c = 0; c < COLS; c++) { const r = getLowestEmptyRow(c, currentBoard); if (r !== -1) { currentBoard[r][c] = humanPlayerId; const evalScore = minimax(currentBoard, depth - 1, alpha, beta, true, aiPlayerId); currentBoard[r][c] = 0; minEval = Math.min(minEval, evalScore); beta = Math.min(beta, evalScore); if (beta <= alpha) break; } } return minEval;
+            }
+        }
+
+        // --- AI Logic ---
+        async function aiMove() {
+            if (gameOver) return;
+            const aiPlayerId = 2;
+            const humanPlayerId = 1;
+            updateMessage(`Yellow Crewmate (AI - ${AI_DIFFICULTY_NAMES[currentAiDifficulty]}) is thinking...`);
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            let bestCol = -1;
+
+            if (currentAiDifficulty === EVIL_AI_LEVEL) { // Minimax for Evil AI
+                let bestScore = -Infinity;
+                let isFirstMoveOfGame = board.every(row => row.every(cell => cell === 0));
+
+                if(isFirstMoveOfGame && getLowestEmptyRow(3, board) !== -1){ bestCol = 3; }
+                else {
+                    for (let c = 0; c < COLS; c++) {
+                        const r = getLowestEmptyRow(c, board);
+                        if (r !== -1) {
+                            board[r][c] = aiPlayerId;
+                            const score = minimax(board, MINIMAX_DEPTH, -Infinity, Infinity, false, aiPlayerId);
+                            board[r][c] = 0;
+                            if (score > bestScore) { bestScore = score; bestCol = c; }
+                        }
+                    }
+                }
+                 if (bestCol === -1) { const availableCols = []; for (let c = 0; c < COLS; c++) if (getLowestEmptyRow(c, board) !== -1) availableCols.push(c); if (availableCols.length > 0) bestCol = availableCols[Math.floor(Math.random() * availableCols.length)];}
+            } else { // Heuristic AI for other levels
+                bestCol = findWinningMove(board, aiPlayerId);
+                if (bestCol === -1) { bestCol = findWinningMove(board, humanPlayerId); }
+                if (bestCol === -1 && currentAiDifficulty >= 3) { const setupCol = findSetupThreatMove(board, aiPlayerId, 3); if (setupCol !== -1) bestCol = setupCol; }
+                if (bestCol === -1 && currentAiDifficulty >= 3) { const blockSetupCol = findSetupThreatMove(board, humanPlayerId, 3); if (blockSetupCol !== -1) bestCol = blockSetupCol; }
+                if (bestCol === -1 && currentAiDifficulty >= 1) { const twoInARowCol = findSetupThreatMove(board, aiPlayerId, 2); if (twoInARowCol !== -1) bestCol = twoInARowCol; }
+                if (bestCol === -1 && currentAiDifficulty >= 1) { const blockTwoInARowCol = findSetupThreatMove(board, humanPlayerId, 2); if (blockTwoInARowCol !== -1) bestCol = blockTwoInARowCol; }
+                if (bestCol === -1) {
+                    const availableCols = [];
+                    let preferredOrder = (currentAiDifficulty >= 1) ? [3, 2, 4, 1, 5, 0, 6] : [3, 2, 4, 1, 5, 0, 6].sort(() => Math.random() - 0.5);
+                    for (const c of preferredOrder) { if (getLowestEmptyRow(c, board) !== -1) { availableCols.push(c); } }
+                    if (availableCols.length > 0) {
+                        bestCol = availableCols[0];
+                        if (currentAiDifficulty === 0 && availableCols.length > 1 && Math.random() < 0.5) { bestCol = availableCols[Math.floor(Math.random() * availableCols.length)]; }
+                    }
+                }
+            }
+
+            if (bestCol !== -1) {
+                const r = getLowestEmptyRow(bestCol, board);
+                if (r !== -1) {
+                    board[r][bestCol] = aiPlayerId; playClickSound(); renderBoard();
+                    const winningSequence = checkWin(r, bestCol);
+                    if (winningSequence) { gameOver = true; updateMessage("Yellow Crewmate (AI) Wins!"); animateWin(winningSequence); crewmateWins++; saveGameSettings(); updateScoreDisplay(); setTimeout(initializeBoard, WIN_ANIMATION_DURATION); return; }
+                    if (checkDraw()) { gameOver = true; updateMessage("It's a Draw!"); setTimeout(initializeBoard, WIN_ANIMATION_DURATION); return; }
+                }
+            } else {
+                for (let c = 0; c < COLS; c++) { const r = getLowestEmptyRow(c, board); if (r !== -1) { board[r][c] = aiPlayerId; playClickSound(); renderBoard(); const ws = checkWin(r,c); if(ws){gameOver=true;updateMessage("AI Wins!");animateWin(ws);crewmateWins++;saveGameSettings();updateScoreDisplay();setTimeout(initializeBoard,WIN_ANIMATION_DURATION);return;} if(checkDraw()){gameOver=true;updateMessage("Draw!");setTimeout(initializeBoard,WIN_ANIMATION_DURATION);return;} break; } }
+                console.log("AI used absolute fallback move.");
+            }
+            currentPlayer = 1; updateMessage("Player 1's Turn (Kirby)");
+        }
+
+        // --- Game Logic (Main Click Handler) ---
+        async function handleCellClick(col) {
+            if (gameOver || (gameMode === 'PvAI' && currentPlayer === 2) ) return;
+            await ensureAudioContext();
+            const r = getLowestEmptyRow(col);
+
+            if (r !== -1) {
+                board[r][col] = currentPlayer; playClickSound(); renderBoard();
+                const winningSequence = checkWin(r, col);
+                if (winningSequence) {
+                    gameOver = true;
+                    const winnerName = currentPlayer === 1 ? 'Kirby' : 'Yellow Crewmate';
+                    updateMessage(`${winnerName} Wins!`); animateWin(winningSequence);
+                    if (currentPlayer === 1) {
+                        kirbyWins++;
+                        if (gameMode === 'PvAI' && !isDifficultyManuallySelected && progressedAiDifficulty < MAX_AI_DIFFICULTY) {
+                            progressedAiDifficulty++; // Only progress the saved difficulty
+                        }
+                    } else { crewmateWins++; }
+                    saveGameSettings(); updateScoreDisplay();
+                    setTimeout(initializeBoard, WIN_ANIMATION_DURATION); return;
+                }
+                if (checkDraw()) {
+                    gameOver = true; updateMessage("It's a Draw!");
+                    setTimeout(initializeBoard, WIN_ANIMATION_DURATION); return;
+                }
+                if (gameMode === 'PvP') {
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    updateMessage(`Player ${currentPlayer === 1 ? '1 (Kirby)' : '2 (Yellow Crewmate)'}'s Turn`);
+                } else if (gameMode === 'PvAI' && currentPlayer === 1) {
+                    currentPlayer = 2;
+                    if (!(currentAiDifficulty === EVIL_AI_LEVEL && board.every(row => row.every(cell => cell === 0)))) {
+                         setTimeout(aiMove, 200);
+                    }
+                }
+            } else { updateMessage("Column is full! Try another."); }
+        }
+
+        function renderBoard() { for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { const cell = boardElement.querySelector(`.cell[data-row='${r}'][data-col='${c}']`); cell.classList.remove('player1', 'player2'); if (board[r][c] === 1) { cell.classList.add('player1'); } else if (board[r][c] === 2) { cell.classList.add('player2'); } } } }
+        function animateWin(winningPieces) { winningPieces.forEach(piece => { const cellElement = boardElement.querySelector(`.cell[data-row='${piece.row}'][data-col='${piece.col}']`); if (cellElement) { cellElement.classList.add('winning-piece'); } }); }
+
+        function checkWinOnBoard(boardToCheck, r_last, c_last, player) {
+            if (!player || r_last < 0 || c_last < 0) return null;
+            const directions = [ { dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 1, dc: 1 }, { dr: 1, dc: -1 } ];
+            for (const { dr, dc } of directions) {
+                for (let offset = -3; offset <=0; offset++) {
+                    let potentialLine = []; let match = true;
+                    for (let k=0; k<4; k++) {
+                        const r_k = r_last + (offset + k) * dr; const c_k = c_last + (offset + k) * dc;
+                        if(r_k >=0 && r_k < ROWS && c_k >=0 && c_k < COLS && boardToCheck[r_k][c_k] === player){
+                            potentialLine.push({row: r_k, col: c_k});
+                        } else { match = false; break; }
+                    }
+                    if(match && potentialLine.length === 4) return potentialLine;
+                }
+            }
+            return null;
+        }
+        function checkWin(r_last, c_last) { return checkWinOnBoard(board, r_last, c_last, board[r_last][c_last]); }
+        function checkDraw() { for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { if (board[r][c] === 0) { return false; } } } return true; }
+        function updateMessage(text) { messageArea.textContent = text; }
+
+        // --- Event Listeners ---
+        pvpButton.addEventListener('click', () => startGame('PvP'));
+        pvaiButton.addEventListener('click', () => startGame('PvAI', -1)); // -1 indicates progressive difficulty
+        playSelectedAiButton.addEventListener('click', () => {
+            const selectedDifficulty = parseInt(aiDifficultySelector.value);
+            startGame('PvAI', selectedDifficulty);
+        });
+        resetButton.addEventListener('click', resetGameToTitleScreen);
+        musicButton.addEventListener('click', toggleMusic);
+
+        // --- Initial Load ---
+        populateDifficultySelector();
+        loadGameSettings(); // Load scores and progressed AI difficulty
+    </script>
+</body>
+</html>
