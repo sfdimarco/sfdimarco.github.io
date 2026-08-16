@@ -269,6 +269,49 @@
   }
   #tool-hint { font-size: 11px; color: var(--muted); margin-left: auto; }
 
+  /* ═══ ⏱ TIMEBAR — the ONE timeline, shared by every studio ═══
+     Every token here is lifted from #timeline below, so the studios can never
+     drift away from the assembly timeline's look. Same ruler height, same tick
+     colour, same 3px cyan playhead, same row dashes, same 9px letter-spaced label. */
+  .tb { background: var(--panel); border-top: 1px solid var(--border);
+        display: flex; flex-direction: column; user-select: none; }
+  .tb-bar { display: flex; align-items: center; gap: 6px; padding: 4px 8px;
+            border-bottom: 1px solid var(--border); }
+  .tb-bar .tb-title { font-size: 11px; color: #C9CBDE; letter-spacing: 1px; font-weight: 700; }
+  .tb-bar .tb-note  { font-size: 10px; color: #8C8EA6; margin-left: auto; }
+  .tb-zoom { background: var(--card); border: 1px solid var(--border); color: var(--text);
+             font-family: inherit; font-size: 11px; font-weight: 700;
+             padding: 2px 8px; border-radius: 7px; cursor: pointer; }
+  .tb-zoom:hover { border-color: var(--cyan); }
+  .tb-scroll { overflow-x: auto; overflow-y: auto; position: relative; max-height: 210px; }
+  .tb-inner { position: relative; }
+  .tb-ruler { display: block; position: sticky; top: 0; z-index: 6;
+              background: #16161f; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .tb-rows { position: relative; }
+  .tb-row { position: relative; height: 26px; border-bottom: 1px dashed rgba(72,72,104,0.85);
+            cursor: pointer; background: rgba(255,255,255,0.022); }
+  .tb-row:nth-child(even) { background: rgba(255,255,255,0.048); }
+  .tb-row:hover { background: rgba(255,255,255,0.085); }
+  .tb-row.on, .tb-row.on:nth-child(even) { background: rgba(0,229,255,0.14); }
+  .tb-row.keyed .tb-label { color: #D8D8EA; }
+  .tb-row .tb-label { position: sticky; left: 0; float: left; z-index: 4;
+            font-size: 10px; color: #9EA0B8; letter-spacing: 0.6px; font-weight: 700;
+            padding: 6px 8px; pointer-events: none;
+            background: linear-gradient(90deg, var(--panel) 82%, transparent);
+            white-space: nowrap; max-width: 128px; overflow: hidden; }
+  .tb-row.on .tb-label { color: var(--cyan); }
+  .tb-key { position: absolute; top: 5px; width: 15px; height: 15px; margin-left: -7px;
+            background: var(--yellow); border: 1.5px solid rgba(0,0,0,0.55);
+            transform: rotate(45deg); border-radius: 3px; cursor: grab; z-index: 3; }
+  .tb-key.cam { background: var(--cyan); }
+  .tb-key.on  { background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.55); }
+  .tb-key:active { cursor: grabbing; }
+  .tb-span { position: absolute; top: 11px; height: 4px; border-radius: 2px;
+             background: rgba(255,255,255,0.16); pointer-events: none; }
+  .tb-head { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--cyan);
+             pointer-events: none; z-index: 8; }
+  .tb-empty { font-size: 10px; color: var(--muted); padding: 8px; }
+
   /* ═══ TIMELINE ═══ */
   #timeline {
     grid-area: timeline;
@@ -1280,6 +1323,7 @@
       </div>
     </div>
   </div>
+  <div id="fb-timebar"></div>
   <div id="fb-sheet"></div>
 </div>
 
@@ -1351,6 +1395,7 @@
     <button class="vft-btn" id="vf-undo" title="undo (ctrl+z)">↩ UNDO</button>
     <span style="font-size:10px;color:var(--muted);white-space:nowrap">🪄 auto-key is always on — move something and it remembers</span>
   </div>
+  <div id="vf-timebar"></div>
   <div id="vf-main">
     <div id="vf-canvas-wrap">
       <canvas id="vf-canvas" width="1280" height="720"></canvas>
@@ -1435,6 +1480,7 @@
         <span class="lbl" style="width:auto">click something to pick it</span>
       </div>
       <span style="font-size:11px;color:var(--muted)">drag the picture to walk around · wheel to move closer · a card is flat, so give it a turn budget</span>
+      <div id="stage-timebar"></div>
     </div>
     <div id="stage-right">
       <div id="stage-objs"></div><div id="stage-props"></div>
@@ -1474,6 +1520,7 @@
         <input type="range" id="code-scrub" min="0" max="1000" value="0" title="scrub through time">
         <span id="code-time">0.0s</span>
       </div>
+      <div id="code-timebar"></div>
       <div id="tinker"><div id="tinker-title">🎛 TINKER — drag a slider, the code changes itself</div><div id="tinker-rows"></div></div>
       <div id="code-hint"><b>t</b> = time in seconds · <b>clear()</b> = see-through background (layers over your movie!) · tap any <b>glowing number</b> in the code to get a slider · canvas is <b>1280 × 720</b></div>
     </div>
@@ -3324,6 +3371,11 @@ function stageTick(){
   }
   stS.raf=requestAnimationFrame(stageTick);
 }
+// row 0 is the camera; rows 1..n are the objects, in the same order the timebar built them
+function stageRowObj(ri){ const m=stageMedia(); if(!m) return null;
+  const list=(m.scene.objects||[]).filter(o=>o.kind==='card'||o.kind==='floor'||o.kind==='backdrop')
+    .slice().sort((a,b)=>((b.keys||[]).length?1:0)-((a.keys||[]).length?1:0));
+  return list[ri-1]||null; }
 function stageSel(){ const m=stageMedia(); if(!m) return null;
   return (m.scene.objects||[]).find(o=>o.oid===stS.sel)||null; }
 function stageTouch(){ const m=stageMedia(); if(m){ m.thumbURL=null; } scheduleAutosave(); }
@@ -3439,6 +3491,49 @@ function stageRenderPanel(){
     del.onclick=()=>{ snapshot(); const i=objs.indexOf(o); if(i>=0)objs.splice(i,1); stS.sel=null; stageRenderPanel(); stageTouch(); };
     box.appendChild(del);
   }
+  // ── ⏱ A ROW PER OBJECT. The keying UI was a list of chips, which meant you
+  // could not see WHEN anything happened or how two things lined up. A scene is
+  // several things moving at once; that needs a timeline, not a list.
+  renderTimebar($('stage-timebar'), {
+    id: 'stage', dur: Math.max(1, +m.duration || 6), fps: FPS, t: stS.t,
+    title: '⏱ THIS DIORAMA',
+    rows: [{ label: '🎬 CAMERA', kind: 'cam', on: stS.sel == null,
+             keys: (sc.camera.keys || []).map(k => ({ t: k.t, feel: k.feel })) }]
+      .concat(objs.filter(o => o.kind === 'card' || o.kind === 'floor' || o.kind === 'backdrop')
+        .slice().sort((a, b) => ((b.keys || []).length ? 1 : 0) - ((a.keys || []).length ? 1 : 0))
+        .map(o => {
+          const sk = o.skin != null ? media.find(x => x.id === o.skin) : null;
+          return { label: ((o.keys || []).length ? '✥ ' : '') +
+                          (o.kind === 'card' ? '🃏 ' : o.kind === 'floor' ? '🟫 ' : '🌄 ')
+                          + (sk ? sk.name : o.kind),
+                   oid: o.oid, on: o.oid === stS.sel, keyed: !!(o.keys || []).length,
+                   keys: (o.keys || []).map(k => ({ t: k.t, feel: k.feel })) };
+        })),
+    onScrub: (t) => { stS.t = t; $('stage-time').value = t; stageRenderPanel(); },
+    onRowClick: (ri, t) => {
+      stS.sel = ri === 0 ? null : (stageRowObj(ri) || {}).oid;
+      stS.t = t; $('stage-time').value = t; stageRenderPanel();
+    },
+    onKeyPick: (ri, ki, kt) => {
+      stS.t = kt; $('stage-time').value = kt;
+      if (ri === 0) {                                   // jump the view to a camera key
+        const k = sc.camera.keys[ki];
+        if (k) { stS.orb.at = k.at.slice();
+          const d = SV.sub(k.eye, k.at); stS.orb.dist = Math.hypot(d[0], d[1], d[2]);
+          stS.orb.yaw = Math.atan2(d[0], d[2]);
+          stS.orb.pitch = Math.asin(d[1] / (stS.orb.dist || 1)); }
+      } else { const o = stageRowObj(ri); if (o) stS.sel = o.oid; }
+      stageRenderPanel();
+    },
+    onKeyMove: (ri, ki, nt) => {                        // 🪄 drag a diamond to RETIME
+      const list = ri === 0 ? sc.camera.keys : ((stageRowObj(ri) || {}).keys || []);
+      const k = list[ki]; if (!k) return;
+      k.t = Math.max(0, Math.round(nt * FPS) / FPS);    // land on a whole frame
+      list.sort((a, b) => a.t - b.t);
+      stageTouch(); stageRenderPanel();
+    },
+  });
+
   // ── light + camera ──
   const lb=$('stage-light'); lb.innerHTML='<span class="lbl">☀ LIGHT:</span>';
   const L=sc.light;
@@ -7035,6 +7130,193 @@ function stageSetMode(md) {
 
 // ════════════════════════════════════════════════════════════
 // ════════════════════════════════════════════════════════════
+// ⏱ TIMEBAR — the ONE timeline, shared by the stage, the code studio,
+// the raster flipbook and the vector flipbook.
+//
+// Four studios had four different pictures of time and a kid had to learn each
+// one. This is a single component; every studio hands it rows and gets the
+// assembly timeline's own visual language back.
+//
+// ⏰ AND EVERY FRAME IS A CLOCK.
+// Zoom in until a frame is wide enough to hold one, and each frame tick becomes a
+// little clock face with its hand at that frame's own moment inside the second.
+// It is a design reminder, and Mook's reason for it is the best one:
+// A FRAME IS A MOMENT YOU OWN, AND YOU ARE FREE TO CHANGE THIS ONE.
+// Twelve of them make a second. Change one and only one twelfth of a second is
+// different — which is the entire trick of animation, drawn on the ruler.
+// ════════════════════════════════════════════════════════════
+const TB_ZOOMS = [30, 60, 120, 240, 480, 900];    // px per second
+const tbZoom = {};                                 // remembered per host id
+
+function tbFmt(t) { return (t < 10 ? t.toFixed(2) : t.toFixed(1)) + 's'; }
+
+// ⏰ one clock face. hand at this frame's moment in its own second.
+function tbClock(g, cx, cy, r, frac, hot) {
+  g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2);
+  g.fillStyle = hot ? 'rgba(0,229,255,0.26)' : 'rgba(255,255,255,0.10)'; g.fill();
+  g.lineWidth = 1.3; g.strokeStyle = hot ? '#00E5FF' : 'rgba(196,198,224,0.92)'; g.stroke();
+  if (r >= 7) {                                    // the twelve marks, when there is room
+    g.strokeStyle = 'rgba(190,192,220,0.55)';
+    for (let i = 0; i < 12; i++) {
+      const a = i / 12 * Math.PI * 2 - Math.PI / 2;
+      g.beginPath();
+      g.moveTo(cx + Math.cos(a) * r * 0.80, cy + Math.sin(a) * r * 0.80);
+      g.lineTo(cx + Math.cos(a) * r * 0.95, cy + Math.sin(a) * r * 0.95);
+      g.stroke();
+    }
+  }
+  const a = frac * Math.PI * 2 - Math.PI / 2;      // the hand — this frame's own moment
+  g.beginPath(); g.moveTo(cx, cy);
+  g.lineTo(cx + Math.cos(a) * r * 0.72, cy + Math.sin(a) * r * 0.72);
+  g.lineWidth = 2.1; g.strokeStyle = hot ? '#00E5FF' : '#FFE066'; g.stroke();
+}
+
+function tbDrawRuler(cv, spec, pps) {
+  const fps = spec.fps || FPS, dur = spec.dur || 1;
+  const W = Math.max(60, Math.ceil(dur * pps)) + 2, H = 30;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, W, H);
+  const fw = pps / fps;                              // pixels per frame
+  const CLOCKS = fw >= 17;                           // ⏰ enough room for a face?
+  const curF = Math.round((spec.t || 0) * fps);
+  if (CLOCKS) {
+    const r = Math.min(11, fw * 0.40);
+    for (let f = 0; f <= Math.ceil(dur * fps); f++) {
+      const x = f / fps * pps;
+      if (x > W) break;
+      tbClock(g, x + fw / 2, H / 2 + 1, r, (f % fps) / fps, f === curF);
+    }
+  } else {
+    g.font = '9px ui-monospace,monospace';
+    const step = pps < 45 ? (pps < 22 ? 5 : 2) : 1;  // seconds between labels
+    for (let s = 0; s <= Math.ceil(dur); s += step) {
+      const x = Math.round(s * pps) + 0.5;
+      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.lineWidth = 1;
+      g.strokeStyle = 'rgba(96,96,138,1)'; g.stroke();
+      g.fillStyle = '#A8AAC4'; g.fillText(s + 's', x + 3, 11);
+    }
+    if (fw >= 4) {                                   // frame ticks, while they still read
+      g.strokeStyle = 'rgba(96,96,138,0.85)';
+      for (let f = 0; f <= Math.ceil(dur * fps); f++) {
+        const x = Math.round(f / fps * pps) + 0.5;
+        g.beginPath(); g.moveTo(x, H - 7); g.lineTo(x, H); g.stroke();
+      }
+    }
+  }
+  return W;
+}
+
+// spec = { id, dur, fps, t, title, note, rows:[{label,keys:[{t}],kind,on,span}],
+//          onScrub(t), onRow(i), onKeyMove(rowIndex,keyIndex,newT), onKeyPick(r,k),
+//          onRowClick(rowIndex, t) }
+function renderTimebar(host, spec) {
+  const id = spec.id || host.id || 'tb';
+  if (tbZoom[id] == null) tbZoom[id] = spec.zoom || 120;
+  const pps = tbZoom[id];
+  host.className = 'tb';
+  host.innerHTML = '';
+
+  const bar = document.createElement('div'); bar.className = 'tb-bar';
+  const ttl = document.createElement('span'); ttl.className = 'tb-title';
+  ttl.textContent = spec.title || '⏱ TIME';
+  bar.appendChild(ttl);
+  for (const [lbl, d] of [['－', -1], ['＋', 1]]) {
+    const b = document.createElement('button'); b.className = 'tb-zoom'; b.textContent = lbl;
+    b.title = d > 0 ? '⏰ zoom in — far enough and every frame becomes a clock'
+                    : 'zoom out';
+    b.onclick = () => {
+      let i = TB_ZOOMS.indexOf(pps);
+      if (i < 0) i = 2;
+      tbZoom[id] = TB_ZOOMS[Math.max(0, Math.min(TB_ZOOMS.length - 1, i + d))];
+      renderTimebar(host, spec);
+    };
+    bar.appendChild(b);
+  }
+  const note = document.createElement('span'); note.className = 'tb-note';
+  note.textContent = spec.note ||
+    (pps / (spec.fps || FPS) >= 17 ? '⏰ every frame is a clock — change just this one'
+                                   : '＋ to zoom in until the frames become clocks');
+  bar.appendChild(note);
+  host.appendChild(bar);
+
+  const scroll = document.createElement('div'); scroll.className = 'tb-scroll';
+  const inner = document.createElement('div'); inner.className = 'tb-inner';
+  const cv = document.createElement('canvas'); cv.className = 'tb-ruler';
+  const W = tbDrawRuler(cv, spec, pps);
+  inner.style.width = W + 'px';
+  inner.appendChild(cv);
+
+  const timeAt = (e) => {
+    const r = inner.getBoundingClientRect();
+    return Math.max(0, Math.min(spec.dur, (e.clientX - r.left) / pps));
+  };
+  cv.onpointerdown = (e) => {
+    const go = (ev) => spec.onScrub && spec.onScrub(timeAt(ev));
+    go(e);
+    const mv = (ev) => go(ev);
+    const up = () => { window.removeEventListener('pointermove', mv);
+                       window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  };
+
+  const rowsEl = document.createElement('div'); rowsEl.className = 'tb-rows';
+  (spec.rows || []).forEach((row, ri) => {
+    const r = document.createElement('div');
+    r.className = 'tb-row' + (row.on ? ' on' : '') + (row.keyed || (row.keys || []).length ? ' keyed' : '');
+    const lb = document.createElement('span'); lb.className = 'tb-label';
+    lb.textContent = row.label; r.appendChild(lb);
+    if (row.span) {
+      const sp = document.createElement('div'); sp.className = 'tb-span';
+      sp.style.left = (row.span[0] * pps) + 'px';
+      sp.style.width = Math.max(2, (row.span[1] - row.span[0]) * pps) + 'px';
+      r.appendChild(sp);
+    }
+    (row.keys || []).forEach((k, ki) => {
+      const d = document.createElement('div');
+      d.className = 'tb-key' + (row.kind === 'cam' ? ' cam' : '') +
+                    (Math.abs(k.t - (spec.t || 0)) < 0.5 / (spec.fps || FPS) ? ' on' : '');
+      d.style.left = (k.t * pps) + 'px';
+      d.title = '◆ ' + tbFmt(k.t) + (k.feel ? ' · ' + k.feel : '') + ' — drag to retime';
+      let moved = 0;
+      d.onpointerdown = (e) => {
+        e.stopPropagation(); moved = 0;
+        const mv = (ev) => { moved++; if (moved > 2 && spec.onKeyMove)
+                               spec.onKeyMove(ri, ki, timeAt(ev)); };
+        const up = (ev) => {
+          window.removeEventListener('pointermove', mv);
+          window.removeEventListener('pointerup', up);
+          if (moved <= 2 && spec.onKeyPick) spec.onKeyPick(ri, ki, k.t);
+        };
+        window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+      };
+      r.appendChild(d);
+    });
+    r.onpointerdown = (e) => { if (spec.onRowClick) spec.onRowClick(ri, timeAt(e)); };
+    rowsEl.appendChild(r);
+  });
+  if (!(spec.rows || []).length) {
+    const e = document.createElement('div'); e.className = 'tb-empty';
+    e.textContent = spec.emptyText || 'nothing here yet';
+    rowsEl.appendChild(e);
+  }
+  inner.appendChild(rowsEl);
+
+  const head = document.createElement('div'); head.className = 'tb-head';
+  head.style.left = ((spec.t || 0) * pps) + 'px';
+  inner.appendChild(head);
+
+  scroll.appendChild(inner); host.appendChild(scroll);
+  // keep the playhead in view while scrubbing — nothing worse than losing it
+  const hx = (spec.t || 0) * pps;
+  if (hx < scroll.scrollLeft + 40 || hx > scroll.scrollLeft + scroll.clientWidth - 40)
+    scroll.scrollLeft = Math.max(0, hx - scroll.clientWidth * 0.5);
+  return host;
+}
+
+// ════════════════════════════════════════════════════════════
 // ⛶ INSPECT — your whole movie as ONE picture
 //
 // You cannot watch a season. You can read one image. This is the third lever from
@@ -7118,6 +7400,58 @@ async function runInspect() {
          a.href = cv.toDataURL('image/jpeg', 0.9); a.click(); }
   toast('⛶ ' + vis.length + ' shots · ' + avg.toFixed(0) + '% of your movie is standing still');
 }
+
+// ── the other three studios, on the SAME component ──────────────
+// Each one hands the timebar its own idea of time (seconds for code, frames for the
+// two flipbooks) and gets back the assembly timeline's look. One picture of time.
+function codeTimebar() {
+  const m = codeMedia(); const host = $('code-timebar'); if (!m || !host) return;
+  renderTimebar(host, { id: 'code', dur: Math.max(0.1, +m.duration || 6), fps: FPS,
+    t: Math.max(0, Math.min(m.duration, codeS.t || 0)), title: '⏱ THIS SKETCH',
+    rows: [{ label: '✨ ' + (m.name || 'sketch'), span: [0, +m.duration || 6], keys: [] }],
+    onScrub: (t) => { codeS.t = t; codeS.playing = false;
+      const b = $('code-play-btn'); if (b) b.textContent = '▶';
+      $('code-scrub').value = Math.round(t / (m.duration || 1) * 1000);
+      $('code-time').textContent = t.toFixed(1) + 's';
+      drawCodePreview(); codeTimebar(); },
+  });
+}
+function fbTimebar() {
+  const m = media.find(x => x.id === fb.mediaId); const host = $('fb-timebar');
+  if (!m || !host) return;
+  const fps = m.fps || 12, n = m.frameCount || 1;
+  renderTimebar(host, { id: 'fb', dur: n / fps, fps, t: (fb.cur || 0) / fps,
+    title: '⏱ THIS FLIPBOOK',
+    rows: (m.layers || []).map(L => ({ label: '🎨 ' + (L.name || 'drawing'),
+      span: [0, n / fps],
+      keys: (L.cels || []).map((c, i) => (c && !c.held) ? { t: i / fps } : null).filter(Boolean) })),
+    onScrub: (t) => { fb.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps)));
+      fbRefresh(); },
+    onRowClick: (ri, t) => { fb.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps)));
+      fbRefresh(); },
+  });
+}
+function vfTimebar() {
+  const m = media.find(x => x.id === vf.mediaId); const host = $('vf-timebar');
+  if (!m || !host) return;
+  const fps = m.fps || 12, n = m.frameCount || 24;
+  renderTimebar(host, { id: 'vf', dur: n / fps, fps, t: (vf.cur || 0) / fps,
+    title: '⏱ THIS ANIMATION',
+    rows: (m.objects || []).map(o => ({ label: '📐 ' + (o.kind || 'thing'),
+      on: o.oid === vf.sel, oid: o.oid, span: [0, n / fps],
+      keys: Object.keys((o.tracks || {}).x || {}).map(f => ({ t: (+f) / fps })) })),
+    onScrub: (t) => { vf.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps))); vfRefresh(); },
+    onRowClick: (ri, t) => { const o = (m.objects || [])[ri]; if (o) vf.sel = o.oid;
+      vf.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps))); vfRefresh(); },
+  });
+}
+// keep them fed without touching each studio's own refresh path
+function tbTick() {
+  try { if (codeS.open) codeTimebar(); } catch (e) {}
+  try { if (fb.open) fbTimebar(); } catch (e) {}
+  try { if (vf.open) vfTimebar(); } catch (e) {}
+}
+setInterval(tbTick, 260);
 
 // 📎 MY BLOCKS (v19) — shared code, once per movie
 //
@@ -9724,7 +10058,7 @@ $('project-name').addEventListener('change', () => {
 function buildProjectData() {
   sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 14,   // v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
+    app: 'geov', version: 15,   // v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
     blocks: projectBlocks || '',   // 📎 shared code every code clip can use
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
