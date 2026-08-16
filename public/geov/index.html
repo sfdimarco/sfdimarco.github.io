@@ -401,6 +401,25 @@
   #snd-deck.open { display: flex; }
 
   /* ═══ v18: ⚡ FX DECK — compositing as a flowchart (clip → effect → effect → screen) ═══ */
+  #cam-deck { display: none; flex-direction: column; gap: 8px; padding: 8px 10px; background: var(--panel); border-bottom: 1px solid var(--border); flex: 0 0 auto; }
+  #cam-deck.open { display: flex; }
+  #cam-shots, #cam-keys { display: flex; align-items: center; gap: 7px; overflow-x: auto; padding: 1px; min-height: 30px; }
+  #cam-deck .lbl { font-size: 11px; color: var(--muted); letter-spacing: 1px; white-space: nowrap; }
+  .cam-shot { background: var(--card); border: 2px solid var(--border); color: var(--text); border-radius: 10px; padding: 6px 11px; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .cam-shot.on { border-color: var(--cyan); color: var(--cyan); }
+  .cam-shot.key { border-style: dashed; }
+  .cam-shot.danger { color: var(--muted); }
+  .cam-shot.danger:hover { color: var(--red); border-color: var(--red); }
+  #cam-params { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  #cam-params .camp { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  #cam-params .camp input { width: 150px; }
+  #cam-params .camp .v { color: var(--cyan); font-weight: 700; min-width: 46px; font-variant-numeric: tabular-nums; }
+  .cam-key { display: flex; align-items: center; gap: 4px; background: var(--card); border: 2px solid var(--border); border-radius: 10px; padding: 3px 5px; flex-shrink: 0; }
+  .cam-key.on { border-color: var(--cyan); }
+  .cam-key .ck-go { border: none; background: none; color: var(--text); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .cam-key select { font-family: inherit; font-size: 11px; }
+  .cam-key .ck-x { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 11px; font-family: inherit; }
+  .cam-key .ck-x:hover { color: var(--red); }
   #fx-deck { display: none; flex-direction: column; gap: 8px; padding: 8px 10px; background: var(--panel); border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   #fx-deck.open { display: flex; }
   #fx-flow { display: flex; align-items: center; gap: 7px; overflow-x: auto; padding: 2px; }
@@ -792,6 +811,29 @@
   #code-new-btn:hover { background: rgba(213,0,249,0.08) !important; }
 
   /* ═══ CODE STUDIO (p5.js) ═══ */
+  #stage-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 211; display: none; flex-direction: column; }
+  #stage-main { flex: 1; display: flex; gap: 10px; padding: 10px; overflow: hidden; }
+  #stage-left { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; }
+  #stage-view { width: 960px; height: 540px; background: #101014; border-radius: 10px; cursor: grab; touch-action: none; }
+  #stage-view.drag { cursor: grabbing; }
+  #stage-right { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-width: 260px; }
+  #stage-objs, #stage-props, #stage-light, #stage-cam { display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+  #stage-overlay .lbl { font-size: 11px; color: var(--muted); letter-spacing: 1px; width: 100%; }
+  .st-obj { background: var(--card); border: 2px solid var(--border); color: var(--text); border-radius: 9px;
+    padding: 5px 9px; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; white-space: nowrap; }
+  .st-obj.on { border-color: var(--cyan); color: var(--cyan); }
+  .st-obj.add { border-style: dashed; }
+  .st-obj.draw { border-color: var(--pink); color: var(--pink); width: 100%; padding: 9px; }
+  .st-obj.danger { color: var(--muted); }
+  .st-obj.danger:hover { color: var(--red); border-color: var(--red); }
+  .stp { display: flex; align-items: center; gap: 7px; width: 100%; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .stp span:first-child { min-width: 74px; }
+  .stp input[type=range] { flex: 1; }
+  .stp .v { color: var(--cyan); font-weight: 700; min-width: 46px; text-align: right; font-variant-numeric: tabular-nums; }
+  .st-key { display: flex; align-items: center; gap: 3px; }
+  .st-key select { font-family: inherit; font-size: 11px; }
+  #stage-new-btn { border-color: var(--cyan) !important; color: var(--cyan) !important; }
   #code-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 210; display: none; flex-direction: column; }
   #code-head { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 48px; background: var(--panel); border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   #code-head .logo { color: var(--purple); font-weight: 700; letter-spacing: 1px; }
@@ -996,6 +1038,7 @@
     <button id="flipbook-vec-btn" style="color:var(--purple)" title="place shapes and animate them with keys — they tween by themselves">📐 VECTOR<br>FLIPBOOK</button>
     <button id="flipbook-sm-btn" style="color:var(--yellow)" title="move something, snap a photo, move it again — stop motion!">📷 STOP<br>MOTION</button>
     <button id="code-new-btn" style="color:var(--green)">✨ NEW<br>CODE</button>
+    <button id="stage-new-btn" title="build the shot as a diorama — cards standing in 3D space, a light, and a camera that walks around">⬡ 3D<br>STAGE</button>
   </div>
   <div id="bin-tools">
     <input id="bin-search" type="search" placeholder="🔎 find a clip…" autocomplete="off" spellcheck="false">
@@ -1059,6 +1102,7 @@
     </select>
   </div>
   <button class="tool-btn" id="fx-btn" title="⚡ stack effects on this clip — picture flows through them like a flowchart" disabled><span class="ico">⚡</span> FX<span id="fx-count"></span></button>
+  <button class="tool-btn" id="cam-btn" title="🎥 point a camera at this clip — push in, aim, roll. One clip can be four shots." disabled><span class="ico">🎥</span> CAM<span id="cam-count"></span></button>
   <span class="divider"></span>
   <div class="insp-group">
     <button class="tool-btn" id="chroma-toggle" title="green-screen: make one color invisible" disabled><span class="ico">🎯</span> KEY</button>
@@ -1119,6 +1163,11 @@
     <div id="fx-flow"></div>
     <div id="fx-params"></div>
     <div id="fx-add-row"><span class="lbl">ADD AN EFFECT:</span></div>
+  </div>
+  <div id="cam-deck">
+    <div id="cam-shots"></div>
+    <div id="cam-params"></div>
+    <div id="cam-keys"></div>
   </div>
   <div id="snd-deck">
     <div id="snd-top">
@@ -1361,6 +1410,34 @@
 </div>
 
 <!-- CODE STUDIO (p5.js) -->
+<div id="stage-overlay">
+  <div id="code-head">
+    <span class="logo" style="color:var(--cyan)">⬡ STAGE</span>
+    <input id="stage-name" value="my diorama" spellcheck="false">
+    <span style="font-size:11px;color:var(--muted)">LENGTH</span>
+    <input id="stage-dur" type="number" min="1" max="600" step="1" value="6">
+    <span style="font-size:11px;color:var(--muted)">s</span>
+    <span style="font-size:11px;color:var(--muted)">TIME</span>
+    <input id="stage-time" type="range" min="0" max="6" step="0.04" value="0" style="width:180px">
+    <button class="tlb-btn" id="stage-live-btn" title="watch the camera keys play instead of walking around yourself">🎬 SHOT VIEW</button>
+    <div class="header-spacer"></div>
+    <button class="hdr-btn" id="stage-done-btn" style="border-color:var(--cyan);color:var(--cyan)">✅ DONE</button>
+  </div>
+  <div id="stage-main">
+    <div id="stage-left"><canvas id="stage-view" width="960" height="540"></canvas>
+      <div id="stage-modes" style="display:flex;gap:6px;align-items:center">
+        <button class="st-obj on" id="stage-walk-btn" title="drag to walk around the diorama">🚶 WALK</button>
+        <button class="st-obj" id="stage-move-btn" title="drag to move the selected thing — across the screen, and the wheel pushes it away from you">✥ MOVE</button>
+        <span class="lbl" style="width:auto">click something to pick it</span>
+      </div>
+      <span style="font-size:11px;color:var(--muted)">drag the picture to walk around · wheel to move closer · a card is flat, so give it a turn budget</span>
+    </div>
+    <div id="stage-right">
+      <div id="stage-objs"></div><div id="stage-props"></div>
+      <div id="stage-light"></div><div id="stage-cam"></div>
+    </div>
+  </div>
+</div>
 <div id="code-overlay">
   <div id="code-head">
     <span class="logo">✨ CODE</span>
@@ -1478,6 +1555,7 @@ function defaultClipFX() {
     volume: 1, muted: false, audioOnly: false,
     fadeIn: 0, fadeOut: 0,   // seconds of audio fade at each end
     fx: [],                  // ⚡ v18: effect chain [{id, p:{...}}] — picture flows through in order
+    cam: null,               // 🎥 v20: {keys:[{t,x,y,z,r,feel}]} — a lens on the clip
   };
 }
 // audio-role clips live on the green lanes (track < 0): music files + detached audio
@@ -1555,6 +1633,23 @@ function sanitizeTimeline() {
       }
     }
     if (c.fx.length > FX_MAX) { c.fx.length = FX_MAX; fixed++; }
+    // 🎥 v20: a camera is a list of keys — anything not a finite number is thrown away
+    if (c.cam && !Array.isArray(c.cam.keys)) { c.cam = null; fixed++; }
+    if (c.cam) {
+      const before = c.cam.keys.length;
+      c.cam.keys = c.cam.keys.filter(k => k && Number.isFinite(k.t));
+      for (const k of c.cam.keys) {
+        k.t = Math.max(0, k.t);
+        k.x = Number.isFinite(k.x) ? Math.max(-3, Math.min(3, k.x)) : 0;
+        k.y = Number.isFinite(k.y) ? Math.max(-3, Math.min(3, k.y)) : 0;
+        k.z = Number.isFinite(k.z) ? Math.max(0.2, Math.min(12, k.z)) : 1;
+        k.r = Number.isFinite(k.r) ? Math.max(-180, Math.min(180, k.r)) : 0;
+        if (!CAM_FEELS[k.feel]) k.feel = 'smooth';
+      }
+      c.cam.keys.sort((a, b) => a.t - b.t);
+      if (c.cam.keys.length !== before) fixed++;
+      if (!c.cam.keys.length) c.cam = null;
+    }
   }
   if (fixed) caution('sanitize', '🛠 repaired some clips',
     'a few clips had broken numbers from an earlier bug — I fixed them in place. Nothing is lost!');
@@ -2295,7 +2390,8 @@ function makeBinCard(m, inFolder) {
     const editBtn = card.querySelector('.bin-add.edit');
     if (editBtn) editBtn.addEventListener('click', e => {
       e.stopPropagation();
-      m.kind === 'code' ? openCodeStudio(m.id) : m.kind === 'vector' ? openVectorStudio(m.id) : openFlipbook(m.id);
+      m.kind === 'code' ? openCodeStudio(m.id) : m.kind === 'vector' ? openVectorStudio(m.id)
+        : m.kind === 'stage' ? openStageStudio(m.id) : openFlipbook(m.id);
     });
     if (m.kind === 'flipbook') {
       card.querySelector('.bin-thumb').addEventListener('dblclick', () => openFlipbook(m.id));
@@ -2459,12 +2555,22 @@ function clipSurface(clip, srcT, forScrub) {
     return { img: f, sw: FB_W, sh: FB_H };
   }
   if (m.kind === 'vector') {
-    const f = renderVecFrame(m, studioFrameIndex(m, clip, srcT));
-    return { img: f, sw: VF_W, sh: VF_H };
+    const f = renderVecFrame(m, studioFrameIndex(m, clip, srcT), camAt(clip, srcT - clip.in));
+    return { img: f, sw: VF_W, sh: VF_H, camBaked: true };
+  }
+  if (m.kind === 'stage') {
+    const c = renderStageFrame(m, srcT);           // ⬡ v21 — WebGL out, ordinary picture in
+    return { img: c, sw: c.width, sh: c.height };
   }
   if (m.kind === 'code') {
-    const c = renderCodeFrame(m, srcT);
-    return { img: c, sw: c.width, sh: c.height };
+    // 🎥 v20 — the camera goes INSIDE the sketch so a push-in re-renders at
+    // native resolution instead of upscaling 1280×720. The consequence, and it
+    // is deliberate: on a CODE clip the lens sits in FRONT of the fx chain, so
+    // pixelate blocks and glow keep their screen size when you push in. On every
+    // other clip kind the lens is behind the chain and effects magnify with the
+    // picture. Same knob, two physics — sharpness is worth it.
+    const c = renderCodeFrame(m, srcT, camAt(clip, srcT - clip.in));
+    return { img: c, sw: c.width, sh: c.height, camBaked: true };
   }
   const v = armVideo(m);   // parked elements wake here; proxies cover the gap
   const videoReady = v && v.readyState >= 2 && !v.seeking && Math.abs(v.currentTime - srcT) < 0.35;
@@ -2610,33 +2716,669 @@ function applyFxChain(img, sw, sh, clip, t, maxW) {
   return { img: src, sw: w, sh: h };
 }
 
-function drawClipLayer(ctx, W, H, clip, srcT, forScrub, fullResKey) {
-  const surf = clipSurface(clip, srcT, forScrub);
-  if (!surf) return false;
-  let { img, sw, sh } = surf;
-  if (!sw || !sh) return false;
+// ════════════════════════════════════════════════════════════
+// 🎥 CAMERA ON THE CLIP — v20
+//
+// Until now every clip was fitted to the frame and centred, forever. There
+// was no way to make a close-up of anything — not for a kid, not for a robot.
+// A camera is four numbers on the clip: aim (x,y), magnify (z), roll (r).
+//
+//   clip.cam = { keys: [ {t, x, y, z, r, feel}, ... ] }   t = clip-local seconds
+//
+// x,y are frame-fractions from centre and are WORLD units, so "aim at the
+// face" keeps meaning at every zoom. The feels are the same seven words as
+// 📎 MY BLOCKS — a camera move is animated with the same vocabulary as
+// everything else the kid animates.
+// ════════════════════════════════════════════════════════════
+const CAM_FEELS = {
+  robot:  u => u,
+  smooth: u => u * u * (3 - 2 * u),
+  stomp:  u => { const v = 1 - u; return 1 - v * v * v; },
+  float:  u => 1 - Math.pow(1 - u, 5),
+  drop:   u => u < 0.86 ? Math.pow(u / 0.86, 2.2) : 1 - 0.06 * Math.sin((u - 0.86) / 0.14 * Math.PI),
+  pop:    u => { const s = 1.9, v = u - 1; return 1 + (s + 1) * v * v * v + s * v * v; },
+  snap:   u => {
+    if (u < 0.28) return -0.10 * Math.sin(u / 0.28 * Math.PI);
+    const v = (u - 0.28) / 0.72, s = 1.9, w = v - 1;
+    return 1 + (s + 1) * w * w * w + s * w * w;
+  },
+};
+// named shots, not numbers — the same idea as PLANES and OctoStudio's speeds
+const CAM_SHOTS = { '🏞 WIDE': 1, '🚶 MID': 2.2, '😀 CLOSE': 4.5, '🔎 INSERT': 3.2 };
 
+function camKeys(clip) {
+  const k = clip && clip.cam && clip.cam.keys;
+  return (Array.isArray(k) && k.length) ? k : null;
+}
+function hasCam(clip) {
+  const k = camKeys(clip);
+  return !!k && (k.length > 1 || k[0].z !== 1 || !!k[0].x || !!k[0].y || !!k[0].r);
+}
+// sample the lens at a clip-local time. null = no camera at all = zero cost.
+function camAt(clip, localT) {
+  const k = camKeys(clip);
+  if (!k) return null;
+  if (k.length === 1 || !(localT > k[0].t)) return k[0];
+  const last = k[k.length - 1];
+  if (localT >= last.t) return last;
+  let i = 0;
+  while (i < k.length - 1 && k[i + 1].t <= localT) i++;
+  const a = k[i], b = k[i + 1];
+  const span = Math.max(1e-6, b.t - a.t);
+  let u = (localT - a.t) / span; u = u < 0 ? 0 : (u > 1 ? 1 : u);
+  const f = (CAM_FEELS[b.feel] || CAM_FEELS.smooth)(u);
+  return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f,
+           z: a.z + (b.z - a.z) * f, r: a.r + (b.r - a.r) * f };
+}
+// the lens itself. one function, used by the preview, the scrub and the export.
+// (cx,cy) = where the aimed-at point lands. (iw,ih) = the picture's size in the
+// space we are drawing into, so pan stays in WORLD units at every zoom.
+// topLeft = the source draws from its corner (a p5 sketch) rather than centred.
+function applyCam(ctx, cx, cy, iw, ih, cam, topLeft) {
+  ctx.translate(cx, cy);
+  if (cam.r) ctx.rotate(cam.r * Math.PI / 180);
+  const z = cam.z || 1;
+  if (z !== 1) ctx.scale(z, z);
+  if (cam.x || cam.y) ctx.translate(-cam.x * iw, -cam.y * ih);
+  if (topLeft) ctx.translate(-iw / 2, -ih / 2);
+}
+function camLocalT(clip) {
+  return Math.max(0, Math.min(clipEnd(clip) - clip.start, playhead - clip.start));
+}
+function camEnsure(clip) {
+  if (!camKeys(clip)) clip.cam = { keys: [{ t: 0, x: 0, y: 0, z: 1, r: 0, feel: 'smooth' }] };
+  return clip.cam.keys;
+}
+function camKeyAt(clip, localT) {
+  const k = camKeys(clip);
+  return k ? k.find(v => Math.abs(v.t - localT) < 0.5 / FPS) || null : null;
+}
+// auto-key, same idiom as the vector studio: touching a slider makes a key here
+function camTouchKey(clip) {
+  const keys = camEnsure(clip);
+  const lt = camLocalT(clip);
+  if (keys.length === 1 && keys[0].t === 0 && lt < 0.5 / FPS) return keys[0];
+  let k = camKeyAt(clip, lt);
+  if (!k) {
+    const s = camAt(clip, lt) || { x: 0, y: 0, z: 1, r: 0 };
+    k = { t: lt, x: s.x, y: s.y, z: s.z, r: s.r, feel: 'smooth' };
+    keys.push(k); keys.sort((a, b) => a.t - b.t);
+  }
+  return k;
+}
+
+// ── 🎥 the deck ──────────────────────────────────────────────
+var camUI = { open: false, prevTlH: null, aim: false };
+function camOpen() {
+  if (!selClip()) return;
+  camUI.open = true;
+  $('cam-deck').classList.add('open');
+  $('cam-btn').classList.add('on');
+  camUI.prevTlH = document.body.style.getPropertyValue('--tl-h');
+  const cur = parseFloat(getComputedStyle(document.body).getPropertyValue('--tl-h')) || 230;
+  document.body.style.setProperty('--tl-h', (cur + 150) + 'px');
+  camRender(); renderTimeline();
+}
+function camClose() {
+  camUI.open = false; camUI.aim = false; pvCanvas.classList.remove('picking');
+  $('cam-deck').classList.remove('open');
+  $('cam-btn').classList.remove('on');
+  if (camUI.prevTlH) document.body.style.setProperty('--tl-h', camUI.prevTlH);
+  else document.body.style.removeProperty('--tl-h');
+  renderTimeline();
+}
+function camTouch() { drawFrame(); renderTimelineLight(selTid); updateTools(); scheduleAutosave(); }
+
+function camRender() {
+  if (!camUI.open) return;
+  const c = selClip();
+  if (!c) return;
+  const lt = camLocalT(c);
+  const cur = camAt(c, lt) || { x: 0, y: 0, z: 1, r: 0 };
+  const onKey = !!camKeyAt(c, lt);
+
+  const shots = $('cam-shots');
+  shots.innerHTML = '<span class="lbl">SHOT:</span>';
+  for (const name in CAM_SHOTS) {
+    const b = document.createElement('button');
+    b.className = 'cam-shot' + (Math.abs(cur.z - CAM_SHOTS[name]) < 0.05 ? ' on' : '');
+    b.textContent = name;
+    b.onclick = () => { snapshot(); camTouchKey(c).z = CAM_SHOTS[name]; camRender(); camTouch(); };
+    shots.appendChild(b);
+  }
+  const aim = document.createElement('button');
+  aim.className = 'cam-shot' + (camUI.aim ? ' on' : '');
+  aim.textContent = camUI.aim ? '🎯 CLICK THE PICTURE' : '🎯 AIM';
+  aim.title = 'then click whatever you want the camera pointed at — two sliders will never find a face';
+  aim.onclick = () => { camUI.aim = !camUI.aim; pvCanvas.classList.toggle('picking', camUI.aim); camRender(); };
+  shots.appendChild(aim);
+  const add = document.createElement('button');
+  add.className = 'cam-shot key' + (onKey ? ' on' : '');
+  add.textContent = onKey ? '◆ KEY HERE' : '◇ ADD KEY HERE';
+  add.title = 'a camera move needs two keys: where it starts and where it ends';
+  add.onclick = () => { snapshot(); camTouchKey(c); camRender(); camTouch(); };
+  shots.appendChild(add);
+  const clr = document.createElement('button');
+  clr.className = 'cam-shot danger';
+  clr.textContent = '🗑 NO CAMERA';
+  clr.onclick = () => { snapshot(); c.cam = null; camRender(); camTouch(); };
+  shots.appendChild(clr);
+
+  const P = [
+    ['ZOOM', 'z', 0.5, 8, 0.05, cur.z, v => '×' + v.toFixed(2)],
+    ['AIM ↔', 'x', -1, 1, 0.01, cur.x, v => v.toFixed(2)],
+    ['AIM ↕', 'y', -1, 1, 0.01, cur.y, v => v.toFixed(2)],
+    ['ROLL', 'r', -45, 45, 1, cur.r, v => v.toFixed(0) + '°'],
+  ];
+  const box = $('cam-params');
+  box.innerHTML = '';
+  for (const [label, field, min, max, step, val, fmt] of P) {
+    const d = document.createElement('div'); d.className = 'camp';
+    const l = document.createElement('span'); l.textContent = label;
+    const i = document.createElement('input');
+    i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val;
+    const v = document.createElement('span'); v.className = 'v'; v.textContent = fmt(val);
+    let started = false;
+    i.oninput = () => {
+      if (!started) { snapshot(); started = true; }
+      const k = camTouchKey(c);
+      k[field] = parseFloat(i.value);
+      v.textContent = fmt(k[field]);
+      camTouch();
+    };
+    i.onchange = () => { started = false; camRender(); };
+    d.append(l, i, v); box.appendChild(d);
+  }
+
+  const strip = $('cam-keys');
+  strip.innerHTML = '';
+  const keys = camKeys(c);
+  if (!keys) {
+    strip.innerHTML = '<span class="lbl">no camera on this clip — every clip is fitted to the frame, which is why nothing can be a close-up</span>';
+  } else {
+    strip.innerHTML = '<span class="lbl">KEYS:</span>';
+    keys.forEach((k, i) => {
+      const chip = document.createElement('div');
+      chip.className = 'cam-key' + (Math.abs(k.t - lt) < 0.5 / FPS ? ' on' : '');
+      const go = document.createElement('button');
+      go.className = 'ck-go'; go.textContent = '◆ ' + k.t.toFixed(2) + 's  ×' + k.z.toFixed(2);
+      go.onclick = () => { seekTo(c.start + k.t); camRender(); };
+      chip.appendChild(go);
+      if (i > 0) {
+        const sel = document.createElement('select');
+        sel.title = 'how the camera ARRIVES at this key — same seven words as 📎 MY BLOCKS';
+        for (const f in CAM_FEELS) {
+          const o = document.createElement('option'); o.value = f; o.textContent = f; sel.appendChild(o);
+        }
+        sel.value = k.feel || 'smooth';
+        sel.onchange = () => { snapshot(); k.feel = sel.value; camTouch(); };
+        chip.appendChild(sel);
+      }
+      const x = document.createElement('button');
+      x.className = 'ck-x'; x.textContent = '✖';
+      x.onclick = () => {
+        snapshot(); keys.splice(i, 1);
+        if (!keys.length) c.cam = null;
+        camRender(); camTouch();
+      };
+      chip.appendChild(x);
+      strip.appendChild(chip);
+    });
+  }
+}
+$('cam-btn').addEventListener('click', () => camUI.open ? camClose() : camOpen());
+
+// ════════════════════════════════════════════════════════════
+// ⬡ STAGE — the diorama studio (v21)
+//
+// A shot is a DIORAMA. Drawings are CARDS standing in it. The camera walks around.
+// Parallax stops being an effect and becomes a consequence of where you put things.
+//
+//   THE RULE: the stage carries the SPACE. The drawing carries the FORM.
+//
+// A flat card cannot self-shade — that is physics, not a gap. Light gives a card a
+// warm/cool wash and a cast shadow shaped by the drawing's own alpha, and that contact
+// shadow is what welds a drawing to a floor. Core shadow, terminator, reflected light:
+// still drawn by hand. What the engine gives the artist instead is a horizon and a floor
+// grid — you cannot draw a vanishing point you cannot see.
+//
+// Cards are flat, so rotation has a budget. Dolly, push and drift are free; swing far
+// enough and a card shows its edge. That limit is the paper-theatre look, not a bug.
+// ════════════════════════════════════════════════════════════
+const STAGE_W = 1280, STAGE_H = 720;
+const SV = {
+  add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]], sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],
+  mul:(a,s)=>[a[0]*s,a[1]*s,a[2]*s], dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
+  cross:(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+  norm:a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l];},
+};
+const SM = {
+  mul:(a,b)=>{const o=new Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++){let s=0;
+    for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s;}return o;},
+  persp:(f,asp,n,fa)=>{const t=1/Math.tan(f*Math.PI/360);
+    return [t/asp,0,0,0, 0,t,0,0, 0,0,(fa+n)/(n-fa),-1, 0,0,2*fa*n/(n-fa),0];},
+  look:(e,a,up)=>{const z=SV.norm(SV.sub(e,a)),x=SV.norm(SV.cross(up,z)),y=SV.cross(z,x);
+    return [x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0,
+            -SV.dot(x,e),-SV.dot(y,e),-SV.dot(z,e),1];},
+  trs:(p,rot,s)=>{const [rx,ry,rz]=rot,cx=Math.cos(rx),sx=Math.sin(rx),cy=Math.cos(ry),
+    sy=Math.sin(ry),cz=Math.cos(rz),sz=Math.sin(rz);
+    const r=[cy*cz+sy*sx*sz,cx*sz,-sy*cz+cy*sx*sz, -cy*sz+sy*sx*cz,cx*cz,sy*sz+cy*sx*cz, sy*cx,-sx,cy*cx];
+    return [r[0]*s[0],r[1]*s[0],r[2]*s[0],0, r[3]*s[1],r[4]*s[1],r[5]*s[1],0,
+            r[6]*s[2],r[7]*s[2],r[8]*s[2],0, p[0],p[1],p[2],1];},
+  shadow:(L)=>{const d=[-L[0],-L[1],-L[2]];
+    return [1,0,0,0, -d[0]/d[1],0,-d[2]/d[1],0, 0,0,1,0, 0,0,0,1];},
+};
+const STAGE_VS = `#version 300 es
+in vec3 aPos; in vec2 aUV; in vec3 aNrm;
+uniform mat4 uMVP, uModel; out vec2 vUV; out vec3 vNrm; out vec3 vWorld;
+void main(){ vUV=aUV; vNrm=mat3(uModel)*aNrm; vWorld=(uModel*vec4(aPos,1.)).xyz;
+  gl_Position=uMVP*vec4(aPos,1.); }`;
+const STAGE_FS = `#version 300 es
+precision highp float;
+in vec2 vUV; in vec3 vNrm; in vec3 vWorld; uniform sampler2D uTex;
+uniform vec3 uLightDir,uLightCol,uAmbient,uFlat; uniform float uUnlit,uShadowPass,uFogK;
+out vec4 frag;
+void main(){ vec4 t=texture(uTex,vUV); if(t.a<0.30) discard;
+  if(uShadowPass>0.5){ frag=vec4(0.08,0.05,0.14,t.a*0.34); return; }
+  vec3 c=t.rgb;
+  if(uUnlit<0.5){ float nl=max(dot(normalize(vNrm),normalize(uLightDir)),0.0);
+    float lam=uAmbient.r+(1.0-uAmbient.r)*smoothstep(0.05,0.85,nl);
+    c*=mix(vec3(0.62,0.66,0.86),uLightCol,lam)*(0.86+0.30*lam); }
+  c=mix(c,uFlat,clamp(vWorld.z*-uFogK,0.0,0.55)); frag=vec4(c,t.a); }`;
+const STAGE_QUAD = new Float32Array([
+ -0.5,-0.5,0,0,1,0,0,1,  0.5,-0.5,0,1,1,0,0,1,  0.5,0.5,0,1,0,0,0,1,
+ -0.5,-0.5,0,0,1,0,0,1,  0.5, 0.5,0,1,0,0,0,1, -0.5,0.5,0,0,0,0,0,1]);
+
+// ── ONE shared WebGL2 context. Browsers cap contexts at ~16; every stage clip uses this one.
+let SGL = null;
+function stageGL() {
+  if (SGL) return SGL;
+  const canvas = document.createElement('canvas');
+  canvas.width = STAGE_W; canvas.height = STAGE_H;
+  const gl = canvas.getContext('webgl2', { alpha:true, antialias:true, premultipliedAlpha:false, preserveDrawingBuffer:true });
+  if (!gl) { SGL = { dead:true, canvas }; return SGL; }
+  const mk=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);
+    if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)){console.warn(gl.getShaderInfoLog(o));} return o;};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,STAGE_VS)); gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,STAGE_FS));
+  gl.linkProgram(prog);
+  const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
+  const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
+  gl.bufferData(gl.ARRAY_BUFFER,STAGE_QUAD,gl.STATIC_DRAW);
+  for (const [n,sz,off] of [['aPos',3,0],['aUV',2,12],['aNrm',3,20]]) {
+    const l=gl.getAttribLocation(prog,n); gl.enableVertexAttribArray(l);
+    gl.vertexAttribPointer(l,sz,gl.FLOAT,false,32,off);
+  }
+  gl.bindVertexArray(null);
+  const u={}; for(const n of ['uMVP','uModel','uTex','uLightDir','uLightCol','uAmbient','uFlat','uUnlit','uShadowPass','uFogK'])
+    u[n]=gl.getUniformLocation(prog,n);
+  SGL={canvas,gl,prog,vao,u,tex:new Map(),white:null};
+  // 🛟 an iPad that backgrounds the tab loses the context. Drop the cache so every
+  // skin re-uploads on the next frame instead of the stage coming back blank and silent.
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); SGL.tex.clear(); SGL.lost = true; });
+  canvas.addEventListener('webglcontextrestored', () => { SGL = null; });
+  return SGL;
+}
+// ⚠️ the texture cache IS the performance story, not an optimisation.
+// 1280×720 RGBA = 3.7 MB per upload. Eight cards at 24fps would be 708 MB/s.
+// Keyed by (media, frame) so a still uploads once and a flipbook on twos uploads 12×/s.
+const STAGE_TEX_CAP = 48;
+function stageUpload(key, src) {
+  const S=stageGL(); if(S.dead) return null;
+  const gl=S.gl; let e=S.tex.get(key);
+  if (e) { e.stamp=++S.clock; return e.t; }
+  const t=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  try { gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src); gl.generateMipmap(gl.TEXTURE_2D); }
+  catch (err) { return null; }
+  S.clock=(S.clock||0)+1;
+  S.tex.set(key,{t,stamp:S.clock});
+  if (S.tex.size>STAGE_TEX_CAP) {           // evict the least recently wanted
+    let oldK=null,oldS=Infinity;
+    for(const [k,v] of S.tex) if(v.stamp<oldS){oldS=v.stamp;oldK=k;}
+    if(oldK){ gl.deleteTexture(S.tex.get(oldK).t); S.tex.delete(oldK); }
+  }
+  return t;
+}
+function stagePaint(w,h,fn){ const c=document.createElement('canvas'); c.width=w;c.height=h;
+  fn(c.getContext('2d'),w,h); return c; }
+function stageColorTex(hex){ return stageUpload('#'+hex, stagePaint(8,8,(g)=>{g.fillStyle=hex;g.fillRect(0,0,8,8);})); }
+function stageGridTex(hex){ return stageUpload('grid'+hex, stagePaint(1024,1024,(g,w,h)=>{
+  g.fillStyle=hex; g.fillRect(0,0,w,h);
+  g.strokeStyle='rgba(255,255,255,0.10)'; g.lineWidth=3;
+  for(let i=0;i<=16;i++){const p=i*64;g.beginPath();g.moveTo(p,0);g.lineTo(p,h);g.moveTo(0,p);g.lineTo(w,p);g.stroke();}
+})); }
+// 🖼 a skin is ANY clip in the bin, rendered at a time and pinned as the UV
+// ✏️ while you are DRAWING a card, that card must not appear in its own TRACE ghost
+let stageHideSkin = null;
+function stageSkin(o) {
+  if (stageHideSkin != null && o.skin === stageHideSkin) return null;
+  if (o.skin == null) return o.kind==='floor' ? stageGridTex(o.color||'#7A6358') : stageColorTex(o.color||'#D8402C');
+  const m = media.find(x => x.id === o.skin);
+  if (!m || m.missing) return stageColorTex(o.color||'#D8402C');
+  const t = Math.max(0, (stageClock||0) + (o.tOffset||0));
+  try {
+    if (m.kind==='code')     return stageUpload(m.id+':c'+Math.floor(t*FPS), renderCodeFrame(m,t,null));
+    if (m.kind==='flipbook'||m.kind==='vector') {
+      const n=Math.max(1,m.frameCount||1), i=Math.min(n-1,Math.max(0,Math.floor(t*(m.fps||12))));
+      return stageUpload(m.id+':f'+i, m.kind==='flipbook'?renderFbFrame(m,i):renderVecFrame(m,i));
+    }
+    const pf = proxyFrameFor(m,t);
+    if (pf) return stageUpload(m.id+':p'+Math.floor(t*8), pf);
+    const v = armVideo(m);
+    if (v && v.readyState>=2) return stageUpload(m.id+':V'+Math.floor(t*12), v);
+  } catch (e) {}
+  return stageColorTex(o.color||'#D8402C');
+}
+let stageClock = 0;
+function newStageScene(){ return {
+  camera:{ keys:[{t:0, eye:[0,6.5,16], at:[0,4.6,-10], fov:38, feel:'smooth'}] },
+  light:{ dir:[-0.50,0.74,0.46], col:[1,0.93,0.80], ambient:[0.56,0.56,0.56] },
+  fog:0.017, flat:[0.58,0.50,0.58],
+  objects:[
+    {oid:1, kind:'backdrop', pos:[0,22,0], rot:[0,0,0], scale:[420,240,1], color:'#8A5F7A', unlit:true, shadow:false},
+    {oid:2, kind:'floor',    pos:[0,0,-12], rot:[-Math.PI/2,0,0], scale:[120,120,1], color:'#7A6358', shadow:false},
+    {oid:3, kind:'card',     pos:[0,4.2,-8], rot:[0,0,0], scale:[6,8.4,1], color:'#D8402C', billboard:true, shadow:true},
+  ]};
+}
+function stageCamAt(scene, t){
+  const k=(scene.camera&&scene.camera.keys)||[];
+  if(!k.length) return {eye:[0,6,16], at:[0,5,-10], fov:38};
+  if(k.length===1||t<=k[0].t) return k[0];
+  const last=k[k.length-1]; if(t>=last.t) return last;
+  let i=0; while(i<k.length-1&&k[i+1].t<=t) i++;
+  const a=k[i],b=k[i+1], u=Math.max(0,Math.min(1,(t-a.t)/Math.max(1e-6,b.t-a.t)));
+  const f=(CAM_FEELS[b.feel]||CAM_FEELS.smooth)(u), L=(p,q)=>[p[0]+(q[0]-p[0])*f,p[1]+(q[1]-p[1])*f,p[2]+(q[2]-p[2])*f];
+  return {eye:L(a.eye,b.eye), at:L(a.at,b.at), fov:a.fov+((b.fov||38)-(a.fov||38))*f};
+}
+// one redraw at exactly time t — same math in preview, scrub, studio and export
+function renderStageFrame(m, srcT, camOverride){
+  const S=stageGL();
+  if (S.dead) return stagePaint(STAGE_W,STAGE_H,(g)=>{ g.fillStyle='#221'; g.fillRect(0,0,STAGE_W,STAGE_H);
+    g.fillStyle='#FF1744'; g.font='bold 40px ui-monospace,monospace';
+    g.fillText('⬡ this device has no WebGL2 — the stage cannot draw', 60, 360); });
+  const scene=m.scene||(m.scene=newStageScene());
+  stageClock = Math.max(0, srcT||0);
+  const gl=S.gl, W=S.canvas.width, H=S.canvas.height;
+  const cam = camOverride || stageCamAt(scene, stageClock);
+  gl.viewport(0,0,W,H);
+  gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(S.prog); gl.bindVertexArray(S.vao);
+  const P=SM.persp(cam.fov||38, W/H, 0.1, 500), Vw=SM.look(cam.eye,cam.at,[0,1,0]), VP=SM.mul(P,Vw);
+  const L=scene.light||newStageScene().light;
+  gl.uniform3fv(S.u.uLightDir,new Float32Array(L.dir));
+  gl.uniform3fv(S.u.uLightCol,new Float32Array(L.col));
+  gl.uniform3fv(S.u.uAmbient,new Float32Array(L.ambient));
+  gl.uniform3fv(S.u.uFlat,new Float32Array(scene.flat||[0.58,0.50,0.58]));
+  gl.uniform1f(S.u.uFogK, scene.fog==null?0.017:scene.fog);
+  gl.uniform1i(S.u.uTex,0); gl.activeTexture(gl.TEXTURE0);
+  const modelOf=(o)=>{
+    if (o.kind==='backdrop'){                 // 🌄 rides with the camera, never runs out
+      const f=SV.norm(SV.sub(cam.at,cam.eye)), p=SV.add(cam.eye,SV.mul(f,140));
+      return SM.trs([p[0],p[1]+o.pos[1],p[2]],[0,Math.atan2(-f[0],-f[2]),0],o.scale);
+    }
+    let rot=o.rot||[0,0,0];
+    if (o.billboard){ const d=SV.sub(cam.eye,o.pos); rot=[rot[0],Math.atan2(d[0],d[2]),rot[2]]; }
+    return SM.trs(o.pos,rot,o.scale);
+  };
+  const draw=(o,model,shadow)=>{
+    const t=stageSkin(o); if(!t) return;
+    gl.bindTexture(gl.TEXTURE_2D,t);
+    gl.uniformMatrix4fv(S.u.uModel,false,new Float32Array(model));
+    gl.uniformMatrix4fv(S.u.uMVP,false,new Float32Array(SM.mul(VP,model)));
+    gl.uniform1f(S.u.uUnlit,o.unlit?1:0);
+    gl.uniform1f(S.u.uShadowPass,shadow?1:0);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+  };
+  // 🔄 turnaround: a card may carry extra skins, chosen by which side the camera is on.
+  // Three drawings on one card is what buys back the rotation budget.
+  for (const o of (scene.objects||[])) {
+    if (!o || !Array.isArray(o.turn) || !o.turn.length) continue;
+    const d=SV.sub(cam.eye,o.pos), a=Math.atan2(d[0],d[2])-(o.rot?o.rot[1]:0);
+    const n=o.turn.length+1, k=Math.round(((a/(Math.PI*2)%1+1)%1)*n)%n;
+    o.skin = k===0 ? o.turn0 : o.turn[k-1];
+  }
+  const objs=(scene.objects||[]).filter(o=>o&&Array.isArray(o.pos));
+  // draw order is EXPLICIT, not distance-sorted: backdrop → floor → shadows → cards.
+  // (sorting alone lets a near floor paint over the shadows cast onto it — it did.)
+  for(const o of objs) if(o.kind==='backdrop') draw(o,modelOf(o),false);
+  for(const o of objs) if(o.kind==='floor')    draw(o,modelOf(o),false);
+  const Sh=SM.shadow(L.dir);
+  gl.depthMask(false);
+  for(const o of objs){ if(o.shadow===false||o.kind==='floor'||o.kind==='backdrop') continue;
+    draw(o, SM.mul(Sh, modelOf(o)), true); }
+  gl.depthMask(true);
+  const cards=objs.filter(o=>o.kind!=='floor'&&o.kind!=='backdrop')
+    .sort((a,b)=>SV.dot(SV.sub(b.pos,cam.eye),SV.sub(b.pos,cam.eye))
+                -SV.dot(SV.sub(a.pos,cam.eye),SV.sub(a.pos,cam.eye)));   // far to near
+  for(const o of cards) draw(o,modelOf(o),false);
+  gl.bindVertexArray(null);
+  gl.flush();
+  return S.canvas;
+}
+
+// ════════════════════════════════════════════════════════════
+// ⬡ THE STAGE STUDIO — drag to walk around the diorama
+// ════════════════════════════════════════════════════════════
+var stS = { open:false, mediaId:null, sel:null, t:0, raf:null, mode:'walk',
+            orb:{ yaw:0, pitch:0.16, dist:19, at:[0,4.6,-10] }, live:false };
+function stageMedia(){ return media.find(m => m.id === stS.mediaId); }
+function stageOrbitCam(){
+  const o=stS.orb, cp=Math.cos(o.pitch);
+  return { eye:[o.at[0]+Math.sin(o.yaw)*cp*o.dist, o.at[1]+Math.sin(o.pitch)*o.dist,
+                o.at[2]+Math.cos(o.yaw)*cp*o.dist], at:o.at.slice(), fov:38 };
+}
+function openStageStudio(mediaId){
+  const m=media.find(x=>x.id===mediaId); if(!m||m.kind!=='stage') return;
+  if (playing) stopPlayback();
+  stS.open=true; stS.mediaId=mediaId; stS.sel=null; stS.t=0; stS.live=false;
+  if(!m.scene) m.scene=newStageScene();
+  $('stage-name').value=m.name; $('stage-dur').value=m.duration;
+  $('stage-overlay').style.display='flex';
+  stageRenderPanel(); stageTick();
+}
+function closeStageStudio(){
+  stS.open=false; cancelAnimationFrame(stS.raf);
+  $('stage-overlay').style.display='none';
+}
+function stageTick(){
+  if(!stS.open) return;
+  const m=stageMedia();
+  if(m){
+    const cam = stS.live ? stageCamAt(m.scene, stS.t) : stageOrbitCam();
+    const gl=renderStageFrame(m, stS.t, cam);
+    const v=$('stage-view'), c=v.getContext('2d');
+    if(v.width!==960){ v.width=960; v.height=540; }
+    c.fillStyle='#101014'; c.fillRect(0,0,960,540);
+    c.drawImage(gl,0,0,960,540);
+    if(!stS.live){                       // 🎬 the frame the camera keys will actually see
+      c.strokeStyle='rgba(0,229,255,0.45)'; c.lineWidth=2; c.strokeRect(1,1,958,538);
+    }
+  }
+  stS.raf=requestAnimationFrame(stageTick);
+}
+function stageSel(){ const m=stageMedia(); if(!m) return null;
+  return (m.scene.objects||[]).find(o=>o.oid===stS.sel)||null; }
+function stageTouch(){ const m=stageMedia(); if(m){ m.thumbURL=null; } scheduleAutosave(); }
+
+function stageRenderPanel(){
+  const m=stageMedia(); if(!m) return;
+  const sc=m.scene, objs=sc.objects||[];
+  // ── object strip ──
+  const list=$('stage-objs'); list.innerHTML='<span class="lbl">IN THE SCENE:</span>';
+  for(const o of objs){
+    const b=document.createElement('button');
+    b.className='st-obj'+(o.oid===stS.sel?' on':'');
+    const skin=o.skin!=null?media.find(x=>x.id===o.skin):null;
+    b.textContent=(o.kind==='card'?'🃏 ':o.kind==='floor'?'🟫 ':'🌄 ')+(skin?skin.name:o.kind);
+    b.onclick=()=>{ stS.sel=o.oid; stageRenderPanel(); };
+    list.appendChild(b);
+  }
+  for(const [label,kind] of [['➕ CARD','card'],['➕ FLOOR','floor'],['➕ BACKDROP','backdrop']]){
+    const b=document.createElement('button'); b.className='st-obj add'; b.textContent=label;
+    b.onclick=()=>{ snapshot();
+      const oid=Math.max(0,...objs.map(o=>o.oid||0))+1;
+      const o = kind==='card' ? {oid,kind,pos:[0,4.2,-8],rot:[0,0,0],scale:[6,8.4,1],color:'#D8402C',billboard:true,shadow:true}
+              : kind==='floor'? {oid,kind,pos:[0,0,-12],rot:[-Math.PI/2,0,0],scale:[120,120,1],color:'#7A6358',shadow:false}
+              : {oid,kind,pos:[0,22,0],rot:[0,0,0],scale:[420,240,1],color:'#8A5F7A',unlit:true,shadow:false};
+      objs.push(o); stS.sel=oid; stageRenderPanel(); stageTouch(); };
+    list.appendChild(b);
+  }
+  // ── the selected object ──
+  const box=$('stage-props'); box.innerHTML='';
+  const o=stageSel();
+  if(!o){ box.innerHTML='<span class="lbl">pick something in the scene, or add a card. drag the picture to walk around.</span>'; }
+  else {
+    const row=(label,node)=>{ const d=document.createElement('div'); d.className='stp';
+      const l=document.createElement('span'); l.textContent=label; d.append(l,node); box.appendChild(d); return d; };
+    // 🖼 SKIN — any clip in the bin becomes this card's picture
+    const sel=document.createElement('select');
+    sel.innerHTML='<option value="">— flat colour —</option>';
+    for(const mm of media){ if(mm.kind==='audio'||mm.id===m.id) continue;
+      const op=document.createElement('option'); op.value=mm.id; op.textContent=mm.name; sel.appendChild(op); }
+    sel.value=o.skin!=null?String(o.skin):'';
+    sel.onchange=()=>{ snapshot(); o.skin=sel.value?parseInt(sel.value):null; stageRenderPanel(); stageTouch(); };
+    row('🖼 SKIN',sel);
+    for(const [label,get,set,min,max,step] of [
+      ['↔ X', ()=>o.pos[0], v=>o.pos[0]=v, -60,60,0.1],
+      ['↕ Y', ()=>o.pos[1], v=>o.pos[1]=v, -10,60,0.1],
+      ['⇕ DEPTH', ()=>o.pos[2], v=>o.pos[2]=v, -120,20,0.2],
+      ['SIZE', ()=>o.scale[1], v=>{const r=o.scale[0]/o.scale[1];o.scale[1]=v;o.scale[0]=v*r;}, 0.5,300,0.1],
+      ['TURN', ()=>o.rot[1]*57.3, v=>o.rot[1]=v/57.3, -180,180,1]]){
+      const i=document.createElement('input'); i.type='range'; i.min=min;i.max=max;i.step=step; i.value=get();
+      const v=document.createElement('span'); v.className='v'; v.textContent=(+get()).toFixed(1);
+      let started=false;
+      i.oninput=()=>{ if(!started){snapshot();started=true;} set(parseFloat(i.value)); v.textContent=(+i.value).toFixed(1); stageTouch(); };
+      i.onchange=()=>{started=false;};
+      const d=row(label,i); d.appendChild(v);
+    }
+    for(const [label,key,def] of [['BILLBOARD','billboard',false],['UNLIT','unlit',false],['CASTS SHADOW','shadow',true]]){
+      const b=document.createElement('button'); b.className='st-obj'+((o[key]??def)?' on':'');
+      b.textContent=label; b.onclick=()=>{ snapshot(); o[key]=!(o[key]??def); stageRenderPanel(); stageTouch(); };
+      box.appendChild(b);
+    }
+    if(o.kind==='card'){
+      const d=document.createElement('button'); d.className='st-obj draw';
+      d.textContent='✏️ DRAW ON THIS CARD';
+      d.title='the diorama shows through as a TRACE ghost — draw the form against a space that is already right';
+      d.onclick=()=>stageDrawOnCard(o);
+      box.appendChild(d);
+    }
+    const del=document.createElement('button'); del.className='st-obj danger'; del.textContent='🗑';
+    del.onclick=()=>{ snapshot(); const i=objs.indexOf(o); if(i>=0)objs.splice(i,1); stS.sel=null; stageRenderPanel(); stageTouch(); };
+    box.appendChild(del);
+  }
+  // ── light + camera ──
+  const lb=$('stage-light'); lb.innerHTML='<span class="lbl">☀ LIGHT:</span>';
+  const L=sc.light;
+  const ang=Math.atan2(L.dir[0],L.dir[2]), hei=Math.asin(Math.max(-1,Math.min(1,L.dir[1])));
+  for(const [label,val,min,max,apply] of [
+    ['↻ FROM', ang*57.3, -180,180, v=>{const h=Math.asin(Math.max(-1,Math.min(1,sc.light.dir[1]))),c=Math.cos(h);
+        sc.light.dir=[Math.sin(v/57.3)*c, Math.sin(h), Math.cos(v/57.3)*c];}],
+    ['↑ HEIGHT', hei*57.3, 5,88, v=>{const a=Math.atan2(sc.light.dir[0],sc.light.dir[2]),h=v/57.3,c=Math.cos(h);
+        sc.light.dir=[Math.sin(a)*c, Math.sin(h), Math.cos(a)*c];}],
+    ['FILL', sc.light.ambient[0]*100, 10,95, v=>{sc.light.ambient=[v/100,v/100,v/100];}]]){
+    const d=document.createElement('div'); d.className='stp';
+    const l=document.createElement('span'); l.textContent=label;
+    const i=document.createElement('input'); i.type='range'; i.min=min;i.max=max;i.step=1; i.value=val;
+    let started=false;
+    i.oninput=()=>{ if(!started){snapshot();started=true;} apply(parseFloat(i.value)); stageTouch(); };
+    i.onchange=()=>{started=false;};
+    d.append(l,i); lb.appendChild(d);
+  }
+  // ── camera keys ──
+  const cb=$('stage-cam'); cb.innerHTML='<span class="lbl">🎬 CAMERA:</span>';
+  const key=document.createElement('button'); key.className='st-obj add';
+  key.textContent='◆ SET CAMERA KEY AT '+stS.t.toFixed(2)+'s';
+  key.title='puts the view you are looking at right now into the shot';
+  key.onclick=()=>{ snapshot();
+    const c=stageOrbitCam(), ks=sc.camera.keys;
+    const ex=ks.find(k=>Math.abs(k.t-stS.t)<0.5/FPS);
+    if(ex){ ex.eye=c.eye; ex.at=c.at; ex.fov=c.fov; }
+    else ks.push({t:stS.t, eye:c.eye, at:c.at, fov:c.fov, feel:'smooth'});
+    ks.sort((a,b)=>a.t-b.t); stageRenderPanel(); stageTouch(); };
+  cb.appendChild(key);
+  sc.camera.keys.forEach((k,i)=>{
+    const chip=document.createElement('div'); chip.className='st-key';
+    const go=document.createElement('button'); go.className='st-obj';
+    go.textContent='◆ '+k.t.toFixed(2)+'s';
+    go.onclick=()=>{ stS.t=k.t; $('stage-time').value=k.t;
+      stS.orb.at=k.at.slice();
+      const d=SV.sub(k.eye,k.at); stS.orb.dist=Math.hypot(d[0],d[1],d[2]);
+      stS.orb.yaw=Math.atan2(d[0],d[2]); stS.orb.pitch=Math.asin(d[1]/(stS.orb.dist||1));
+      stageRenderPanel(); };
+    chip.appendChild(go);
+    if(i>0){ const fs=document.createElement('select');
+      for(const f in CAM_FEELS){ const op=document.createElement('option'); op.value=f;op.textContent=f; fs.appendChild(op); }
+      fs.value=k.feel||'smooth';
+      fs.onchange=()=>{ snapshot(); k.feel=fs.value; stageTouch(); };
+      chip.appendChild(fs); }
+    const x=document.createElement('button'); x.className='st-obj danger'; x.textContent='✖';
+    x.onclick=()=>{ snapshot(); sc.camera.keys.splice(i,1);
+      if(!sc.camera.keys.length) sc.camera.keys.push({t:0,...stageOrbitCam(),feel:'smooth'});
+      stageRenderPanel(); stageTouch(); };
+    chip.appendChild(x); cb.appendChild(chip);
+  });
+}
+// ✏️ THE GREASE PENCIL MOMENT — draw on a card with the diorama showing through
+function stageDrawOnCard(o){
+  let sk = o.skin!=null ? media.find(x=>x.id===o.skin) : null;
+  if(!sk || sk.kind!=='flipbook'){
+    sk = { id: ++mediaCounter, kind:'flipbook', name:'card '+mediaCounter,
+      fileName:null, fileSize:0, file:null, url:null, duration:8/12,
+      width:FB_W, height:FB_H, thumbURL:null, previewOK:true, fps:12, frameCount:8, layers:null };
+    sk.layers=[newDrawLayer('drawing 1',8)];
+    media.push(sk); o.skin=sk.id; stageTouch();
+  }
+  stageHideSkin = sk.id;          // ← so the card is absent from its own TRACE ghost
+  closeStageStudio();
+  openFlipbook(sk.id, null);
+  fb.roto = true;                 // 🎞 TRACE on: the diorama is the drawing guide
+  toast('✏️ drawing on the card — 🎞 TRACE is showing you the diorama behind it');
+}
+
+// ⬡ v22 — ONE function paints a clip's picture: key ➜ fx ➜ lens ➜ frame.
+// The preview and the exporter both call THIS. They used to carry two copies of
+// the same twenty lines, which is exactly how a compositing change gets made once.
+function paintClipPicture(ctx, W, H, clip, srcT, img, sw, sh, fullRes, camBaked) {
   ctx.save();
   ctx.globalAlpha = clip.opacity;
   ctx.globalCompositeOperation = clip.blend || 'source-over';
   const s = Math.min(W / sw, H / sh);
   const dw = sw * s, dh = sh * s;
   const dx = (W - dw) / 2, dy = (H - dh) / 2;
-
   // order matters and is teachable: key the green screen FIRST, then the
   // effects chain runs on the keyed picture (⚡ after 🎯 — like real comps)
   if (clip.chroma && clip.chroma.on) {
-    // keying happens on a scratch canvas; preview keys at reduced res for speed
-    const procW = fullResKey ? Math.round(dw) : Math.min(640, Math.round(dw));
+    const procW = fullRes ? Math.round(dw) : Math.min(640, Math.round(dw));
     const procH = Math.max(1, Math.round(procW * (sh / sw)));
     img = chromaKeyed(img, sw, sh, procW, procH, clip.chroma);
     sw = procW; sh = procH;
   }
   if (clip.fx && clip.fx.length) {
-    const r = applyFxChain(img, sw, sh, clip, srcT, fullResKey ? 8192 : 640);
+    const r = applyFxChain(img, sw, sh, clip, srcT, fullRes ? 8192 : 640);
     img = r.img; sw = r.sw; sh = r.sh;
   }
-  ctx.drawImage(img, 0, 0, sw, sh, dx, dy, dw, dh);
+  // 🎥 the lens goes LAST — a camera photographs the finished picture.
+  // Procedural clips (code, vector) already baked theirs in, at native res.
+  const cam = camBaked ? null : camAt(clip, srcT - clip.in);
+  if (cam) { applyCam(ctx, W / 2, H / 2, dw, dh, cam, false); ctx.drawImage(img, 0, 0, sw, sh, -dw / 2, -dh / 2, dw, dh); }
+  else ctx.drawImage(img, 0, 0, sw, sh, dx, dy, dw, dh);
+  ctx.restore();
+}
+function drawClipLayer(ctx, W, H, clip, srcT, forScrub, fullResKey) {
+  const surf = clipSurface(clip, srcT, forScrub);
+  if (!surf) return false;
+  let { img, sw, sh } = surf;
+  if (!sw || !sh) return false;
+
+  paintClipPicture(ctx, W, H, clip, srcT, img, sw, sh, fullResKey, !!surf.camBaked);
   ctx.restore();
   return !!surf.proxy;
 }
@@ -3078,7 +3820,9 @@ function renderTimeline() {
     if (clip.muted) fx.push('🔇');
     else if (clip.volume < 1) fx.push('🔉' + Math.round(clip.volume * 100) + '%');
     if (clip.group) fx.push('🔗');
-    const badge = audioRole ? '🎵' : (m && m.kind === 'flipbook' ? '🎨' : m && m.kind === 'vector' ? '📐' : m && m.kind === 'code' ? '✨' : clip.track + 1);
+    if (!audioRole && hasCam(clip)) fx.push(camKeys(clip).length > 1 ? '🎥▸' : '🎥');
+    const badge = audioRole ? '🎵' : (m && m.kind === 'flipbook' ? '🎨' : m && m.kind === 'vector' ? '📐'
+      : m && m.kind === 'code' ? '✨' : m && m.kind === 'stage' ? '⬡' : clip.track + 1);
     el.innerHTML = `
       <div class="clip-badges">
         <span class="clip-badge" style="background:${color}">${badge}</span>
@@ -3372,6 +4116,17 @@ function updateTools() {
   $('chroma-toggle').disabled = !c || audioRole;
   $('fx-btn').disabled = !c || audioRole;
   $('fx-count').textContent = (c && c.fx && c.fx.length) ? ' ' + c.fx.length : '';
+  $('cam-btn').disabled = !c || audioRole;
+  // ⬡ v22 — two things called "camera" is a kid-trap. In a diorama the clip lens is a REFRAME.
+  const inStage = !!(m && m.kind === 'stage');
+  $('cam-btn').innerHTML = (inStage ? '<span class="ico">🔲</span> REFRAME' : '<span class="ico">🎥</span> CAM') + '<span id="cam-count"></span>';
+  $('cam-btn').title = inStage
+    ? 'REFRAME — crop and push in on the finished diorama picture. The camera that walks around lives inside ⬡ STAGE.'
+    : '🎥 point a camera at this clip — push in, aim, roll. One clip can be four shots.';
+  $('cam-btn').classList.toggle('on', !!(c && hasCam(c)));
+  const camN = (c && camKeys(c)) ? camKeys(c).length : 0;
+  $('cam-count').textContent = camN > 1 ? ' ' + camN : '';
+  if (camUI.open) { if (!c) camClose(); else camRender(); }
   if (fxUI.open) { if (!c) fxClose(); else fxRender(); }   // deck follows the selection
   $('chroma-pick').disabled = !c || audioRole || !c.chroma.on;
   $('chroma-thresh').disabled = !c || audioRole || !c.chroma.on;
@@ -3385,10 +4140,11 @@ function updateTools() {
   const loopable = !!(c && m && (m.kind === 'flipbook' || m.kind === 'vector') && m.frameCount > 1);
   $('loop-btn').disabled = !loopable;
   $('loop-btn').classList.toggle('on', !!(c && c.loop));
-  const editKind = m && (m.kind === 'flipbook' || m.kind === 'code' || m.kind === 'vector') ? m.kind : null;
+  const editKind = m && (m.kind === 'flipbook' || m.kind === 'code' || m.kind === 'vector' || m.kind === 'stage') ? m.kind : null;
   $('fb-edit-btn').style.display = editKind ? '' : 'none';
   if (editKind) $('fb-edit-btn').innerHTML = editKind === 'code'
     ? '<span class="ico">✨</span> EDIT CODE'
+    : editKind === 'stage' ? '<span class="ico">⬡</span> EDIT STAGE'
     : editKind === 'vector' ? '<span class="ico">📐</span> EDIT MOTION'
     : '<span class="ico">✏️</span> EDIT DRAWING';
 
@@ -4188,6 +4944,26 @@ $('chroma-pick').addEventListener('click', () => {
   pvCanvas.classList.toggle('picking', picking);
   if (picking) toast('💉 click the color you want to disappear');
 });
+// 🎯 v22 — AIM. Click the preview and the camera points there. Runs before the
+// eyedropper so the two picking modes can never both fire on one click.
+pvCanvas.addEventListener('pointerdown', e => {
+  if (!camUI.aim) return;
+  const c = selClip();
+  if (!c) { camUI.aim = false; pvCanvas.classList.remove('picking'); return; }
+  e.stopPropagation();
+  const rect = pvCanvas.getBoundingClientRect();
+  const px = (e.clientX - rect.left) / rect.width * pvCanvas.width;
+  const py = (e.clientY - rect.top) / rect.height * pvCanvas.height;
+  const W = pvCanvas.width, H = pvCanvas.height;
+  snapshot();
+  const k = camTouchKey(c);
+  const z = k.z || 1;
+  k.x += (px - W / 2) / (z * W);        // aim moves in WORLD units, so this holds at any zoom
+  k.y += (py - H / 2) / (z * H);
+  camUI.aim = false; pvCanvas.classList.remove('picking');
+  camRender(); camTouch();
+  toast('🎯 camera pointed there — now push in with ZOOM');
+}, true);
 pvCanvas.addEventListener('pointerdown', e => {
   if (!picking) return;
   const c = selClip(); if (!c) { picking = false; pvCanvas.classList.remove('picking'); return; }
@@ -5382,6 +6158,7 @@ $('fb-done-btn').addEventListener('click', () => {
   tc.drawImage(renderFbFrame(m, 0), 0, 0, 240, 135);
   m.thumbURL = t.toDataURL('image/png');
   $('fb-overlay').style.display = 'none';
+  stageHideSkin = null;                               // ⬡ v21 — the card rejoins its diorama
   fb.open = false;
   if (!timeline.some(c => c.mediaId === m.id)) {
     addToTimeline(m.id, totalDuration());   // v17: join the END of the movie, don't pile up at 0:00
@@ -5579,6 +6356,19 @@ function ensureCodeInstance(m) {
   disposeCodeInstance(m);
   m._err = null;
   if (typeof p5 === 'undefined') { m._err = '📦 p5.js library missing — lib/p5.min.js did not load'; return null; }
+  // 🚧 v22 — `const pop = 1.4` silently kills a clip, and pop/fill/text/line are exactly
+  // the words a 9-year-old reaches for. Say so, instead of drawing a blank card.
+  {
+    const RESERVED = ['pop','push','fill','text','line','stroke','scale','rotate','translate',
+                      'color','image','point','arc','box','shear','filter','noise','random','map'];
+    const decl = /(?:^|\n)\s*(?:let|const|var|function)\s+([A-Za-z_$][\w$]*)/g;
+    const hits = new Set(); let mm;
+    while ((mm = decl.exec(m.code || '')) !== null) if (RESERVED.includes(mm[1])) hits.add(mm[1]);
+    if (hits.size) caution('p5word', '⚠️ that name is already taken',
+      'p5 already owns ' + [...hits].map(w => '`' + w + '`').join(', ') +
+      ' — using it as your own name switches that tool off for the whole clip. Try ' +
+      [...hits].map(w => 'my' + w[0].toUpperCase() + w.slice(1)).join(', ') + ' instead.');
+  }
   let factory;
   try {
     factory = new Function('p', '__guardReset',
@@ -5586,13 +6376,7 @@ function ensureCodeInstance(m) {
       'function __guard() { if (++__lc > 3000000) { const e = new Error("loop ran away"); e.__loop = true; throw e; } }\n' +
       '__guardReset.fn = () => { __lc = 0; };\n' +
       'with (p) {\n' + injectLoopGuards((projectBlocks ? projectBlocks + '\n' : '') + m.code) + '\n' +
-      // 🪤 v19.1 — `with(p)` means a bare `setup` falls through to p.setup, which is THIS
-      // function. A clip that writes draw() but no setup() used to hand its own harness
-      // back as api.setup, and `api.setup()` below re-entered forever:
-      // "Maximum call stack size exceeded", on a clip that is perfectly good code.
-      // Same trap for draw(). The identity check is the whole fix.
-      'return { setup: (typeof setup === "function" && setup !== p.setup) ? setup : null,' +
-      '         draw:  (typeof draw  === "function" && draw  !== p.draw ) ? draw  : null };\n}');
+      'return { setup: (typeof setup === "function") ? setup : null, draw: (typeof draw === "function") ? draw : null };\n}');
   } catch (err) { m._err = friendlyError(err); return null; }
   const holder = document.createElement('div');
   holder.style.cssText = 'position:fixed;left:-99999px;top:0;width:0;height:0;overflow:hidden;';
@@ -5626,7 +6410,14 @@ function ensureCodeInstance(m) {
       };
       p.draw = () => {
         if (!api.draw) return;
-        try { api.draw(); m._err = null; } catch (err) { m._err = friendlyError(err); }
+        // 🎥 v20 — the lens, applied to the raw 2D context so the sketch redraws
+        // itself from the camera's point of view. background() resets the matrix
+        // in p5, so the frame still fills. Wrapped in save/restore, never leaks.
+        const cm = p.__cam, g = p.drawingContext;
+        if (cm) { g.save(); applyCam(g, CODE_W / 2, CODE_H / 2, CODE_W, CODE_H, cm, true); }
+        try { api.draw(); m._err = null; }
+        catch (err) { m._err = friendlyError(err); }
+        finally { if (cm) g.restore(); }
       };
     }, holder);
   } catch (err) { m._err = friendlyError(err); holder.remove(); return null; }
@@ -5659,10 +6450,12 @@ function codeErrorCard(m) {
 }
 
 // one redraw at exactly time t — same math in preview, scrub and export
-function renderCodeFrame(m, srcT) {
+function renderCodeFrame(m, srcT, cam) {
   const inst = ensureCodeInstance(m);
   if (!inst) return codeErrorCard(m);
   const f = Math.max(0, Math.floor(srcT * FPS));
+  inst.__cam = cam || null;
+  inst.cam = cam ? { x: cam.x, y: cam.y, z: cam.z, r: cam.r } : { x: 0, y: 0, z: 1, r: 0 };
   try {
     if (m._guardReset && m._guardReset.fn) m._guardReset.fn();
     inst.t = Math.max(0, srcT);
@@ -5956,6 +6749,117 @@ $('code-new-btn').addEventListener('click', () => {
   media.push(item);
   openCodeStudio(item.id);
 });
+
+// ── ⬡ STAGE wiring ──
+$('stage-new-btn').addEventListener('click', () => {
+  const item = { id: ++mediaCounter, kind: 'stage', name: 'diorama ' + mediaCounter,
+    fileName: null, fileSize: 0, file: null, url: null, duration: 6,
+    width: STAGE_W, height: STAGE_H, thumbURL: null, previewOK: true, proxy: null,
+    scene: newStageScene() };
+  media.push(item);
+  openStageStudio(item.id);
+});
+$('stage-done-btn').addEventListener('click', () => {
+  const m = stageMedia();
+  if (m) {
+    m.name = $('stage-name').value.trim() || m.name;
+    m.duration = Math.max(1, Math.min(600, parseFloat($('stage-dur').value) || m.duration));
+    try { m.thumbURL = (() => { const c = document.createElement('canvas'); c.width = 240; c.height = 135;
+      c.getContext('2d').drawImage(renderStageFrame(m, 0), 0, 0, 240, 135); return c.toDataURL('image/jpeg', 0.7); })(); }
+    catch (e) {}
+    const onTl = timeline.some(c => c.mediaId === m.id);
+    closeStageStudio();
+    if (!onTl) addToTimeline(m.id, totalDuration());   // DONE appends at the END, like every studio
+    renderBin(); refresh(); drawFrame(); scheduleAutosave();
+  } else closeStageStudio();
+});
+$('stage-dur').addEventListener('change', () => {
+  const m = stageMedia(); if (!m) return;
+  m.duration = Math.max(1, Math.min(600, parseFloat($('stage-dur').value) || 6));
+  $('stage-time').max = m.duration; refresh();
+});
+$('stage-time').addEventListener('input', () => { stS.t = parseFloat($('stage-time').value) || 0; stageRenderPanel(); });
+$('stage-live-btn').addEventListener('click', () => {
+  stS.live = !stS.live;
+  $('stage-live-btn').classList.toggle('on', stS.live);
+  $('stage-live-btn').textContent = stS.live ? '🚶 WALK AROUND' : '🎬 SHOT VIEW';
+});
+$('stage-walk-btn').addEventListener('click', () => stageSetMode('walk'));
+$('stage-move-btn').addEventListener('click', () => stageSetMode('move'));
+function stageSetMode(md) {
+  stS.mode = md;
+  $('stage-walk-btn').classList.toggle('on', md === 'walk');
+  $('stage-move-btn').classList.toggle('on', md === 'move');
+}
+{ // drag to walk around the diorama — or, in ✥ MOVE, to push things around in it
+  const v = $('stage-view'); let drag = null, moved = 0;
+  const camAxes = () => {                       // screen right / up, in world
+    const c = stS.live ? stageCamAt(stageMedia().scene, stS.t) : stageOrbitCam();
+    const f = SV.norm(SV.sub(c.at, c.eye));
+    const r = SV.norm(SV.cross(f, [0, 1, 0]));
+    return { r, u: SV.cross(r, f), f, dist: Math.hypot(...SV.sub(c.at, c.eye)) };
+  };
+  v.addEventListener('pointerdown', e => {
+    drag = { x: e.clientX, y: e.clientY }; moved = 0;
+    v.classList.add('drag');
+    try { v.setPointerCapture(e.pointerId); } catch (err) {}   // never throw on a stray pointer
+    if (stS.mode !== 'move') { stS.live = false;
+      $('stage-live-btn').textContent = '🎬 SHOT VIEW'; $('stage-live-btn').classList.remove('on'); }
+  });
+  v.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    moved += Math.abs(dx) + Math.abs(dy);
+    if (stS.mode === 'move') {
+      const o = stageSel();
+      if (o) { const a = camAxes(), k = a.dist * 0.0022;   // screen-space move, depth-aware
+        o.pos[0] += (a.r[0] * dx - a.u[0] * dy) * k;
+        o.pos[1] += (a.r[1] * dx - a.u[1] * dy) * k;
+        o.pos[2] += (a.r[2] * dx - a.u[2] * dy) * k;
+        stageTouch(); }
+    } else {
+      stS.orb.yaw -= dx * 0.006;
+      stS.orb.pitch = Math.max(-0.25, Math.min(1.35, stS.orb.pitch + dy * 0.004));
+    }
+    drag = { x: e.clientX, y: e.clientY };
+  });
+  const stop = e => {
+    if (drag && moved < 6) stagePick(e);          // a click, not a drag → pick something
+    drag = null; v.classList.remove('drag');
+  };
+  v.addEventListener('pointerup', stop); v.addEventListener('pointercancel', stop);
+  v.addEventListener('wheel', e => { e.preventDefault();
+    if (stS.mode === 'move') {
+      const o = stageSel(); if (!o) return;
+      const a = camAxes(), k = Math.sign(e.deltaY) * a.dist * 0.05;
+      o.pos[0] -= a.f[0] * k; o.pos[1] -= a.f[1] * k; o.pos[2] -= a.f[2] * k;
+      stageTouch(); return;
+    }
+    stS.orb.dist = Math.max(1.5, Math.min(220, stS.orb.dist * (1 + Math.sign(e.deltaY) * 0.09)));
+  }, { passive: false });
+  // pick by projecting every object's centre to the screen and taking the nearest.
+  // no raycast, no mesh maths — and for cards standing in a diorama it is enough.
+  function stagePick(e) {
+    const m = stageMedia(); if (!m) return;
+    const rect = v.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width * v.width;
+    const py = (e.clientY - rect.top) / rect.height * v.height;
+    const c = stS.live ? stageCamAt(m.scene, stS.t) : stageOrbitCam();
+    const VP = SM.mul(SM.persp(c.fov || 38, v.width / v.height, 0.1, 500), SM.look(c.eye, c.at, [0, 1, 0]));
+    let best = null, bestD = 1e9;
+    for (const o of (m.scene.objects || [])) {
+      if (o.kind === 'backdrop' || o.kind === 'floor') continue;
+      const p = o.pos, w = [VP[0]*p[0]+VP[4]*p[1]+VP[8]*p[2]+VP[12],
+                            VP[1]*p[0]+VP[5]*p[1]+VP[9]*p[2]+VP[13],
+                            VP[3]*p[0]+VP[7]*p[1]+VP[11]*p[2]+VP[15]];
+      if (w[2] <= 0.001) continue;
+      const sx = (w[0] / w[2] * 0.5 + 0.5) * v.width, sy = (-w[1] / w[2] * 0.5 + 0.5) * v.height;
+      const d = Math.hypot(sx - px, sy - py);
+      if (d < bestD) { bestD = d; best = o; }
+    }
+    if (best && bestD < 190) { stS.sel = best.oid; stageRenderPanel(); }
+  }
+}
 
 // ════════════════════════════════════════════════════════════
 // 📎 MY BLOCKS (v19) — shared code, once per movie
@@ -6644,14 +7548,18 @@ function drawVecShape(ctx, sh) {
 }
 
 // one composited frame — cached exactly like the raster flipbook
-function renderVecFrame(m, i) {
+function renderVecFrame(m, i, lens) {
   i = Math.max(0, Math.min(m.frameCount - 1, i));
   if (!m._cache) m._cache = new Map();
-  const hit = m._cache.get(i);
+  // 🎥 v22 — a vector clip is PROCEDURAL, so a push-in redraws it at native
+  // resolution instead of upscaling, exactly like a code clip. A lensed frame is
+  // never cached: the camera moves every frame and the cache would eat the heap.
+  const hit = lens ? null : m._cache.get(i);
   if (hit) return hit;
   const out = document.createElement('canvas');
   out.width = VF_W; out.height = VF_H;
   const ctx = out.getContext('2d');
+  if (lens) applyCam(ctx, VF_W / 2, VF_H / 2, VF_W, VF_H, lens, true);
   const cam = vecCamAt(m, i);
   for (const obj of m.objects) {          // index 0 = back, last = front
     if (!obj.shape) continue;             // a group is a transform with no picture
@@ -6675,7 +7583,7 @@ function renderVecFrame(m, i) {
     drawVecShape(ctx, obj.shape);
     ctx.restore();
   }
-  m._cache.set(i, out);
+  if (!lens) m._cache.set(i, out);
   const cap = touchDevice ? 24 : 120;   // shares RAM with the raster cache — stay modest
   if (m._cache.size > cap) m._cache.delete(m._cache.keys().next().value);
   return out;
@@ -7685,10 +8593,13 @@ async function exportFast() {
           img = renderFbFrame(m, studioFrameIndex(m, clip, srcT));
           sw = FB_W; sh = FB_H;
         } else if (m.kind === 'vector') {
-          img = renderVecFrame(m, studioFrameIndex(m, clip, srcT));
+          img = renderVecFrame(m, studioFrameIndex(m, clip, srcT), camAt(clip, srcT - clip.in));
           sw = VF_W; sh = VF_H;
+        } else if (m.kind === 'stage') {
+          img = renderStageFrame(m, srcT);                                // ⬡ v21
+          sw = img.width; sh = img.height;
         } else if (m.kind === 'code') {
-          img = renderCodeFrame(m, srcT);
+          img = renderCodeFrame(m, srcT, camAt(clip, srcT - clip.in));   // 🎥 v20
           sw = img.width; sh = img.height;
         } else {
           if (!readers.has(clip.tid)) {
@@ -7702,23 +8613,9 @@ async function exportFast() {
         }
         if (!img) continue;
 
-        exCtx.save();
-        exCtx.globalAlpha = clip.opacity;
-        exCtx.globalCompositeOperation = clip.blend || 'source-over';
-        const s = Math.min(res.w / sw, res.h / sh);
-        const dw = sw * s, dh = sh * s;
-        const dx = (res.w - dw) / 2, dy = (res.h - dh) / 2;
-        // 🎯 key first, ⚡ then fx — the SAME order and functions as the preview
-        if (clip.chroma && clip.chroma.on) {
-          img = chromaKeyed(img, sw, sh, Math.round(dw), Math.round(dh), clip.chroma);
-          sw = Math.round(dw); sh = Math.round(dh);
-        }
-        if (clip.fx && clip.fx.length) {
-          const fr = applyFxChain(img, sw, sh, clip, srcT, 8192);   // full res on export
-          img = fr.img; sw = fr.sw; sh = fr.sh;
-        }
-        exCtx.drawImage(img, 0, 0, sw, sh, dx, dy, dw, dh);
-        exCtx.restore();
+        // ⬡ v22 — the exporter calls the SAME painter as the preview. One copy.
+        paintClipPicture(exCtx, res.w, res.h, clip, srcT, img, sw, sh, true,
+                         m.kind === 'code' || m.kind === 'vector');
       }
       await videoSource.add(t, 1 / FPS);
       if (f % 15 === 0) {
@@ -8570,7 +9467,7 @@ $('project-name').addEventListener('change', () => {
 function buildProjectData() {
   sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 10,   // v10: 🧷 rig (parent/pivot/plane/squash) + 🎞 camera + 🔁 loop + 📎 blocks
+    app: 'geov', version: 12,   // v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
     blocks: projectBlocks || '',   // 📎 shared code every code clip can use
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
@@ -8584,6 +9481,7 @@ function buildProjectData() {
       fps: m.fps,
       thumbURL: m.thumbURL,
       code: m.kind === 'code' ? m.code : undefined,
+      scene: m.kind === 'stage' ? m.scene : undefined,   // ⬡ v21 diorama
       seed: m.kind === 'code' ? m.seed : undefined,
       objects: m.kind === 'vector' ? m.objects : undefined,
       camera: m.kind === 'vector' ? (m.camera || null) : undefined,   // 🎞 v19 multiplane
@@ -8931,6 +9829,13 @@ async function openProjectData(data) {
       if (md.kind === 'code') {
         item.code = md.code || CODE_TEMPLATES[0].code;
         item.seed = md.seed || 1;
+      }
+      if (md.kind === 'stage') {                          // ⬡ v21
+        item.scene = (md.scene && Array.isArray(md.scene.objects)) ? md.scene : newStageScene();
+        if (!item.scene.camera || !Array.isArray(item.scene.camera.keys) || !item.scene.camera.keys.length)
+          item.scene.camera = newStageScene().camera;
+        if (!item.scene.light) item.scene.light = newStageScene().light;
+        item.previewOK = true; item.missing = false;
       }
       if (md.kind === 'vector') {
         item.objects = (md.objects || []).map(o => migrateVecObject({ ...o, tracks: { ...(o.tracks || {}) } }));
