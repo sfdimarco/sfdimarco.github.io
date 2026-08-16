@@ -831,6 +831,9 @@
   .stp span:first-child { min-width: 74px; }
   .stp input[type=range] { flex: 1; }
   .stp .v { color: var(--cyan); font-weight: 700; min-width: 46px; text-align: right; font-variant-numeric: tabular-nums; }
+  .st-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+             width: 100%; margin: 4px 0 2px; padding-top: 4px;
+             border-top: 1px solid rgba(255,255,255,0.10); }
   .st-key { display: flex; align-items: center; gap: 3px; }
   .st-key select { font-family: inherit; font-size: 11px; }
   #stage-new-btn { border-color: var(--cyan) !important; color: var(--cyan) !important; }
@@ -1017,6 +1020,7 @@
     <option value="1080" selected>HD 1080p</option>
     <option value="720">720p (faster)</option>
   </select>
+  <button id="inspect-btn" title="⛶ look at your whole movie as ONE picture — every shot, and how much of it is standing still">⛶ INSPECT</button>
   <button id="export-btn">🎬 EXPORT</button>
 </div>
 
@@ -3061,8 +3065,13 @@ function stageSkin(o) {
   const m = media.find(x => x.id === o.skin);
   if (!m || m.missing) return stageColorTex(o.color||'#D8402C');
   const t = Math.max(0, (stageClock||0) + (o.tOffset||0));
+  // 🚶 object keys run on the STAGE clock; the skin runs on the global clock.
+  // Two clocks, on purpose — sample the motion on the one the keys live in.
+  const mo = stageObjMotion(o, stageClock || 0);
   try {
-    if (m.kind==='code')     return stageUpload(m.id+':c'+Math.floor(t*FPS), renderCodeFrame(m,t,null));
+    if (m.kind==='code')     return stageUpload(
+      m.id+':c'+Math.floor(t*FPS)+(mo.speed?':'+Math.round(mo.dist*24):''),
+      renderCodeFrame(m,t,null,mo));
     if (m.kind==='flipbook'||m.kind==='vector') {
       const n=Math.max(1,m.frameCount||1), i=Math.min(n-1,Math.max(0,Math.floor(t*(m.fps||12))));
       return stageUpload(m.id+':f'+i, m.kind==='flipbook'?renderFbFrame(m,i):renderVecFrame(m,i));
@@ -3084,6 +3093,114 @@ function newStageScene(){ return {
     {oid:2, kind:'floor',    pos:[0,0,-12], rot:[-Math.PI/2,0,0], scale:[120,120,1], color:'#7A6358', shadow:false},
     {oid:3, kind:'card',     pos:[0,4.2,-8], rot:[0,0,0], scale:[6,8.4,1], color:'#D8402C', billboard:true, shadow:true},
   ]};
+}
+// ════════════════════════════════════════════════════════════
+// ✥ OBJECT KEYFRAMES — things in the diorama can MOVE
+//
+// Until now the camera was the only thing in the stage that could move, so the stage
+// could only make camera reels. A SCENE is blocking, and blocking is position over
+// time. So an object gets the camera's own machinery: same key list, same seven feels,
+// same evaluator. A key is just what the five sliders already say —
+//   WHERE it stands (pos) · HOW BIG it is (size) · WHICH WAY it faces (turn).
+// Scale is carried as ONE number so a card can never be squashed by accident; the
+// drawing's aspect ratio is taken from the object and re-applied on the way out.
+// ════════════════════════════════════════════════════════════
+function stageAspect(o){ const s=(o&&o.scale)||[1,1,1]; return s[1] ? s[0]/s[1] : 1; }
+function stageBaseState(o){ return { pos:((o&&o.pos)||[0,0,0]).slice(),
+                                     size:((o&&o.scale)||[1,1,1])[1],
+                                     turn:((o&&o.rot)||[0,0,0])[1] }; }
+function stageAnimated(o){ return !!(o && Array.isArray(o.keys) && o.keys.length); }
+function stageObjEval(o, t){
+  if (!stageAnimated(o)) return stageBaseState(o);
+  const k=o.keys, base=stageBaseState(o);
+  const S=(x)=>({ pos:(x.pos||base.pos).slice(),
+                  size:(x.size==null?base.size:x.size),
+                  turn:(x.turn==null?base.turn:x.turn) });
+  if (k.length===1 || t<=k[0].t) return S(k[0]);
+  const last=k[k.length-1]; if (t>=last.t) return S(last);
+  let i=0; while(i<k.length-1 && k[i+1].t<=t) i++;
+  const a=S(k[i]), b=S(k[i+1]);
+  const u=Math.max(0,Math.min(1,(t-k[i].t)/Math.max(1e-6,k[i+1].t-k[i].t)));
+  const f=(CAM_FEELS[k[i+1].feel]||CAM_FEELS.smooth)(u), L=(p,q)=>p+(q-p)*f;
+  return { pos:[L(a.pos[0],b.pos[0]),L(a.pos[1],b.pos[1]),L(a.pos[2],b.pos[2])],
+           size:L(a.size,b.size), turn:L(a.turn,b.turn) };
+}
+// ── 🚶 v24 · HOW FAST IS THIS THING GOING? ────────────────────
+// A card slides across the stage and its drawing never knows, so every character
+// floats. Hand the drawing its own motion and a walk becomes possible — but only
+// if the step phase runs on DISTANCE, not time. Feet planted on a distance clock
+// cannot slide, at any speed, through any ease, for free.
+// The arc-length table is cached in a WeakMap, NOT on the object: anything stored
+// on o would be serialised straight into the kid's project file.
+const stageDistCache = new WeakMap();
+const STAGE_NO_MOTION = { dist: 0, speed: 0, vx: 0, vy: 0, vz: 0, face: 0, turning: 0 };
+function stageObjMotion(o, t) {
+  if (!stageAnimated(o)) return STAGE_NO_MOTION;
+  const k = o.keys, sig = k.length + ':' + k[0].t + ':' + k[k.length - 1].t + ':' + (k[1] ? k[1].pos[0] : 0);
+  let c = stageDistCache.get(o);
+  if (!c || c.sig !== sig) {
+    const t0 = k[0].t, t1 = Math.max(k[k.length - 1].t, t0 + 1e-3), N = 192;
+    const tab = new Float64Array(N + 1);
+    let d = 0, p = stageObjEval(o, t0).pos;
+    for (let i = 1; i <= N; i++) {
+      const q = stageObjEval(o, t0 + (t1 - t0) * i / N).pos;
+      d += Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]);
+      tab[i] = d; p = q;
+    }
+    c = { sig, tab, t0, t1, N }; stageDistCache.set(o, c);
+  }
+  const u = Math.max(0, Math.min(1, (t - c.t0) / (c.t1 - c.t0))) * c.N;
+  const i = Math.min(c.N - 1, Math.floor(u)), fr = u - i;
+  const dist = c.tab[i] + (c.tab[i + 1] - c.tab[i]) * fr;
+  const dt = 1 / FPS;
+  const a = stageObjEval(o, t - dt), b = stageObjEval(o, t + dt);
+  const vx = (b.pos[0] - a.pos[0]) / (2 * dt), vy = (b.pos[1] - a.pos[1]) / (2 * dt),
+        vz = (b.pos[2] - a.pos[2]) / (2 * dt);
+  return { dist, speed: Math.hypot(vx, vy, vz), vx, vy, vz,
+           face: Math.atan2(vx, vz), turning: (b.turn - a.turn) / (2 * dt) };
+}
+// render-ready: the same object, standing where it stands at time t.
+// An object with no keys is returned UNTOUCHED — zero cost, zero behaviour change.
+function stageObjAt(o, t){
+  if (!stageAnimated(o)) return o;
+  const s=stageObjEval(o,t), ar=stageAspect(o), r=(o.rot||[0,0,0]);
+  return Object.assign({}, o, { pos:s.pos, scale:[s.size*ar, s.size, 1],
+                                rot:[r[0], s.turn, r[2]] });
+}
+// upsert a key at time t, seeded from wherever the thing already is at time t.
+// (Seeding from the CURRENT value is what makes "scrub, then move it" behave.)
+function stageKeyAt(o, t){
+  if (!Array.isArray(o.keys)) o.keys=[];
+  let k=o.keys.find(x=>Math.abs(x.t-t) < 0.5/FPS);
+  if (!k){ const s=stageObjEval(o,t);
+    k={ t:t, pos:s.pos, size:s.size, turn:s.turn, feel:'smooth' };
+    o.keys.push(k); o.keys.sort((a,b)=>a.t-b.t); }
+  return k;
+}
+// one move, written to the right place: a key when the thing is animated, the
+// object itself when it is not. Both the drag and the wheel go through here.
+function stageMoveBy(o, dx, dy, dz){
+  const p = stageAnimated(o) ? stageKeyAt(o, stS.t).pos : o.pos;
+  p[0]+=dx; p[1]+=dy; p[2]+=dz;
+}
+// a bad key must never take the whole scene down with it
+function stageFixKeys(scene){
+  let fixed=0;
+  for (const o of ((scene&&scene.objects)||[])){
+    if (!o || !Array.isArray(o.keys)) continue;
+    const before=o.keys.length;
+    o.keys=o.keys.filter(k=>k && Number.isFinite(k.t) && Array.isArray(k.pos)
+                            && k.pos.length===3 && k.pos.every(Number.isFinite));
+    for (const k of o.keys){
+      if (!Number.isFinite(k.size)) k.size=stageBaseState(o).size;
+      if (!Number.isFinite(k.turn)) k.turn=0;
+      if (!CAM_FEELS[k.feel]) k.feel='smooth';
+    }
+    o.keys.sort((a,b)=>a.t-b.t);
+    if (o.keys.length!==before) fixed++;
+    if (!o.keys.length) delete o.keys;
+  }
+  return fixed;
 }
 function stageCamAt(scene, t){
   const k=(scene.camera&&scene.camera.keys)||[];
@@ -3138,13 +3255,17 @@ function renderStageFrame(m, srcT, camOverride){
   };
   // 🔄 turnaround: a card may carry extra skins, chosen by which side the camera is on.
   // Three drawings on one card is what buys back the rotation budget.
-  for (const o of (scene.objects||[])) {
+  // ✥ EVERY OBJECT IS SAMPLED AT THE CLOCK FIRST. This one line is the difference
+  // between a camera reel and a scene: from here down, o.pos is where the thing IS
+  // at time t, so turnaround, cast shadows and the far→near sort all follow it.
+  const objs=(scene.objects||[]).filter(o=>o&&Array.isArray(o.pos))
+                                .map(o=>stageObjAt(o,stageClock));
+  for (const o of objs) {
     if (!o || !Array.isArray(o.turn) || !o.turn.length) continue;
     const d=SV.sub(cam.eye,o.pos), a=Math.atan2(d[0],d[2])-(o.rot?o.rot[1]:0);
     const n=o.turn.length+1, k=Math.round(((a/(Math.PI*2)%1+1)%1)*n)%n;
     o.skin = k===0 ? o.turn0 : o.turn[k-1];
   }
-  const objs=(scene.objects||[]).filter(o=>o&&Array.isArray(o.pos));
   // draw order is EXPLICIT, not distance-sorted: backdrop → floor → shadows → cards.
   // (sorting alone lets a near floor paint over the shadows cast onto it — it did.)
   for(const o of objs) if(o.kind==='backdrop') draw(o,modelOf(o),false);
@@ -3245,12 +3366,18 @@ function stageRenderPanel(){
     sel.value=o.skin!=null?String(o.skin):'';
     sel.onchange=()=>{ snapshot(); o.skin=sel.value?parseInt(sel.value):null; stageRenderPanel(); stageTouch(); };
     row('🖼 SKIN',sel);
+    // ✥ when a thing is animated the sliders stop editing the object and start
+    // editing its key at the time you are parked on. Move it at 0s, scrub to 2s,
+    // move it again — that is a walk, and no new idea had to be learned.
+    const anim=stageAnimated(o), K=()=>stageKeyAt(o, stS.t), E=()=>stageObjEval(o, stS.t);
     for(const [label,get,set,min,max,step] of [
-      ['↔ X', ()=>o.pos[0], v=>o.pos[0]=v, -60,60,0.1],
-      ['↕ Y', ()=>o.pos[1], v=>o.pos[1]=v, -10,60,0.1],
-      ['⇕ DEPTH', ()=>o.pos[2], v=>o.pos[2]=v, -120,20,0.2],
-      ['SIZE', ()=>o.scale[1], v=>{const r=o.scale[0]/o.scale[1];o.scale[1]=v;o.scale[0]=v*r;}, 0.5,300,0.1],
-      ['TURN', ()=>o.rot[1]*57.3, v=>o.rot[1]=v/57.3, -180,180,1]]){
+      ['↔ X', ()=>anim?E().pos[0]:o.pos[0], v=>{ if(anim) K().pos[0]=v; else o.pos[0]=v; }, -60,60,0.1],
+      ['↕ Y', ()=>anim?E().pos[1]:o.pos[1], v=>{ if(anim) K().pos[1]=v; else o.pos[1]=v; }, -10,60,0.1],
+      ['⇕ DEPTH', ()=>anim?E().pos[2]:o.pos[2], v=>{ if(anim) K().pos[2]=v; else o.pos[2]=v; }, -120,20,0.2],
+      ['SIZE', ()=>anim?E().size:o.scale[1],
+        v=>{ if(anim) K().size=v; else {const r=o.scale[0]/o.scale[1];o.scale[1]=v;o.scale[0]=v*r;} }, 0.5,300,0.1],
+      ['TURN', ()=>(anim?E().turn:o.rot[1])*57.3,
+        v=>{ if(anim) K().turn=v/57.3; else o.rot[1]=v/57.3; }, -180,180,1]]){
       const i=document.createElement('input'); i.type='range'; i.min=min;i.max=max;i.step=step; i.value=get();
       const v=document.createElement('span'); v.className='v'; v.textContent=(+get()).toFixed(1);
       let started=false;
@@ -3263,6 +3390,44 @@ function stageRenderPanel(){
       b.textContent=label; b.onclick=()=>{ snapshot(); o[key]=!(o[key]??def); stageRenderPanel(); stageTouch(); };
       box.appendChild(b);
     }
+    // ── ✥ MOVES — the keys that make this thing act instead of stand there ──
+    const kb=document.createElement('div'); kb.className='st-keys';
+    if(!anim){
+      const b=document.createElement('button'); b.className='st-obj add';
+      b.textContent='✥ MAKE THIS MOVE';
+      b.title='writes down where it is right now. then scrub the time and move it again — it walks.';
+      b.onclick=()=>{ snapshot(); o.keys=[Object.assign({t:0,feel:'smooth'},stageBaseState(o))];
+        stageRenderPanel(); stageTouch(); };
+      kb.appendChild(b);
+    } else {
+      const l=document.createElement('span'); l.className='lbl'; l.textContent='✥ MOVES:';
+      kb.appendChild(l);
+      const sk=document.createElement('button'); sk.className='st-obj add';
+      sk.textContent='✥ KEY AT '+stS.t.toFixed(2)+'s';
+      sk.title='puts where it stands right now into the scene at this moment';
+      sk.onclick=()=>{ snapshot(); stageKeyAt(o, stS.t); stageRenderPanel(); stageTouch(); };
+      kb.appendChild(sk);
+      o.keys.forEach((k,i)=>{
+        const chip=document.createElement('div'); chip.className='st-key';
+        const go=document.createElement('button'); go.className='st-obj';
+        go.textContent='✥ '+k.t.toFixed(2)+'s';
+        go.onclick=()=>{ stS.t=k.t; $('stage-time').value=k.t; stageRenderPanel(); };
+        chip.appendChild(go);
+        if(i>0){ const fs=document.createElement('select');
+          for(const f in CAM_FEELS){ const op=document.createElement('option');
+            op.value=f; op.textContent=f; fs.appendChild(op); }
+          fs.value=k.feel||'smooth';
+          fs.title='how it gets there — the same seven words the camera uses';
+          fs.onchange=()=>{ snapshot(); k.feel=fs.value; stageTouch(); };
+          chip.appendChild(fs); }
+        const x=document.createElement('button'); x.className='st-obj danger'; x.textContent='✖';
+        x.onclick=()=>{ snapshot(); o.keys.splice(i,1);
+          if(!o.keys.length) delete o.keys;
+          stageRenderPanel(); stageTouch(); };
+        chip.appendChild(x); kb.appendChild(chip);
+      });
+    }
+    box.appendChild(kb);
     if(o.kind==='card'){
       const d=document.createElement('button'); d.className='st-obj draw';
       d.textContent='✏️ DRAW ON THIS CARD';
@@ -3822,7 +3987,9 @@ function renderTimeline() {
     if (clip.group) fx.push('🔗');
     if (!audioRole && hasCam(clip)) fx.push(camKeys(clip).length > 1 ? '🎥▸' : '🎥');
     const badge = audioRole ? '🎵' : (m && m.kind === 'flipbook' ? '🎨' : m && m.kind === 'vector' ? '📐'
-      : m && m.kind === 'code' ? '✨' : m && m.kind === 'stage' ? '⬡' : clip.track + 1);
+      : m && m.kind === 'code' ? '✨'
+      : m && m.kind === 'stage' ? (((m.scene && m.scene.objects) || []).some(stageAnimated) ? '⬡✥' : '⬡')
+      : clip.track + 1);
     el.innerHTML = `
       <div class="clip-badges">
         <span class="clip-badge" style="background:${color}">${badge}</span>
@@ -6360,7 +6527,8 @@ function ensureCodeInstance(m) {
   // the words a 9-year-old reaches for. Say so, instead of drawing a blank card.
   {
     const RESERVED = ['pop','push','fill','text','line','stroke','scale','rotate','translate',
-                      'color','image','point','arc','box','shear','filter','noise','random','map'];
+                      'color','image','point','arc','box','shear','filter','noise','random','map',
+                      'walk'];   // 🚶 v24 — the engine hands every clip a `walk`
     const decl = /(?:^|\n)\s*(?:let|const|var|function)\s+([A-Za-z_$][\w$]*)/g;
     const hits = new Set(); let mm;
     while ((mm = decl.exec(m.code || '')) !== null) if (RESERVED.includes(mm[1])) hits.add(mm[1]);
@@ -6450,10 +6618,13 @@ function codeErrorCard(m) {
 }
 
 // one redraw at exactly time t — same math in preview, scrub and export
-function renderCodeFrame(m, srcT, cam) {
+function renderCodeFrame(m, srcT, cam, motion) {
   const inst = ensureCodeInstance(m);
   if (!inst) return codeErrorCard(m);
   const f = Math.max(0, Math.floor(srcT * FPS));
+  // 🚶 `walk` is always defined, so a clip can ask "am I moving?" anywhere.
+  // On a card with ✥ keys it is real; everywhere else it is zero.
+  inst.walk = motion || STAGE_NO_MOTION;
   inst.__cam = cam || null;
   inst.cam = cam ? { x: cam.x, y: cam.y, z: cam.z, r: cam.r } : { x: 0, y: 0, z: 1, r: 0 };
   try {
@@ -6784,6 +6955,7 @@ $('stage-live-btn').addEventListener('click', () => {
   $('stage-live-btn').classList.toggle('on', stS.live);
   $('stage-live-btn').textContent = stS.live ? '🚶 WALK AROUND' : '🎬 SHOT VIEW';
 });
+$('inspect-btn').addEventListener('click', () => runInspect());
 $('stage-walk-btn').addEventListener('click', () => stageSetMode('walk'));
 $('stage-move-btn').addEventListener('click', () => stageSetMode('move'));
 function stageSetMode(md) {
@@ -6813,9 +6985,9 @@ function stageSetMode(md) {
     if (stS.mode === 'move') {
       const o = stageSel();
       if (o) { const a = camAxes(), k = a.dist * 0.0022;   // screen-space move, depth-aware
-        o.pos[0] += (a.r[0] * dx - a.u[0] * dy) * k;
-        o.pos[1] += (a.r[1] * dx - a.u[1] * dy) * k;
-        o.pos[2] += (a.r[2] * dx - a.u[2] * dy) * k;
+        stageMoveBy(o, (a.r[0] * dx - a.u[0] * dy) * k,     // ✥ if it is animated this
+                       (a.r[1] * dx - a.u[1] * dy) * k,     //    lands on a key at stS.t
+                       (a.r[2] * dx - a.u[2] * dy) * k);
         stageTouch(); }
     } else {
       stS.orb.yaw -= dx * 0.006;
@@ -6832,7 +7004,7 @@ function stageSetMode(md) {
     if (stS.mode === 'move') {
       const o = stageSel(); if (!o) return;
       const a = camAxes(), k = Math.sign(e.deltaY) * a.dist * 0.05;
-      o.pos[0] -= a.f[0] * k; o.pos[1] -= a.f[1] * k; o.pos[2] -= a.f[2] * k;
+      stageMoveBy(o, -a.f[0] * k, -a.f[1] * k, -a.f[2] * k);
       stageTouch(); return;
     }
     stS.orb.dist = Math.max(1.5, Math.min(220, stS.orb.dist * (1 + Math.sign(e.deltaY) * 0.09)));
@@ -6849,7 +7021,7 @@ function stageSetMode(md) {
     let best = null, bestD = 1e9;
     for (const o of (m.scene.objects || [])) {
       if (o.kind === 'backdrop' || o.kind === 'floor') continue;
-      const p = o.pos, w = [VP[0]*p[0]+VP[4]*p[1]+VP[8]*p[2]+VP[12],
+      const p = stageObjAt(o, stS.t).pos, w = [VP[0]*p[0]+VP[4]*p[1]+VP[8]*p[2]+VP[12],
                             VP[1]*p[0]+VP[5]*p[1]+VP[9]*p[2]+VP[13],
                             VP[3]*p[0]+VP[7]*p[1]+VP[11]*p[2]+VP[15]];
       if (w[2] <= 0.001) continue;
@@ -6862,6 +7034,91 @@ function stageSetMode(md) {
 }
 
 // ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// ⛶ INSPECT — your whole movie as ONE picture
+//
+// You cannot watch a season. You can read one image. This is the third lever from
+// the Spark test and the last one to get built: a contact sheet of every shot, a
+// strip of each shot across its own length, and the one number that matters —
+// how much of your film is STANDING STILL.
+// It caught a 93%-held title card on THE BLANK RECTANGLE in a single look.
+// ════════════════════════════════════════════════════════════
+const INSPECT_HELD = 0.45;      // below this, a frame is the previous frame again
+async function runInspect() {
+  if (!timeline.length) { toast('⛶ put some clips on the timeline first'); return; }
+  if (playing) stopPlayback();
+  const vis = timeline.filter(c => { const m = media.find(x => x.id === c.mediaId);
+                                     return m && m.kind !== 'audio'; })
+                      .sort((a, b) => a.start - b.start);
+  if (!vis.length) { toast('⛶ nothing to look at yet'); return; }
+  toast('⛶ INSPECT — reading your movie…');
+  const TW = 240, TH = 135, STRIP = 10;
+  const cols = Math.min(5, vis.length);
+  const rows = Math.ceil(vis.length / cols);
+  const cv = document.createElement('canvas');
+  cv.width = TW * cols; cv.height = 40 + rows * (TH + 42) + 66;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#14131a'; g.fillRect(0, 0, cv.width, cv.height);
+  g.fillStyle = '#FFE278'; g.font = 'bold 17px ui-monospace,monospace';
+  g.fillText('⛶ INSPECT — ' + ($('project-name').value || 'my movie'), 10, 24);
+
+  const tmp = document.createElement('canvas'); tmp.width = TW; tmp.height = TH;
+  const tg = tmp.getContext('2d');
+  const grab = (c, lt) => { tg.fillStyle = '#000'; tg.fillRect(0, 0, TW, TH);
+    drawClipLayer(tg, TW, TH, c, c.in + lt, false);
+    return tg.getImageData(0, 0, TW, TH).data; };
+  const lum = (d) => { const o = new Float64Array(TW * TH / 64 | 0); let k = 0;
+    for (let y = 0; y < TH; y += 8) for (let x = 0; x < TW; x += 8) {
+      const i = (y * TW + x) * 4; o[k++] = (d[i] * 0.3 + d[i + 1] * 0.6 + d[i + 2] * 0.1); }
+    return o; };
+  const held = [], lens = [];
+  for (let s = 0; s < vis.length; s++) {
+    const c = vis[s], len = clipDur(c);
+    lens.push(len);
+    const N = Math.max(4, Math.min(30, Math.round(len * 4)));
+    let prev = null, dead = 0;
+    for (let i = 0; i < N; i++) {
+      const px = lum(grab(c, len * i / N));
+      if (prev) { let d = 0; for (let k = 0; k < px.length; k++) d += Math.abs(px[k] - prev[k]);
+                  if (d / px.length < INSPECT_HELD * 3) dead++; }
+      prev = px;
+      if (i === Math.floor(N / 2)) {                       // the sheet frame
+        const x = (s % cols) * TW, y = 40 + Math.floor(s / cols) * (TH + 42);
+        g.drawImage(tmp, x, y);
+      }
+      { const x = (s % cols) * TW, y = 40 + Math.floor(s / cols) * (TH + 42) + TH + 2;
+        g.drawImage(tmp, x + Math.floor(i * TW / N), y, Math.ceil(TW / N), STRIP); }
+      await new Promise(r => setTimeout(r, 0));            // never lock the iPad up
+    }
+    const h = dead / Math.max(1, N - 1) * 100;
+    held.push(h);
+    const m = media.find(x => x.id === c.mediaId);
+    const x = (s % cols) * TW, y = 40 + Math.floor(s / cols) * (TH + 42) + TH + STRIP + 4;
+    g.fillStyle = h > 25 ? '#3A1418' : '#181C20'; g.fillRect(x, y, TW - 1, 22);
+    g.fillStyle = h > 25 ? '#FF8080' : '#A8C8B4'; g.font = '12px ui-monospace,monospace';
+    g.fillText((s + 1) + ' ' + (m ? m.name : '?').slice(0, 17) + '  ' + len.toFixed(1) + 's', x + 4, y + 10);
+    g.fillText(h > 25 ? '⚠ standing still ' + h.toFixed(0) + '%' : 'moving · still ' + h.toFixed(0) + '%',
+               x + 4, y + 20);
+  }
+  const total = lens.reduce((a, b) => a + b, 0);
+  const avg = held.reduce((a, b) => a + b, 0) / held.length;
+  const y = cv.height - 60;
+  g.fillStyle = '#1C1C26'; g.fillRect(0, y, cv.width, 60);
+  g.font = 'bold 15px ui-monospace,monospace';
+  g.fillStyle = avg < 12 ? '#78F0B4' : '#FF9078';
+  g.fillText(vis.length + ' shots · ' + total.toFixed(1) + 's · shortest ' + Math.min(...lens).toFixed(1)
+             + 's longest ' + Math.max(...lens).toFixed(1) + 's · STANDING STILL ' + avg.toFixed(0) + '%', 10, y + 22);
+  g.font = '13px ui-monospace,monospace'; g.fillStyle = '#9A9AAE';
+  g.fillText('a shot that stands still is dead air. give it a move, or cut it shorter.', 10, y + 42);
+
+  const w = window.open('', '_blank');
+  if (w) { w.document.write('<title>⛶ INSPECT</title><body style="margin:0;background:#14131a">' +
+            '<img style="width:100%" src="' + cv.toDataURL('image/jpeg', 0.9) + '">'); w.document.close(); }
+  else { const a = document.createElement('a'); a.download = 'INSPECT.jpg';
+         a.href = cv.toDataURL('image/jpeg', 0.9); a.click(); }
+  toast('⛶ ' + vis.length + ' shots · ' + avg.toFixed(0) + '% of your movie is standing still');
+}
+
 // 📎 MY BLOCKS (v19) — shared code, once per movie
 //
 // Building GEOV-101 inside v18 made this unmissable: all 16 shots carried a full copy of
@@ -9467,7 +9724,7 @@ $('project-name').addEventListener('change', () => {
 function buildProjectData() {
   sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 12,   // v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
+    app: 'geov', version: 14,   // v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
     blocks: projectBlocks || '',   // 📎 shared code every code clip can use
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
@@ -9835,6 +10092,7 @@ async function openProjectData(data) {
         if (!item.scene.camera || !Array.isArray(item.scene.camera.keys) || !item.scene.camera.keys.length)
           item.scene.camera = newStageScene().camera;
         if (!item.scene.light) item.scene.light = newStageScene().light;
+        stageFixKeys(item.scene);                         // ✥ v23
         item.previewOK = true; item.missing = false;
       }
       if (md.kind === 'vector') {
