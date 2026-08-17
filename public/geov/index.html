@@ -291,15 +291,21 @@
      became a block sitting in its lane, the name was unreadable underneath it.
      Every NLE solves this the same way: a fixed header column, a lane area that
      scrolls. So does this. */
-  .tb-body { display: flex; min-height: 0; }
-  .tb-heads { flex: 0 0 132px; background: var(--panel); z-index: 9;
-              border-right: 1px solid var(--border); overflow: hidden; }
+  /* ⚠ ONE scroller for the whole body, with the header column STICKY-LEFT.
+     Two independent scrollers desync the moment there are more tracks than fit:
+     the lanes scroll, the labels do not, and every name then points at the wrong
+     track. (Measured: 12 objects = 201px of drift.) Do not split these again. */
+  .tb-body { display: flex; min-height: 0; overflow: auto; max-height: 240px; }
+  .tb-heads { flex: 0 0 132px; background: var(--panel);
+              position: sticky; left: 0; z-index: 9;
+              border-right: 1px solid var(--border); }
   .tb-hcell { height: var(--rowh, 30px); display: flex; align-items: center; gap: 6px;
               padding: 0 9px; font-size: 10px; color: #9EA0B8; letter-spacing: 0.6px;
               font-weight: 700; white-space: nowrap; overflow: hidden;
               text-overflow: ellipsis; cursor: pointer;
               border-bottom: 1px dashed rgba(72,72,104,0.85); }
   .tb-hcell.ruler { height: 31px; background: #16161f; cursor: default;
+                    position: sticky; top: 0; z-index: 11;
                     border-bottom: 1px solid var(--border); color: #6E7090; }
   .tb-hcell:hover { background: rgba(255,255,255,0.06); }
   .tb-hcell.on { background: rgba(0,229,255,0.14); color: var(--cyan); }
@@ -319,7 +325,7 @@
              background: repeating-linear-gradient(90deg, var(--cyan) 0 2px, transparent 2px 4px);
              opacity: 0.7; }
   .tb-mblk:hover .grip { opacity: 1; }
-  .tb-scroll { overflow-x: auto; overflow-y: auto; position: relative; max-height: 210px; flex: 1; }
+  .tb-scroll { position: relative; flex: 0 0 auto; }   /* the body scrolls, not this */
   .tb-inner { position: relative; }
   .tb-ruler { display: block; position: sticky; top: 0; z-index: 6;
               background: #16161f; border-bottom: 1px solid var(--border); cursor: pointer; }
@@ -978,9 +984,7 @@
                 background: #101014; border-radius: 10px; cursor: grab; touch-action: none; }
   #stage-timebar { flex: 0 0 250px; min-height: 130px; overflow: hidden; display: flex; }
   #stage-timebar .tb { height: 100%; flex: 1; min-width: 0; overflow: hidden; }
-  #stage-timebar .tb-body { flex: 1; min-height: 0; }
-  #stage-timebar .tb-scroll { max-height: none; }
-  #stage-timebar .tb-heads { overflow-y: hidden; }
+  #stage-timebar .tb-body { flex: 1; min-height: 0; max-height: none; }
   #stage-view.drag { cursor: grabbing; }
   #stage-right { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-width: 260px; }
   #stage-objs, #stage-props, #stage-light, #stage-cam { display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
@@ -3618,9 +3622,16 @@ function stageRenderPanel(){
   // could not see WHEN anything happened or how two things lined up. A scene is
   // several things moving at once; that needs a timeline, not a list.
   const SDUR = Math.max(1, +m.duration || 6);
-  // a keyed thing's block spans first key → last key. An unkeyed thing just
-  // stands there for the whole scene, so its block fills the bar and locks.
-  const spanOf = (keys) => (keys && keys.length)
+  // A keyed thing's block spans first key -> last key. Anything WITHOUT a real
+  // duration fills the bar and locks instead.
+  // ⚠ ONE key is not a duration. Without this, pressing "MAKE THIS MOVE" (which
+  // writes a single key at 0s) made the object's full-width block collapse to a
+  // 14px stub — the kid asks a thing to move and it visibly shrinks to nothing.
+  // The camera did the same on every fresh scene. A thing earns a draggable clip
+  // only once it has two moments to sit between.
+  const spanned = (keys) => keys && keys.length > 1 &&
+    (Math.max(...keys.map(k => k.t)) - Math.min(...keys.map(k => k.t))) >= 1 / FPS;
+  const spanOf = (keys) => spanned(keys)
     ? [Math.min(...keys.map(k => k.t)), Math.max(...keys.map(k => k.t))] : [0, SDUR];
   renderTimebar($('stage-timebar'), {
     id: 'stage', dur: SDUR, fps: FPS, t: stS.t,
@@ -3629,6 +3640,7 @@ function stageRenderPanel(){
                        stageRenderPanel(); stageTouch(); refresh(); },
     rows: [{ label: '🎬 CAMERA', kind: 'cam', color: BLK_COLOR.cam, on: stS.sel == null,
              span: spanOf(sc.camera.keys), keyed: !!(sc.camera.keys || []).length,
+             trim: spanned(sc.camera.keys),
              keys: (sc.camera.keys || []).map(k => ({ t: k.t, feel: k.feel })) }]
       .concat(objs.filter(o => o.kind === 'card' || o.kind === 'floor' || o.kind === 'backdrop')
         .slice().sort((a, b) => ((b.keys || []).length ? 1 : 0) - ((a.keys || []).length ? 1 : 0))
@@ -3637,6 +3649,7 @@ function stageRenderPanel(){
           return { label: ((o.keys || []).length ? '✥ ' : '') +
                           (BLK_BADGE[o.kind] || '⬡') + ' ' + (sk ? sk.name : o.kind),
                    oid: o.oid, on: o.oid === stS.sel, keyed: !!(o.keys || []).length,
+                   trim: spanned(o.keys),
                    color: BLK_COLOR[o.kind], span: spanOf(o.keys),
                    keys: (o.keys || []).map(k => ({ t: k.t, feel: k.feel })) };
         })),
@@ -7513,12 +7526,13 @@ function renderTimebar(host, spec) {
     // block you can see but not drag — there is no timing to change. ──
     if (row.span) {
       const lane = document.createElement('div');
-      lane.className = 'blk tb-lane' + (row.on ? ' selected' : '') + (keyed ? '' : ' locked');
+      const trim = row.trim !== undefined ? row.trim : !!keyed;
+      lane.className = 'blk tb-lane' + (row.on ? ' selected' : '') + (trim ? '' : ' locked');
       lane.style.color = row.color || 'var(--muted)';
       lane.style.left = (row.span[0] * pps) + 'px';
       lane.style.width = Math.max(14, (row.span[1] - row.span[0]) * pps) + 'px';
       lane.innerHTML = '<div class="cap"></div>';
-      if (keyed && spec.onSpan) {
+      if (trim && spec.onSpan) {
         // ⚠ The trim handles are ROW children, not lane children. Inside the lane
         // they lose to the key diamonds (the last key sits exactly on the right
         // handle) and .blk's overflow:hidden clips them. Out here they sit above
@@ -7601,10 +7615,13 @@ function renderTimebar(host, spec) {
   inner.appendChild(head);
 
   scroll.appendChild(inner); body.appendChild(scroll); host.appendChild(body);
-  // keep the playhead in view while scrubbing — nothing worse than losing it
+  // keep the playhead in view while scrubbing — nothing worse than losing it.
+  // The lane area starts after the sticky header column, so shift by its width.
+  const HEADW = heads.offsetWidth || 132;
   const hx = (spec.t || 0) * pps;
-  if (hx < scroll.scrollLeft + 40 || hx > scroll.scrollLeft + scroll.clientWidth - 40)
-    scroll.scrollLeft = Math.max(0, hx - scroll.clientWidth * 0.5);
+  const view = Math.max(80, body.clientWidth - HEADW);
+  if (hx < body.scrollLeft + 40 || hx > body.scrollLeft + view - 40)
+    body.scrollLeft = Math.max(0, hx - view * 0.5);
   return host;
 }
 
