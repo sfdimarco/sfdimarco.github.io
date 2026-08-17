@@ -127,10 +127,10 @@
   /* v17: GRID of fixed-size cards — cards can NEVER squish (the old flex column
      let cards shrink to slivers once ~9 clips overflowed the panel) */
   #bin-list { flex: 1; overflow-y: auto; padding: 10px 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); grid-auto-rows: max-content; gap: 10px; align-content: start; }
-  /* 🎞 A CLIP IN THE BIN IS THE SAME BRICK as everywhere else — it is just a big
-     one with a picture in it. It used to carry a left stripe coloured by KIND;
-     that channel now belongs to the spine (WHICH one), and kind moved to the
-     brick's border and cap like every other block in the app. */
+  /* 🎞 A CLIP IN THE BIN IS THE SAME BRICK as everywhere else — just a big one
+     with a picture in it. It used to carry a left stripe coloured by KIND; that
+     channel now belongs to the spine (WHICH one), and kind moved to the brick's
+     border and cap like every other block in the app. */
   .bin-card {
     background: var(--card); border-radius: 10px; overflow: hidden;
     cursor: pointer; position: relative; align-self: start;
@@ -3183,8 +3183,12 @@ const SM = {
     const r=[cy*cz+sy*sx*sz,cx*sz,-sy*cz+cy*sx*sz, -cy*sz+sy*sx*cz,cx*cz,sy*sz+cy*sx*cz, sy*cx,-sx,cy*cx];
     return [r[0]*s[0],r[1]*s[0],r[2]*s[0],0, r[3]*s[1],r[4]*s[1],r[5]*s[1],0,
             r[6]*s[2],r[7]*s[2],r[8]*s[2],0, p[0],p[1],p[2],1];},
-  shadow:(L)=>{const d=[-L[0],-L[1],-L[2]];
-    return [1,0,0,0, -d[0]/d[1],0,-d[2]/d[1],0, 0,0,1,0, 0,0,0,1];},
+  // 🌑 project onto the plane y = g, not always y = 0. A diorama's ground is
+  // wherever the drawings put their feet, and THE POOL OF DESTINY put it at 3.0 —
+  // so every shadow landed three units under the set, behind the grass and under
+  // the water, and blinked in and out as the camera moved. That was the "flicker".
+  shadow:(L,g)=>{const d=[-L[0],-L[1],-L[2]], gy=g||0, k=gy/d[1];
+    return [1,0,0,0, -d[0]/d[1],0,-d[2]/d[1],0, 0,0,1,0, k*d[0],gy,k*d[2],1];},
 };
 const STAGE_VS = `#version 300 es
 in vec3 aPos; in vec2 aUV; in vec3 aNrm;
@@ -3484,7 +3488,7 @@ function renderStageFrame(m, srcT, camOverride){
   // (sorting alone lets a near floor paint over the shadows cast onto it — it did.)
   for(const o of objs) if(o.kind==='backdrop') draw(o,modelOf(o),false);
   for(const o of objs) if(o.kind==='floor')    draw(o,modelOf(o),false);
-  const Sh=SM.shadow(L.dir);
+  const Sh=SM.shadow(L.dir, scene.groundY||0);   // 🌑 the ground is where the feet are
   gl.depthMask(false);
   for(const o of objs){ if(o.shadow===false||o.kind==='floor'||o.kind==='backdrop') continue;
     draw(o, SM.mul(Sh, modelOf(o)), true); }
@@ -3560,13 +3564,11 @@ function stageRenderPanel(){
     const b=makeListBlock(o.kind, stageObjName(o), n?['✥'+n]:[], o.oid);
     if(o.oid===stS.sel) b.classList.add('selected');
     // re-selecting the row you are already on must NOT rebuild the tower: the
-    // rebuild replaces the label node between the two clicks of a double-click,
-    // so renaming a selected row would never fire.
+    // rebuild replaces the label node between the two clicks of a double-click.
     b.onclick=()=>{ if(stS.sel===o.oid) return; stS.sel=o.oid; stageRenderPanel(); };
     // 🏷 DOUBLE-click the name to rename. ⚠ Single-click must NOT do this: the
-    // label is flex:1, so it fills most of the row — a single-click handler here
-    // means clicking the middle of a row gives you a text cursor instead of
-    // selecting the object. Caught by test-flying the tower, not by reading it.
+    // label is flex:1 and fills most of the row, so a single-click handler means
+    // clicking the middle of a row gives a text cursor instead of selecting.
     const lab=b.querySelector('.clip-label');
     lab.title='double-click the name to rename this one';
     lab.ondblclick=(e)=>{
