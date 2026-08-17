@@ -3179,8 +3179,12 @@ const SM = {
     const r=[cy*cz+sy*sx*sz,cx*sz,-sy*cz+cy*sx*sz, -cy*sz+sy*sx*cz,cx*cz,sy*sz+cy*sx*cz, sy*cx,-sx,cy*cx];
     return [r[0]*s[0],r[1]*s[0],r[2]*s[0],0, r[3]*s[1],r[4]*s[1],r[5]*s[1],0,
             r[6]*s[2],r[7]*s[2],r[8]*s[2],0, p[0],p[1],p[2],1];},
-  shadow:(L)=>{const d=[-L[0],-L[1],-L[2]];
-    return [1,0,0,0, -d[0]/d[1],0,-d[2]/d[1],0, 0,0,1,0, 0,0,0,1];},
+  // 🌑 project onto the plane y = g, not always y = 0. A diorama's ground is
+  // wherever the drawings put their feet, and THE POOL OF DESTINY put it at 3.0 —
+  // so every shadow landed three units under the set, behind the grass and under
+  // the water, and blinked in and out as the camera moved. That was the "flicker".
+  shadow:(L,g)=>{const d=[-L[0],-L[1],-L[2]], gy=g||0, k=gy/d[1];
+    return [1,0,0,0, -d[0]/d[1],0,-d[2]/d[1],0, 0,0,1,0, k*d[0],gy,k*d[2],1];},
 };
 const STAGE_VS = `#version 300 es
 in vec3 aPos; in vec2 aUV; in vec3 aNrm;
@@ -3480,7 +3484,7 @@ function renderStageFrame(m, srcT, camOverride){
   // (sorting alone lets a near floor paint over the shadows cast onto it — it did.)
   for(const o of objs) if(o.kind==='backdrop') draw(o,modelOf(o),false);
   for(const o of objs) if(o.kind==='floor')    draw(o,modelOf(o),false);
-  const Sh=SM.shadow(L.dir);
+  const Sh=SM.shadow(L.dir, scene.groundY||0);   // 🌑 the ground is where the feet are
   gl.depthMask(false);
   for(const o of objs){ if(o.shadow===false||o.kind==='floor'||o.kind==='backdrop') continue;
     draw(o, SM.mul(Sh, modelOf(o)), true); }
