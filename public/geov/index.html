@@ -127,20 +127,19 @@
   /* v17: GRID of fixed-size cards — cards can NEVER squish (the old flex column
      let cards shrink to slivers once ~9 clips overflowed the panel) */
   #bin-list { flex: 1; overflow-y: auto; padding: 10px 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); grid-auto-rows: max-content; gap: 10px; align-content: start; }
+  /* 🎞 A CLIP IN THE BIN IS THE SAME BRICK as everywhere else — it is just a big
+     one with a picture in it. It used to carry a left stripe coloured by KIND;
+     that channel now belongs to the spine (WHICH one), and kind moved to the
+     brick's border and cap like every other block in the app. */
   .bin-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-left: 5px solid var(--border);
-    border-radius: 10px; overflow: hidden; cursor: pointer; position: relative;
-    align-self: start;
+    background: var(--card); border-radius: 10px; overflow: hidden;
+    cursor: pointer; position: relative; align-self: start;
   }
-  .bin-card:hover { border-color: var(--cyan); }
-  .bin-card.missing { border-color: var(--red); }
-  /* color-tag stripe by kind — same colors as the studio buttons */
-  .bin-card.k-video    { border-left-color: var(--cyan); }
-  .bin-card.k-audio    { border-left-color: var(--green); }
-  .bin-card.k-flipbook { border-left-color: var(--pink); }
-  .bin-card.k-vector   { border-left-color: var(--purple); }
-  .bin-card.k-code     { border-left-color: var(--yellow); }
+  .bin-card > .cap { height: 9px; }
+  .bin-card > .spine { top: 9px; }
+  .bin-card .bin-info, .bin-card .bin-thumb, .bin-card .bin-add,
+  .bin-card .bin-fmt, .bin-card .bin-proxy, .bin-card .bin-missing-note { margin-left: 12px; }
+  .bin-card.missing { color: var(--red) !important; }
   .bin-card.in-folder  { margin-left: 12px; }
   /* v17: 🔎 search + 🗂 folders */
   #bin-tools { display: flex; gap: 8px; padding: 8px 12px 0; }
@@ -714,6 +713,8 @@
   .fb-swatch.on { border-color: #fff; }
   .fb-swatch.add { background: var(--card); border: 2px dashed var(--border); color: var(--muted); font-size: 13px; display: flex; align-items: center; justify-content: center; }
   #fb-layer-list { display: flex; flex-direction: column; gap: 4px; }
+  #fb-layer-list .blk.list { height: 34px; padding-left: 17px; }
+  #fb-layer-list .blk.list .clip-label { font-size: 11.5px; }
   .fb-layer {
     display: flex; align-items: center; gap: 6px; padding: 6px 7px;
     background: var(--card); border: 1px solid var(--border); border-radius: 8px;
@@ -1534,8 +1535,8 @@
       <option value="12" selected>12 fps</option>
       <option value="24">24 fps</option>
     </select>
-    <span style="font-size:11px;color:var(--muted)">FRAMES</span>
-    <input id="vf-len" type="number" min="2" max="600" value="24" style="width:58px;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px">
+    <!-- v28: the FRAMES field is gone. Length is the master block on the timebar,
+         the same gesture as every other studio. -->
     <button class="tlb-btn" id="vf-back-btn" title="back one frame (←)">◀</button>
     <button class="tlb-btn" id="vf-play-btn" title="play (space)">▶ PLAY</button>
     <button class="tlb-btn" id="vf-fwd-btn" title="forward one frame (→)">▶</button>
@@ -2575,7 +2576,8 @@ function renderBin() {
 
 function makeBinCard(m, inFolder) {
     const card = document.createElement('div');
-    card.className = 'bin-card k-' + (m.kind || 'video') + (m.missing ? ' missing' : '') + (inFolder ? ' in-folder' : '');
+    card.className = 'bin-card blk k-' + (m.kind || 'video') + (m.missing ? ' missing' : '') + (inFolder ? ' in-folder' : '');
+    card.style.color = m.missing ? 'var(--red)' : (BLK_COLOR[m.kind] || 'var(--cyan)');
     const icon = m.kind === 'flipbook' ? '🎨 ' : m.kind === 'vector' ? '📐 ' : m.kind === 'audio' ? '🎵 ' : m.kind === 'code' ? '✨ ' : '';
     const thumb = m.kind === 'flipbook' || m.kind === 'vector'
       ? `<img class="bin-thumb fb" src="${m.thumbURL || ''}" draggable="false">`
@@ -2594,6 +2596,8 @@ function makeBinCard(m, inFolder) {
       <button class="bin-add">${m.missing ? '⚠ RELINK FIRST' : '+ ADD TO MOVIE'}</button>
       <button class="bin-x" title="remove from clips">✕</button>
     `;
+    card.insertAdjacentHTML('afterbegin', '<div class="cap"></div>');
+    card.appendChild(blkSpine(m.id));        // 🌈 the SAME number it wears on the timeline
     const doAdd = () => {
       if (m.missing) { toast('drop the original file anywhere to relink it'); return; }
       addToTimeline(m.id);
@@ -3179,12 +3183,8 @@ const SM = {
     const r=[cy*cz+sy*sx*sz,cx*sz,-sy*cz+cy*sx*sz, -cy*sz+sy*sx*cz,cx*cz,sy*sz+cy*sx*cz, sy*cx,-sx,cy*cx];
     return [r[0]*s[0],r[1]*s[0],r[2]*s[0],0, r[3]*s[1],r[4]*s[1],r[5]*s[1],0,
             r[6]*s[2],r[7]*s[2],r[8]*s[2],0, p[0],p[1],p[2],1];},
-  // 🌑 project onto the plane y = g, not always y = 0. A diorama's ground is
-  // wherever the drawings put their feet, and THE POOL OF DESTINY put it at 3.0 —
-  // so every shadow landed three units under the set, behind the grass and under
-  // the water, and blinked in and out as the camera moved. That was the "flicker".
-  shadow:(L,g)=>{const d=[-L[0],-L[1],-L[2]], gy=g||0, k=gy/d[1];
-    return [1,0,0,0, -d[0]/d[1],0,-d[2]/d[1],0, 0,0,1,0, k*d[0],gy,k*d[2],1];},
+  shadow:(L)=>{const d=[-L[0],-L[1],-L[2]];
+    return [1,0,0,0, -d[0]/d[1],0,-d[2]/d[1],0, 0,0,1,0, 0,0,0,1];},
 };
 const STAGE_VS = `#version 300 es
 in vec3 aPos; in vec2 aUV; in vec3 aNrm;
@@ -3484,7 +3484,7 @@ function renderStageFrame(m, srcT, camOverride){
   // (sorting alone lets a near floor paint over the shadows cast onto it — it did.)
   for(const o of objs) if(o.kind==='backdrop') draw(o,modelOf(o),false);
   for(const o of objs) if(o.kind==='floor')    draw(o,modelOf(o),false);
-  const Sh=SM.shadow(L.dir, scene.groundY||0);   // 🌑 the ground is where the feet are
+  const Sh=SM.shadow(L.dir);
   gl.depthMask(false);
   for(const o of objs){ if(o.shadow===false||o.kind==='floor'||o.kind==='backdrop') continue;
     draw(o, SM.mul(Sh, modelOf(o)), true); }
@@ -3559,12 +3559,17 @@ function stageRenderPanel(){
     const n=(o.keys||[]).length;
     const b=makeListBlock(o.kind, stageObjName(o), n?['✥'+n]:[], o.oid);
     if(o.oid===stS.sel) b.classList.add('selected');
-    b.onclick=()=>{ stS.sel=o.oid; stageRenderPanel(); };
-    // 🏷 click the NAME (not the block) to rename it. Two taps, no dialog.
+    // re-selecting the row you are already on must NOT rebuild the tower: the
+    // rebuild replaces the label node between the two clicks of a double-click,
+    // so renaming a selected row would never fire.
+    b.onclick=()=>{ if(stS.sel===o.oid) return; stS.sel=o.oid; stageRenderPanel(); };
+    // 🏷 DOUBLE-click the name to rename. ⚠ Single-click must NOT do this: the
+    // label is flex:1, so it fills most of the row — a single-click handler here
+    // means clicking the middle of a row gives you a text cursor instead of
+    // selecting the object. Caught by test-flying the tower, not by reading it.
     const lab=b.querySelector('.clip-label');
-    lab.style.cursor='text';
-    lab.title='click the name to rename this one';
-    lab.onclick=(e)=>{
+    lab.title='double-click the name to rename this one';
+    lab.ondblclick=(e)=>{
       e.stopPropagation();
       const inp=document.createElement('input');
       inp.className='nm-edit'; inp.value=stageObjName(o); inp.spellcheck=false;
@@ -6550,14 +6555,19 @@ function renderFbLayers() {
   if (!m || !fb.open) return;
   const list = $('fb-layer-list');
   list.innerHTML = '';
-  [...m.layers].reverse().forEach(layer => {
-    const row = document.createElement('div');
-    row.className = 'fb-layer' + (layer.lid === fb.activeLid ? ' on' : '');
-    row.innerHTML = `
-      <span class="eye">${layer.visible ? '👁' : '○'}</span>
-      <span class="kind">✏️</span>
-      <span class="lname" title="double-click to rename">${layer.name}</span>
-    `;
+  [...m.layers].reverse().forEach((layer, ri) => {
+    // ⬛ the same brick as the stage tower — a drawing layer is a movable piece too
+    const idx = m.layers.indexOf(layer) + 1;
+    const row = makeListBlock('flipbook', layer.name, [], idx);
+    row.className += (layer.lid === fb.activeLid ? ' selected' : '');
+    if (!layer.visible) row.style.opacity = '0.45';
+    const eye = document.createElement('span');
+    eye.className = 'eye clip-badge';
+    eye.style.cssText = 'background:rgba(0,0,0,0.55);color:#fff;cursor:pointer';
+    eye.textContent = layer.visible ? '👁' : '○';
+    row.appendChild(eye);
+    const lname = row.querySelector('.clip-label');
+    lname.className += ' lname'; lname.title = 'double-click to rename';
     row.querySelector('.eye').addEventListener('click', e => {
       e.stopPropagation();
       layer.visible = !layer.visible;
@@ -7831,7 +7841,7 @@ function codeTimebar() {
     headTitle: 'THIS SKETCH', lengthLabel: 'THIS SKETCH',
     onLength: (d) => { m.duration = d; codeS.t = Math.min(codeS.t || 0, d);
                        codeTimebar(); refresh(); scheduleAutosave(); },
-    rows: [{ label: '✨ ' + (m.name || 'sketch'), color: BLK_COLOR.code,
+    rows: [{ label: '✨ ' + (m.name || 'sketch'), color: BLK_COLOR.code, num: m.id,
              span: [0, +m.duration || 6], keys: [] }],
     onScrub: (t) => { codeS.t = t; codeS.playing = false;
       const b = $('code-play-btn'); if (b) b.textContent = '▶';
@@ -7845,8 +7855,27 @@ function fbTimebar() {
   const fps = m.fps || 12, n = m.frameCount || 1;
   renderTimebar(host, { id: 'fb', dur: n / fps, fps, t: (fb.cur || 0) / fps,
     title: '⏱ THIS FLIPBOOK',
-    headTitle: 'DRAWINGS',
-    rows: (m.layers || []).map(L => ({ label: '🎨 ' + (L.name || 'drawing'),
+    headTitle: 'DRAWINGS', lengthLabel: 'THIS FLIPBOOK',
+    // ⚠ A flipbook's length IS its cels, so trimming could destroy drawings.
+    // Growing pads every layer with held frames; shrinking stops at the last
+    // frame anyone actually drew on. The block never eats art.
+    onLength: (d) => {
+      const want = Math.max(2, Math.min(600, Math.round(d * fps)));
+      const cur = m.frameCount || 1;
+      if (want > cur) {
+        for (const L of m.layers) while (L.cells.length < want) L.cells.push(null);
+      } else if (want < cur) {
+        let drawn = 2;
+        for (const L of m.layers)
+          for (let i = 0; i < L.cells.length; i++) if (L.cells[i]) drawn = Math.max(drawn, i + 1);
+        if (want < drawn) toast('✋ there are drawings out there — delete those frames first');
+        for (const L of m.layers) L.cells.length = Math.max(want, drawn);
+      }
+      m.frameCount = m.layers[0].cells.length;
+      bumpFb(m); fbNav(Math.min(fb.cur, m.frameCount - 1)); fbTimebar();
+    },
+    rows: (m.layers || []).map((L, li) => ({ label: '🎨 ' + (L.name || 'drawing'),
+      num: li + 1,
       color: BLK_COLOR.flipbook, span: [0, n / fps],
       keys: (L.cels || []).map((c, i) => (c && !c.held) ? { t: i / fps } : null).filter(Boolean) })),
     onScrub: (t) => { fb.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps)));
@@ -7861,8 +7890,11 @@ function vfTimebar() {
   const fps = m.fps || 12, n = m.frameCount || 24;
   renderTimebar(host, { id: 'vf', dur: n / fps, fps, t: (vf.cur || 0) / fps,
     title: '⏱ THIS ANIMATION',
-    headTitle: 'THINGS',
-    rows: (m.objects || []).map(o => ({ label: '📐 ' + (o.kind || 'thing'),
+    headTitle: 'THINGS', lengthLabel: 'THIS ANIMATION',
+    onLength: (d) => { m.frameCount = Math.max(2, Math.min(600, Math.round(d * fps)));
+      bumpVec(m); vfNav(Math.min(vf.cur, m.frameCount - 1)); vfTimebar(); },
+    rows: (m.objects || []).map((o, oi) => ({ label: '📐 ' + (o.name || o.kind || 'thing'),
+      num: oi + 1,
       color: BLK_COLOR.vector, on: o.oid === vf.sel, oid: o.oid, span: [0, n / fps],
       keys: Object.keys((o.tracks || {}).x || {}).map(f => ({ t: (+f) / fps })) })),
     onScrub: (t) => { vf.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps))); vfRefresh(); },
@@ -8673,7 +8705,6 @@ function openVectorStudio(mediaId) {
   vf.selOid = m.objects.length ? m.objects[m.objects.length-1].oid : null;
   $('vf-name').value = m.name;
   $('vf-fps').value = m.fps;
-  $('vf-len').value = m.frameCount;
   $('vf-overlay').classList.add('open');
   setTimeout(() => showCue('vector'), 700);   // 👆 v19
   vfSizeCurve();
@@ -8738,12 +8769,6 @@ $('vf-play-btn').addEventListener('click', () => {
 $('vf-back-btn').addEventListener('click', () => { vfStopPlay(); vfNav(vf.cur - 1); });
 $('vf-fwd-btn').addEventListener('click', () => { vfStopPlay(); vfNav(vf.cur + 1); });
 $('vf-fps').addEventListener('change', e => { const m = vfMedia(); m.fps = parseInt(e.target.value); bumpVec(m); vfNav(vf.cur); });
-$('vf-len').addEventListener('change', e => {
-  const m = vfMedia();
-  m.frameCount = Math.max(2, Math.min(600, parseInt(e.target.value) || 24));
-  e.target.value = m.frameCount;
-  bumpVec(m); vfNav(Math.min(vf.cur, m.frameCount - 1));
-});
 
 // ── canvas paint (studio view = frame + selection box) ──
 function vfRepaint() {
@@ -10486,7 +10511,7 @@ $('project-name').addEventListener('change', () => {
 function buildProjectData() {
   sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 15,   // v27: 🌈 THE SPINE — every block says WHICH one in Mook's number colours, and stage objects carry an optional o.name (additive + back-compatible both ways: old builds ignore it, new builds fall back to the pinned skin's name) — v26 UI-only: ⬛ THE BLOCK everywhere + NLE spans + length-as-block + studio grips (no format change) — v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
+    app: 'geov', version: 15,   // v28: the block language reaches EVERY tool — bin clips are bricks with spines, flipbook layers are bricks, the vector FRAMES field is gone (length is the master block in all four studios), every timebar header carries its colour chip — v27: 🌈 THE SPINE — every block says WHICH one in Mook's number colours, and stage objects carry an optional o.name (additive + back-compatible both ways: old builds ignore it, new builds fall back to the pinned skin's name) — v26 UI-only: ⬛ THE BLOCK everywhere + NLE spans + length-as-block + studio grips (no format change) — v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
     blocks: projectBlocks || '',   // 📎 shared code every code clip can use
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
