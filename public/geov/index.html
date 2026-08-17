@@ -499,6 +499,45 @@
                           flex: 1; text-align: left; }
   .blk.mini .clip-label { display: none; }    /* too narrow to say anything */
 
+  /* ═══ 🌈 THE SPINE — the block says WHAT it is, the spine says WHICH one ═══
+     Mook's number colours, straight off his own key:
+       0 cyan · 1 red · 2 blue · 3 yellow · 4 green · 5 orange · 6 pink · 7 purple · 8 white · 9 black
+     One segment per digit, stacked, so #12 reads red-over-blue — the same grammar
+     as his letters (k = 11 = red red).
+
+     ⭐ WHY A SPINE AND NOT A DOT, A STUD OR A PLATE. Measured on a contact sheet,
+     not guessed: at SIX FRAMES wide (~22px) a dot, a stud and a plate all collapse
+     into identical coloured slivers and the block stops saying which object it is.
+     The spine fills that sliver, so identity is the LAST thing to go instead of the
+     first. It also scans like books on a shelf down a tower. Same rule everywhere.
+
+     ⚠ And it is never the ONLY reading. Mook flips 4/5, 6/7 and 8/9 — six of the ten
+     digits are ambiguous to the person this is built for. So the digit is printed ON
+     the spine and the name is in words beside it. Three readings of one identity,
+     redundant on purpose: colour is instant, the glyph settles the flips, the name
+     says what the thing actually is. A kid who never heard of synesthesia just reads
+     the name and never notices the rest. */
+  .blk > .spine {
+    position: absolute; left: 0; top: 10px; bottom: 0; width: 12px; z-index: 4;
+    display: flex; flex-direction: column; pointer-events: none;
+    box-shadow: 1px 0 0 rgba(0,0,0,0.45);
+  }
+  .blk > .spine > i {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    font-style: normal; font-size: 8px; font-weight: 900; letter-spacing: -0.5px;
+    min-height: 0; overflow: hidden;
+  }
+  .blk.list > .spine { top: 10px; }
+  .blk.list { padding-left: 18px; }        /* clear the spine */
+  .blk.list .clip-label { font-size: 12.5px; }
+  .tl-clip .clip-label, .blk.tb-lane .clip-label { padding-left: 14px; }
+  .blk .clip-badges { left: 15px; }        /* badges sit clear of the spine */
+  .blk.list .clip-badges { left: auto; }
+  /* a name you can change: click it in the tower */
+  .blk .nm-edit { background: rgba(0,0,0,0.55); border: 1px solid var(--cyan);
+    color: var(--text); font-family: inherit; font-size: 12.5px; font-weight: 700;
+    border-radius: 6px; padding: 2px 6px; width: 100%; outline: none; }
+
   /* ═══ ⇔ SPLITTER — the same grip the main window already uses, so the
      studios resize with the gesture the kid already learned downstairs. ═══ */
   .spl { background: var(--border); opacity: 0.85; position: relative; flex: 0 0 10px;
@@ -3513,11 +3552,26 @@ function stageRenderPanel(){
   // twice, so they are the same brick. Stack them and it reads as a tower.
   const list=$('stage-objs'); list.innerHTML='<span class="lbl">IN THE SCENE:</span>';
   for(const o of objs){
-    const skin=o.skin!=null?media.find(x=>x.id===o.skin):null;
     const n=(o.keys||[]).length;
-    const b=makeListBlock(o.kind, skin?skin.name:o.kind, n?['✥'+n]:[]);
+    const b=makeListBlock(o.kind, stageObjName(o), n?['✥'+n]:[], o.oid);
     if(o.oid===stS.sel) b.classList.add('selected');
     b.onclick=()=>{ stS.sel=o.oid; stageRenderPanel(); };
+    // 🏷 click the NAME (not the block) to rename it. Two taps, no dialog.
+    const lab=b.querySelector('.clip-label');
+    lab.style.cursor='text';
+    lab.title='click the name to rename this one';
+    lab.onclick=(e)=>{
+      e.stopPropagation();
+      const inp=document.createElement('input');
+      inp.className='nm-edit'; inp.value=stageObjName(o); inp.spellcheck=false;
+      const commit=()=>{ const v=inp.value.trim();
+        snapshot(); o.name = v || undefined; stageRenderPanel(); stageTouch(); };
+      inp.onkeydown=ev=>{ ev.stopPropagation();
+        if(ev.key==='Enter') commit();
+        if(ev.key==='Escape') stageRenderPanel(); };
+      inp.onblur=commit;
+      lab.replaceWith(inp); inp.focus(); inp.select();
+    };
     list.appendChild(b);
   }
   for(const [label,kind] of [['➕ CARD','card'],['➕ FLOOR','floor'],['➕ BACKDROP','backdrop']]){
@@ -3543,7 +3597,9 @@ function stageRenderPanel(){
     for(const mm of media){ if(mm.kind==='audio'||mm.id===m.id) continue;
       const op=document.createElement('option'); op.value=mm.id; op.textContent=mm.name; sel.appendChild(op); }
     sel.value=o.skin!=null?String(o.skin):'';
-    sel.onchange=()=>{ snapshot(); o.skin=sel.value?parseInt(sel.value):null; stageRenderPanel(); stageTouch(); };
+    sel.onchange=()=>{ snapshot(); o.skin=sel.value?parseInt(sel.value):null;
+      // 🏷 an unnamed card takes the drawing's name — pin `mush` and the card IS mush
+      stageRenderPanel(); stageTouch(); };
     row('🖼 SKIN',sel);
     // ✥ when a thing is animated the sliders stop editing the object and start
     // editing its key at the time you are parked on. Move it at 0s, scrub to 2s,
@@ -3638,16 +3694,16 @@ function stageRenderPanel(){
     title: '⏱ THIS DIORAMA', headTitle: 'IN THE SCENE', lengthLabel: 'THIS DIORAMA',
     onLength: (d) => { snapshot(); m.duration = d; stS.t = Math.min(stS.t, d);
                        stageRenderPanel(); stageTouch(); refresh(); },
-    rows: [{ label: '🎬 CAMERA', kind: 'cam', color: BLK_COLOR.cam, on: stS.sel == null,
+    rows: [{ label: '🎬 CAMERA', kind: 'cam', color: BLK_COLOR.cam, on: stS.sel == null, num: 0,
              span: spanOf(sc.camera.keys), keyed: !!(sc.camera.keys || []).length,
              trim: spanned(sc.camera.keys),
              keys: (sc.camera.keys || []).map(k => ({ t: k.t, feel: k.feel })) }]
       .concat(objs.filter(o => o.kind === 'card' || o.kind === 'floor' || o.kind === 'backdrop')
         .slice().sort((a, b) => ((b.keys || []).length ? 1 : 0) - ((a.keys || []).length ? 1 : 0))
         .map(o => {
-          const sk = o.skin != null ? media.find(x => x.id === o.skin) : null;
           return { label: ((o.keys || []).length ? '✥ ' : '') +
-                          (BLK_BADGE[o.kind] || '⬡') + ' ' + (sk ? sk.name : o.kind),
+                          (BLK_BADGE[o.kind] || '⬡') + ' ' + stageObjName(o),
+                   num: o.oid,
                    oid: o.oid, on: o.oid === stS.sel, keyed: !!(o.keys || []).length,
                    trim: spanned(o.keys),
                    color: BLK_COLOR[o.kind], span: spanOf(o.keys),
@@ -4261,6 +4317,7 @@ function renderTimeline() {
       <div class="edge l"></div><div class="edge r"></div>
       <span class="clip-label">${m ? m.name : '?'} · ${fmtTime(clipDur(clip))}</span>
     `;
+    if (m) el.appendChild(blkSpine(m.id));   // 🌈 which piece of footage this is
     attachClipPointer(el, clip.tid);
     rows.appendChild(el);
   });
@@ -7335,8 +7392,28 @@ const BLK_COLOR = { card: 'var(--red)', floor: 'var(--orange)', backdrop: 'var(-
                     code: 'var(--yellow)', audio: 'var(--green)', stage: 'var(--cyan)' };
 const BLK_BADGE = { card: '🃏', floor: '🟫', backdrop: '🌄', cam: '🎬',
                     flipbook: '🎨', vector: '📐', code: '✨', audio: '🎵', stage: '⬡' };
-// build a list-shaped brick: [badge] name [chips]
-function makeListBlock(kind, name, chips) {
+// 🌈 Mook's number colours, in his order. Index IS the digit.
+const NUM_COLOR = ['#00E5FF','#FF1744','#2979FF','#FFD600','#00E676',
+                   '#FF9100','#FF4081','#D500F9','#E8E8F0','#141420'];
+// which digits need dark text to stay legible on their own colour
+const NUM_DARKTEXT = new Set([0, 3, 4, 5, 8]);
+// 🌈 the SPINE — a number spoken in colour, one segment per digit, stacked.
+// #12 reads red over blue, the same way k = 11 reads red red.
+function blkSpine(n) {
+  const sp = document.createElement('div'); sp.className = 'spine';
+  const ds = String(Math.max(0, Math.round(n || 0))).split('');
+  for (const d of ds) {
+    const i = document.createElement('i');
+    i.style.background = NUM_COLOR[+d];
+    i.style.color = NUM_DARKTEXT.has(+d) ? '#000' : '#fff';
+    i.textContent = d;                       // the glyph settles the 4/5 6/7 8/9 flips
+    sp.appendChild(i);
+  }
+  sp.title = '#' + ds.join('');
+  return sp;
+}
+// build a list-shaped brick: [spine] [badge] name [chips]
+function makeListBlock(kind, name, chips, num) {
   const el = document.createElement('div');
   el.className = 'blk list';
   el.style.color = BLK_COLOR[kind] || 'var(--muted)';
@@ -7344,7 +7421,17 @@ function makeListBlock(kind, name, chips) {
     <div class="clip-badges"><span class="clip-badge">${BLK_BADGE[kind] || '⬡'}</span></div>
     <span class="clip-label">${name}</span>` +
     (chips || []).map(c => `<span class="clip-badge" style="background:rgba(0,0,0,0.55);color:#fff">${c}</span>`).join('');
+  if (num != null) el.appendChild(blkSpine(num));
   return el;
+}
+// 🏷 what a stage object is CALLED. A card that has a drawing pinned to it borrows
+// that drawing's name, so pinning `mush` to a card makes the card `mush` — the tower
+// stops saying "card · card · card" the moment the scene has any art in it.
+function stageObjName(o) {
+  if (o.name) return o.name;
+  const sk = o.skin != null ? media.find(x => x.id === o.skin) : null;
+  if (sk && sk.name) return sk.name;
+  return o.kind === 'card' ? 'card' : o.kind === 'floor' ? 'floor' : 'backdrop';
 }
 
 function tbFmt(t) { return (t < 10 ? t.toFixed(2) : t.toFixed(1)) + 's'; }
@@ -7516,6 +7603,20 @@ function renderTimebar(host, spec) {
     const hc = document.createElement('div');
     hc.className = 'tb-hcell' + (row.on ? ' on' : '') + (keyed ? ' keyed' : '');
     hc.textContent = row.label; hc.title = row.label;
+    if (row.num != null) {                         // the same spine, on the header
+      const chip = document.createElement('span');
+      const ds = String(row.num).split('');
+      chip.style.cssText = 'flex:0 0 auto;display:flex;flex-direction:column;width:11px;' +
+        'height:20px;border-radius:3px;overflow:hidden;order:-1;box-shadow:0 0 0 1px rgba(0,0,0,.5)';
+      for (const d of ds) {
+        const i = document.createElement('i');
+        i.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;' +
+          'font-style:normal;font-size:8px;font-weight:900;background:' + NUM_COLOR[+d] +
+          ';color:' + (NUM_DARKTEXT.has(+d) ? '#000' : '#fff');
+        i.textContent = d; chip.appendChild(i);
+      }
+      hc.appendChild(chip);
+    }
     hc.onpointerdown = () => { if (spec.onRowClick) spec.onRowClick(ri, spec.t || 0); };
     heads.appendChild(hc);
 
@@ -7532,6 +7633,12 @@ function renderTimebar(host, spec) {
       lane.style.left = (row.span[0] * pps) + 'px';
       lane.style.width = Math.max(14, (row.span[1] - row.span[0]) * pps) + 'px';
       lane.innerHTML = '<div class="cap"></div>';
+      // 🌈 NO spine on a lane that has a track header — the header chip is 10px
+      // away on the same row and already says which one. Putting it here too
+      // stacks the spine, the first key diamond and the left trim handle on the
+      // same 12px. THE RULE: identity lives at the LEFT EDGE OF THE ROW — on the
+      // header where there is one, on the block itself where there isn't (the
+      // movie timeline, the tower, a six-frame clip).
       if (trim && spec.onSpan) {
         // ⚠ The trim handles are ROW children, not lane children. Inside the lane
         // they lose to the key diamonds (the last key sits exactly on the right
@@ -9006,6 +9113,7 @@ function vfRenderObjects() {
     d.innerHTML = `<div class="cap"></div>
       <div class="clip-badges"><span class="clip-badge">${obj.shape ? '📐' : '🧷'}</span></div>
       <span class="clip-label">${obj.name}${pinned}</span>`;
+    d.appendChild(blkSpine(obj.oid));
     d.addEventListener('click', () => { vf.selOid = obj.oid; vfRepaint(); vfRenderObjects(); vfSyncInspect(); vfRenderSheet(); vfDrawCurve(); });
     list.appendChild(d);
   });
@@ -10374,7 +10482,7 @@ $('project-name').addEventListener('change', () => {
 function buildProjectData() {
   sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 15,   // v26 UI-only: ⬛ THE BLOCK everywhere + NLE spans + length-as-block + studio grips (no format change) — v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
+    app: 'geov', version: 15,   // v27: 🌈 THE SPINE — every block says WHICH one in Mook's number colours, and stage objects carry an optional o.name (additive + back-compatible both ways: old builds ignore it, new builds fall back to the pinned skin's name) — v26 UI-only: ⬛ THE BLOCK everywhere + NLE spans + length-as-block + studio grips (no format change) — v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
     blocks: projectBlocks || '',   // 📎 shared code every code clip can use
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
