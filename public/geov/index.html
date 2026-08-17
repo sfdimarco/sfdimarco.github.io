@@ -551,7 +551,12 @@
   /* ═══ FLIPBOOK STUDIO v2 ═══ */
   #fb-overlay {
     position: fixed; inset: 0; background: var(--bg); z-index: 200;
-    display: none; grid-template-rows: 48px 46px 1fr 178px;
+    /* v29: 4 rows for 4 children. The stray timebar used to create a FIFTH,
+       implicit row, which squeezed fbmain and clipped the brush column and the
+       colour swatches clean off the screen. Sheet height scales with the window
+       so a short laptop screen keeps its canvas. */
+    display: none;
+    grid-template-rows: 48px 46px minmax(0, 1fr) clamp(120px, 24vh, 210px);
     grid-template-areas: "fbhead" "fbtoolbar" "fbmain" "fbsheet";
   }
   #fb-head {
@@ -681,7 +686,12 @@
 
   /* main area */
   #fb-main { grid-area: fbmain; display: flex; align-items: stretch; justify-content: center; gap: 10px; padding: 10px; min-height: 0; position: relative; }
-  #fb-tools { display: flex; flex-direction: column; gap: 7px; align-self: center; flex: 0 0 auto; }
+  /* ⚠ was align-self:center with no max-height, so on a short screen the top and
+     bottom of the column were simply cut off — the first brush and the CALM
+     slider were unreachable. Now it fills the height it is given and scrolls. */
+  #fb-tools { display: flex; flex-direction: column; gap: 7px; flex: 0 0 auto;
+              align-self: stretch; justify-content: center; overflow-y: auto;
+              overflow-x: hidden; padding: 2px; scrollbar-width: thin; }
   .fb-tool {
     width: 44px; height: 44px; border-radius: 10px; cursor: pointer;
     background: var(--card); border: 2px solid var(--border); color: var(--text);
@@ -691,7 +701,11 @@
   .fb-vslider { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 9px; color: var(--muted); }
   .fb-vslider input[type=range] { width: 44px; -webkit-appearance: none; height: 3px; background: var(--border); border-radius: 2px; cursor: pointer; }
   .fb-vslider input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--pink); cursor: pointer; }
-  #fb-canvas-wrap { position: relative; height: 100%; aspect-ratio: 16/9; max-width: calc(100% - 420px); margin: auto 0; }
+  /* the picture fills whatever is left after the two columns and letterboxes
+     inside it. The old `max-width: calc(100% - 420px)` assumed a wide window and
+     left a dead band under the canvas on anything smaller. */
+  #fb-canvas-wrap { position: relative; flex: 1 1 auto; min-width: 0; align-self: center;
+                    aspect-ratio: 16/9; max-height: 100%; max-width: 100%; margin: 0 auto; }
   #fb-canvas-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 8px; }
   #fb-ghost { pointer-events: none; }
   #fb-draw { cursor: crosshair; touch-action: none; }
@@ -702,7 +716,9 @@
   }
 
   /* right column: color panel + layers */
-  #fb-right { display: flex; flex-direction: column; gap: 8px; width: 190px; flex: 0 0 auto; overflow-y: auto; }
+  #fb-right { display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto;
+              width: clamp(168px, 15vw, 210px); min-height: 0; overflow-y: auto;
+              overscroll-behavior: contain; scrollbar-width: thin; }
   .fb-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
   .fb-panel h4 { font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-bottom: 6px; }
   #fb-current { width: 100%; height: 22px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 6px; }
@@ -732,45 +748,131 @@
   .fb-layer-btns button:hover { border-color: var(--pink); }
 
   /* dope sheet */
-  #fb-sheet {
-    grid-area: fbsheet; background: var(--panel); border-top: 1px solid var(--border);
-    overflow: auto; position: relative;
+  /* ═══ 📐 SHORT SCREENS — iPad and small laptops ═══
+     Measured, not guessed: at 768–820px tall the vector studio buried EIGHT
+     controls (the whole RIG panel, the camera sliders and the object buttons)
+     underneath the curve graph, at every resolution tested. The graph is the
+     advanced tool; the object list and the camera are the ones a kid needs every
+     minute. So on a short window the graph folds away and its row goes to the
+     panel that was starving. Fill the space with what is used. */
+  @media (max-height: 900px) {
+    #vf-overlay {
+      grid-template-rows: 50px 44px minmax(0, 1fr) 0px clamp(104px, 17vh, 150px);
+    }
+    #vf-graph { display: none !important; }
   }
-  #fb-sheet table { border-collapse: collapse; }
-  #fb-sheet th, #fb-sheet td { border: 1px solid var(--border); }
-  #fb-sheet th.fhead {
-    min-width: 30px; height: 24px; font-size: 9px; color: var(--muted);
-    cursor: grab; background: var(--card); position: sticky; top: 0; z-index: 3; font-weight: 600;
+  @media (max-height: 820px) {
+    #fb-overlay { grid-template-rows: 44px 42px minmax(0, 1fr) clamp(104px, 20vh, 150px); }
+    .fb-tool { width: 38px; height: 38px; font-size: 17px; }
+    #fb-tools { gap: 5px; }
   }
-  #fb-sheet th.fhead.cur { background: var(--pink); color: #000; }
-  #fb-sheet th.lhead {
-    position: sticky; left: 0; z-index: 4; background: var(--card);
-    font-size: 9px; color: var(--muted); padding: 0 7px; text-align: left;
-    max-width: 90px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 600;
-  }
-  #fb-sheet td.cell {
-    min-width: 30px; height: 30px; text-align: center; cursor: pointer;
-    font-size: 11px; color: var(--muted); background: var(--bg);
-  }
-  #fb-sheet td.cell.curcol { background: rgba(255,64,129,0.10); }
-  #fb-sheet td.cell.sel { outline: 2px solid var(--pink); outline-offset: -2px; }
-  #fb-sheet td.cell .dot { color: var(--text); }
-  #fb-sheet td.cell .held { opacity: 0.35; }
-  #fb-sheet td.cell .key { color: var(--yellow); }
-  /* 🎞 cel exposure: ● starts a drawing, the pink bar is how long it stays up */
-  #fb-sheet td.cell.run { background: rgba(255,64,129,0.13); }
-  #fb-sheet td.cell.run .dot { color: var(--pink); }
-  #fb-sheet td.cell.runend { border-right: 3px solid var(--pink); cursor: ew-resize; }
-  #fb-sheet td.cell.exthl { background: rgba(255,214,0,0.25); }
 
-  /* 🎞 downshooter look — frame headers read like little timeline clips */
+  /* ═══ 🫧 THE SHEET IS THE TIMELINE ═══
+     v29. There used to be TWO time UIs in this studio — this sheet and a second
+     timebar bolted under it. Two timelines in one tool is the opposite of
+     unifying, and the extra one also sat outside the overlay's grid, which is
+     what pushed the brush column and the colour swatches off the screen.
+
+     So: ONE timeline, wearing the same language as the movie timeline.
+       · a LAYER ROW is a brick — kind colour, cap light, spine with its number
+       · a DRAWING is a filled BUBBLE
+       · a HELD frame is the brick BODY continuing between bubbles
+       · a run of frames reads as ONE rounded brick, capped at both ends
+     That is the Adobe-Animate reading (layers down, frames across, keyframes as
+     circles) said in Mook's blocks. And no analog clocks: in a flipbook the
+     frame IS the unit, so a clock face was clunky and redundant. */
+  #fb-sheet, #vf-sheet {
+    grid-area: fbsheet; background: var(--panel); overflow: auto;
+    border-top: 1px solid var(--border);
+  }
+  #vf-sheet { grid-area: vfsheet; }
+  #fb-sheet table, #vf-sheet table { border-collapse: separate; border-spacing: 0; }
+  /* the frame-number strip */
+  #fb-sheet th.fhead, #vf-sheet th.fhead {
+    min-width: 26px; height: 22px; font-size: 9px; color: var(--muted);
+    background: #16161f; position: sticky; top: 0; z-index: 3; cursor: pointer;
+    border-bottom: 1px solid var(--border); font-weight: 700;
+    border-right: 1px solid rgba(42,42,66,0.55);
+  }
+  #fb-sheet th.fhead.cur, #vf-sheet th.fhead.cur { background: var(--cyan); color: #000; }
+  /* the layer header — a brick end, with its spine */
+  #fb-sheet th.lhead, #vf-sheet th.lhead {
+    position: sticky; left: 0; z-index: 4; background: var(--panel);
+    font-size: 11px; color: #9EA0B8; padding: 0 9px 0 0; text-align: left;
+    max-width: 150px; min-width: 118px; overflow: hidden; white-space: nowrap;
+    font-weight: 700; border-right: 1px solid var(--border); cursor: pointer;
+  }
+  #fb-sheet th.lhead.on, #vf-sheet th.lhead.on { color: var(--pink); background: rgba(255,64,129,0.10); }
+  #vf-sheet th.lhead.on { color: var(--purple); background: rgba(213,0,249,0.10); }
+  .sh-name { display: flex; align-items: center; gap: 7px; height: 30px; }
+  .sh-spine { flex: 0 0 11px; align-self: stretch; display: flex; flex-direction: column;
+              border-radius: 0 3px 3px 0; overflow: hidden; margin: 4px 0; }
+  .sh-spine > i { flex: 1; display: flex; align-items: center; justify-content: center;
+                  font-style: normal; font-size: 8px; font-weight: 900; }
+  /* ── the cells ── */
+  #fb-sheet td.cell, #vf-sheet td.cell {
+    min-width: 26px; width: 26px; height: 30px; text-align: center; cursor: pointer;
+    background: rgba(255,255,255,0.020); position: relative;
+    border-right: 1px solid rgba(42,42,66,0.55);
+    border-bottom: 1px dashed rgba(42,42,66,0.7);
+  }
+  #fb-sheet tr:nth-child(even) td.cell, #vf-sheet tr:nth-child(even) td.cell {
+    background: rgba(255,255,255,0.045);
+  }
+  #fb-sheet td.cell:hover, #vf-sheet td.cell:hover { background: rgba(255,255,255,0.10); }
+  /* ⏱ the playhead column — the same 3px cyan as every other timeline */
+  #fb-sheet td.cell.curcol, #vf-sheet td.cell.curcol { background: rgba(0,229,255,0.13); }
+  #fb-sheet td.cell.curcol::after, #vf-sheet td.cell.curcol::after {
+    content: ''; position: absolute; left: -1px; top: 0; bottom: 0; width: 3px;
+    background: var(--cyan); box-shadow: 0 0 8px var(--cyan); z-index: 5;
+  }
+  /* ⬛ THE BRICK — a run of frames, capped at both ends */
+  #fb-sheet td.cell.run::before, #vf-sheet td.cell.run::before {
+    content: ''; position: absolute; left: 0; right: 0; top: 5px; bottom: 5px;
+    background: currentColor; opacity: 0.30; z-index: 1;
+  }
+  #fb-sheet td.cell.runstart::before, #vf-sheet td.cell.runstart::before {
+    left: 3px; border-radius: 7px 0 0 7px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  #fb-sheet td.cell.runend::before, #vf-sheet td.cell.runend::before {
+    right: 3px; border-radius: 0 7px 7px 0;
+  }
+  #fb-sheet td.cell.runstart.runend::before, #vf-sheet td.cell.runstart.runend::before {
+    border-radius: 7px;
+  }
+  /* 🫧 THE BUBBLE — one drawing */
+  .sh-bub {
+    position: relative; z-index: 2; display: inline-block;
+    width: 13px; height: 13px; border-radius: 50%;
+    background: currentColor; border: 1.5px solid rgba(0,0,0,0.55);
+    box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.55), 0 1px 2px rgba(0,0,0,0.5);
+    vertical-align: middle;
+  }
+  .sh-bub.held {                       /* the body carrying on — not a new drawing */
+    width: 7px; height: 7px; opacity: 0.55; box-shadow: none; border-width: 1px;
+  }
+  #fb-sheet td.cell.sel .sh-bub, #vf-sheet td.cell.sel .sh-bub {
+    box-shadow: 0 0 0 2px #fff, inset 0 1.5px 0 rgba(255,255,255,0.55);
+  }
   #fb-sheet th.fhead { padding: 3px 3px 2px; vertical-align: top; }
   #fb-sheet th.fhead .fthumb {
-    display: block; width: 56px; height: 32px; border-radius: 5px;
-    background: #000; outline: 1px solid var(--border); margin: 2px auto 0;
+    display: block; width: 56px; height: 32px; border-radius: 3px; background: #000;
   }
-  #fb-sheet th.fhead.cur .fthumb { outline: 2px solid var(--pink); }
+  #fb-sheet th.fhead.cur .fthumb { outline: 2px solid var(--cyan); }
   #fb-sheet th.fhead .fnum { line-height: 1.4; }
+  #fb-sheet td.cell.exthl, #vf-sheet td.cell.exthl { background: rgba(255,214,0,0.25); }
+  /* ⊕ THE TIMELINE GROWS WHERE IT ENDS. Removing the bolted-on timebar also took
+     away the master LENGTH block, and the vector studio had already lost its
+     FRAMES field — so it had no way to get longer at all. Rather than put a
+     number box back, the sheet ends in a + column: length is part of the
+     timeline, and both flipbooks now work the same way. */
+  th.addf, td.addf {
+    min-width: 30px; width: 30px; cursor: pointer; text-align: center;
+    color: var(--muted); font-size: 15px; font-weight: 800;
+    background: rgba(255,255,255,0.035); border-left: 1px dashed var(--border);
+  }
+  th.addf:hover, td.addf:hover { color: var(--cyan); background: rgba(0,229,255,0.14); }
 
   /* ═══ 📷 STOP MOTION STUDIO — a digital downshooter ═══ */
   #sm-overlay {
@@ -822,7 +924,7 @@
   /* ═══ 📐 VECTOR FLIPBOOK STUDIO ═══ */
   #vf-overlay {
     position: fixed; inset: 0; background: var(--bg); z-index: 260; display: none;
-    grid-template-rows: 50px 44px 1fr 170px 140px;
+    grid-template-rows: 50px 44px minmax(0, 1fr) clamp(96px, 16vh, 170px) clamp(110px, 20vh, 180px);
     grid-template-areas: "vfhead" "vftool" "vfmain" "vfgraph" "vfsheet";
   }
   #vf-overlay.open { display: grid; }
@@ -838,7 +940,13 @@
   #vf-main { grid-area: vfmain; display: flex; min-height: 0; }
   #vf-canvas-wrap { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #16161f; min-width: 0; }
   #vf-canvas { max-width: 96%; max-height: 94%; background: #000; border-radius: 6px; touch-action: none; cursor: crosshair; aspect-ratio: 16/9; }
-  #vf-right { width: 210px; background: var(--panel); border-left: 1px solid var(--border); overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+  #vf-right { width: clamp(186px, 16vw, 230px); background: var(--panel);
+              border-left: 1px solid var(--border); overflow-y: auto; padding: 8px;
+              display: flex; flex-direction: column; gap: 7px; min-height: 0;
+              overscroll-behavior: contain; scrollbar-width: thin; }
+  .vf-panel { padding: 7px 8px !important; }
+  .vf-panel h4 { margin-bottom: 4px !important; }
+  .vf-row { margin: 3px 0 !important; }
   .vf-panel h4 { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; }
   .vf-row { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--muted); margin-bottom: 5px; }
   .vf-row input[type=range] { flex: 1; min-width: 0; }
@@ -1488,7 +1596,8 @@
       </div>
     </div>
   </div>
-  <div id="fb-timebar"></div>
+  <!-- v29: the extra timebar is GONE. Two timelines in one tool is the opposite
+       of unifying — the sheet below IS the timeline, in the block language. -->
   <div id="fb-sheet"></div>
 </div>
 
@@ -1560,7 +1669,7 @@
     <button class="vft-btn" id="vf-undo" title="undo (ctrl+z)">↩ UNDO</button>
     <span style="font-size:10px;color:var(--muted);white-space:nowrap">🪄 auto-key is always on — move something and it remembers</span>
   </div>
-  <div id="vf-timebar"></div>
+  <!-- v29: extra timebar removed — the sheet is the timeline. -->
   <div id="vf-main">
     <div id="vf-canvas-wrap">
       <canvas id="vf-canvas" width="1280" height="720"></canvas>
@@ -6339,6 +6448,17 @@ function renderFbSheet() {
     attachFrameHeadDrag(th, f);
     hr.appendChild(th);
   }
+  {                                   // ⊕ add a frame at the end
+    const add = document.createElement('th');
+    add.className = 'addf'; add.textContent = '＋';
+    add.title = 'make this flipbook one frame longer';
+    add.onclick = () => {
+      for (const L of m.layers) while (L.cells.length < m.frameCount + 1) L.cells.push(null);
+      m.frameCount = m.layers[0].cells.length;
+      bumpFb(m); renderFbSheet(); fbNav(m.frameCount - 1);
+    };
+    hr.appendChild(add);
+  }
   tbl.appendChild(hr);
   // paint the little frame previews in rAF chunks — the sheet never blocks a stroke
   if (wantThumbs) {
@@ -6361,23 +6481,40 @@ function renderFbSheet() {
   [...m.layers].reverse().forEach(layer => {
     const tr = document.createElement('tr');
     const lh = document.createElement('th');
-    lh.className = 'lhead';
+    lh.className = 'lhead' + (layer.lid === fb.activeLid ? ' on' : '');
     lh.dataset.lid = layer.lid;
-    lh.textContent = `✏️ ${layer.name}`;
-    lh.style.color = layer.lid === fb.activeLid ? 'var(--pink)' : '';
+    // the row header is the brick's end: spine (which one) + badge + name
+    const idx = m.layers.indexOf(layer) + 1;
+    const wrap = document.createElement('div'); wrap.className = 'sh-name';
+    const sp = document.createElement('div'); sp.className = 'sh-spine';
+    for (const d of String(idx).split('')) {
+      const i = document.createElement('i');
+      i.style.background = NUM_COLOR[+d];
+      i.style.color = NUM_DARKTEXT.has(+d) ? '#000' : '#fff';
+      i.textContent = d; sp.appendChild(i);
+    }
+    const nm = document.createElement('span');
+    nm.textContent = '🎨 ' + layer.name;
+    nm.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    wrap.append(sp, nm); lh.appendChild(wrap);
     tr.appendChild(lh);
     for (let f = 0; f < m.frameCount; f++) {
       const td = document.createElement('td');
       const v = layer.cells[f];
-      const isEnd = v && (f + 1 >= m.frameCount || layer.cells[f + 1] !== 'H');
+      const isEnd   = v && (f + 1 >= m.frameCount || layer.cells[f + 1] !== 'H');
+      const isStart = v && v !== 'H';                 // a real drawing opens a run
       td.className = 'cell'
         + (f === fb.cur ? ' curcol' : '')
         + (f === fb.cur && layer.lid === fb.activeLid ? ' sel' : '')
         + (v ? ' run' : '')
+        + (isStart ? ' runstart' : '')
         + (isEnd ? ' runend' : '');
+      td.style.color = 'var(--pink)';                 // the brick + bubble colour
       td.dataset.f = f;
       td.dataset.lid = layer.lid;
-      td.innerHTML = v ? (v === 'H' ? '<span class="dot held">━</span>' : '<span class="dot">●</span>') : '';
+      // 🫧 a drawing is a BUBBLE; a held frame is the brick body carrying on
+      td.innerHTML = v ? (v === 'H' ? '<span class="sh-bub held"></span>'
+                                    : '<span class="sh-bub"></span>') : '';
       attachCellPointer(td, layer, f);
       tr.appendChild(td);
     }
@@ -7851,65 +7988,10 @@ function codeTimebar() {
       drawCodePreview(); codeTimebar(); },
   });
 }
-function fbTimebar() {
-  const m = media.find(x => x.id === fb.mediaId); const host = $('fb-timebar');
-  if (!m || !host) return;
-  const fps = m.fps || 12, n = m.frameCount || 1;
-  renderTimebar(host, { id: 'fb', dur: n / fps, fps, t: (fb.cur || 0) / fps,
-    title: '⏱ THIS FLIPBOOK',
-    headTitle: 'DRAWINGS', lengthLabel: 'THIS FLIPBOOK',
-    // ⚠ A flipbook's length IS its cels, so trimming could destroy drawings.
-    // Growing pads every layer with held frames; shrinking stops at the last
-    // frame anyone actually drew on. The block never eats art.
-    onLength: (d) => {
-      const want = Math.max(2, Math.min(600, Math.round(d * fps)));
-      const cur = m.frameCount || 1;
-      if (want > cur) {
-        for (const L of m.layers) while (L.cells.length < want) L.cells.push(null);
-      } else if (want < cur) {
-        let drawn = 2;
-        for (const L of m.layers)
-          for (let i = 0; i < L.cells.length; i++) if (L.cells[i]) drawn = Math.max(drawn, i + 1);
-        if (want < drawn) toast('✋ there are drawings out there — delete those frames first');
-        for (const L of m.layers) L.cells.length = Math.max(want, drawn);
-      }
-      m.frameCount = m.layers[0].cells.length;
-      bumpFb(m); fbNav(Math.min(fb.cur, m.frameCount - 1)); fbTimebar();
-    },
-    rows: (m.layers || []).map((L, li) => ({ label: '🎨 ' + (L.name || 'drawing'),
-      num: li + 1,
-      color: BLK_COLOR.flipbook, span: [0, n / fps],
-      keys: (L.cels || []).map((c, i) => (c && !c.held) ? { t: i / fps } : null).filter(Boolean) })),
-    onScrub: (t) => { fb.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps)));
-      fbRefresh(); },
-    onRowClick: (ri, t) => { fb.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps)));
-      fbRefresh(); },
-  });
-}
-function vfTimebar() {
-  const m = media.find(x => x.id === vf.mediaId); const host = $('vf-timebar');
-  if (!m || !host) return;
-  const fps = m.fps || 12, n = m.frameCount || 24;
-  renderTimebar(host, { id: 'vf', dur: n / fps, fps, t: (vf.cur || 0) / fps,
-    title: '⏱ THIS ANIMATION',
-    headTitle: 'THINGS', lengthLabel: 'THIS ANIMATION',
-    onLength: (d) => { m.frameCount = Math.max(2, Math.min(600, Math.round(d * fps)));
-      bumpVec(m); vfNav(Math.min(vf.cur, m.frameCount - 1)); vfTimebar(); },
-    rows: (m.objects || []).map((o, oi) => ({ label: '📐 ' + (o.name || o.kind || 'thing'),
-      num: oi + 1,
-      color: BLK_COLOR.vector, on: o.oid === vf.sel, oid: o.oid, span: [0, n / fps],
-      keys: Object.keys((o.tracks || {}).x || {}).map(f => ({ t: (+f) / fps })) })),
-    onScrub: (t) => { vf.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps))); vfRefresh(); },
-    onRowClick: (ri, t) => { const o = (m.objects || [])[ri]; if (o) vf.sel = o.oid;
-      vf.cur = Math.max(0, Math.min(n - 1, Math.round(t * fps))); vfRefresh(); },
-  });
-}
 // keep them fed without touching each studio's own refresh path
 function tbTick() {
   if (tbDragging) return;      // never rebuild a timebar out from under a drag
   try { if (codeS.open) codeTimebar(); } catch (e) {}
-  try { if (fb.open) fbTimebar(); } catch (e) {}
-  try { if (vf.open) vfTimebar(); } catch (e) {}
 }
 setInterval(tbTick, 260);
 
@@ -9194,21 +9276,50 @@ function vfRenderSheet() {
     th.addEventListener('pointerdown', () => { if (!vf.playing) vfNav(f); });
     hr.appendChild(th);
   }
+  {                                   // ⊕ same gesture as the raster sheet
+    const add = document.createElement('th');
+    add.className = 'addf'; add.textContent = '＋';
+    add.title = 'make this animation one frame longer';
+    add.onclick = () => {
+      m.frameCount = Math.min(600, (m.frameCount || 1) + 1);
+      bumpVec(m); vfRenderSheet(); vfNav(m.frameCount - 1);
+    };
+    hr.appendChild(add);
+  }
   tbl.appendChild(hr);
   [...m.objects].reverse().forEach(obj => {
     const tr = document.createElement('tr');
     const lh = document.createElement('th');
-    lh.className = 'lhead';
-    lh.textContent = obj.name;
-    lh.style.color = obj.oid === vf.selOid ? 'var(--purple)' : '';
+    lh.className = 'lhead' + (obj.oid === vf.selOid ? ' on' : '');
+    // same brick end as the raster sheet: spine, badge, name
+    const idx = m.objects.indexOf(obj) + 1;
+    const wrap = document.createElement('div'); wrap.className = 'sh-name';
+    const sp = document.createElement('div'); sp.className = 'sh-spine';
+    for (const d of String(idx).split('')) {
+      const i = document.createElement('i');
+      i.style.background = NUM_COLOR[+d];
+      i.style.color = NUM_DARKTEXT.has(+d) ? '#000' : '#fff';
+      i.textContent = d; sp.appendChild(i);
+    }
+    const nm = document.createElement('span');
+    nm.textContent = '📐 ' + obj.name;
+    nm.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    wrap.append(sp, nm); lh.appendChild(wrap);
     tr.appendChild(lh);
     const keyFrames = new Set();
     let lastKey = 0;
     for (const k of ['x','y','s','r','o','q']) for (const key of obj.tracks[k]) { keyFrames.add(key.f); lastKey = Math.max(lastKey, key.f); }
     for (let f = 0; f < m.frameCount; f++) {
       const td = document.createElement('td');
-      td.className = 'cell' + (f === vf.cur ? ' curcol' : '');
-      td.innerHTML = keyFrames.has(f) ? '<span class="key">◆</span>' : (f < lastKey ? '<span class="tw">─</span>' : '');
+      const isKey = keyFrames.has(f), inRun = f <= lastKey;
+      td.className = 'cell' + (f === vf.cur ? ' curcol' : '')
+        + (inRun ? ' run' : '') + (isKey ? ' runstart' : '')
+        + (f === lastKey ? ' runend' : '')
+        + (f === vf.cur && obj.oid === vf.selOid ? ' sel' : '');
+      td.style.color = 'var(--purple)';
+      // 🫧 same bubble as the raster sheet — a key is a drawing, a tween is the body
+      td.innerHTML = isKey ? '<span class="sh-bub"></span>'
+                   : (inRun ? '<span class="sh-bub held"></span>' : '');
       td.addEventListener('pointerdown', () => {
         if (vf.playing) return;
         vf.selOid = obj.oid;
@@ -10513,7 +10624,7 @@ $('project-name').addEventListener('change', () => {
 function buildProjectData() {
   sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 15,   // v28: the block language reaches EVERY tool — bin clips are bricks with spines, flipbook layers are bricks, the vector FRAMES field is gone (length is the master block in all four studios), every timebar header carries its colour chip — v27: 🌈 THE SPINE — every block says WHICH one in Mook's number colours, and stage objects carry an optional o.name (additive + back-compatible both ways: old builds ignore it, new builds fall back to the pinned skin's name) — v26 UI-only: ⬛ THE BLOCK everywhere + NLE spans + length-as-block + studio grips (no format change) — v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
+    app: 'geov', version: 15,   // v29: ONE timeline per tool — the raster/vector sheets ARE the timeline now (bubbles + capped brick runs + layer spines, Animate-style), the bolted-on second timebar and its analog clocks are gone, and the studio layouts were rebalanced against a real hit-test sweep at six screen sizes — v28: the block language reaches EVERY tool — bin clips are bricks with spines, flipbook layers are bricks, the vector FRAMES field is gone (length is the master block in all four studios), every timebar header carries its colour chip — v27: 🌈 THE SPINE — every block says WHICH one in Mook's number colours, and stage objects carry an optional o.name (additive + back-compatible both ways: old builds ignore it, new builds fall back to the pinned skin's name) — v26 UI-only: ⬛ THE BLOCK everywhere + NLE spans + length-as-block + studio grips (no format change) — v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
     blocks: projectBlocks || '',   // 📎 shared code every code clip can use
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
