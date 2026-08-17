@@ -556,7 +556,8 @@
        colour swatches clean off the screen. Sheet height scales with the window
        so a short laptop screen keeps its canvas. */
     display: none;
-    grid-template-rows: 48px 46px minmax(0, 1fr) clamp(120px, 24vh, 210px);
+    --fbsheet-h: clamp(120px, 24vh, 210px);
+    grid-template-rows: 48px 46px minmax(0, 1fr) var(--fbsheet-h);
     grid-template-areas: "fbhead" "fbtoolbar" "fbmain" "fbsheet";
   }
   #fb-head {
@@ -755,17 +756,67 @@
      advanced tool; the object list and the camera are the ones a kid needs every
      minute. So on a short window the graph folds away and its row goes to the
      panel that was starving. Fill the space with what is used. */
+  /* v29.1 — the curve editor is a real tool, not clutter: it STAYS, it just
+     starts folded on a short screen. One click on its caret brings it back. */
   @media (max-height: 900px) {
-    #vf-overlay {
-      grid-template-rows: 50px 44px minmax(0, 1fr) 0px clamp(104px, 17vh, 150px);
-    }
-    #vf-graph { display: none !important; }
+    #vf-overlay { --vfgraph-h: 24px; }
   }
   @media (max-height: 820px) {
-    #fb-overlay { grid-template-rows: 44px 42px minmax(0, 1fr) clamp(104px, 20vh, 150px); }
+    #fb-overlay { --fbsheet-h: clamp(104px, 20vh, 150px);
+                  grid-template-rows: 44px 42px minmax(0, 1fr) var(--fbsheet-h); }
     .fb-tool { width: 38px; height: 38px; font-size: 17px; }
     #fb-tools { gap: 5px; }
   }
+
+  /* ═══ 🗂 PANEL CHROME — every tool menu opens, closes and resizes ═══
+     THE DESIGN LAW (Mook, 2026-08-17): *all tool menus should be able to close
+     and open and be resized.* A kid's screen is not my screen, and an iPad is not
+     either — so the app must not decide how much room a tool deserves. It offers
+     a default and then gets out of the way.
+
+     One element does both jobs, which is why it reads as a tab: the header bar
+     is the collapse button (click the caret) AND the drag handle (drag the bar).
+     Heights ride on a CSS variable so the grid stays declarative. */
+  .pnl-head {
+    display: flex; align-items: center; gap: 8px; height: 24px; flex: 0 0 24px;
+    padding: 0 8px; background: #16161f; border-bottom: 1px solid var(--border);
+    cursor: row-resize; user-select: none; position: sticky; top: 0; z-index: 12;
+  }
+  .pnl-head .pnl-caret {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 11px; padding: 0 3px; line-height: 1; font-family: inherit;
+  }
+  .pnl-head .pnl-caret:hover { color: var(--cyan); }
+  .pnl-head .pnl-title { font-size: 10px; letter-spacing: 2px; font-weight: 800; color: #9EA0B8; }
+  .pnl-head .pnl-grip {
+    margin-left: auto; color: var(--muted); font-size: 9px; letter-spacing: 2px;
+    pointer-events: none;
+  }
+  .pnl-head:hover { background: #1c1c28; }
+  .pnl-head:hover .pnl-grip { color: var(--cyan); }
+  .pnl-collapsed > *:not(.pnl-head) { display: none !important; }
+
+  /* ═══ 🗂 SIDE PANELS FOLD TOO — the same law, applied sideways ═══
+     A tool column is a stack of menus; each one folds on its own title so the kid
+     keeps only what they are using open. This is what stops the OBJECTS list from
+     falling below the fold the moment the curve editor is showing. */
+  .vf-panel > h4, #fb-right .fb-panel > h4 {
+    cursor: pointer; display: flex; align-items: baseline; gap: 6px;
+    user-select: none;
+  }
+  .vf-panel > h4::before, #fb-right .fb-panel > h4::before {
+    content: '▾'; font-size: 9px; color: var(--muted); flex: 0 0 auto;
+  }
+  .vf-panel.folded > h4::before, #fb-right .fb-panel.folded > h4::before { content: '▸'; }
+  .vf-panel.folded > *:not(h4), #fb-right .fb-panel.folded > *:not(h4) { display: none !important; }
+  /* the little grey notes used float:right and landed ON the first slider once the
+     column got narrower. They flow now, and stand down when there is no room. */
+  .vf-panel > h4 > span { float: none !important; margin-left: auto; font-size: 9px;
+    color: var(--muted); font-weight: 400; white-space: nowrap; overflow: hidden; }
+  @media (max-width: 1500px) { .vf-panel > h4 > span { display: none; } }
+  /* nothing in a tool column may exceed the column */
+  #vf-right select, #vf-right input, #vf-right button { max-width: 100%; }
+  #vf-right .vf-row { flex-wrap: wrap; }
 
   /* ═══ 🫧 THE SHEET IS THE TIMELINE ═══
      v29. There used to be TWO time UIs in this studio — this sheet and a second
@@ -782,9 +833,13 @@
      circles) said in Mook's blocks. And no analog clocks: in a flipbook the
      frame IS the unit, so a clock face was clunky and redundant. */
   #fb-sheet, #vf-sheet {
-    grid-area: fbsheet; background: var(--panel); overflow: auto;
-    border-top: 1px solid var(--border);
+    grid-area: fbsheet; background: var(--panel); border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; min-height: 0; overflow: hidden;
   }
+  #fb-sheet .sh-scroll, #vf-sheet .sh-scroll { flex: 1; min-height: 0; overflow: auto; }
+  #vf-graph { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  #vf-graph .vg-body { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  #vf-graph #vf-curve { flex: 1; min-height: 0; width: 100%; }
   #vf-sheet { grid-area: vfsheet; }
   #fb-sheet table, #vf-sheet table { border-collapse: separate; border-spacing: 0; }
   /* the frame-number strip */
@@ -924,7 +979,9 @@
   /* ═══ 📐 VECTOR FLIPBOOK STUDIO ═══ */
   #vf-overlay {
     position: fixed; inset: 0; background: var(--bg); z-index: 260; display: none;
-    grid-template-rows: 50px 44px minmax(0, 1fr) clamp(96px, 16vh, 170px) clamp(110px, 20vh, 180px);
+    --vfgraph-h: clamp(96px, 16vh, 170px);
+    --vfsheet-h: clamp(110px, 20vh, 180px);
+    grid-template-rows: 50px 44px minmax(0, 1fr) var(--vfgraph-h) var(--vfsheet-h);
     grid-template-areas: "vfhead" "vftool" "vfmain" "vfgraph" "vfsheet";
   }
   #vf-overlay.open { display: grid; }
@@ -952,7 +1009,11 @@
   .vf-row input[type=range] { flex: 1; min-width: 0; }
   .vf-row input[type=color] { width: 34px; height: 26px; border: 1px solid var(--border); border-radius: 6px; background: none; padding: 0; }
   .vf-row .vv { min-width: 30px; text-align: right; color: var(--text); }
-  #vf-obj-list { display: flex; flex-direction: column; gap: 4px; }
+  /* the OBJECTS list scrolls inside its own menu instead of pushing the buttons
+     below it off the bottom of the column. */
+  #vf-obj-list { display: flex; flex-direction: column; gap: 4px;
+                 max-height: clamp(84px, 22vh, 260px); overflow-y: auto;
+                 overscroll-behavior: contain; scrollbar-width: thin; }
   .vf-obj {
     display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px;
     background: var(--card); border: 1px solid var(--border); font-size: 11px; cursor: pointer;
@@ -960,7 +1021,12 @@
   .vf-obj.sel { border-color: var(--purple); color: var(--purple); }
   .vf-obj .sw { width: 14px; height: 14px; border-radius: 4px; flex: none; }
   #vf-graph { grid-area: vfgraph; background: var(--panel); border-top: 1px solid var(--border); display: flex; min-height: 0; }
-  #vf-prop-btns { display: flex; flex-direction: column; gap: 3px; padding: 8px; }
+  /* the property picker was a VERTICAL column inside a ~150px panel — six buttons
+     do not fit in that, so the bottom three were clipped and unclickable at every
+     resolution. As a row it fits, and the curve gets the height instead. */
+  #vf-prop-btns { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px;
+                  align-items: center; padding: 4px 6px; flex: 0 0 auto;
+                  border-bottom: 1px solid var(--border); }
   .vf-prop { background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 4px 10px; font-size: 10px; cursor: pointer; }
   .vf-prop.on { border-color: var(--yellow); color: var(--yellow); }
   #vf-curve { flex: 1; touch-action: none; cursor: crosshair; }
@@ -1193,8 +1259,9 @@
   #code-prevwrap { position: relative; width: 100%; aspect-ratio: 16/9; }
   #code-prevwrap .checker { position: absolute; inset: 0; border-radius: 8px; background: repeating-conic-gradient(#181822 0 25%, #202030 0 50%) 0 0/22px 22px; }
   #code-preview { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 8px; }
-  #code-transport { display: flex; align-items: center; gap: 10px; }
-  #code-time { font-size: 12px; color: var(--purple); font-variant-numeric: tabular-nums; min-width: 90px; }
+  #code-transport { display: flex; align-items: center; gap: 8px; justify-content: center; }
+  #code-time { font-size: 12px; color: var(--purple); font-variant-numeric: tabular-nums;
+               min-width: 90px; text-align: right; margin-left: 6px; }
   #code-hint { font-size: 12px; color: var(--muted); line-height: 1.7; }
   #code-hint b { color: var(--purple); }
   @media (max-width: 900px) { #code-main { flex-direction: column; } #code-right { width: 100%; max-width: none; } }
@@ -1788,10 +1855,17 @@
     <div class="spl x" id="code-hsplit" title="drag to resize the code"></div>
     <div id="code-right">
       <div id="code-prevwrap"><div class="checker"></div><canvas id="code-preview" width="1280" height="720"></canvas></div>
+      <!-- v29.1: removing the scrub slider in v26 left a lone button and a
+           floating clock with a hole between them — it read as broken because it
+           WAS missing a part. Now it is the same transport as the movie player:
+           step, play, step, then the clock. -->
       <div id="code-transport">
+        <button class="t-btn" id="code-first-btn" title="back to the start">⏮</button>
+        <button class="t-btn" id="code-back-btn" title="one frame back">◀</button>
         <button class="t-btn" id="code-play-btn" title="play / pause the sketch">⏸</button>
-        <!-- v26: the scrub slider is gone. The timebar playhead below scrubs. -->
-        <span id="code-time" style="margin-left:auto">0.0s</span>
+        <button class="t-btn" id="code-fwd-btn" title="one frame on">▶</button>
+        <button class="t-btn" id="code-last-btn" title="jump to the end">⏭</button>
+        <span id="code-time">0.0s</span>
       </div>
       <div id="code-timebar"></div>
       <div id="tinker"><div id="tinker-title">🎛 TINKER — drag a slider, the code changes itself</div><div id="tinker-rows"></div></div>
@@ -5756,6 +5830,17 @@ $('flipbook-new-btn').addEventListener('click', () => {
 });
 
 function openFlipbook(mediaId, clip) {
+  attachAccordion('fb-right', '.fb-panel');
+  if (!$('fb-right').__grip) {
+    const g = document.createElement('div');
+    g.className = 'spl x'; g.title = 'drag to resize the tool column';
+    $('fb-right').parentNode.insertBefore(g, $('fb-right'));
+    makeSplit(g, $('fb-right'), 'x', 130, -1);
+    $('fb-right').__grip = true;
+  }
+  attachPanel('fb-sheet', { overlay:'fb-overlay', varName:'--fbsheet-h',
+    title:'⏱ THIS FLIPBOOK', min:70, max:420, def:180,
+    onResize:()=>{ try{ renderFbSheet(); }catch(e){} } });
   const m = media.find(x => x.id === mediaId);
   if (!m || m.kind !== 'flipbook') return;
   if (playing) stopPlayback();
@@ -6520,8 +6605,10 @@ function renderFbSheet() {
     }
     tbl.appendChild(tr);
   });
-  sheet.innerHTML = '';
-  sheet.appendChild(tbl);
+  let body = sheet.querySelector('.sh-scroll');
+  if (!body) { body = document.createElement('div'); body.className = 'sh-scroll'; sheet.appendChild(body); }
+  body.innerHTML = '';
+  body.appendChild(tbl);
 }
 
 // cell drag: grab a drawing and PULL — its exposure stretches like taffy.
@@ -7341,6 +7428,19 @@ $('code-template').addEventListener('change', e => {
   tkCloseBubble(); tkRenderHl();
   codeS.t0 = 0; codeS.wall = performance.now();
 });
+// v29.1 transport — one frame is 1/FPS of a second, same unit as everywhere else
+function codeStep(d) {
+  const m = codeMedia(); if (!m) return;
+  codeS.playing = false; $('code-play-btn').textContent = '▶';
+  const dur = Math.max(0.1, m.duration);
+  codeS.t0 = Math.max(0, Math.min(dur, (codeS.t0 || 0) + d / FPS));
+  drawCodePreview(); codeTimebar();
+}
+$('code-first-btn').addEventListener('click', () => { codeS.t0 = 0; codeStep(0); });
+$('code-last-btn').addEventListener('click', () => {
+  const m = codeMedia(); if (m) { codeS.t0 = Math.max(0.1, m.duration) - 1 / FPS; codeStep(0); } });
+$('code-back-btn').addEventListener('click', () => codeStep(-1));
+$('code-fwd-btn').addEventListener('click',  () => codeStep(1));
 $('code-play-btn').addEventListener('click', () => {
   codeS.playing = !codeS.playing;
   if (codeS.playing) { codeS.wall = performance.now(); }
@@ -7514,6 +7614,94 @@ function stageSetMode(md) {
 const TB_ZOOMS = [30, 60, 120, 240, 480, 900];    // px per second
 const tbZoom = {};                                 // remembered per host id
 let tbDragging = false;                            // a drag is in flight somewhere
+
+
+
+// the curve editor gets a body wrapper once, so its panel head can sit above it
+function vfEnsureGraphBody() {
+  const g = $('vf-graph'); if (!g || g.querySelector('.vg-body')) return;
+  const body = document.createElement('div'); body.className = 'vg-body';
+  while (g.firstChild) body.appendChild(g.firstChild);
+  g.appendChild(body);
+}
+
+// fold any stack of titled menus (the vector tool column, the raster right column)
+function attachAccordion(rootId, panelSel, opts) {
+  const root = $(rootId); if (!root) return;
+  opts = opts || {};
+  // ⚠ Folding has to have a sensible DEFAULT or it solves nothing: with every menu
+  // open, a short screen still buries the bottom of the column. On a small window
+  // the advanced menus start folded — one labelled click away, never hidden. The
+  // kid's own choice always wins over this.
+  const short = window.innerHeight < 900;
+  root.querySelectorAll(panelSel).forEach((pn, i) => {
+    const h = pn.querySelector('h4'); if (!h || h.__acc) return;
+    h.__acc = true;
+    const KEY = 'geov-acc-' + rootId + '-' + i;
+    h.addEventListener('click', () => {
+      pn.classList.toggle('folded');
+      try { localStorage.setItem(KEY, pn.classList.contains('folded') ? '1' : '0'); } catch (e) {}
+    });
+    let saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    if (saved === '1') pn.classList.add('folded');
+    else if (saved === null && short && (opts.foldWhenShort || []).includes(i))
+      pn.classList.add('folded');
+  });
+}
+// ═══ 🗂 attachPanel — the one mechanism every tool menu uses ═══
+// THE LAW: all tool menus open, close and resize. The header bar IS both controls
+// — click the caret to fold, drag the bar to resize — which is why it reads as a
+// tab rather than as two more buttons to learn. The height lives in a CSS custom
+// property on the overlay, so the grid stays declarative and one drag updates it.
+// Remembered per panel, so a kid's layout survives closing the studio.
+function attachPanel(hostId, opts) {
+  const host = $(hostId); if (!host || host.__panel) return;
+  const ov = document.getElementById(opts.overlay);
+  const KEY = 'geov-pnl-' + hostId;
+  const head = document.createElement('div');
+  head.className = 'pnl-head';
+  head.innerHTML = `<button class="pnl-caret" title="open / close this panel">▾</button>` +
+                   `<span class="pnl-title">${opts.title}</span>` +
+                   `<span class="pnl-grip">drag to resize · • • •</span>`;
+  host.insertBefore(head, host.firstChild);
+  host.__panel = true;
+
+  const setH = (px) => {
+    const v = Math.round(Math.max(opts.min || 90, Math.min(opts.max || 460, px)));
+    ov.style.setProperty(opts.varName, v + 'px');
+    try { localStorage.setItem(KEY, JSON.stringify({ h: v, c: host.classList.contains('pnl-collapsed') })); } catch (e) {}
+  };
+  const setCollapsed = (on) => {
+    host.classList.toggle('pnl-collapsed', on);
+    head.querySelector('.pnl-caret').textContent = on ? '▸' : '▾';
+    if (on) ov.style.setProperty(opts.varName, '24px');
+    else    ov.style.setProperty(opts.varName, (host.__lastH || opts.def || 170) + 'px');
+    try { localStorage.setItem(KEY, JSON.stringify({ h: host.__lastH || opts.def || 170, c: on })); } catch (e) {}
+    if (opts.onResize) opts.onResize();
+  };
+  head.querySelector('.pnl-caret').onclick = (e) => {
+    e.stopPropagation();
+    setCollapsed(!host.classList.contains('pnl-collapsed'));
+  };
+  // drag the bar = resize. Grows UPWARD, because these panels sit at the bottom.
+  head.addEventListener('pointerdown', (e) => {
+    if (e.target.classList.contains('pnl-caret')) return;
+    if (host.classList.contains('pnl-collapsed')) return;
+    e.preventDefault();
+    const y0 = e.clientY, h0 = host.offsetHeight;
+    const mv = (ev) => { const h = h0 - (ev.clientY - y0); host.__lastH = h; setH(h);
+                         if (opts.onResize) opts.onResize(); };
+    const up = () => { window.removeEventListener('pointermove', mv);
+                       window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  });
+  // bring back whatever the kid chose last time
+  try {
+    const st = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (st) { host.__lastH = st.h; if (st.c) setCollapsed(true); else setH(st.h); }
+  } catch (e) {}
+}
 
 // ⇔ makeSplit — one grip, every studio. `prev` is the element that gets sized;
 // everything after the splitter takes the remaining room. Matches #vsplit/#hsplit.
@@ -8781,6 +8969,21 @@ function migrateVecObject(o) {
 
 // ── open / close ──
 function openVectorStudio(mediaId) {
+  vfEnsureGraphBody();
+  attachAccordion('vf-right', '.vf-panel', { foldWhenShort: [0, 2, 3] });
+  if (!$('vf-right').__grip) {                 // ⇔ drag the column wider or narrower
+    const g = document.createElement('div');
+    g.className = 'spl x'; g.title = 'drag to resize the tool column';
+    $('vf-right').parentNode.insertBefore(g, $('vf-right'));
+    makeSplit(g, $('vf-right'), 'x', 150, -1);
+    $('vf-right').__grip = true;
+  }
+  attachPanel('vf-graph', { overlay:'vf-overlay', varName:'--vfgraph-h',
+    title:'📈 CURVES', min:70, max:380, def:150,
+    onResize:()=>{ try{ vfDrawCurve(); }catch(e){} } });
+  attachPanel('vf-sheet', { overlay:'vf-overlay', varName:'--vfsheet-h',
+    title:'⏱ THIS ANIMATION', min:70, max:380, def:160,
+    onResize:()=>{ try{ vfRenderSheet(); }catch(e){} } });
   vf.mediaId = mediaId; vf.open = true; vf.cur = 0; vf.playing = false; vf.undo = [];
   const m = vfMedia();
   m.objects.forEach(migrateVecObject);              // v19 fields on older animations
@@ -9329,8 +9532,10 @@ function vfRenderSheet() {
     }
     tbl.appendChild(tr);
   });
-  sheet.innerHTML = '';
-  sheet.appendChild(tbl);
+  let body = sheet.querySelector('.sh-scroll');
+  if (!body) { body = document.createElement('div'); body.className = 'sh-scroll'; sheet.appendChild(body); }
+  body.innerHTML = '';
+  body.appendChild(tbl);
 }
 
 // ── 📈 graph editor: the value curve with draggable keys + ease handles ──
@@ -10624,7 +10829,7 @@ $('project-name').addEventListener('change', () => {
 function buildProjectData() {
   sanitizeTimeline();   // 🛡 never let a broken number reach the saved file
   return {
-    app: 'geov', version: 15,   // v29: ONE timeline per tool — the raster/vector sheets ARE the timeline now (bubbles + capped brick runs + layer spines, Animate-style), the bolted-on second timebar and its analog clocks are gone, and the studio layouts were rebalanced against a real hit-test sweep at six screen sizes — v28: the block language reaches EVERY tool — bin clips are bricks with spines, flipbook layers are bricks, the vector FRAMES field is gone (length is the master block in all four studios), every timebar header carries its colour chip — v27: 🌈 THE SPINE — every block says WHICH one in Mook's number colours, and stage objects carry an optional o.name (additive + back-compatible both ways: old builds ignore it, new builds fall back to the pinned skin's name) — v26 UI-only: ⬛ THE BLOCK everywhere + NLE spans + length-as-block + studio grips (no format change) — v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
+    app: 'geov', version: 15,   // v29.1: every tool menu opens/closes/resizes (attachPanel + attachAccordion + width grips, remembered per panel), the curve editor is back and foldable, the code transport is whole again — ONE timeline per tool — the raster/vector sheets ARE the timeline now (bubbles + capped brick runs + layer spines, Animate-style), the bolted-on second timebar and its analog clocks are gone, and the studio layouts were rebalanced against a real hit-test sweep at six screen sizes — v28: the block language reaches EVERY tool — bin clips are bricks with spines, flipbook layers are bricks, the vector FRAMES field is gone (length is the master block in all four studios), every timebar header carries its colour chip — v27: 🌈 THE SPINE — every block says WHICH one in Mook's number colours, and stage objects carry an optional o.name (additive + back-compatible both ways: old builds ignore it, new builds fall back to the pinned skin's name) — v26 UI-only: ⬛ THE BLOCK everywhere + NLE spans + length-as-block + studio grips (no format change) — v15: ⏱ ONE TIMEBAR in every studio, ⏰ frames as clocks, a row per stage object — v14: 🚶 walk motion handed to the skin (p.walk) + ⛶ INSPECT — v13: ✥ OBJECT KEYFRAMES in the stage (o.keys) — v12: ⬡ 3D STAGE (kind:'stage') — v11: 🎥 camera ON THE CLIP (clip.cam) — v10: 🧷 rig + 🎞 vector camera + 🔁 loop + 📎 blocks
     blocks: projectBlocks || '',   // 📎 shared code every code clip can use
     name: $('project-name').value.trim() || 'my movie',
     fps: FPS,
