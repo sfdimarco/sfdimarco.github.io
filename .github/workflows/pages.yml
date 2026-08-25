@@ -1,0 +1,52 @@
+# Build the Vite site and publish dist/ to GitHub Pages.
+#
+# WHY THIS FILE EXISTS (2026-08-25): sfdimarco.github.io is a Vite project whose
+# static assets live in public/ so public/geov/index.html is served at /geov/
+# ONLY IF something runs `vite build`. The repo had NO .github/workflows at all.
+# Pages was therefore serving a frozen dist/ artifact from 2026-08-16: nine days
+# and six pushes to main changed nothing, because nothing was building main.
+# Diagnosis: /public/geov/ and /vite.config.js both 404, so Pages is serving a
+# BUILD, not the raw branch.
+name: Deploy site to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # npm ci is correct when the lockfile matches; fall back rather than fail
+      # the whole deploy, because a failed build leaves the OLD site up and the
+      # point of this workflow is to stop the site being stuck.
+      - run: npm ci || npm install --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
