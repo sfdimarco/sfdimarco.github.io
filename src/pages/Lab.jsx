@@ -1,4 +1,4 @@
-﻿import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { SYN } from "../constants/syn";
 import Tag from "../components/Tag";
@@ -277,6 +277,27 @@ function NumberRain() {
 // ── Tool registry ─────────────────────────────────────────────────────────────
 const TOOLS = [
   {
+    id: "geo-runtime",
+    title: "GEO RUNTIME",
+    tagline: ".geo Bytecode / Rust + WASM / WebGL2",
+    accent: SYN["0"],
+    status: "READY",
+    desc: "A file format and the machine that runs it. A 2,320-byte program builds and poses a 3D character in your browser - 135x smaller than the mesh it produces. The trick is a language with no way to loop an unknown number of times, so the memory it needs can be counted before it runs: one allocation, chosen up front, never replaced. Made weaker on purpose. That is the thing that made it fast.",
+    tags: ["Rust", "WASM", "WebGL2", "Bytecode VM", "Bounded Memory", ".geo"],
+    type: "external",
+    href: "/geo-runtime/",
+  },
+  {
+    id: "geov-studio",
+    title: "GEOV STUDIO",
+    tagline: "Animation Studio + Nonlinear Editor / One HTML File",
+    accent: SYN["7"],
+    status: "READY",
+    desc: "A character-animation studio and nonlinear video editor in a single self-contained HTML file - rig a character, pose it, key it, cut the scene, score it, export the film. Built to run on a classroom iPad fleet, and used by campers to finish real shorts. This is the engine GEO RUNTIME is measured against.",
+    tags: ["Animation", "WebGL", "Video Editor", "Classroom Tested", "Single File"],
+    type: "external",
+    href: "/geov/",
+  },  {
     id: "robot-dog",
     title: "ROBOT DOG AI",
     tagline: "Neural Network / Three.js",
