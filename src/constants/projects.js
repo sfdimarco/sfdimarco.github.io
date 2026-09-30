@@ -14,7 +14,7 @@ export const SKILLS = [
   { label: "Three.js / WebGL",          color: SYN["0"] },
   { label: "STEM Curriculum Design",    color: SYN["3"] },
   { label: "MagicSchool AI Certified",  color: SYN["3"] },
-  { label: "25-School Program Director",color: SYN["3"] },
+  { label: "25-School Program Management",color: SYN["3"] },
   { label: "Stop Motion & Puppetry",    color: SYN["5"] },
   { label: "Synesthetic UX Research",   color: SYN["7"] },
 ];
@@ -297,7 +297,7 @@ export const PROJECTS = [
   {
     id: "empow", cat: "ED WORK",
     title: "EMPOW Studios",
-    tagline: "25 schools · Program director · Curriculum architect",
+    tagline: "25 schools · Assistant Program Manager · Curriculum architect",
     accent: SYN["3"],
     desc: "Managed AI and STEM programming across 25 schools. Designed challenge-based curricula: give kids a tool and ask 'what can you make?' Scratch, robotics, game dev, AI tools — student-led, educator-facilitated.",
     tags: ["STEM Education", "Curriculum Design", "Program Management", "25 Schools", "K–8"],
@@ -308,7 +308,7 @@ export const PROJECTS = [
     title: "Bowen After School",
     tagline: "Live user testing with 4th and 5th graders · Newton, MA",
     accent: SYN["4"],
-    desc: "Current role. I hand AI tools to 4th and 5th graders and watch what breaks. MOOK SYNTH was tested here first. Teaching philosophy: tools, not tutorials.",
+    desc: "May 2025 – Jun 2026. I handed AI tools to 4th and 5th graders and watched what broke. MOOK SYNTH was tested here first. Teaching philosophy: tools, not tutorials.",
     tags: ["After School", "AI Tools", "User Testing", "4th–5th Grade", "Newton MA"],
   },
 
