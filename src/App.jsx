@@ -1,37 +1,43 @@
-import { useState } from "react";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Nav from "./components/Nav";
-import GamutCursor from "./components/GamutCursor";
-import { LightboxProvider } from "./components/Lightbox";
-import Landing from "./pages/Landing";
-import Work from "./pages/Work";
-import Lab from "./pages/Lab";
+import Home from "./pages/Home";
+import Episodes from "./pages/Episodes";
+import Breakdowns from "./pages/Breakdowns";
+import BreakdownPost from "./pages/BreakdownPost";
 import About from "./pages/About";
+import { CHANNEL_URL } from "./content/show";
+
+function Site() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return (
+    <>
+      <a className="skip-link" href="#main" onClick={(event) => {
+        event.preventDefault();
+        document.getElementById("main")?.focus();
+      }}>Skip to content</a>
+      <Nav />
+      <main id="main" tabIndex={-1}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/episodes" element={<Episodes />} />
+          <Route path="/breakdowns" element={<Breakdowns />} />
+          <Route path="/breakdowns/:slug" element={<BreakdownPost />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/work" element={<Navigate to="/" replace />} />
+          <Route path="/lab" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+      <footer className="site-footer wrap">
+        <p>A cartoon by Sean “Mook” DiMarco.</p>
+        <div><a href={CHANNEL_URL} target="_blank" rel="noreferrer">YouTube</a><a href="https://github.com/sfdimarco" target="_blank" rel="noreferrer">GitHub</a></div>
+      </footer>
+    </>
+  );
+}
 
 export default function App() {
-  const [dark, setDark] = useState(true);
-
-  return (
-    <HashRouter>
-      <LightboxProvider>
-        <div
-          data-theme={dark ? "dark" : "light"}
-          style={{
-            minHeight: "100vh",
-            overflowX: "hidden",
-            transition: "background 0.4s, color 0.4s",
-          }}
-        >
-          <GamutCursor />
-          <Nav dark={dark} setDark={setDark} />
-          <Routes>
-            <Route path="/"      element={<Landing />} />
-            <Route path="/work"  element={<Work />} />
-            <Route path="/lab"   element={<Lab />} />
-            <Route path="/about" element={<About />} />
-          </Routes>
-        </div>
-      </LightboxProvider>
-    </HashRouter>
-  );
+  return <HashRouter><Site /></HashRouter>;
 }
