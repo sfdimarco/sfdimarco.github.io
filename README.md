@@ -2,6 +2,8 @@
 
 The show’s home at https://sfdimarco.github.io/: Home, Episodes, Breakdowns, and About. Built with the existing React + Vite + HashRouter stack.
 
+YouTube: [@MookandMush](https://www.youtube.com/@MookandMush). The shared channel URL lives in `src/content/show.js`.
+
 ## Work locally
 
 Use a Node version supported by the locked Vite version (Node 20.19+ or 22.12+).

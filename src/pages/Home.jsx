@@ -29,6 +29,6 @@ export default function Home() {
       <div className="section-heading"><div><h2 id="journal-title">Inside the show</h2><p>Drawings, episode notes, and how the cartoons get made.</p></div><Link className="text-link" to="/breakdowns">All breakdowns</Link></div>
       <PostList posts={breakdowns.slice(0, 3)} />
     </section>
-    <section className="channel-banner wrap"><h2>There’s more in Mowersville.</h2><p>Catch up on the cartoons, or follow the channel for the next misadventure.</p><a className="button" href={CHANNEL_URL} target="_blank" rel="noreferrer">Visit the YouTube channel</a></section>
+    <section className="channel-banner wrap"><h2>There’s more in Mowersville.</h2><p>Catch up on the cartoons, or follow the channel for the next misadventure.</p><a className="button" href={CHANNEL_URL} target="_blank" rel="noreferrer">Watch @MookandMush on YouTube</a></section>
   </>;
 }
