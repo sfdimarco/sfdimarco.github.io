@@ -166,7 +166,7 @@ export const breakdowns = [
     image: "/images/show/ep-mowing-day.jpg", imageAlt: "Mowing Day",
     body: [
       "Mowing Day was the first episode Claude wrote and directed on its own pitch. Mook’s brief for the season: build out Dwarf and Mowersville, keep it grounded, establish the card game’s rules and the main characters’ friendships, and introduce Tortimer.",
-      "The story: all of Mowersville mows at once, the gang’s chore is Mount Clipping, and they bet a card game against Tortimer to get out of it.",
+      "The story: it’s Mowing Day, the gang’s chore is Mount Clipping, Mook is allergic to cut grass, and they bet a card game against Tortimer to get out of it.",
       { h: "Tortimer" },
       "Mook described Tortimer as a two-legged Galápagos saddleback tortoise, drawn in the same style as the rest of the show. Claude designed him from that sentence, and Mook approved the design. He runs the card shop, and the shop counter was lowered 15 centimetres so his shell clears it.",
       { h: "The walk system" },

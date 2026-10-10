@@ -29,7 +29,7 @@ export default function Home() {
       <MushYard />
       <div className="mush-copy">
         <h2 id="mush-title">Say hi to Mush.</h2>
-        <p>He’s drawn live, right here, by the same code that animates the show. Point or tap anywhere and he’ll come and find it. Poke him if you dare.</p>
+        <p>He’s animated in code, live in your browser, by the same rig as the show. Mook draws the characters; Claude animates them in GeoV Studio. Point or tap anywhere and he’ll come and find it. Poke him if you dare.</p>
         <div className="actions"><a className="button button-yellow" href={GEOV_URL}>Made in GeoV Studio</a><Link className="text-link" to={GEOV_ARTICLE}>What’s GeoV Studio?</Link></div>
       </div>
     </section>

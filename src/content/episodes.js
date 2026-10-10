@@ -1,10 +1,10 @@
 // Newest upload first. Verified against the channel's public feed on 2026-10-10.
 // Use the YouTube upload title/date; production episode numbers may differ.
 export const episodes = [
-  { id: "pool-battle", title: "Mowing Day, Part 2: The Pool Battle", videoId: "HM1jWlas3iA", publishedAt: "2026-10-09", description: "The grass is cut, but the argument is just getting started. Mook, Mush, Finley and Puff stake their claims to an abandoned pool, then take the dispute to a holographic tabletop battle." },
-  { id: "mowing-day", title: "Mowing Day", videoId: "ox660uLa8II", publishedAt: "2026-10-08", description: "All 412 lawns in Mowersville are cut at once. Faced with mowing Mount Clipping, the gang challenges Tortimer to a game of Halo Aliquid Nihil to get out of the chore." },
-  { id: "groove-machine", title: "The Groove Machine", videoId: "RHTErtGOQRI", publishedAt: "2026-10-06", description: "A tournament scrimmage becomes a space battle, and a space battle becomes a much bigger problem when the pirate Barbarossa crashes into the pool." },
-  { id: "square-eyes", title: "Square Eyes", videoId: "EbJyxJTFUdo", publishedAt: "2026-10-03", description: "TV Gurl sees the world in a 16 × 16 grid. Mook tries to turn her limited view into an advantage in a game of hide-and-seek. Mush has other ideas." },
-  { id: "downhill", title: "Downhill", videoId: "xen3MACcZbs", publishedAt: "2026-10-02", description: "Put a box on wheels at the top of a very big hill, then let go. Mook and Mush join Mowersville’s downhill race in a pop-tart box car with very questionable brakes." },
+  { id: "pool-battle", title: "Mowing Day, Part 2: The Pool Battle", videoId: "HM1jWlas3iA", publishedAt: "2026-10-09", description: "The day after Mowing Day, the gang escapes the mowers to the Dogwoods and finds Fianna already in their pool. She won’t play cards, but her hat will. Finley takes on the Fhat, one on one, for the pool." },
+  { id: "mowing-day", title: "Mowing Day", videoId: "ox660uLa8II", publishedAt: "2026-10-08", description: "It’s Mowing Day in Mowersville, and the gang’s chore is Mount Clipping. Mook is allergic to cut grass, so they bet a card game against Tortimer to get out of it." },
+  { id: "groove-machine", title: "The Groove Machine", videoId: "RHTErtGOQRI", publishedAt: "2026-10-06", description: "A scrimmage at the pool turns into a hologram card battle in space, and then the pirate Barbarossa crash-lands. From the first three chapters of Mook’s book." },
+  { id: "square-eyes", title: "Square Eyes", videoId: "EbJyxJTFUdo", publishedAt: "2026-10-03", description: "A TV with legs turns up on the orphanage steps. TV Gurl sees the world in 16 × 16 squares and answers one question every five minutes and seven seconds, which makes hide-and-seek interesting." },
+  { id: "downhill", title: "Downhill", videoId: "xen3MACcZbs", publishedAt: "2026-10-02", description: "Mook has been afraid of speed ever since he fell to Dwarf. Mush signs them up for the Mowersville Downhill anyway, so Mook builds the slowest, safest box car in history." },
 ];
 export const watchUrl = (videoId) => `https://www.youtube.com/watch?v=${videoId}`;

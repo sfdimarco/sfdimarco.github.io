@@ -31,7 +31,7 @@ function Site() {
         </Routes>
       </main>
       <footer className="site-footer wrap">
-        <p>A cartoon by Sean “Mook” DiMarco.</p>
+        <p>A cartoon by Sean “Mook” DiMarco, made with Claude in GeoV Studio.</p>
         <div><a href={CHANNEL_URL} target="_blank" rel="noreferrer">YouTube</a><a href="https://github.com/sfdimarco" target="_blank" rel="noreferrer">GitHub</a></div>
       </footer>
     </>
