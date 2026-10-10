@@ -2,9 +2,10 @@ import { Link } from "react-router-dom";
 import HaloLettering from "../components/HaloLettering";
 import YouTubeEmbed from "../components/YouTubeEmbed";
 import PostList from "../components/PostList";
+import MushYard from "../components/MushYard";
 import { episodes, watchUrl } from "../content/episodes";
 import { breakdowns } from "../content/breakdowns";
-import { CHANNEL_URL } from "../content/show";
+import { CHANNEL_URL, GEOV_URL, GEOV_ARTICLE } from "../content/show";
 import { formatDate } from "../lib/formatDate";
 import { usePageTitle } from "../lib/usePageTitle";
 
@@ -15,14 +16,21 @@ export default function Home() {
     <section className="home-hero wrap">
       <div className="show-intro">
         <h1 className="show-title"><span className="title-intro">The MisAdventures of</span><HaloLettering text="Mook and Mush" cap={66} animate /><span className="sr-only">:</span><span className="title-sub">or; Eat the Rectangle <span>with Finley and Puff</span></span></h1>
-        <p className="show-deck">Big trouble on a small planet.</p>
-        <p className="intro-copy">Welcome to Mowersville. Follow Mook, Mush, Finley and Puff through card battles, cosmic mishaps, and the everyday business of getting out of chores.</p>
-        <Link className="text-link" to="/about">About the show and its maker</Link>
-        <img className="hero-sketch" src="/images/show/mook-mush-pod.jpg" alt="Original line drawing of Mook and Mush peering out of their pod" />
+        <p className="show-deck">New cartoons from Mowersville.</p>
+        <p className="intro-copy">Mook, Mush, Finley and Puff live on the little planet Dwarf, where a deck of cards can turn any argument into a space battle. Start with the newest episode.</p>
+        <Link className="text-link" to="/episodes">All episodes</Link>
       </div>
       <div className="latest-feature">
         <p className="feature-label">Latest cartoon</p>
         {latest ? <><YouTubeEmbed videoId={latest.videoId} title={latest.title} eager /><div className="feature-copy"><time dateTime={latest.publishedAt}>{formatDate(latest.publishedAt)}</time><h2>{latest.title}</h2><p>{latest.description}</p><div className="actions"><a className="button button-yellow" href={watchUrl(latest.videoId)} target="_blank" rel="noreferrer">Watch on YouTube</a><Link className="text-link" to="/episodes">All episodes</Link></div></div></> : <div className="feature-copy"><p>Find the cartoons on YouTube.</p><a href={CHANNEL_URL}>Visit the channel</a></div>}
+      </div>
+    </section>
+    <section className="mush-section wrap" aria-labelledby="mush-title">
+      <MushYard />
+      <div className="mush-copy">
+        <h2 id="mush-title">Say hi to Mush.</h2>
+        <p>He’s drawn live, right here, by the same code that animates the show. Point or tap anywhere and he’ll come and find it. Poke him if you dare.</p>
+        <div className="actions"><a className="button button-yellow" href={GEOV_URL}>Made in GeoV Studio</a><Link className="text-link" to={GEOV_ARTICLE}>What’s GeoV Studio?</Link></div>
       </div>
     </section>
     <section className="journal-section wrap" aria-labelledby="journal-title">

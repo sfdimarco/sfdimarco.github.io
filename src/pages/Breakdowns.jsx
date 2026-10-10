@@ -8,7 +8,7 @@ export default function Breakdowns() {
   const [query, setQuery] = useState("");
   const location = useLocation();
   const search = query.trim().toLocaleLowerCase();
-  const posts = breakdowns.filter(post => [post.title, post.summary, post.category, ...post.body].join(" ").toLocaleLowerCase().includes(search));
+  const posts = breakdowns.filter(post => [post.title, post.summary, post.category, ...post.body.map(b => typeof b === "string" ? b : b.h || (b.list || []).join(" ") || "")].join(" ").toLocaleLowerCase().includes(search));
   return <div className="wrap page">
     <header className="page-heading"><h1>Breakdowns</h1><p>A closer look at the episodes, the drawings, and the tools behind the show.</p></header>
     {location.state?.notFound && <p className="notice" role="status">That breakdown wasn’t found. Browse the articles below.</p>}
