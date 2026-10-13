@@ -7,6 +7,34 @@
 
 export const breakdowns = [
   {
+    slug: "snooze", title: "Snooze: a giant, a tour, and shots that check themselves", publishedAt: "2026-10-13", category: "Episode breakdown", episodeId: "snooze",
+    summary: "Leo joins the cast, the inside of the Cloister gets built, and every shot is described once so the same words draw it and test it.",
+    image: "/images/show/ep-snooze.jpg", imageAlt: "Snooze: Mook, Leo and TV Gurl at the card table",
+    body: [
+      "Episode six starts before dawn. Tortimer’s bus drops one new kid at the Cloister: Leo, the tallest thing on the lawn, fast asleep with his eyes wide open. Tortimer gives Mook a job: by dinner, Leo should feel at home. Mook takes it literally, makes a checklist and gives the tour of his life.",
+      { h: "New in the world" },
+      { list: [
+        "Leo, from Mook’s 2020 drawings. In Mook’s words he is “a stork ball, just a giant version of Puff”, the same species, with arms, and he talks. He sleeps standing on one leg, eyes open, and snores through a little round “o”.",
+        "The inside of the Cloister: the dinner hall, the domed hall, the library one floor under it, and the dorm. Until now the show had only seen the front steps, the hall and Mook’s room.",
+        "Tortimer’s bus, an old round space bus that brings every kid to the Cloister.",
+        "Leo’s three cards: ABSORB, a soft cloud that soaks up hits; SNOOZE +5, a moon that lights five rings back up, one per snore; SMASH, a giant fist of light.",
+      ] },
+      "Mook gave notes on the design as it went: the apron hangs from his shoulders, the yellow boots stay, the little moustache goes on.",
+      { h: "One goal on screen" },
+      "Mook’s note on Mowing Day was to make the plot easier to follow. So this episode puts its goal in the corner of the frame: Mook’s checklist, drawn in his sketchbook. THE HALL, THE LIBRARY, YOUR BED, DINNER, FEELS AT HOME. A pencil tick lands at every stop, and the last box waits for the last scene. A tour has a list built in, so here the list is the story.",
+      { h: "Shots that check themselves" },
+      "Every shot is written once, as a short description: who stands where, where the camera is, who speaks. The same description draws the picture and feeds an audit, which runs before any test frame. It asks whether the speaker’s face points at the lens, whether they are in frame, whether anyone stands in the way or in front of them, and whether anyone is too close to the camera.",
+      "The audit caught a lot. It also showed the limit of a numbers check: a shot can pass every test and still miss its point. TV Gurl and Mush’s pancake tower ended up outside the breakfast shot. In the “same bird, two sizes” shot, Leo came out smaller than Finley. A “giant” fist of light was drawn one hand wide. Each one was spotted on a review strip and redrawn. Since then every shot also carries a must-see line (the prop, the gag, who has to be bigger) and the audit checks it.",
+      { h: "Reviewing on strips, rendering once" },
+      "Mook reviewed the episode as strips: four frames from every shot, one part of the episode at a time. The only full render was the final export from GeoV Studio. It ran in thirteen parts of about a minute each, with the sound mixed before any frame was painted, so a sound problem shows up in seconds instead of at the end.",
+      { h: "Sound" },
+      "Leo got a new voice: big, slow and gentle. Five new songs were made with Lyria for this episode: BEFORE DAWN, LEO, THE TOUR, THE LIBRARY and FIRST DAY. Sound effects have their own track under the voices.",
+      { h: "As made" },
+      "11 minutes, 185 shots and 99 lines of dialogue, assembled and exported in GeoV Studio. Sync against the audio lock measured 0.0 milliseconds at eight checkpoints, and music sits under every quiet second except three planned dead stops.",
+      { img: "/images/show/sheet-snooze.jpg", alt: "Forty frames from across the episode" },
+    ]
+  },
+  {
     slug: "what-is-geov-studio", title: "What’s GeoV Studio?", publishedAt: "2026-10-10", category: "Tools",
     summary: "The browser animation studio every episode is built in, assembled in and exported from. It started as a tool for kids at summer camp.",
     image: "/images/show/geov-studio.jpg", imageAlt: "GeoV Studio with a new movie open: the studio buttons and clip library, the preview, and the timeline",
@@ -142,7 +170,7 @@ export const breakdowns = [
   {
     slug: "pool-battle", title: "The Pool Battle: teaching a card game on screen", publishedAt: "2026-10-10", category: "Episode breakdown", episodeId: "pool-battle",
     summary: "Fianna, the Fhat, the Dogwoods, and a one-on-one game built so you can follow every move.",
-    image: "/images/show/ep-pool-battle.jpg", imageAlt: "Mowing Day, Part 2: The Pool Battle",
+    image: "/images/show/ep-pool-battle.jpg", imageAlt: "The Fhat",
     body: [
       "Mook’s note on Mowing Day was that the card game was hard to follow. So the next episode was built around fixing that. The day after Mowing Day, the gang escapes the mowers to the Dogwoods and finds Fianna already in their pool. She won’t play cards; her hat will. It’s Finley against the Fhat, one on one, for the pool.",
       { h: "Making the game readable" },
