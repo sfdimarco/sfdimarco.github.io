@@ -1266,6 +1266,16 @@
   .st-obj.danger:hover { color: var(--red); border-color: var(--red); }
   .stp { display: flex; align-items: center; gap: 7px; width: 100%; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
   .stp span:first-child { min-width: 74px; }
+  /* 🔭 v37c — THE LENS KIT. A lens chip wears Mook's three readings: the spine (his colour per digit), the digit on it,
+     the number in words beside it. The chips wrap with the panel (flex-wrap), so every one stays reachable. */
+  .st-lens { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; width: 100%; }
+  .st-obj.lens { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 3px; }
+  .st-obj.lens.hold { padding: 5px 9px; }
+  .lsp { display: inline-flex; border-radius: 3px; overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,0.5); pointer-events: none; }
+  .lsp > i { width: 12px; height: 18px; display: flex; align-items: center; justify-content: center;
+    font-style: normal; font-size: 10px; font-weight: 900; }
+  .st-lens-job { width: 100%; font-size: 11px; color: var(--muted); line-height: 1.35; }
+  .st-lens-job b { color: var(--text); }
   /* ⚠⚠ v36h — THE ROW THAT PAINTED OVER ITS NEIGHBOUR. `#rig-left` is a fixed
      460px column and a range input will not shrink past ~129px, so this row ran
      out over `#rig-right`, whose buttons then won every hit test. `#rig-dw` — the
@@ -4607,7 +4617,11 @@ function stageCamAt(scene, t){
   let i=0; while(i<k.length-1&&k[i+1].t<=t) i++;
   const a=k[i],b=k[i+1], u=Math.max(0,Math.min(1,(t-a.t)/Math.max(1e-6,b.t-a.t)));
   const f=(CAM_FEELS[b.feel]||CAM_FEELS.smooth)(u), L=(p,q)=>[p[0]+(q[0]-p[0])*f,p[1]+(q[1]-p[1])*f,p[2]+(q[2]-p[2])*f];
-  return {eye:L(a.eye,b.eye), at:L(a.at,b.at), fov:a.fov+((b.fov||38)-(a.fov||38))*f};
+  const fa = a.fov||38, fb = b.fov||38;
+  // 🔭 v37c: a zoom between two lenses grows the picture by the same RATIO every frame (straight in fov, it rushed)
+  const fov = fa === fb ? a.fov+((b.fov||38)-(a.fov||38))*f
+    : 2 * Math.atan(Math.tan(fa*Math.PI/360) * Math.pow(Math.tan(fb*Math.PI/360) / Math.tan(fa*Math.PI/360), f)) * 180 / Math.PI;
+  return {eye:L(a.eye,b.eye), at:L(a.at,b.at), fov};
 }
 // one redraw at exactly time t — same math in preview, scrub, studio and export
 function renderStageFrame(m, srcT, camOverride){
@@ -4764,7 +4778,8 @@ function renderStageFrame(m, srcT, camOverride){
 // ════════════════════════════════════════════════════════════
 var stageSpanBase = {};   // key times as they were when the current span drag began
 var stS = { open:false, mediaId:null, sel:null, t:0, raf:null, mode:'walk',
-            orb:{ yaw:0, pitch:0.16, dist:19, at:[0,4.6,-10] }, live:false };
+            orb:{ yaw:0, pitch:0.16, dist:19, at:[0,4.6,-10] }, live:false,
+            lens:null, lensHold:true };   // 🔭 v37c: the lens you look through (null = the old fov 38 = an 18); HOLD SIZE backs the camera up
 function stageMedia(){ return media.find(m => m.id === stS.mediaId); }
 
 // ═══ 🧬 A RIGGED CHARACTER, STANDING IN THE DIORAMA ═══
@@ -4903,10 +4918,58 @@ function stagePlaceCharacter(objs, rig) {
   stageRenderPanel(); stageTouch();
   toast('🧬 ' + (rig.name||'character') + ' is on the stage — walk the camera and he turns', 4200);
 }
+// ═══ 🔭 v37c — THE LENS KIT (2026-10-14) ═══
+// 🗣 Mook: "lenses … as a story telling tool … kubrick was the goat at that lets build out his lens kit". On the sheet:
+//   "THIS IS SO GOOOOD YES THIS IS IT". A camera names a LENS, not a number: wide = a small person in a big world,
+//   long = the world pressing in on them. The gate is fixed: 35 mm Academy, 22.0 mm wide (Kubrick's own), so his 18 is
+//   our 18. ⭐ The old fov 38 (vertical, 16:9) was ALREADY an 18 on this gate, to 0.03 mm — so old projects are lensed.
+// ⭐ HOLD SIZE (on): a new lens backs the camera up (or in) so what you orbit stays the same size and only the WORLD
+//   changes, exactly the lens sheet. Off: the lens zooms from where you stand (Kubrick's slow zoom-outs).
+// ⚠ The camera stops at 220 (the wheel's own limit, inside the 500 far plane), so a 480 on a close orbit runs out of
+//   room and finishes as a zoom.
+// This table is the SAME as the episodes' MY BLOCKS mm_lens.js (a test diffs the two). Sources: .geo\lenskit\.
+const GEOV_LENS = {
+  "gate": 22.0, "gateName": "35 mm Academy", "frameW": 1280, "frameH": 720, "house": 18,
+  "kit": [
+    { "mm": 9.8, "name": "KINOPTIK 9.8", "stop": "f/1.8", "used": "Clockwork Orange record shop · The Shining maze", "job": "the world bends round you: lost, tiny, a maze. Rare." },
+    { "mm": 18, "name": "COOKE 18", "stop": null, "used": "The Shining halls · most of Eyes Wide Shut (Zeiss 18)", "job": "the house lens: the set is a character, deep space, symmetry, everyone in the room" },
+    { "mm": 25, "name": "ZEISS 25", "stop": "T1.3", "used": "Super Speed set: The Shining, Full Metal Jacket, Eyes Wide Shut", "job": "the master shot: wide, but calm" },
+    { "mm": 35, "name": "ZEISS 35", "stop": "T1.3", "used": "Eyes Wide Shut 'rarely went longer than 35mm'", "job": "people and place in balance" },
+    { "mm": 36.5, "name": "ZEISS 36.5 f/0.7", "stop": "f/0.7", "used": "Barry Lyndon candle wides (50 + Kollmorgen adapter)", "job": "the tableau: a room like a painting" },
+    { "mm": 50, "name": "ZEISS 50 f/0.7", "stop": "f/0.7", "used": "Barry Lyndon candle close-ups", "job": "the face in its world (the soft background waits for phase 2)" },
+    { "mm": 85, "name": "ZEISS 85", "stop": "T1.3", "used": "the Super Speed set's long end", "job": "the close-up that cuts the world away" },
+    { "zoom": [25, 250], "name": "ANGENIEUX 10:1", "stop": null, "used": "Barry Lyndon zoom-outs · battle close-ups 'on the 250mm end'", "job": "the slow reveal, detail to tableau; at 250 a crowd stacks into a wall" },
+    { "zoom": [24, 480], "name": "CINE-PRO 24-480", "stop": "T9", "used": "Barry Lyndon exteriors (DiGiulio's prototype)", "job": "far off and pressed flat: the watcher's view" }
+  ],
+  "picks": [9.8, 18, 25, 35, 36.5, 50, 85, 135, 250, 480]
+};
+const GEOV_LENS_OLDFOV = 38;
+function geovLensFov(mm){ const L = GEOV_LENS; return 2 * Math.atan(L.gate * L.frameH / L.frameW / (2 * mm)) * 180 / Math.PI; }
+function geovLensOfFov(fov){ const L = GEOV_LENS; return L.gate * L.frameH / L.frameW / (2 * Math.tan(fov * Math.PI / 360)); }
+function geovLensNow(){ return stS.lens == null ? geovLensOfFov(GEOV_LENS_OLDFOV) : stS.lens; }   // in mm
+function geovLensGet(mm){ const k = GEOV_LENS.kit, p = k.find(e => e.mm !== undefined && Math.abs(e.mm - mm) < 0.05);
+  return p || k.find(e => e.zoom && mm >= e.zoom[0] - 0.05 && mm <= e.zoom[1] + 0.05) || null; }
+function geovLensName(mm){ const e = geovLensGet(mm); return e ? (e.zoom ? e.name + ' @' + (+mm.toFixed(1)) : e.name) : '≈' + (+mm.toFixed(1)) + ' mm'; }
+// the spine for a focal length: one segment per digit (36.5 → 3·6·5), the digit printed on it (NUM_COLOR, his key)
+function geovLensSpine(mm){
+  const sp = document.createElement('span'); sp.className = 'lsp';
+  for (const ch of String(+(+mm).toFixed(1)).replace('.', '')) {
+    const i = document.createElement('i'); i.style.background = NUM_COLOR[+ch];
+    i.style.color = NUM_DARKTEXT.has(+ch) ? '#000' : '#fff'; i.textContent = ch; sp.appendChild(i); }
+  return sp;
+}
+// pick a lens for the view. HOLD SIZE: the orbit distance scales with the focal length, so the thing at the centre
+// keeps its size on screen and the world behind it changes.
+function geovLensPick(mm){
+  const from = geovLensNow();
+  if (stS.lensHold && from > 0) stS.orb.dist = Math.max(1.5, Math.min(220, stS.orb.dist * mm / from));
+  stS.lens = mm;
+}
 function stageOrbitCam(){
   const o=stS.orb, cp=Math.cos(o.pitch);
   return { eye:[o.at[0]+Math.sin(o.yaw)*cp*o.dist, o.at[1]+Math.sin(o.pitch)*o.dist,
-                o.at[2]+Math.cos(o.yaw)*cp*o.dist], at:o.at.slice(), fov:38 };
+                o.at[2]+Math.cos(o.yaw)*cp*o.dist], at:o.at.slice(),
+           fov: stS.lens == null ? GEOV_LENS_OLDFOV : geovLensFov(stS.lens), ...(stS.lens == null ? {} : { lens: stS.lens }) };
 }
 function openStageStudio(mediaId){
   const m=media.find(x=>x.id===mediaId); if(!m||m.kind!=='stage') return;
@@ -5270,15 +5333,38 @@ function stageRenderPanel(){
   key.onclick=()=>{ snapshot();
     const c=stageOrbitCam(), ks=sc.camera.keys;
     const ex=ks.find(k=>Math.abs(k.t-stS.t)<0.5/FPS);
-    if(ex){ ex.eye=c.eye; ex.at=c.at; ex.fov=c.fov; }
-    else ks.push({t:stS.t, eye:c.eye, at:c.at, fov:c.fov, feel:'smooth'});
+    if(ex){ ex.eye=c.eye; ex.at=c.at; ex.fov=c.fov; if(c.lens!=null) ex.lens=c.lens; else delete ex.lens; }
+    else ks.push(Object.assign({t:stS.t, eye:c.eye, at:c.at, fov:c.fov, feel:'smooth'}, c.lens!=null ? {lens:c.lens} : {}));
     ks.sort((a,b)=>a.t-b.t); stageRenderPanel(); stageTouch(); };
   cb.appendChild(key);
+  // 🔭 v37c — THE LENS ROW: Kubrick's kit as chips. The one you look through is lit; its film and its job are spelled out.
+  const lr=document.createElement('div'); lr.className='st-lens'; lr.id='stage-lens';
+  const ll=document.createElement('span'); ll.className='lbl'; ll.textContent='🔭 LENS · Kubrick\'s kit:'; lr.appendChild(ll);
+  const now=geovLensNow();
+  for(const mm of GEOV_LENS.picks){
+    const b=document.createElement('button'); b.className='st-obj lens'+(Math.abs(now-mm)<0.05?' on':'');
+    b.dataset.mm=mm; const e=geovLensGet(mm);
+    b.title=geovLensName(mm)+(e?' — '+e.used+'\n'+e.job:'');
+    b.appendChild(geovLensSpine(mm)); b.appendChild(document.createTextNode(mm+' mm'));
+    b.onclick=()=>{ geovLensPick(mm); stageRenderPanel(); };
+    lr.appendChild(b);
+  }
+  const hb=document.createElement('button'); hb.className='st-obj lens hold'+(stS.lensHold?' on':''); hb.id='stage-lens-hold';
+  hb.textContent=stS.lensHold?'🎯 HOLD SIZE: on':'🎯 HOLD SIZE: off (zoom)';
+  hb.title='on: a new lens backs the camera up so the middle stays the same size and only the world changes.\noff: the lens zooms from where you stand.';
+  hb.onclick=()=>{ stS.lensHold=!stS.lensHold; stageRenderPanel(); };
+  lr.appendChild(hb);
+  const je=geovLensGet(now), jb=document.createElement('div'); jb.className='st-lens-job';
+  jb.innerHTML='<b>'+geovLensName(now)+'</b>'+(je?' · '+je.used+'<br>'+je.job:'');
+  lr.appendChild(jb);
+  cb.appendChild(lr);
   sc.camera.keys.forEach((k,i)=>{
     const chip=document.createElement('div'); chip.className='st-key';
     const go=document.createElement('button'); go.className='st-obj';
-    go.textContent='◆ '+k.t.toFixed(2)+'s';
+    go.textContent='◆ '+k.t.toFixed(2)+'s ';
+    { const km = k.lens!=null ? k.lens : geovLensOfFov(k.fov||38); go.appendChild(geovLensSpine(Math.round(km*10)/10)); go.title=geovLensName(km); }
     go.onclick=()=>{ stS.t=k.t;
+      stS.lens = k.lens!=null ? k.lens : (Math.abs((k.fov||38)-GEOV_LENS_OLDFOV)<1e-9 ? null : geovLensOfFov(k.fov));
       stS.orb.at=k.at.slice();
       const d=SV.sub(k.eye,k.at); stS.orb.dist=Math.hypot(d[0],d[1],d[2]);
       stS.orb.yaw=Math.atan2(d[0],d[2]); stS.orb.pitch=Math.asin(d[1]/(stS.orb.dist||1));
