@@ -1,6 +1,7 @@
 // Newest upload first. Verified against YouTube Studio on 2026-10-20.
 // Use the YouTube upload title/date; production episode numbers may differ.
 export const episodes = [
+  { id: "tournament-day", title: "Tournament Day", videoId: "qEH2qdtnU_0", publishedAt: "2026-10-23", description: "The whole town packs the Stadium for the first full three-on-three, and the Big TV is the judge. Every time we cut outside, the green dot is a little bigger." },
   { id: "the-jaguar", title: "The Jaguar", videoId: "TckG3eP3CfM", publishedAt: "2026-10-20", description: "The same night as Sign-Ups, the green dot in the sky jumps. Mook, Mush and Finley cross the sleeping town to the Institute and follow Beatle, the night keeper, up the winding stair to the Jaguar." },
   { id: "sign-ups", title: "Sign-Ups", videoId: "9B7YG-2siXw", publishedAt: "2026-10-16", description: "Sign-ups for the tournament close at sundown, at the Stadium. The team needs a name, three players and a captain, and Mook and Finley both want to be captain." },
   { id: "snooze", title: "Snooze", videoId: "fSacRPNsgis", publishedAt: "2026-10-13", description: "A new kid arrives on Tortimer’s bus before dawn: Leo, a giant of Puff’s kind who sleeps on one leg with his eyes wide open. Mook has to give him the full tour of the Cloister, whether Leo is awake for it or not." },

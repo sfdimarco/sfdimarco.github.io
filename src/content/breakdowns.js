@@ -7,6 +7,35 @@
 
 export const breakdowns = [
   {
+    slug: "tournament-day", title: "Tournament Day: 826 in the stands, and a game you can follow", publishedAt: "2026-10-23", category: "Episode breakdown", episodeId: "tournament-day",
+    summary: "The first full three-on-three, a Stadium with the whole town in it, and the first episode engineered from Mook’s notes before a single shot.",
+    image: "/images/show/ep-tournament-day.jpg", imageAlt: "Tournament Day: Mook at the board, with the crowd behind him",
+    body: [
+      "Tournament Day. The whole town packs the Stadium for the first full three-on-three, the orphans are in the crowd, and the Big TV is the judge. The Poptarts are playing for the cup. And every time the film cuts outside, the green dot is a little bigger.",
+      { h: "New in the world" },
+      { list: [
+        "The orphans of the Cloister, eight of them. Dale, a beaver-chicken, comes straight from one of Mook’s 2020 drawings. Twig and Millie come from his 2025 painting and his tea-monster drawing. Claude designed the other five from Mook’s formula: a real animal with one thing mixed in, or a feeling made into a creature. Shelby is a snail with a little house, Nova a jellyfish lantern, Kingpin a king penguin who is also a bowling pin, Jitter a hummingbird on a pogo spring, and Lofty an elephant balloon. Mook: “Great work! Yes I love it, keep them all!”",
+        "The Big TV, the tournament’s judge. On Dwarf, TVs and computers are people, each with her or his own quirks, and TV Gurl is one of many.",
+        "The townsfolk: who lives on Dwarf, a map of the town, and a crowd of 826 on the Stadium’s nine tiers.",
+        "The game’s first full board: three planets in a triangle for each team, a blank seventh, fleets flying between them, and a ring counter with six plates, so you can watch every player’s rings.",
+      ] },
+      { h: "One clock, one checklist" },
+      "Two things on screen keep the story easy to follow. The green dot is the clock: every time the film cuts outside, it has grown. And Mook’s sketchbook page sits in the corner from the title on, with four boxes: ROUND ONE, THE FINAL, THE CUP and THE DOT. Each one gets its mark on a beat.",
+      { h: "Engineered before a single shot" },
+      "Mook’s main note on The Jaguar was about the workflow: take the feedback and find permanent fixes, so the next episode starts clean. So this was the first episode where every physical moment was solved before any animation. An interactions sheet listed every sit, hand, carry, hop, grip and prop, plus the cup, the stairs, the climb and the door. Every scene got a top-down staging map with the cameras picked first. Hands now reach for points in the world, so a hand-off or a toast lands where it should.",
+      "Mook on the walks: “the Finley walk, Puff flip look fantastic, Mook climbing the wall, his walk, all a lot better.”",
+      { h: "A crowd" },
+      "826 townsfolk fill the bowl, and they act on the beats: they cheer, they groan, they watch. 382 synthesised sound effects carry them, from a murmur bed to the roar. Painting the full Stadium and the game’s hologram together runs at about 1.2 to 1.4 frames a second per export lane. Mook: “the crowd shots are jaw dropping and such a proof that our system works.”",
+      { h: "Voices" },
+      "Mook cast the new voices by ear in Google Vids: Umi for Dale, Cale for Kingpin, and Persuader for the Big TV, an announcer with a mid-Atlantic accent. Every clip’s label was checked, and every role’s pitch was measured against earlier episodes before the audio lock, so each character keeps their voice from episode to episode.",
+      { h: "Still being worked on" },
+      "Two seated kids with short arms can only reach so far, so when the deck changes hands it jumps about ten centimetres. Bronconius’s noodle arm is a flat cut-out that reads best from the side, so some of his shots are side-on. Mook’s notes on this episode, from the tables and the tunnel door to Dale’s beak needing a mouth, went straight into the next one.",
+      { h: "As made" },
+      "9 minutes 45 seconds, 147 shots and 97 lines of dialogue, assembled in GeoV Studio and exported there in eleven parts with the sound mixed first. The whole score is reused from earlier episodes. Sync measured 0.0 milliseconds at eight checkpoints. Mook called that week a real milestone: “dream come true for me as a little kid, it’s like literally getting to turn the little daydreams from the margins of my childhood notebooks to life as a full cartoon.”",
+      { img: "/images/show/sheet-tournament-day.jpg", alt: "Forty frames from across the episode" },
+    ]
+  },
+  {
     slug: "the-jaguar", title: "The Jaguar: a titan telescope, a sound with a shape, and Mook’s eyes", publishedAt: "2026-10-20", category: "Episode breakdown", episodeId: "the-jaguar",
     summary: "The Institute and its night keeper, the first look through Mook’s eyes, and a sound made from five numbers that also draw it.",
     image: "/images/show/ep-the-jaguar.jpg", imageAlt: "The Jaguar: the dot’s tone pouring out in coloured curls, through Mook’s eyes",
