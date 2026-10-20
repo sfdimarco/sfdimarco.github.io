@@ -7,6 +7,39 @@
 
 export const breakdowns = [
   {
+    slug: "red-beard", title: "Red Beard: two plots, a whole planet, and a lens for every shot", publishedAt: "2026-10-27", category: "Episode breakdown", episodeId: "red-beard",
+    summary: "A rematch in the Stadium cut against a stowaway in orbit, Mowersville laid out by wave function collapse on a real sphere, and the first shots chosen by lens.",
+    image: "/images/show/ep-red-beard.jpg", imageAlt: "Red Beard: Barbarossa in the Stadium",
+    body: [
+      "The morning after Tournament Day, the Stadium is covered in popcorn and everyone has a broom. Bronconius wants his rematch, right now, on Tortimer’s new board: one game, three rings each, and the loser sweeps the whole bowl alone. Every move sends the fleets into battle across the galaxy. And out on the landing field, Finley finds her backpack empty: Puff has gone aboard the Dog Stars’ ship.",
+      { h: "Why two plots" },
+      "Mook’s notes on Tournament Day asked for better pacing line to line, more action (“I really love that shot from Downhill where he falls from the sky”), and card games that are more cinematic, so “it cuts to the world happening.” From the pitches, he picked two to run side by side: “use A as A plot and C as B plot, that will make for a more punchy and tighter episode.” A is the rematch on a new premium board at the centre of the Stadium. B is Finley going after Puff, through launch and orbit, with one way home: down.",
+      { h: "New in the world" },
+      { list: [
+        "The premium Halo board at the centre of the Stadium, and a quick game: one on one, three rings each.",
+        "The Dog Stars’ ship, outside and in the hold, the drop pods, and orbit.",
+        "Barbarossa’s camp, in the crater from his crash in The Groove Machine.",
+        "Dwarf as a whole planet.",
+      ] },
+      { h: "A whole planet" },
+      "Mook’s idea was to lay the town out with wave function collapse, the Townscaper-style method where each lot is solved against its neighbours until the whole map agrees. It lays out 2,124 lots: 303 lived in, and the rest empty or wild. Mook compared the candidate towns and picked one: “seed 2 looks the best to me.” The town is solved once, ahead of time, and baked, so a frame only has to draw it.",
+      "Then he asked for more: “can we put it on a sphere so it’s an actual planet?” Now the town sits on a ball with a radius of two kilometres, and the camera bends the world onto it, so the horizon is the planet’s real curve. Past the town’s edge grows the wild he described: cherry, maple and big round mushroom trees, wildflowers and tall grass, 22,445 trees in groves. Mook: “IT LOOKS GREAT! … another x10 in visual quality.”",
+      "Bending the world brought its own puzzles. Suns and clouds placed far away sank with the curve until they were drawn with an unbent lens, and a camera low in the Stadium’s bowl needed a horizon of its own. Each one was found by looking from that camera.",
+      { h: "Staged, then lensed" },
+      "About 200 set-ups were staged on top-down maps before a single shot, with the cameras picked first. Mook: “FANTASTIC WORK.” Then, while the episode was finishing, the show got a lens kit, modelled on the lenses Stanley Kubrick shot with. Until then the show had been shot on one wide lens, around 15 mm. Now every shot names a lens: wide puts a small person in a big world, and long presses the world in on them. Six shots were re-shot on long lenses, from an 85 on the pod’s parachute to a 250 on a frigate rising. Mook on the kit: “THIS IS SO GOOOOD YES THIS IS IT.”",
+      { h: "Light on the paper" },
+      "The finished episode also puts light on the paper itself. A low lamp, 25 degrees high from the upper left, rakes across every frame so the paper reads as cold-press paper, and the lower right sits a little deeper and cooler, so its shadows stay coloured. It came out of a study of light and space, turned into the show’s own principles.",
+      { h: "Production" },
+      "Staging sets each set-up at one moment, so production added the motion: 76 shots got keyframe tracks through the staged poses, so a move runs straight through the cuts. A motion measure on the review strips, how much of the frame changes, found the shots that barely moved, and the ones whose script asks for an action got it: the brooms stop one by one, then point at the sky.",
+      "Mook made new Lyria songs for the board, the space battles, shore leave and the fall. Every line was placed by a rhythm cue: a comeback lands 0.1 seconds after the line before it, a normal reply 0.3, and a beat 1.1 to 1.7.",
+      { h: "Still being worked on" },
+      "The lamp belongs to the paper, so on a camera move the world slides across paper that stays still. Mook spotted it in a few shots, and the paper is still being tuned. His other takeaways: some actions are hard to read, like Finley’s jump on the ship and her moments with Puff, and the switch from A to B “made it feel rushed not punchier.” That note shaped the next episode, where every switch between the plots is built as a matched picture or a sound. Pacing is still being dialled in too; for now the focus is dialogue that’s balanced.",
+      { h: "As made" },
+      "8 minutes 45 seconds, 197 shots and 81 lines of dialogue, assembled in GeoV Studio and exported there in ten parts. Sync measured 0.0 milliseconds at eight checkpoints. Mook: “overall another huge improvement, I think we call this one here.”",
+      { img: "/images/show/sheet-red-beard.jpg", alt: "Forty frames from across the episode" },
+    ]
+  },
+  {
     slug: "tournament-day", title: "Tournament Day: 826 in the stands, and a game you can follow", publishedAt: "2026-10-23", category: "Episode breakdown", episodeId: "tournament-day",
     summary: "The first full three-on-three, a Stadium with the whole town in it, and the first episode engineered from Mook’s notes before a single shot.",
     image: "/images/show/ep-tournament-day.jpg", imageAlt: "Tournament Day: Mook at the board, with the crowd behind him",
