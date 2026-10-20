@@ -7,6 +7,69 @@
 
 export const breakdowns = [
   {
+    slug: "the-jaguar", title: "The Jaguar: a titan telescope, a sound with a shape, and Mook’s eyes", publishedAt: "2026-10-20", category: "Episode breakdown", episodeId: "the-jaguar",
+    summary: "The Institute and its night keeper, the first look through Mook’s eyes, and a sound made from five numbers that also draw it.",
+    image: "/images/show/ep-the-jaguar.jpg", imageAlt: "The Jaguar: the dot’s tone pouring out in coloured curls, through Mook’s eyes",
+    body: [
+      "Episode eight happens the same night as Sign-Ups. The green dot in the sky jumps. Mook, Mush and Finley cross the sleeping town to the Institute, get the keys off Mayor McCool, and follow Beatle, the night keeper, up the winding stair to the Jaguar. Mook wants one good look at that dot before the tournament starts tomorrow.",
+      { h: "New in the world" },
+      { list: [
+        "Beatle, from one of Mook’s 2020 drawings, built as drawn: six arms, a cane, headphones with a curly cord, and a dripping beard. He is old and slow, and always listening to something only he can hear. Mook: “I like Beatle.”",
+        "The Institute: nine battered tiers of black stone, 300 metres across at the base and 170 metres high, with the observatory’s drum and dome on top. A grand stair climbs it (Mush hops every step), two stone basilisks guard it, and a quad of exactly 1,350 pillars stands in front of it.",
+        "Inside: a lobby of brass lamps, empty desks and polka-dot armchairs, and a winding stair up a round shaft to an iron door.",
+        "The Jaguar: a titan telescope of cut obsidian and basalt columns, with a quartz eagle to ride. It wakes in stages, each on its own sound: the binoculars slide, the wings beat, the legs run, the maw opens and the brass lenses ratchet out. To aim it, the whole room turns on a brass rail while the sky stays still.",
+      ] },
+      { h: "Through Mook’s eyes" },
+      "When Mook locks on to the dot, the film shows what he sees. The look comes from two of Mook’s paintings, built as an end layer over the finished frame. The room stays, but painted: broken colour dabbed inside its outlines, with the ink kept. The dot’s tone pours out as curls with hooks and orbs with pale rings.",
+      "Mook on that shot: “this stopped me dead … that more painterly look … give the shot so much energy and feeling.” He also wants to explore that texture beyond Mook’s point of view, to add texture to the rest of the world.",
+      { h: "A sound with a shape" },
+      "Mook asked for a system: “make sounds that have a shape in geo.” So the dot’s voice is synthesised from five numbers: a pitch of 98 Hz, a waver of 0.55 Hz, a depth of 0.45 semitones, a bend and a length. The same five numbers draw it. The waver swings the curls, the pitch sets how far they reach, the bend bends every curl along the same curve, and the colours are the digits of those numbers in Mook’s own number colours. What you hear is what you see.",
+      { h: "Texture last" },
+      "Grain and noise became the very last layer of every frame, drawn after everything else: in Mook’s words, “an end layer.” A soft mottle and a fine grain change twelve times a second, like a hand-drawn boil, and the drawing underneath stays exactly as it was. Mook: “I like the film grain filter.”",
+      { h: "The second pass" },
+      "The first cut had scratch voices, and Mook’s notes on it were clear: the voices had to sound like the show, and characters were sliding and passing through props. The second pass re-voiced every line with the series cast in Google Vids, with Jett as the new voice of Beatle. Then it fixed the picture at the root:",
+      { list: [
+        "Layering: every character is painted on its own layer, and only the parts of the stone that are really nearer the lens are cut out of it, pixel by pixel. It is exact by construction, and it made the export about 40% slower.",
+        "Sliding: a walker who stops keeps facing the way they walked, every turn is smoothed, and the climb up the eagle became real pulls, hand over hand. A probe measured everyone’s feet through every shot.",
+        "Props: Beatle steps out of the turning columns, Bronconius walks round the desk, and the keys start in Mook’s hand.",
+      ] },
+      "Mook’s detailed notes on the finished cut became a permanent step for every episode after it: engineer every interaction before a shot exists. One more check came out of this episode. Two voices were later measured lower than in Sign-Ups, so now every role’s pitch is compared with earlier episodes before the audio lock.",
+      { h: "As made" },
+      "9 minutes 53 seconds, 141 shots and 77 lines of dialogue, assembled in GeoV Studio and exported there in eleven parts with the sound mixed first. The whole score is reused from earlier episodes. Sync measured 0.0 milliseconds at eight checkpoints. Mook: “Fantastic fantastic work … the growth is clear to me.”",
+      { img: "/images/show/sheet-the-jaguar.jpg", alt: "Forty frames from across the episode" },
+    ]
+  },
+  {
+    slug: "sign-ups", title: "Sign-Ups: a stadium, a corn cob, and one list of everything solid", publishedAt: "2026-10-16", category: "Episode breakdown", episodeId: "sign-ups",
+    summary: "The Stadium, Mayor McCool and the Dog Stars of Sirius join the world, and every step, bench and desk goes into one list that the drawing, the placement and the audit all read.",
+    image: "/images/show/ep-sign-ups.jpg", imageAlt: "Sign-Ups: Mayor McCool and Tortimer at the sign-up desk",
+    body: [
+      "Episode seven goes to the Stadium. Sign-ups for the tournament close at sundown. The team needs a name, three players and a captain. Mook and Finley both want to be captain, so they settle it with a one-on-one card game. Meanwhile Mayor McCool works the sign-up desk, the Dog Stars of Sirius roll in, and Puff makes a very small new friend.",
+      { h: "New in the world" },
+      { list: [
+        "Mayor McCool. In Mook’s book, Mayor is his first name, not his title. Mook first described him as tall, with a banana body and a huge forehead. When he saw the first pass, his note was: “McCool should be a corn cob now that I see him.” Now he is a 1.95-metre corn cob in a cowboy hat, with a ring of keys and a name tag that says MAYOR. Mook: “McCool looks awesome.”",
+        "The Stadium: a bowl of stone tiers with a tunnel, a sign-up desk, lamps, and a landing field for visiting ships. Tortimer runs the tournament because, in Mook’s words, “he owns the stadium, card shop and orphanage.” Up on Stadium Hill there is a Snack Shack and a map of Mowersville.",
+        "The Dog Stars of Sirius, the visiting team. They grew from one line in Mook’s book about ships coming in from the Sirius System. Sirius is really two stars: a bright one, and a tiny, very dense one that astronomers call the Pup. So the team is Pip, the Pup, a tiny whispering captain as heavy as a piano; Ali, the bright one, who glows and trips; and Murzim, the herald, who repeats everything Pip whispers, out loud. Claude designed them, and Mook approved: “awesome, looks great.”",
+        "The card faces, in Mook’s 2020 card layout and lettered in the Halo hand. Mook on the cards: “OH the cards looks so good!!!” And on the lettering: “YES YES THE FONT IS SO GOOOD!!”",
+      ] },
+      { h: "A rule for the whole show" },
+      "While the captain’s game was being written, Mook set a rule for every game on Dwarf. A draw has to come through peaceful win conditions, “like an amiable draw or stalemates in chess.” A violent draw, like everyone getting blown up, means both players lose.",
+      { h: "One list of everything solid" },
+      "Mook’s notes on Snooze were about clipping: characters and props passing through each other. So this episode starts with one list of every solid thing in a set, every step, bench, desk and wall. The drawing reads it, the placement reads it and the audit reads it, so all three agree on where the world is.",
+      { list: [
+        "Every rig reports where its legs, body and head really are, so seated kids sit on real seats, and the audit checks the real figure.",
+        "A figure behind the desk is masked where the desk is in front of it, so boots, hands and shadows stay hidden.",
+        "The audit learned new checks: the rule of thirds, the 180-degree line from cut to cut, who covers whom, and contact (inside a solid, floating, sunk, or sitting on nothing).",
+      ] },
+      "The list also showed where the next fix was. The painter sorted each solid by its centre, so a very wide one, like the desk or a whole tier of seats, could cover a character standing in front of it. Each case was caught on a review strip and fixed by hand. The lasting fix became the first job of the next episode: every character on its own layer, cut against the world pixel by pixel.",
+      { h: "Sound" },
+      "Mook made five new songs with Lyria from Claude’s prompts: SKY TRAFFIC, McCOOL, WHO’S CAPTAIN, THE DOG STARS and SUNDOWN. Four new voices joined the cast: McCool, Pip in a whisper, bright Ali, and Murzim the announcer. 180 sound effects sit under the voices, and one planned silence lands on the game’s biggest moment.",
+      { h: "As made" },
+      "11 minutes, 181 shots and 83 lines of dialogue, assembled in GeoV Studio and exported there in thirteen parts with the sound mixed first. Sync against the audio lock measured 0.0 milliseconds at eight checkpoints. Mook’s verdict: “great work … you really earned it on this one.”",
+      { img: "/images/show/sheet-sign-ups.jpg", alt: "Forty frames from across the episode" },
+    ]
+  },
+  {
     slug: "snooze", title: "Snooze: a giant, a tour, and shots that check themselves", publishedAt: "2026-10-13", category: "Episode breakdown", episodeId: "snooze",
     summary: "Leo joins the cast, the inside of the Cloister gets built, and every shot is described once so the same words draw it and test it.",
     image: "/images/show/ep-snooze.jpg", imageAlt: "Snooze: Mook, Leo and TV Gurl at the card table",

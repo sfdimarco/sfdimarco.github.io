@@ -1,6 +1,8 @@
-// Newest upload first. Verified against YouTube Studio on 2026-10-13.
+// Newest upload first. Verified against YouTube Studio on 2026-10-20.
 // Use the YouTube upload title/date; production episode numbers may differ.
 export const episodes = [
+  { id: "the-jaguar", title: "The Jaguar", videoId: "TckG3eP3CfM", publishedAt: "2026-10-20", description: "The same night as Sign-Ups, the green dot in the sky jumps. Mook, Mush and Finley cross the sleeping town to the Institute and follow Beatle, the night keeper, up the winding stair to the Jaguar." },
+  { id: "sign-ups", title: "Sign-Ups", videoId: "9B7YG-2siXw", publishedAt: "2026-10-16", description: "Sign-ups for the tournament close at sundown, at the Stadium. The team needs a name, three players and a captain, and Mook and Finley both want to be captain." },
   { id: "snooze", title: "Snooze", videoId: "fSacRPNsgis", publishedAt: "2026-10-13", description: "A new kid arrives on Tortimer’s bus before dawn: Leo, a giant of Puff’s kind who sleeps on one leg with his eyes wide open. Mook has to give him the full tour of the Cloister, whether Leo is awake for it or not." },
   { id: "pool-battle", title: "The Fhat", videoId: "HM1jWlas3iA", publishedAt: "2026-10-09", description: "The day after Mowing Day, the gang escapes the mowers to the Dogwoods and finds Fianna already in their pool. She won’t play cards, but her hat will. Finley takes on the Fhat, one on one, for the pool." },
   { id: "mowing-day", title: "Mowing Day", videoId: "ox660uLa8II", publishedAt: "2026-10-08", description: "It’s Mowing Day in Mowersville, and the gang’s chore is Mount Clipping. Mook is allergic to cut grass, so they bet a card game against Tortimer to get out of it." },

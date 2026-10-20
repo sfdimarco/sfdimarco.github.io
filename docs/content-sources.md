@@ -35,3 +35,12 @@ Added 2026-10-10 (copy rewrite):
 | `public/mush/rig.js` | `.geo/ep03/blocks/` mm_core.js, mm_palette2020.js, mm_cast.js, mm_cast2020.js, mm_motion.js, concatenated unedited (plus a one-line `MM_SCN` stub) |
 
 The release step for future episodes is `docs/release-checklist.md`.
+
+Added 2026-10-20 (EP7–EP11 breakdowns, written from each episode's report and the show bible's `06-EPISODES.md`, `02-CHARACTERS.md` and `04-LOOK.md`):
+
+| Website asset | Original source |
+|---|---|
+| `public/images/show/ep-sign-ups.jpg`, `ep-the-jaguar.jpg`, `ep-tournament-day.jpg` | the live YouTube thumbnails (`i.ytimg.com/vi/<id>/maxresdefault.jpg`), retrieved 2026-10-20 |
+| `public/images/show/ep-red-beard.jpg` | `.geo/youtube/thumbnails/MM-thumb-EP10-RED-BEARD.jpg` (swap for the YouTube thumbnail at release if a different one is used) |
+| `public/images/show/ep-the-big-one.jpg` | a frame at 8:38.1 of `.geo/episodes/ep11/film/EP11_THE-BIG-ONE_v2.mp4` (no thumbnail yet; swap for the YouTube thumbnail at release) |
+| `public/images/show/sheet-<id>.jpg` (the five above) | `.geo/youtube/_frames/sheet_{su,ja,td,rb,bo}.jpg` made by `_frames/grab5.sh` (40 frames, 8 × 5) from each finished master, resized to 1800 px |
