@@ -48307,6 +48307,18 @@ function mmaMuseumPairs(setId) { const r = mmaMuseumHang().rooms[String(setId).s
 
 // ── DRAWING A GALLERY ──
 function mmaMuseumRoom(id) { const R = MMA_MUSEUM.rooms[id]; if (!R) throw new Error('mma: no museum room ' + id); return Object.assign({ id }, R); }
+// a sign: lettering painted once onto a small canvas (120 px a metre), then mapped onto its wall through mmaQuad, the
+//   same perspective-correct mapper the paintings use. (ydPlane stretches a one-metre sample linearly, and perspective
+//   is not linear: seen obliquely from near, the far letters landed on the wrong part of the screen.)
+//   O: the lettering's origin on the wall · U along the text, V up · w: its length; fn(ctx) draws in metres from O,
+//   the way the ydPlane callbacks did. The panel is generous round the text: u in -0.5..w+0.5, v in -1.2..0.8.
+function mmaSign(g, C, O, U, V, w, key, fn) {
+  const px = 120, cache = window.__mmaCache.sign || (window.__mmaCache.sign = {}); let cv = cache[key];
+  if (!cv) { cv = cache[key] = mmaCv((w + 1) * px, 2.0 * px); const x = cv.getContext('2d'); x.setTransform(px, 0, 0, -px, 0.5 * px, 0.8 * px); x.lineCap = 'round'; x.lineJoin = 'round'; fn(x); }
+  const O2 = mmaAdd(mmaAdd(O, U, -0.5), V, -1.2);
+  if ([[0, 0], [w + 1, 0], [w + 1, 2], [0, 2]].every(([du, dv]) => ydCam(C, O2[0] + U[0] * du + V[0] * dv, O2[1] + U[1] * du + V[1] * dv, O2[2] + U[2] * du + V[2] * dv)[2] < 0.3)) return;
+  mmaQuad(g, C, O2, U, V, w + 1, 2.0, cv, {});
+}
 function mmaMuseumWallPoly(R, w, a, b, y0, y1) {
   if (w === 'n') return [[a, y0, R.z1], [b, y0, R.z1], [b, y1, R.z1], [a, y1, R.z1]];
   if (w === 's') return [[a, y0, R.z0], [b, y0, R.z0], [b, y1, R.z0], [a, y1, R.z0]];
@@ -48350,9 +48362,9 @@ function mmaMuseumShell(g, C, P, R, depth) {
   const um = (ed.a + ed.b) / 2, base = ew === 'n' || ew === 's' ? [um, 0, EW.at] : [EW.at, 0, um];
   if (mmaDot(mmaV(eye, base), N) > 0) {
     const O = mmaAdd(mmaAdd(base, N, 0.01), up, (ed.h || M.doorH) + 0.78), mask = ('000' + R.bit.toString(2)).slice(-4);
-    ydPlane(g, C, mmaAdd(O, Rv, -1.6), Rv, up, 1, () => { g.scale(1, -1);
-      for (let i = 0; i < 4; i++) mmCaps(g, mask[i], 0.4 + i * 0.8, 0, { size: 0.62, w: 0.09, col: MM_DIG[mask[i]], out: 0.025, outCol: MM.ink, jit: 0.05, seed: i, align: 'c' });
-      mmCaps(g, R.name, 1.6, 0.42, { size: 0.2, w: 0.032, col: '#3a3038', jit: 0.05, seed: 9, align: 'c', track: 0.6 }); });
+    mmaSign(g, C, mmaAdd(O, Rv, -1.6), Rv, up, 3.2, 'room-' + R.id, (x) => { x.scale(1, -1);
+      for (let i = 0; i < 4; i++) mmCaps(x, mask[i], 0.4 + i * 0.8, 0, { size: 0.62, w: 0.09, col: MM_DIG[mask[i]], out: 0.025, outCol: MM.ink, jit: 0.05, seed: i, align: 'c' });
+      mmCaps(x, R.name, 1.6, 0.42, { size: 0.2, w: 0.032, col: '#3a3038', jit: 0.05, seed: 9, align: 'c', track: 0.6 }); });
   }
 }
 // what's in the room besides the art: a bench in the middle (unless the mobile hangs there), facing the entry
@@ -48365,6 +48377,10 @@ function mmaMuseumFurniture(R) {
   } }];
 }
 // a doorway's view: the next room, clipped to the opening (its shell, its art, its bench); outside: the planet
+// what's worth drawing from here: a sculpture is a mesh (the toilet alone is 18 ms), so through a doorway the paintings
+//   stand for the room, and in the room itself a sculpture is skipped once it's under 14 px tall
+function mmaMuseumLod(items, C, depth) { return items.filter(it => { if (!it.art) return true; const pc = mmaPiece(it.art); if (!pc.sculpt) return true; if (depth) return false; return ydK(C, it.x, 0.8, it.z) * (pc.size[1] || 1) > 14; }); }
+function mmaDoorCanvas(W, H) { const c = window.__mmaDoorCv || (window.__mmaDoorCv = mmaCv(W, H)); if (c.width !== W || c.height !== H) { c.width = W; c.height = H; } return c; }
 function mmaMuseumDoorView(g, C, P, R, d, o, t) {
   const M = MMA_MUSEUM, op = mmaMuseumWallPoly(R, d.wall, Math.min(d.a, d.b), Math.max(d.a, d.b), 0, d.h || M.doorH);
   const inward = { n: [0, 0, -1], s: [0, 0, 1], e: [-1, 0, 0], w: [1, 0, 0] }[d.wall], mid = [(op[0][0] + op[2][0]) / 2, 1, (op[0][2] + op[2][2]) / 2];
@@ -48372,9 +48388,15 @@ function mmaMuseumDoorView(g, C, P, R, d, o, t) {
   g.save(); if (!ydPoly(g, C, op)) { g.restore(); return; } g.clip();
   if (d.to === 'outside') { const sky = g.createLinearGradient(0, 0, 0, 720); sky.addColorStop(0, P.sky0 || '#9fb0d8'); sky.addColorStop(0.6, P.sky1 || '#f3c8b8'); g.fillStyle = sky; g.fillRect(0, 0, 1280, 720);
     const far = mmaAdd(mid, inward, -60), q = ydPt(C, far[0], 0, far[2]); g.fillStyle = mmMix('#8fae7c', P.sky1 || '#f3c8b8', 0.25); if (q) g.fillRect(0, q[1], 1280, 720 - q[1]); }
-  else { const N = mmaMuseumRoom(d.to); mmaMuseumShell(g, C, P, N, 1);
-    const items = mmaMuseumFurniture(N).concat(o.art === false ? [] : mmaItems('museum.' + N.id, Object.assign({}, o, { label: false })));
-    items.map(c => ({ d: ydDepth(C, c.x, c.z) + (c.dz || 0), f: () => c.draw(g, C, P, t) })).sort((a, b) => b.d - a.d).forEach(s => s.f()); }
+  else { const N = mmaMuseumRoom(d.to);
+    // the next room is drawn whole on a canvas of its own, then stamped through the opening once: a canvas pays for a
+    //   clip path on every fill (the walk's frame went 29 → 6 ms on this)
+    const W = g.canvas.width, Hc = g.canvas.height, off = mmaDoorCanvas(W, Hc), x = off.getContext('2d');
+    x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, W, Hc); x.lineCap = 'round'; x.lineJoin = 'round';
+    mmaMuseumShell(x, C, P, N, 1);
+    const items = mmaMuseumLod(mmaMuseumFurniture(N).concat(o.art === false ? [] : mmaItems('museum.' + N.id, Object.assign({}, o, { label: false }))), C, 1);
+    items.map(c => ({ d: ydDepth(C, c.x, c.z) + (c.dz || 0), f: () => c.draw(x, C, P, t) })).sort((a, b) => b.d - a.d).forEach(s => s.f());
+    g.drawImage(off, 0, 0); }
   g.restore();
   ydFill(g, C, op.map(p => mmaAdd(p, inward, 0.007)), null, MM.ink, (typeof YD_LW === 'function' ? YD_LW() : 2.2) * 1.2);   // the opening's edge
 }
@@ -48387,7 +48409,7 @@ function mmaMuseum(g, t, o) {
   g.save(); g.lineCap = 'round'; g.lineJoin = 'round'; g.fillStyle = '#100c14'; g.fillRect(0, 0, 1280, 720);
   mmaMuseumShell(g, C, P, R, 0);
   for (const d of R.doors) mmaMuseumDoorView(g, C, P, R, d, o, t);
-  const items = mmaMuseumFurniture(R).concat(o.art === false ? [] : mmaItems('museum.' + R.id, o), o.cast || []);   // (o.art false: the empty room, for the squint check)
+  const items = mmaMuseumLod(mmaMuseumFurniture(R).concat(o.art === false ? [] : mmaItems('museum.' + R.id, o), o.cast || []), C, 0);   // (o.art false: the empty room, for the squint check)
   items.map(c => ({ d: ydDepth(C, c.x, c.z) + (c.dz || 0), f: () => c.draw(g, C, P, t) })).sort((a, b) => b.d - a.d).forEach(s => s.f());
   // the light from above: four soft shafts from the skylights
   if (typeof c6Shaft === 'function') { const cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2;
@@ -48462,7 +48484,7 @@ function mmaMuseumPlanet(g, t, o) {
       for (const px of [B.x0 + 0.3, -0.35, B.x1 - 0.3]) ydFill(g, C, [[px - 0.35, 0, B.z0 - 0.05], [px + 0.35, 0, B.z0 - 0.05], [px + 0.35, B.h - 0.5, B.z0 - 0.05], [px - 0.35, B.h - 0.5, B.z0 - 0.05]], '#e6dfd5', mmRGBA(ink, 0.7), l * 0.7);   // pilasters on the quadtree's lines
       ydFill(g, C, [[-7.5, 0, B.z0 - 0.02], [-4.5, 0, B.z0 - 0.02], [-4.5, 3.6, B.z0 - 0.02], [-7.5, 3.6, B.z0 - 0.02]], '#3a3040', ink, l);
       if (typeof c6Glow === 'function') c6Glow(g, C, -6, 1.5, B.z0 - 0.1, 2.6, '#ffe2c8', 0.45);
-      ydPlane(g, C, [-10.2, 4.3, B.z0 - 0.03], [1, 0, 0], [0, 1, 0], 1, () => { g.scale(1, -1); mmCaps(g, 'THE MUSEUM', 4.2, 0, { size: 0.75, w: 0.11, col: '#5a4030', jit: 0.05, seed: 5, align: 'c', track: 0.8 }); });
+      mmaSign(g, C, [-10.2, 4.3, B.z0 - 0.03], [1, 0, 0], [0, 1, 0], 8.4, 'front', (x) => { x.scale(1, -1); mmCaps(x, 'THE MUSEUM', 4.2, 0, { size: 0.75, w: 0.11, col: '#5a4030', jit: 0.05, seed: 5, align: 'c', track: 0.8 }); });
       for (let i = 0; i < 3; i++) ydFill(g, C, [[-8.4 - i * 0.4, 0.01, B.z0 - 0.6 - i * 0.5], [-3.6 + i * 0.4, 0.01, B.z0 - 0.6 - i * 0.5], [-3.6 + i * 0.4, 0.16 * (3 - i), B.z0 - 0.1 - i * 0.5], [-8.4 - i * 0.4, 0.16 * (3 - i), B.z0 - 0.1 - i * 0.5]], '#e3dbcf', mmRGBA(ink, 0.6), l * 0.6); }
   } });
   // GEO, standing in the forecourt: a square on a plinth, its quadrants lighting in a Y_LOOP (TL TR BR BL), a tick a beat
@@ -48492,88 +48514,120 @@ function mmaMuseumPlanet(g, t, o) {
 
 // ── museum-walk.js
 // ═══ THE WALK · Mook walks the Museum (the website's page). Lives in the bundle's scope, so it sees every block. ═══
-//   The set is the collection's own mmaMuseum / mmaMuseumPlanet; Mook is the show's a4Cast with the show's gait
-//   (g4GaitAt pins his feet to the floor). The gait wants a path over time: we give it the path the player has just
-//   walked, so Mook walks here exactly as he walks in the films. Nothing in the show's blocks is changed.
-//   Controls: ↑ W walk · ← → A D turn · ↓ S back up · touch: a stick (left thumb) · the camera follows behind.
+//   The set is the collection's own mmaMuseum / mmaMuseumPlanet; Mook and Mush are the show's a4Cast with the show's
+//   gait (g4GaitAt pins their feet to the floor). The gait wants a path over time: each gets the path he has just
+//   walked, so they walk here exactly as they walk in the films. Nothing in the show's blocks is changed.
+//   Controls: W A S D / arrows move, relative to the camera; shift runs; drag the mouse (or a finger on the right half)
+//   to look round; V: through Mook's eyes. Mush has a mind of his own: he follows, wanders off to look at a picture,
+//   and falls asleep if you stand about.
 const MW = (() => {
   const M = MMA_MUSEUM, B = MMA_PLANET.bld, MON = MMA_PLANET.mon;
-  const S = {                                                   // the state
-    x: -6, z: -13, h: Math.PI, v: 0, turn: 0,                   // Mook: where, heading h (he moves along (sin h, -cos h)), speed
-    T0: 0, path: [], rest: 0, lastH: Math.PI,                   // the gait's path: [[T, x, z] …] since T0 (reset when he's stood still)
-    cam: { yaw: Math.PI, x: -6, z: -16 }, room: 'out',           // the camera behind him, the room he's in ('out' = the planet)
-    keys: {}, stick: null, near: null, t: 0, ms: 0, frames: 0, fps: 0, fp: false,                // fp: first person (through Mook's eyes)
+  // the walk's own knobs: a picture is texture-mapped as a mesh of triangles, each a clipped drawImage of the whole
+  //   texture, so a big one near the lens cost 20 ms at the films' density; for a live frame 3 × 3 cells read the same
+  MMA.cellPx = 220; MMA.maxCells = 3;
+  const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a)), lerp = (a, b, k) => a + (b - a) * k, clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const fwd = (h) => [Math.sin(h), -Math.cos(h)];                 // a heading h moves along (sin h, −cos h); h = π faces +z (north)
+  const S = {
+    x: -6, z: -13, h: Math.PI, v: 0,                              // Mook: where, heading, speed
+    T0: 0, path: [], rest: 0,
+    cam: { yaw: Math.PI, pitch: -0.12, D: 3.1, x: -6, z: -16, y: 1.6 },   // the camera: an orbit round Mook (yaw, pitch), its distance (shrinks at walls)
+    room: 'out', fp: false, keys: {}, stick: null, look: null, near: null, t: 0,
+    mush: { x: -4.8, z: -14.2, h: Math.PI, v: 0, T0: 0, path: [], rest: 0, mode: 'follow', t0: 0, goal: null, piece: null, lookAt: null, sleep: 0 },
   };
-  const LAG = 0.55, SIDE = 0.95;                              // Mush: a second behind Mook, a little to his right
-  const SPEED = 1.5, RUN = 2.9, TURN = 2.0, BACK = 0.7, CAMD = 3.1, CAMH = 1.6, PAD = 0.42;
-  const fwd = (h) => [Math.sin(h), -Math.cos(h)];
+  const SPEED = 1.6, RUN = 3.0, TURN = 9.0, CAMD = 3.1, PAD = 0.42, EYE = 1.02;
   // ── where things are ──
   const roomAt = (x, z) => { for (const id of M.order) { const R = M.rooms[id]; if (x >= R.x0 && x <= R.x1 && z >= R.z0 && z <= R.z1) return id; } return 'out'; };
-  // the doors as gaps: can a point (x, z) that left room R through wall w pass? (within the opening, less a shoulder)
-  const doorGap = (R, wall, u) => R.doors.some(d => d.wall === wall && u > d.a + 0.38 && u < d.b - 0.38);
-  // move Mook by (dx, dz), stopped by walls (each axis on its own so he slides along them)
-  function move(dx, dz) {
-    const tryTo = (nx, nz) => {
-      const cur = roomAt(S.x, S.z);
-      if (cur !== 'out') { const R = M.rooms[cur];
-        if (nx < R.x0 + PAD && !(doorGap(R, 'w', nz) && nz > R.z0 + PAD && nz < R.z1 - PAD)) return false;
-        if (nx > R.x1 - PAD && !(doorGap(R, 'e', nz) && nz > R.z0 + PAD && nz < R.z1 - PAD)) return false;
-        if (nz < R.z0 + PAD && !(doorGap(R, 's', nx) && nx > R.x0 + PAD && nx < R.x1 - PAD)) return false;
-        if (nz > R.z1 - PAD && !(doorGap(R, 'n', nx) && nx > R.x0 + PAD && nx < R.x1 - PAD)) return false;
-        // crossing into the next room: only through its door too (the gap is shared, so this is the same test)
-        return true; }
-      // outside: the building is solid but for 0001's door; GEO's plinth; and the world ends somewhere
-      if (nx > B.x0 - PAD && nx < B.x1 + PAD && nz > B.z0 - PAD && nz < B.z1 + PAD) { if (!(nx > -7.5 + 0.38 && nx < -4.5 - 0.38 && nz > B.z0 - PAD)) return false; }
-      if (Math.abs(nx - MON[0]) < 1.4 + PAD && Math.abs(nz - MON[1]) < 0.4 + PAD) return false;
-      if (Math.hypot(nx, nz - 12) > 70) return false;
-      return true; };
-    if (tryTo(S.x + dx, S.z)) S.x += dx;
-    if (tryTo(S.x, S.z + dz)) S.z += dz;
+  const doorGap = (R, wall, u, sh) => R.doors.some(d => d.wall === wall && u > d.a + sh && u < d.b - sh);
+  // may a body of half-width `sh` stand at (x, z)? (walls, with the doors as gaps; the building and GEO's plinth outside)
+  function free(x, z, sh) {
+    const cur = roomAt(x, z);
+    if (cur !== 'out') { const R = M.rooms[cur];
+      if (x < R.x0 + sh && !(doorGap(R, 'w', z, sh) && z > R.z0 + sh && z < R.z1 - sh)) return false;
+      if (x > R.x1 - sh && !(doorGap(R, 'e', z, sh) && z > R.z0 + sh && z < R.z1 - sh)) return false;
+      if (z < R.z0 + sh && !(doorGap(R, 's', x, sh) && x > R.x0 + sh && x < R.x1 - sh)) return false;
+      if (z > R.z1 - sh && !(doorGap(R, 'n', x, sh) && x > R.x0 + sh && x < R.x1 - sh)) return false;
+      return true; }
+    if (x > B.x0 - sh && x < B.x1 + sh && z > B.z0 - sh && z < B.z1 + sh) { if (!(x > -7.5 + sh && x < -4.5 - sh && z > B.z0 - sh)) return false; }
+    if (Math.abs(x - MON[0]) < 1.4 + sh && Math.abs(z - MON[1]) < 0.4 + sh) return false;
+    if (Math.hypot(x, z - 12) > 70) return false;
+    return true;
   }
-  // ── the gait's path: Mook's position over time, sampled every frame; P(T) reads it back ──
-  function pathAt(T) { const p = S.path; if (!p.length) return [S.x, S.z]; if (T <= p[0][0]) return [p[0][1], p[0][2]]; if (T >= p[p.length - 1][0]) return [p[p.length - 1][1], p[p.length - 1][2]];
+  // move a body by (dx, dz), stopped by walls; each axis on its own, so it slides along them
+  function move(P, dx, dz, sh) { if (free(P.x + dx, P.z, sh)) P.x += dx; if (free(P.x, P.z + dz, sh)) P.z += dz; }
+  // ── the gait's path: a body's position over time, sampled every frame; P(T) reads it back ──
+  function pathAt(p) { return (T) => { if (!p.length) return [0, 0]; if (T <= p[0][0]) return [p[0][1], p[0][2]]; if (T >= p[p.length - 1][0]) return [p[p.length - 1][1], p[p.length - 1][2]];
     let lo = 0, hi = p.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (p[m][0] <= T) lo = m; else hi = m; }
-    const A = p[lo], Bq = p[hi], u = (T - A[0]) / Math.max(1e-6, Bq[0] - A[0]); return [A[1] + (Bq[1] - A[1]) * u, A[2] + (Bq[2] - A[2]) * u]; }
-  // Mush's path: Mook's, a second ago, stepped to the side of the way Mook was going then
-  function mushAt(T) { const a = pathAt(T - LAG), b = pathAt(T - LAG + 0.25), dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz);
-    const f = L > 0.01 ? [dx / L, dz / L] : fwd(S.lastH); return [a[0] - f[1] * SIDE, a[1] + f[0] * SIDE]; }
-  function resetPath(T) { S.T0 = T - 0.3; S.path = [[S.T0, S.x, S.z], [T, S.x, S.z]]; }
+    const A = p[lo], Bq = p[hi], u = (T - A[0]) / Math.max(1e-6, Bq[0] - A[0]); return [A[1] + (Bq[1] - A[1]) * u, A[2] + (Bq[2] - A[2]) * u]; }; }
+  function record(P, T, dt, moving) {
+    if (moving) P.rest = 0; else P.rest += dt;
+    if (!P.path.length || (P.rest > 0.6 && P.path.length > 2) || T - P.T0 > 100) { P.T0 = T - 0.3; P.path = [[P.T0, P.x, P.z]]; }   // (the gait tabulates from T0: keep it short)
+    P.path.push([T, P.x, P.z]);
+  }
+  // steer a body toward a heading at a turn rate, and move it at a speed (eased)
+  function drive(P, want, hWant, dt, turn) {
+    if (want > 0 && hWant !== undefined) { const d = wrap(hWant - P.h); P.h += clamp(d, -turn * dt, turn * dt); }
+    P.v = lerp(P.v, want, Math.min(1, dt * 12)); if (Math.abs(P.v) < 0.02) P.v = 0;
+    const f = fwd(P.h); move(P, f[0] * P.v * dt, f[1] * P.v * dt, PAD);
+    return P.v !== 0;
+  }
   // ── one frame ──
   function step(T, dt) {
-    const K = S.keys, st = S.stick;
-    let want = 0, turn = 0;
-    if (K.ArrowUp || K.KeyW) want = (K.ShiftLeft || K.ShiftRight) ? RUN : SPEED;
-    if (K.ArrowDown || K.KeyS) want = -BACK;
-    if (K.ArrowLeft || K.KeyA) turn += 1; if (K.ArrowRight || K.KeyD) turn -= 1;   // (left is +h: he moves along (sin h, -cos h))
-    if (st && st.mag > 0.12) {                                   // the stick: a direction on screen, relative to the camera
-      const a = S.cam.yaw - Math.atan2(st.dx, -st.dy);           // (up on the stick = away from the camera)
-      let d = a - S.h; d = Math.atan2(Math.sin(d), Math.cos(d)); S.h += Math.max(-TURN * dt * 1.6, Math.min(TURN * dt * 1.6, d));
-      want = Math.min(1, st.mag) * (st.mag > 0.85 ? RUN : SPEED) * Math.max(0, Math.cos(d)); }
-    S.h += turn * TURN * dt * (want < 0 ? -1 : 1);
-    S.v += (want - S.v) * Math.min(1, dt * 9);                   // ease the speed, so the gait has a slope to read
-    if (Math.abs(S.v) < 0.02) S.v = 0;
-    const f = fwd(S.h); move(f[0] * S.v * dt, f[1] * S.v * dt);
-    if (S.v !== 0) { S.rest = 0; S.lastH = S.v > 0 ? S.h : S.h + Math.PI; } else S.rest += dt;
-    if (!S.path.length || (S.rest > 0.6 && S.path.length > 2) || T - S.T0 > 100) resetPath(T);   // (the gait tabulates from T0: keep it short)
-    S.path.push([T, S.x, S.z]);
-    // the camera: behind him, easing round to his heading; inside, kept in the room (never behind a wall)
-    const C = S.cam; let d = S.lastH - C.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); C.yaw += d * Math.min(1, dt * 2.2);
-    const cf = fwd(C.yaw); let cx = S.x - cf[0] * CAMD, cz = S.z - cf[1] * CAMD;
-    // the picture is drawn from the room the CAMERA is in (Mook ahead of it shows through the doorway); the camera is
-    //   kept a metre off that room's walls, but may follow him through a door (never pinned ahead of him, looking back)
-    if (S.fp) { cx = S.x; cz = S.z; S.room = roomAt(S.x, S.z); }
-    else { const cr = roomAt(C.x, C.z), KM = 1.0, gap = (R, w, u) => R.doors.some(d => d.wall === w && u > d.a + 0.55 && u < d.b - 0.55);
-      if (cr !== 'out') { const R = M.rooms[cr];
-        if (cx < R.x0 + KM && !gap(R, 'w', cz)) cx = R.x0 + KM; if (cx > R.x1 - KM && !gap(R, 'e', cz)) cx = R.x1 - KM;
-        if (cz < R.z0 + KM && !gap(R, 's', cx)) cz = R.z0 + KM; if (cz > R.z1 - KM && !gap(R, 'n', cx)) cz = R.z1 - KM; }
-      else if (cx > B.x0 - 0.3 && cx < B.x1 + 0.3 && cz > B.z0 - 0.3 && !(cx > -7.5 + 0.55 && cx < -4.5 - 0.55)) cz = B.z0 - 0.6;
-      S.room = cr; }
-    const ease = S.fp ? 1 : Math.min(1, dt * 6); C.x += (cx - C.x) * ease; C.z += (cz - C.z) * ease;
-    if (!S.fp) { S.room = roomAt(C.x, C.z); if (S.room === 'out' && C.z > B.z0 - 0.4 && C.x > -7.5 && C.x < -4.5) S.room = '0001'; }   // (the front door's own depth counts as the room)
+    const K = S.keys, st = S.stick, C = S.cam;
+    // the look: arrows ← → orbit; the mouse / a finger on the right half (S.look = {dx, dy} since last frame)
+    const orbit = (K.ArrowLeft ? -1 : 0) + (K.ArrowRight ? 1 : 0);
+    C.yaw += orbit * 1.8 * dt; if (S.look) { C.yaw += S.look.dx * 0.0042; C.pitch = clamp(C.pitch - S.look.dy * 0.003, -0.9, 0.55); S.look = null; }
+    // the move: W S (↑ ↓) along the camera's look, A D across it; the stick the same, by angle
+    let mx = (K.KeyD ? 1 : 0) - (K.KeyA ? 1 : 0), mz = (K.KeyW || K.ArrowUp ? 1 : 0) - (K.KeyS || K.ArrowDown ? 1 : 0), run = !!(K.ShiftLeft || K.ShiftRight);
+    if (st && st.mag > 0.12) { mx = st.dx; mz = -st.dy; run = st.mag > 0.9; }
+    const mag = Math.min(1, Math.hypot(mx, mz)); let want = 0, hWant;
+    if (mag > 0.05) { hWant = C.yaw + Math.atan2(mx, mz); want = mag * (run ? RUN : SPEED); }
+    if (S.fp) { S.h = C.yaw; let moving = false;
+      if (mag > 0.05) { const f = fwd(hWant); move(S, f[0] * want * dt, f[1] * want * dt, PAD); S.v = want; moving = true; } else S.v = 0;
+      record(S, T, dt, moving); }
+    else record(S, T, dt, drive(S, want, hWant, dt, TURN));
+    mushStep(T, dt);
+    // the camera: an orbit round Mook's head, backed off along its own line until it's clear of the walls
+    const dir = [Math.sin(C.yaw) * Math.cos(C.pitch), Math.sin(C.pitch), -Math.cos(C.yaw) * Math.cos(C.pitch)], piv = [S.x, 1.15, S.z];
+    if (S.fp) { C.D = 0; C.x = S.x; C.z = S.z; C.y = EYE; S.room = roomAt(S.x, S.z); }
+    else { let hit = CAMD;
+      for (let d = 0.5; d <= CAMD; d += 0.12) { const px = piv[0] - dir[0] * d, py = piv[1] - dir[1] * d, pz = piv[2] - dir[2] * d; if (!free(px, pz, 0.36) || py < 0.25 || py > M.H - 0.25) { hit = d - 0.12; break; } }
+      const D = Math.min(CAMD, hit); C.D = D < C.D ? D : lerp(C.D, D, Math.min(1, dt * 3));
+      C.x = piv[0] - dir[0] * C.D; C.y = piv[1] - dir[1] * C.D; C.z = piv[2] - dir[2] * C.D;
+      S.room = roomAt(C.x, C.z); if (S.room === 'out' && C.z > B.z0 - 0.4 && C.x > -7.5 && C.x < -4.5) S.room = '0001'; }   // (the front door's own depth counts as the room)
     S.t = T;
   }
-  // the piece he's standing in front of (for the label): the nearest item within reach, roughly ahead of him
-  function nearPiece(items) { let best = null, bd = 2.6; const f = fwd(S.lastH);
+  // ── MUSH: follow · idle · wander (pick a picture, hop over) · look · sleep (if Mook stands about) ──
+  function mushStep(T, dt) {
+    const U = S.mush, dM = Math.hypot(S.x - U.x, S.z - U.z), age = T - U.t0, go = (m, extra) => { U.mode = m; U.t0 = T; Object.assign(U, extra || {}); };
+    const uRoom = roomAt(U.x, U.z), items = uRoom !== 'out' ? mmaItems('museum.' + uRoom, {}) : [];
+    if (U.mode !== 'sleep' && U.mode !== 'follow' && dM > 7) go('follow');
+    if (U.mode === 'follow') { if (dM < 2.4 && S.v === 0 && age > 1.2) go('idle'); }
+    else if (U.mode === 'idle') { if (dM > 4.5) go('follow');
+      else if (age > 2.5 + mmH2(Math.floor(U.t0 * 3), 3) * 3) {
+        const pics = items.filter(it => it.art && !mmaPiece(it.art).sculpt && Math.hypot(it.x - U.x, it.z - U.z) < 9);
+        if (pics.length && S.v === 0) { const it = pics[Math.floor(mmH2(Math.floor(T * 7), 5) * pics.length)], sp = pieceSpot(it, uRoom); if (sp) go('wander', { goal: sp, piece: it }); else go('idle'); }
+        else if (S.v === 0 && S.rest > 10 && age > 8) go('sleep'); else go('idle'); } }
+    else if (U.mode === 'wander') { if (dM > 9) go('follow'); else if (Math.hypot(U.goal[0] - U.x, U.goal[1] - U.z) < 0.4 || age > 9) go('look'); }
+    else if (U.mode === 'look') { if (dM > 6 || age > 3 + mmH2(Math.floor(U.t0 * 5), 8) * 5) go(S.v === 0 && S.rest > 12 ? 'sleep' : 'idle'); }
+    else if (U.mode === 'sleep') { U.sleep = Math.min(1, U.sleep + dt * 0.6); if (S.v !== 0 && dM > 3.5) go('follow');
+      const R = M.rooms[uRoom]; if (R && U.sleep < 1) { const d = wrap(Math.atan2((R.x0 + R.x1) / 2 - U.x, -((R.z0 + R.z1) / 2 - U.z)) - U.h); U.h += clamp(d, -2 * dt, 2 * dt); } }   // he turns to the room as he drops off
+    if (U.mode !== 'sleep') U.sleep = Math.max(0, U.sleep - dt * 1.5);
+    // where he's going
+    let want = 0, hWant;
+    if (U.mode === 'follow') { const f = fwd(S.h), tx = S.x - f[0] * 1.3 + f[1] * 0.9, tz = S.z - f[1] * 1.3 - f[0] * 0.9, d = Math.hypot(tx - U.x, tz - U.z);
+      if (d > 0.5) { hWant = Math.atan2(tx - U.x, -(tz - U.z)); want = d > 3 ? Math.min(2.6, S.v + 1.2) : 1.2; } }
+    else if (U.mode === 'wander') { const d = Math.hypot(U.goal[0] - U.x, U.goal[1] - U.z); if (d > 0.3) { hWant = Math.atan2(U.goal[0] - U.x, -(U.goal[1] - U.z)); want = 1.1; } }
+    const moving = drive(U, want, hWant, dt, 7);
+    if (!moving && U.mode === 'look' && U.piece) { const d = wrap(Math.atan2(U.piece.x - U.x, -(U.piece.z - U.z)) - U.h); U.h += clamp(d, -4 * dt, 4 * dt); }
+    U.lookAt = U.mode === 'look' && U.piece ? [U.piece.x, 1.6, U.piece.z] : ((U.mode === 'follow' || U.mode === 'idle') && dM < 5 ? [S.x, 1.0, S.z] : null);
+    record(U, T, dt, moving);
+  }
+  // a spot in front of a picture: 1.6 m off its wall
+  function pieceSpot(it, room) { const pr = mmaMuseumPairs('museum.' + room).find(p => p[0].id === it.art), pl = pr && pr[1]; if (!pl || !pl.wall) return null;
+    const N = { '+x': [1, 0], '-x': [-1, 0], '+z': [0, 1], '-z': [0, -1] }[pl.wall]; if (!N) return null;
+    const x = it.x + N[0] * 1.6, z = it.z + N[1] * 1.6; return free(x, z, PAD) ? [x, z] : null; }
+  // the piece Mook stands in front of (for the label): the nearest within reach, roughly ahead (of the look, in first person)
+  function nearPiece(items) { let best = null, bd = 2.6; const f = fwd(S.fp ? S.cam.yaw : S.h);
     for (const it of items) { if (!it.art || mmaPiece(it.art).sculpt === 'mobile') continue; const dx = it.x - S.x, dz = it.z - S.z, dd = Math.hypot(dx, dz); if (dd > bd) continue;
       if ((dx * f[0] + dz * f[1]) / Math.max(0.01, dd) < 0.2) continue; bd = dd; best = it.art; }
     return best; }
@@ -48581,12 +48635,16 @@ const MW = (() => {
   function label(id) { const pc = mmaPiece(id), pl = (pc.plaques && pc.plaques.his) || {}; return { title: pl.title || pc.title, by: pl.by || artistName(pc.artist) || '', kind: pc.kind || '' }; }
   // ── draw ──
   function draw(g, T) {
-    const cast = [a4Cast('mush', { x: 0, z: 0, dir: S.lastH, gait: { P: mushAt, T0: S.T0 } }, { floor: () => 0 })];
-    if (!S.fp) cast.push(a4Cast('mook', { x: S.x, z: S.z, dir: S.lastH, gait: { P: pathAt, T0: S.T0 } }, { floor: () => 0 }));
-    const f0 = fwd(S.lastH); let C, aim;
-    if (S.fp) { C = { x: S.x + f0[0] * 0.22, y: 1.02, z: S.z + f0[1] * 0.22, F: 520 }; aim = [S.x + f0[0] * 4, 1.0, S.z + f0[1] * 4]; }   // Mook's eyes (he is 1.2 m)
-    else { const dcam = Math.hypot(S.cam.x - S.x, S.cam.z - S.z), F = 600 * Math.min(1, Math.max(0.55, dcam / CAMD));   // pinned by a wall: a wider lens, so Mook stays the same size on screen
-      C = { x: S.cam.x, y: CAMH - 0.12 * Math.max(0, CAMD - dcam), z: S.cam.z, F }; aim = [S.x + f0[0] * 0.9, 0.95, S.z + f0[1] * 0.9]; }
+    const U = S.mush, C0 = S.cam;
+    const zz = U.sleep >= 1 ? (g2, q, h) => { for (let i = 0; i < 3; i++) { const u = ((T * 0.45 + i / 3) % 1), a = Math.sin(u * Math.PI);   // Zs, floating up from his head
+        g2.save(); g2.globalAlpha = 0.85 * a; g2.translate(q[0] + h * (0.42 + 0.25 * u + 0.05 * Math.sin(T * 3 + i)), q[1] - h * (1.0 + 0.6 * u)); g2.rotate(0.25 * Math.sin(T * 2 + i)); const s = h * (0.1 + 0.08 * u);
+        g2.lineWidth = Math.max(1.5, s * 0.16); g2.strokeStyle = MM.ink; g2.lineCap = 'round'; g2.lineJoin = 'round'; g2.beginPath(); g2.moveTo(-s * 0.5, -s * 0.5); g2.lineTo(s * 0.5, -s * 0.5); g2.lineTo(-s * 0.5, s * 0.5); g2.lineTo(s * 0.5, s * 0.5); g2.stroke(); g2.restore(); } } : undefined;
+    const cast = [a4Cast('mush', { x: 0, z: 0, dir: U.h, gait: { P: pathAt(U.path), T0: U.T0 }, lookAt: U.lookAt || undefined, blink: U.sleep > 0.5 ? 1 : undefined, after: zz }, { floor: () => 0 })];
+    if (!S.fp) cast.push(a4Cast('mook', { x: S.x, z: S.z, dir: S.h, gait: { P: pathAt(S.path), T0: S.T0 } }, { floor: () => 0 }));
+    const dir = [Math.sin(C0.yaw) * Math.cos(C0.pitch), Math.sin(C0.pitch), -Math.cos(C0.yaw) * Math.cos(C0.pitch)];
+    let C, aim;
+    if (S.fp) { const f = fwd(C0.yaw); C = { x: S.x + f[0] * 0.22, y: EYE, z: S.z + f[1] * 0.22, F: 540 }; aim = [C.x + dir[0] * 4, C.y + dir[1] * 4, C.z + dir[2] * 4]; }
+    else { const F = 600 * Math.min(1, Math.max(0.6, C0.D / CAMD)); C = { x: C0.x, y: C0.y, z: C0.z, F }; aim = [S.x + dir[0] * 0.8, 1.05 + dir[1] * 0.8, S.z + dir[2] * 0.8]; }   // pinned closer by a wall: a wider lens, same Mook
     mmBegin(g);
     let items = [];
     if (S.room === 'out') mmaMuseumPlanet(g, T, { C, aim, cast });

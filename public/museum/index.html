@@ -51,17 +51,17 @@
 <div id="stage"><canvas id="c" width="1280" height="720"></canvas></div>
 <div id="room" class="hud"><div class="card"><span class="mask" id="mask"></span><span id="roomname"></span></div></div>
 <div id="label" class="hud"><div class="card"><div class="t" id="lt"></div><div class="b" id="lb"></div></div></div>
-<div id="help" class="hud">↑ W walk · ← → turn · shift run<br>↓ S back up · V his eyes</div>
+<div id="help" class="hud">W A S D move · shift run · drag to look<br>← → look round · V his eyes</div>
 <div id="fps" class="hud"></div>
 <div id="stick"><i></i></div>
-<div id="load"><div class="box"><h1>THE MUSEUM<small>ON THE COUNCIL'S PLANET · DRAWN LIVE BY GEOV</small></h1><div class="bar"><i id="bar"></i></div><div class="now" id="now">loading the show's blocks…</div><div class="n" id="cnt"></div><button id="go">WALK IN</button><div class="how" id="how">↑ W WALK · ← → TURN · SHIFT RUN · ↓ BACK UP</div><div class="how">EVERY PIECE HERE IS PAINTED BY ITS PAINTER WHEN THE PAGE OPENS. NOTHING IS AN IMAGE FILE.</div></div></div>
+<div id="load"><div class="box"><h1>THE MUSEUM<small>ON THE COUNCIL'S PLANET · DRAWN LIVE BY GEOV</small></h1><div class="bar"><i id="bar"></i></div><div class="now" id="now">loading the show's blocks…</div><div class="n" id="cnt"></div><button id="go">WALK IN</button><div class="how" id="how">W A S D MOVE · SHIFT RUN · DRAG THE MOUSE TO LOOK ROUND · V HIS EYES</div><div class="how">EVERY PIECE HERE IS PAINTED BY ITS PAINTER WHEN THE PAGE OPENS. NOTHING IS AN IMAGE FILE.</div></div></div>
 <script>
 window.__B10 = true; window.__W10TEXT = true; window.__S9NODESK = true; window.__E10N = true; window.__s7Sol = null; window.__s7cSol = null; window.__E8N = true; window.__S9TF = {}; window.__G9ONLY = null; window.__G9NOPL = false;
 window.A4 = { T0: 0, L: [] }; window.__A4W = {};
 (function () {
   const $ = (id) => document.getElementById(id);
   const DIG = { '0': '#27d3e8', '1': '#e23b3b', '2': '#2e5be6', '3': '#e8c23a', '4': '#3faa4e', '5': '#f08a2a', '6': '#f06aa8', '7': '#8a4bd6', '8': '#f3f0ea', '9': '#2a2630' };
-  const touch = matchMedia('(pointer: coarse)').matches; if (touch) { document.body.classList.add('touch'); $('how').textContent = 'THE STICK, BOTTOM LEFT: PUSH TO WALK, HARD TO RUN'; }
+  const touch = matchMedia('(pointer: coarse)').matches; if (touch) { document.body.classList.add('touch'); $('how').textContent = 'LEFT THUMB: THE STICK WALKS · RIGHT THUMB: DRAG TO LOOK ROUND'; }
   if (location.search.indexOf('fps') >= 0) $('fps').style.display = 'block';
   const canvas = $('c'), g = canvas.getContext('2d');
   const s = document.createElement('script'); s.src = 'museum-rig.js'; s.async = true;
@@ -87,6 +87,11 @@ window.A4 = { T0: 0, L: [] }; window.__A4W = {};
     addEventListener('keydown', (e) => { if (e.code === 'KeyV' && !e.repeat) setView(!S.fp); });
     addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
     const HELD = { ArrowUp: 1, ArrowDown: 1, ArrowLeft: 1, ArrowRight: 1, KeyW: 1, KeyA: 1, KeyS: 1, KeyD: 1, ShiftLeft: 1, ShiftRight: 1 };
+    // the look: drag anywhere on the picture (a mouse, or a finger on the right half)
+    let lid = null, lx = 0, ly = 0;
+    canvas.addEventListener('pointerdown', (e) => { if (lid !== null) return; if (e.pointerType !== 'mouse' && e.clientX < innerWidth * 0.45) return; lid = e.pointerId; lx = e.clientX; ly = e.clientY; canvas.setPointerCapture(lid); });
+    canvas.addEventListener('pointermove', (e) => { if (e.pointerId !== lid) return; const k = e.pointerType === 'mouse' ? 1 : 1.6; S.look = { dx: (S.look ? S.look.dx : 0) + (e.clientX - lx) * k, dy: (S.look ? S.look.dy : 0) + (e.clientY - ly) * k }; lx = e.clientX; ly = e.clientY; });
+    const lookUp = (e) => { if (e.pointerId === lid) lid = null; }; canvas.addEventListener('pointerup', lookUp); canvas.addEventListener('pointercancel', lookUp);
     const stick = $('stick'), knob = stick.querySelector('i'); let sid = null;
     const stickAt = (e) => { const r = stick.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2; let dx = (e.clientX - cx) / (r.width / 2), dy = (e.clientY - cy) / (r.height / 2); const m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; }
       S.stick = { dx, dy, mag: Math.min(1, m) }; knob.style.transform = 'translate(' + (dx * 40) + 'px,' + (dy * 40) + 'px)'; };
@@ -100,7 +105,7 @@ window.A4 = { T0: 0, L: [] }; window.__A4W = {};
     function start() {
       const t00 = performance.now();
       const loop = (now) => {
-        const T = (now - t00) / 1000, dt = last === null ? 1 / 60 : Math.min(0.05, (now - last) / 1000); last = now;
+        const T = (now - t00) / 1000, dt = last === null ? 1 / 60 : Math.min(0.1, (now - last) / 1000); last = now;
         MW.step(T, dt);
         const t0 = performance.now(); R.run(g, T, 'MW.draw(g, t)'); const ms = performance.now() - t0;
         acc += ms; if (++nf === 30) { $('fps').textContent = (acc / nf).toFixed(0) + ' ms'; acc = 0; nf = 0; }
