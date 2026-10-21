@@ -48559,11 +48559,17 @@ const MW = (() => {
     // the camera: behind him, easing round to his heading; inside, kept in the room (never behind a wall)
     const C = S.cam; let d = S.lastH - C.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); C.yaw += d * Math.min(1, dt * 2.2);
     const cf = fwd(C.yaw); let cx = S.x - cf[0] * CAMD, cz = S.z - cf[1] * CAMD;
-    S.room = roomAt(S.x, S.z);
-    if (S.fp) { cx = S.x; cz = S.z; }
-    else if (S.room !== 'out') { const R = M.rooms[S.room]; cx = Math.max(R.x0 + 1.0, Math.min(R.x1 - 1.0, cx)); cz = Math.max(R.z0 + 1.0, Math.min(R.z1 - 1.0, cz)); }
-    else if (cx > B.x0 - 0.3 && cx < B.x1 + 0.3 && cz > B.z0 - 0.3) cz = B.z0 - 0.6;
+    // the picture is drawn from the room the CAMERA is in (Mook ahead of it shows through the doorway); the camera is
+    //   kept a metre off that room's walls, but may follow him through a door (never pinned ahead of him, looking back)
+    if (S.fp) { cx = S.x; cz = S.z; S.room = roomAt(S.x, S.z); }
+    else { const cr = roomAt(C.x, C.z), KM = 1.0, gap = (R, w, u) => R.doors.some(d => d.wall === w && u > d.a + 0.55 && u < d.b - 0.55);
+      if (cr !== 'out') { const R = M.rooms[cr];
+        if (cx < R.x0 + KM && !gap(R, 'w', cz)) cx = R.x0 + KM; if (cx > R.x1 - KM && !gap(R, 'e', cz)) cx = R.x1 - KM;
+        if (cz < R.z0 + KM && !gap(R, 's', cx)) cz = R.z0 + KM; if (cz > R.z1 - KM && !gap(R, 'n', cx)) cz = R.z1 - KM; }
+      else if (cx > B.x0 - 0.3 && cx < B.x1 + 0.3 && cz > B.z0 - 0.3 && !(cx > -7.5 + 0.55 && cx < -4.5 - 0.55)) cz = B.z0 - 0.6;
+      S.room = cr; }
     const ease = S.fp ? 1 : Math.min(1, dt * 6); C.x += (cx - C.x) * ease; C.z += (cz - C.z) * ease;
+    if (!S.fp) { S.room = roomAt(C.x, C.z); if (S.room === 'out' && C.z > B.z0 - 0.4 && C.x > -7.5 && C.x < -4.5) S.room = '0001'; }   // (the front door's own depth counts as the room)
     S.t = T;
   }
   // the piece he's standing in front of (for the label): the nearest item within reach, roughly ahead of him
