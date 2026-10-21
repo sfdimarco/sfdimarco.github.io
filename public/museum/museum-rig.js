@@ -48575,12 +48575,13 @@ const MW = (() => {
     const K = S.keys, st = S.stick, C = S.cam;
     // the look: arrows ← → orbit; the mouse / a finger on the right half (S.look = {dx, dy} since last frame)
     const orbit = (K.ArrowLeft ? -1 : 0) + (K.ArrowRight ? 1 : 0);
-    C.yaw += orbit * 1.8 * dt; if (S.look) { C.yaw += S.look.dx * 0.0042; C.pitch = clamp(C.pitch - S.look.dy * 0.003, -0.9, 0.55); S.look = null; }
+    C.yaw -= orbit * 1.8 * dt;                                     // (a heading grows to the LEFT: so right is minus)
+    if (S.look) { C.yaw -= S.look.dx * 0.0042; C.pitch = clamp(C.pitch - S.look.dy * 0.003, -0.9, 0.55); S.look = null; }
     // the move: W S (↑ ↓) along the camera's look, A D across it; the stick the same, by angle
     let mx = (K.KeyD ? 1 : 0) - (K.KeyA ? 1 : 0), mz = (K.KeyW || K.ArrowUp ? 1 : 0) - (K.KeyS || K.ArrowDown ? 1 : 0), run = !!(K.ShiftLeft || K.ShiftRight);
     if (st && st.mag > 0.12) { mx = st.dx; mz = -st.dy; run = st.mag > 0.9; }
     const mag = Math.min(1, Math.hypot(mx, mz)); let want = 0, hWant;
-    if (mag > 0.05) { hWant = C.yaw + Math.atan2(mx, mz); want = mag * (run ? RUN : SPEED); }
+    if (mag > 0.05) { hWant = C.yaw - Math.atan2(mx, mz); want = mag * (run ? RUN : SPEED); }
     if (S.fp) { S.h = C.yaw; let moving = false;
       if (mag > 0.05) { const f = fwd(hWant); move(S, f[0] * want * dt, f[1] * want * dt, PAD); S.v = want; moving = true; } else S.v = 0;
       record(S, T, dt, moving); }
