@@ -5,7 +5,7 @@ import PostList from "../components/PostList";
 import MushYard from "../components/MushYard";
 import { episodes, watchUrl } from "../content/episodes";
 import { breakdowns } from "../content/breakdowns";
-import { CHANNEL_URL, GEOV_URL, GEOV_ARTICLE } from "../content/show";
+import { CHANNEL_URL, GEOV_URL, GEOV_ARTICLE, MUSEUM_URL } from "../content/show";
 import { formatDate } from "../lib/formatDate";
 import { usePageTitle } from "../lib/usePageTitle";
 
@@ -33,6 +33,7 @@ export default function Home() {
         <div className="actions"><a className="button button-yellow" href={GEOV_URL}>Made in GeoV Studio</a><Link className="text-link" to={GEOV_ARTICLE}>What’s GeoV Studio?</Link></div>
       </div>
     </section>
+    <section className="channel-banner wrap" aria-labelledby="museum-title"><h2 id="museum-title">Walk the Museum.</h2><p>Every painting in the show hangs in four galleries on the Council’s planet, a place nobody in the cartoon has been to yet. Walk Mook through it. Nothing there is an image file: each picture is painted by its own painter, live in your browser, when the page opens.</p><a className="button" href={MUSEUM_URL}>Walk in</a></section>
     <section className="journal-section wrap" aria-labelledby="journal-title">
       <div className="section-heading"><div><h2 id="journal-title">Inside the show</h2><p>Drawings, episode notes, and how the cartoons get made.</p></div><Link className="text-link" to="/breakdowns">All breakdowns</Link></div>
       <PostList posts={breakdowns.slice(0, 3)} />

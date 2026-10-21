@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Museum · Mook &amp; Mush</title>
+<meta name="description" content="Walk Mook through the Museum on the Council's planet: every painting in the show, hung in four galleries, drawn live by GeoV.">
+<meta property="og:title" content="The Museum · Mook &amp; Mush"><meta property="og:description" content="Walk Mook through the Museum: every painting in the show, drawn live by GeoV."><meta property="og:image" content="https://sfdimarco.github.io/museum/poster.jpg"><meta name="twitter:card" content="summary_large_image">
+<style>
+  :root { --ink: #120c16; --paper: #efe9e0; --brass: #b98e62; --c0: #27d3e8; --c1: #e23b3b; --c2: #2e5be6; --c4: #3faa4e; --c8: #f3f0ea; }
+  html, body { margin: 0; height: 100%; background: #0e0a12; color: var(--paper); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; overflow: hidden; }
+  #stage { position: fixed; inset: 0; display: grid; place-items: center; }
+  canvas#c { width: min(100vw, calc(100vh * 16 / 9)); height: min(100vh, calc(100vw * 9 / 16)); display: block; background: #0e0a12; touch-action: none; }
+  .hud { position: fixed; left: 0; right: 0; pointer-events: none; }
+  #room { top: max(10px, env(safe-area-inset-top)); display: flex; justify-content: center; }
+  #room .card { background: rgba(18, 12, 22, 0.72); border: 1px solid rgba(243, 240, 234, 0.18); border-radius: 6px; padding: 7px 12px; display: flex; gap: 12px; align-items: baseline; letter-spacing: 0.08em; font-size: 12px; backdrop-filter: blur(4px); }
+  #room .mask { font-weight: 700; font-size: 15px; letter-spacing: 0.14em; }
+  #room .mask b { font-weight: 700; }
+  #label { bottom: max(14px, env(safe-area-inset-bottom)); display: flex; justify-content: center; transition: opacity 0.25s; opacity: 0; }
+  #label.on { opacity: 1; }
+  #label .card { background: var(--paper); color: var(--ink); border-radius: 3px; padding: 8px 14px 9px; max-width: min(560px, 82vw); box-shadow: 0 6px 18px rgba(0,0,0,0.35); border-left: 5px solid var(--brass); }
+  #label .t { font-weight: 700; font-size: 16px; letter-spacing: 0.02em; }
+  #label .b { font-size: 13px; opacity: 0.78; margin-top: 2px; letter-spacing: 0.06em; }
+  #help { bottom: max(14px, env(safe-area-inset-bottom)); right: 14px; left: auto; font-size: 11px; opacity: 0.55; letter-spacing: 0.08em; text-align: right; line-height: 1.6; }
+  #fps { top: 10px; left: 12px; right: auto; font-size: 11px; opacity: 0.4; display: none; }
+  #back { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px; font-size: 12px; letter-spacing: 0.1em; color: var(--paper); text-decoration: none; opacity: 0.7; background: rgba(18,12,22,0.6); padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(243,240,234,0.18); z-index: 6; }
+  #back:hover { opacity: 1; }
+  #load .how { font-size: 11px; letter-spacing: 0.1em; opacity: 0.5; margin-top: 18px; line-height: 1.8; }
+  #load { position: fixed; inset: 0; background: #0e0a12; display: grid; place-items: center; z-index: 5; transition: opacity 0.6s; }
+  #load.off { opacity: 0; pointer-events: none; }
+  #load .box { width: min(520px, 84vw); text-align: center; }
+  #load h1 { font-weight: 400; letter-spacing: 0.32em; font-size: 18px; margin: 0 0 6px; color: var(--paper); }
+  #load h1 small { display: block; letter-spacing: 0.18em; font-size: 11px; opacity: 0.55; margin-top: 6px; }
+  #load .bar { height: 6px; background: rgba(243,240,234,0.12); border-radius: 3px; overflow: hidden; margin: 22px 0 12px; }
+  #load .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--c1), var(--c2), var(--c4), var(--c8)); transition: width 0.15s; }
+  #load .now { font-size: 12px; letter-spacing: 0.08em; opacity: 0.8; min-height: 1.4em; }
+  #load .n { font-size: 11px; opacity: 0.5; margin-top: 6px; letter-spacing: 0.1em; }
+  #load button { margin-top: 26px; font: inherit; letter-spacing: 0.2em; padding: 12px 26px; background: var(--paper); color: var(--ink); border: 0; border-radius: 4px; cursor: pointer; display: none; }
+  #load button.on { display: inline-block; }
+  #stick { position: fixed; left: 18px; bottom: max(18px, env(safe-area-inset-bottom)); width: 128px; height: 128px; border-radius: 50%; background: rgba(243,240,234,0.08); border: 1px solid rgba(243,240,234,0.22); display: none; touch-action: none; }
+  #stick i { position: absolute; left: 44px; top: 44px; width: 40px; height: 40px; border-radius: 50%; background: rgba(243,240,234,0.55); }
+  body.touch #stick { display: block; } body.touch #help { display: none; }
+  #view { position: fixed; right: 14px; top: max(10px, env(safe-area-inset-top)); z-index: 6; font: inherit; font-size: 12px; letter-spacing: 0.1em; color: var(--paper); background: rgba(18,12,22,0.6); border: 1px solid rgba(243,240,234,0.22); border-radius: 6px; padding: 7px 11px; cursor: pointer; }
+  #view.fp { background: var(--paper); color: var(--ink); }
+  @media (max-width: 720px) { #back { font-size: 0; padding: 7px 9px; } #back::before { content: '←'; font-size: 13px; } #room .card { font-size: 10px; padding: 5px 9px; } #room .mask { font-size: 13px; } }
+</style>
+</head>
+<body>
+<a id="back" href="/#/">← MOOK &amp; MUSH</a>
+<button id="view" title="V">👁 THROUGH MOOK'S EYES</button>
+<div id="stage"><canvas id="c" width="1280" height="720"></canvas></div>
+<div id="room" class="hud"><div class="card"><span class="mask" id="mask"></span><span id="roomname"></span></div></div>
+<div id="label" class="hud"><div class="card"><div class="t" id="lt"></div><div class="b" id="lb"></div></div></div>
+<div id="help" class="hud">↑ W walk · ← → turn · shift run<br>↓ S back up · V his eyes</div>
+<div id="fps" class="hud"></div>
+<div id="stick"><i></i></div>
+<div id="load"><div class="box"><h1>THE MUSEUM<small>ON THE COUNCIL'S PLANET · DRAWN LIVE BY GEOV</small></h1><div class="bar"><i id="bar"></i></div><div class="now" id="now">loading the show's blocks…</div><div class="n" id="cnt"></div><button id="go">WALK IN</button><div class="how" id="how">↑ W WALK · ← → TURN · SHIFT RUN · ↓ BACK UP</div><div class="how">EVERY PIECE HERE IS PAINTED BY ITS PAINTER WHEN THE PAGE OPENS. NOTHING IS AN IMAGE FILE.</div></div></div>
+<script>
+window.__B10 = true; window.__W10TEXT = true; window.__S9NODESK = true; window.__E10N = true; window.__s7Sol = null; window.__s7cSol = null; window.__E8N = true; window.__S9TF = {}; window.__G9ONLY = null; window.__G9NOPL = false;
+window.A4 = { T0: 0, L: [] }; window.__A4W = {};
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const DIG = { '0': '#27d3e8', '1': '#e23b3b', '2': '#2e5be6', '3': '#e8c23a', '4': '#3faa4e', '5': '#f08a2a', '6': '#f06aa8', '7': '#8a4bd6', '8': '#f3f0ea', '9': '#2a2630' };
+  const touch = matchMedia('(pointer: coarse)').matches; if (touch) { document.body.classList.add('touch'); $('how').textContent = 'THE STICK, BOTTOM LEFT: PUSH TO WALK, HARD TO RUN'; }
+  if (location.search.indexOf('fps') >= 0) $('fps').style.display = 'block';
+  const canvas = $('c'), g = canvas.getContext('2d');
+  const s = document.createElement('script'); s.src = 'museum-rig.js'; s.async = true;
+  s.onerror = () => { $('now').textContent = 'the Museum did not load. Try again?'; };
+  s.onload = boot; document.head.appendChild(s);
+
+  function boot() {
+    const R = window.MuseumRig, MW = R.MW, S = MW.S;
+    // ① hang the pictures: one a frame (each is painted by its painter, live), with its title on the bar
+    const L = MW.hangList(); let i = 0;
+    const hang = () => {
+      if (i < L.length) { const id = L[i++]; const lb = MW.label(id); $('now').textContent = (lb.title + ' · ' + lb.by).toUpperCase(); $('cnt').textContent = 'HANGING ' + i + ' / ' + L.length;
+        $('bar').style.width = (100 * i / L.length).toFixed(1) + '%'; MW.hangOne(id); return requestAnimationFrame(hang); }
+      $('now').textContent = 'EVERY PICTURE IS UP'; $('cnt').textContent = L.length + ' PIECES · 4 GALLERIES'; $('go').classList.add('on'); $('go').focus();
+    };
+    requestAnimationFrame(hang);
+    // ② the controls
+    const keys = S.keys;
+    addEventListener('keydown', (e) => { if (e.code in HELD) { keys[e.code] = true; e.preventDefault(); } });
+    addEventListener('keyup', (e) => { if (e.code in HELD) keys[e.code] = false; });
+    const setView = (fp) => { S.fp = fp; $('view').classList.toggle('fp', fp); $('view').textContent = fp ? '👁 BACK TO MOOK' : '👁 THROUGH MOOK\'S EYES'; $('view').blur(); };
+    $('view').addEventListener('click', () => setView(!S.fp));
+    addEventListener('keydown', (e) => { if (e.code === 'KeyV' && !e.repeat) setView(!S.fp); });
+    addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+    const HELD = { ArrowUp: 1, ArrowDown: 1, ArrowLeft: 1, ArrowRight: 1, KeyW: 1, KeyA: 1, KeyS: 1, KeyD: 1, ShiftLeft: 1, ShiftRight: 1 };
+    const stick = $('stick'), knob = stick.querySelector('i'); let sid = null;
+    const stickAt = (e) => { const r = stick.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2; let dx = (e.clientX - cx) / (r.width / 2), dy = (e.clientY - cy) / (r.height / 2); const m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; }
+      S.stick = { dx, dy, mag: Math.min(1, m) }; knob.style.transform = 'translate(' + (dx * 40) + 'px,' + (dy * 40) + 'px)'; };
+    stick.addEventListener('pointerdown', (e) => { sid = e.pointerId; stick.setPointerCapture(sid); stickAt(e); });
+    stick.addEventListener('pointermove', (e) => { if (e.pointerId === sid) stickAt(e); });
+    const stickUp = (e) => { if (e.pointerId !== sid) return; sid = null; S.stick = null; knob.style.transform = ''; };
+    stick.addEventListener('pointerup', stickUp); stick.addEventListener('pointercancel', stickUp);
+    // ③ walk in
+    $('go').addEventListener('click', () => { $('load').classList.add('off'); start(); });
+    let last = null, acc = 0, nf = 0;
+    function start() {
+      const t00 = performance.now();
+      const loop = (now) => {
+        const T = (now - t00) / 1000, dt = last === null ? 1 / 60 : Math.min(0.05, (now - last) / 1000); last = now;
+        MW.step(T, dt);
+        const t0 = performance.now(); R.run(g, T, 'MW.draw(g, t)'); const ms = performance.now() - t0;
+        acc += ms; if (++nf === 30) { $('fps').textContent = (acc / nf).toFixed(0) + ' ms'; acc = 0; nf = 0; }
+        hud(); requestAnimationFrame(loop); };
+      requestAnimationFrame(loop);
+    }
+    let shownRoom = null, shownNear = null;
+    function hud() {
+      if (S.room !== shownRoom) { shownRoom = S.room; $('roomname').textContent = MW.roomName(S.room);
+        const K = Object.assign({}, DIG, MW.MM_DIG || {});
+        $('mask').innerHTML = S.room === 'out' ? '<b style="color:' + K['0'] + '">⬡</b>' : S.room.split('').map(d => '<b style="color:' + (d === '1' ? K[String(bitDigit(S.room))] : 'rgba(243,240,234,0.35)') + '">' + d + '</b>').join(''); }
+      if (S.near !== shownNear) { shownNear = S.near; if (S.near) { const lb = MW.label(S.near); $('lt').textContent = lb.title; $('lb').textContent = [lb.by, lb.kind].filter(Boolean).join(' · '); $('label').classList.add('on'); } else $('label').classList.remove('on'); }
+    }
+    const bitDigit = (room) => ({ '1000': 8, '0100': 4, '0010': 2, '0001': 1 })[room];
+  }
+})();
+</script>
+</body>
+</html>
