@@ -7,6 +7,39 @@
 
 export const breakdowns = [
   {
+    slug: "square-eyes-remaster", title: "Square Eyes, remastered: her limits, measured first", publishedAt: "2026-10-25", category: "Episode breakdown", episodeId: "square-eyes-remaster",
+    summary: "The first episode, made again. TV Gurl’s answers came from the real eyes before the script was written, and her honest limits became the story.",
+    image: "/images/show/ep-square-eyes-remaster.jpg", imageAlt: "Square Eyes, remastered: TV Gurl",
+    body: [
+      "Square Eyes was the first episode made, back when the show still had no rules for its world. TV Gurl, a TV with legs, sees the world in 16 × 16 squares, and in the first version she answered one question every five minutes and seven seconds, because that was the real wait on the pipeline’s eyes at the time. Mook’s brief for the remake: same premise, and “this should be a rebuild. You didn’t know Mook then; now you know him better.”",
+      { h: "Her limits are the story" },
+      "The wait is gone now: the eyes answer in seconds. So the new spine is what TV Gurl honestly can’t do, and every one of those limits was measured before a line was written. The film’s own frames were staged first, the eyes were asked about each one, with a control for every question, and the dialogue was written from the answers. A rule was fixed before the first question: anything between 0.35 and 0.65 is UNSURE.",
+      { list: [
+        "“Where is Mush?” gets NONE. Where-questions are the wrong kind of question for her.",
+        "“Does that look like Mush?” gets NO, again and again. To her, nothing round looks like him. To Mook’s pattern brain, everything does.",
+        "“What time is it?” gets MIDDAY, all day long, because she can’t read morning or afternoon. Her first different answer is NIGHT, which she can.",
+        "Mook learns to ask her way: yes or no about a named spot. “Blue, then red, top centre?” YES, at 0.83. Her first sure answer is the climax.",
+      ] },
+      "Eight of the twelve answers went the way the pitch guessed. The likeness answers didn’t: the pitch expected her to say yes to the lamp and the gumball machine and send Mook the wrong way. She said no every time, so the script was rewritten to play her honest no against his yes.",
+      { h: "New in the world" },
+      { list: [
+        "Mush talks now, seven lines, and spends the whole day hiding in Mook’s hood.",
+        "The hall of pictures at the Cloister, where a new picture goes up every year.",
+        "Twelve new scenes, including the park, Main Street, the old pool, the bench, dusk on the steps and lamps-on.",
+        "An end card where TV Gurl’s 16 × 16 picture paints itself in.",
+      ] },
+      { h: "Everything the show learned since" },
+      "The remake ran on the whole current pipeline. The script went through five drafts in screenplay format. The voices, the score and the sound effects were mixed and locked before a single frame was drawn, and a pitch check on every voice caught one cast in the wrong range. All 194 set-ups were staged on top-down maps with a lens chosen for each, from the show’s lens kit. The tricky contacts were turn-checked as their own sheets: Mush in the hood, the lamppost climb, the balloon lift, the bench. Every shot went through the compositing pass, then the whole film was assembled and exported in GeoV Studio.",
+      { h: "Asking again at the end" },
+      "When the film was finished, the same questions went to the eyes again, this time on the final frames. Nine of eleven held, the climax among them. Two early ones in the second scene changed, on a borderline frame and a pose that moved. The rule from the start: a changed answer is a flag for a person to judge, and the film stays as it was made.",
+      { h: "Still being worked on" },
+      "Clipping and layer placement are the known rough spots: a few shots where a character reads as standing on the wrong thing, or a back is turned to the camera. Mook on why the remake works: the first Square Eyes was made before the rules that keep the world consistent. His verdict: “FANTASTIC, what an improvement, it’s so much better than the original, the progress is staggering.”",
+      { h: "As made" },
+      "16 minutes 18 seconds, 29 scenes (12 of them new), 194 set-ups and 134 lines of dialogue, against 11 minutes and 23 scenes the first time. Exported in GeoV Studio in 49 parts, every frame accounted for, with sync measured at 0.0 milliseconds at nine checkpoints.",
+      { img: "/images/show/sheet-square-eyes-remaster.jpg", alt: "One frame from every shot of the remake" },
+    ]
+  },
+  {
     slug: "red-beard", title: "Red Beard: two plots, a whole planet, and a lens for every shot", publishedAt: "2026-10-27", category: "Episode breakdown", episodeId: "red-beard",
     summary: "A rematch in the Stadium cut against a stowaway in orbit, Mowersville laid out by wave function collapse on a real sphere, and the first shots chosen by lens.",
     image: "/images/show/ep-red-beard.jpg", imageAlt: "Red Beard: Barbarossa in the Stadium",
