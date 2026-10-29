@@ -6,6 +6,7 @@ import Episodes from "./pages/Episodes";
 import Breakdowns from "./pages/Breakdowns";
 import BreakdownPost from "./pages/BreakdownPost";
 import About from "./pages/About";
+import FaultyTolerance from "./pages/FaultyTolerance";
 import { CHANNEL_URL } from "./content/show";
 
 function Site() {
@@ -25,15 +26,19 @@ function Site() {
           <Route path="/breakdowns" element={<Breakdowns />} />
           <Route path="/breakdowns/:slug" element={<BreakdownPost />} />
           <Route path="/about" element={<About />} />
+          <Route path="/faulty-tolerance" element={<FaultyTolerance />} />
+          <Route path="/faulty-tolerance/how" element={<FaultyTolerance view="how" />} />
+          <Route path="/faulty-tolerance/breakdowns" element={<FaultyTolerance view="breakdowns" />} />
+          <Route path="/faulty-tolerance/breakdowns/:slug" element={<FaultyTolerance view="article" />} />
           <Route path="/work" element={<Navigate to="/" replace />} />
           <Route path="/lab" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <footer className="site-footer wrap">
+      {!pathname.startsWith("/faulty-tolerance") && <footer className="site-footer wrap">
         <p>A cartoon by Sean “Mook” DiMarco, made with Claude in GeoV Studio.</p>
         <div><a href={CHANNEL_URL} target="_blank" rel="noreferrer">YouTube</a><a href="https://github.com/sfdimarco" target="_blank" rel="noreferrer">GitHub</a></div>
-      </footer>
+      </footer>}
     </>
   );
 }

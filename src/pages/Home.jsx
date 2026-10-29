@@ -3,6 +3,7 @@ import HaloLettering from "../components/HaloLettering";
 import YouTubeEmbed from "../components/YouTubeEmbed";
 import PostList from "../components/PostList";
 import MushYard from "../components/MushYard";
+import FaultyDoorway from "../components/FaultyDoorway";
 import { episodes, watchUrl } from "../content/episodes";
 import { breakdowns } from "../content/breakdowns";
 import { CHANNEL_URL, GEOV_URL, GEOV_ARTICLE, MUSEUM_URL } from "../content/show";
@@ -39,5 +40,6 @@ export default function Home() {
       <PostList posts={breakdowns.slice(0, 3)} />
     </section>
     <section className="channel-banner wrap"><h2>There’s more in Mowersville.</h2><p>Catch up on the cartoons, or follow the channel for the next misadventure.</p><a className="button" href={CHANNEL_URL} target="_blank" rel="noreferrer">Watch @MookandMush on YouTube</a></section>
+    <FaultyDoorway />
   </>;
 }

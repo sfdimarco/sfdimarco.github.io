@@ -13,6 +13,7 @@ export default function Nav() {
           {links.map(({ to, label }) => <NavLink key={to} to={to} end={to === "/"}>{label}</NavLink>)}
           <a className="nav-studio" href={MUSEUM_URL}>The Museum</a>
           <a className="nav-studio" href={GEOV_URL}>GeoV Studio</a>
+          <NavLink to="/faulty-tolerance">Faulty Tolerance</NavLink>
         </nav>
       </div>
     </header>
