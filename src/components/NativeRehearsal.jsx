@@ -30,7 +30,7 @@ export default function NativeRehearsal({state,camera,clock=0,guides=false,descr
     try{renderer.current.render(state,camera,clock);}catch{setError(true);}
   },[state,camera,clock]);
   return <figure className="ft-native-stage" data-native-ready={ready&&!error}>
-    <canvas ref={canvas} width="1280" height="720" role="img" aria-label={description} />
+    <canvas ref={canvas} width="1280" height="720" role="img" aria-label={description} hidden={error} aria-hidden={error || undefined} />
     {!ready&&!error&&<p className="ft-stage-loading" role="status">Kip is checking the equipment…</p>}
     {error&&<div className="ft-stage-fallback"><img src="/images/faulty-tolerance/one-good-look.jpg" alt="Kip and Lo in the public One Good Look film" /><p role="status">This device couldn't open the 3D stage. The controls and written breakdown still work. Try a browser with WebGL2 enabled.</p></div>}
     {guides&&ready&&!error&&<svg className="ft-frame-guides" viewBox="0 0 1280 720" aria-hidden="true"><path d="M426.67 0V720M853.33 0V720M0 240H1280M0 480H1280" /><path d="M625 360H655M640 345V375" /></svg>}

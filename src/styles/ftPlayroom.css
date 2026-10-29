@@ -10,9 +10,10 @@
 .ft-stage-column{min-width:0;align-self:start;position:sticky;top:20px}
 .ft-native-stage{position:relative;background:#293d44;border-radius:8px;overflow:hidden}
 .ft-native-stage canvas{display:block;width:100%;height:auto;aspect-ratio:16/9}
+.ft-native-stage canvas[hidden]{display:none}
 .ft-native-stage figcaption{padding:14px 17px;background:#203f4a;color:var(--ft-white);font-size:13px;line-height:1.5;margin:0;min-height:76px}
 .ft-stage-loading{position:absolute;inset:0 0 76px;display:grid;place-items:center;color:var(--ft-muted);padding:20px;font-size:14px}
-.ft-stage-fallback{position:absolute;inset:0;background:var(--ft-dark);overflow:auto}
+.ft-stage-fallback{background:var(--ft-dark)}
 .ft-stage-fallback img{width:100%;max-height:160px;object-fit:cover}
 .ft-stage-fallback p{padding:16px;font-size:14px;color:var(--ft-white)}
 .ft-frame-guides{position:absolute;inset:0 0 auto;width:100%;aspect-ratio:16/9;pointer-events:none;fill:none;stroke:#edf1e9;stroke-width:2;opacity:.6}
