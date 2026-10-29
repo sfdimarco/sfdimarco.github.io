@@ -28,6 +28,7 @@ function Site() {
           <Route path="/about" element={<About />} />
           <Route path="/faulty-tolerance" element={<FaultyTolerance />} />
           <Route path="/faulty-tolerance/how" element={<FaultyTolerance view="how" />} />
+          <Route path="/faulty-tolerance/workshop" element={<FaultyTolerance view="workshop" />} />
           <Route path="/faulty-tolerance/breakdowns" element={<FaultyTolerance view="breakdowns" />} />
           <Route path="/faulty-tolerance/breakdowns/:slug" element={<FaultyTolerance view="article" />} />
           <Route path="/work" element={<Navigate to="/" replace />} />
