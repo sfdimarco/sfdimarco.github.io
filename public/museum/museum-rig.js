@@ -48471,7 +48471,7 @@ function mmaPlanetDress() {
   const cache = window.__mmaCache; if (cache.planetDress) return cache.planetDress;
   const ink = MM.ink, LW = () => (typeof YD_LW === 'function' ? YD_LW() : 2.2), KEY = (d) => MM_DIG[String(d)], has = (n) => typeof window[n] === 'function' || (function () { try { return typeof eval(n) === 'function'; } catch (e) { return false; } })();
   const E = { Sun: { L: [-0.55, 0.75, -0.37], s: [0.45, 0.3] }, pal: 'film', sunScr: [-0.6, -0.6], H: [236, 222, 226], hz: (z) => mmClamp((z - 40) / 160, 0, 0.6) };
-  const c = [], solids = [];
+  const c = [], solids = [], beds = [];
   const solid = (x0, x1, z0, z1, thin) => solids.push({ x0, x1, z0, z1, thin: !!thin }), post = (x, z, r) => solid(x - r, x + r, z - r, z + r, true);
   // is a thing of half-width m metres at (x, z) in the frame at all? (the walk draws this every frame: what is behind you costs nothing)
   const vis = (C, x, y, z, m) => { const q = ydPt(C, x, y, z); if (!q) return Math.hypot(x - C.x, z - C.z) < m * 2; const B = window.__mmaBox; return q[0] > (B ? B[0] : 0) - m * q[2] && q[0] < (B ? B[0] + B[2] : 1280) + m * q[2]; };
@@ -48504,7 +48504,8 @@ function mmaPlanetDress() {
     if (0.07 * k > 2.2) { g.lineWidth = Math.max(0.6, 0.07 * k * 0.22); g.strokeStyle = ink; g.beginPath(); for (const f of F) if (f[2] > 2.2) { g.moveTo(f[0] + f[2], f[1]); g.arc(f[0], f[1], f[2], 0, 7); } g.stroke(); } };
 
   // ── 1 · THE FRONT (the building dresses itself): a banner for each gallery in its mask's colour, a canopy over the
-  //   doors, cheeks and planters beside the steps, lamps, flags down both sides, and the sign ──
+  //   doors, cheeks and planters beside the steps, lamps, flags (gateposts at the hedges' ends), and the sign.
+  //   Nothing that stands is on a flower bed (his note, 2026-11-16): the beds are in `beds`, and the rig checks it ──
   { const z = -0.36;
     [['1000', 8], ['0100', 4], ['0010', 2], ['0001', 1]].forEach(([mask, dig], i) => { const x0 = 0.5 + i * 2.6, w = 2.0;
       c.push({ x: x0 + w / 2, z: z - 0.05, dz: -3, draw(g, C, P, t) { if (C.z > z || !ydPt(C, x0, 5.2, z) || !ydPt(C, x0 + w, 5.2, z)) return; const sw = 0.05 * Math.sin((t || 0) * 1.1 + i), col = dig === 8 ? '#f3efe6' : mmMix(KEY(dig), '#ffffff', 0.08), tx = dig === 8 ? '#3a3040' : '#fff8f0';
@@ -48517,13 +48518,13 @@ function mmaPlanetDress() {
     for (const s of [-1, 1]) { const x = -6 + s * 3.0, px = x + s * 0.9; box(x - 0.3, x + 0.3, 0, 0.62, -2.4, -0.3, '#e3dbcf');
       c.push({ x: px, z: -1.3, draw(g, C) { ydBox(g, C, { x0: px - 0.45, x1: px + 0.45, y0: 0, y1: 0.55, z0: -1.75, z1: -0.85 }, { front: '#c9bfb0', side: '#b9ae9e', top: '#8a6a58', back: '#b9ae9e' });
         const q = ydPt(C, px, 1.15, -1.3); if (q) { mmDot(g, q[0], q[1], 0.62 * q[2], '#6fa06a'); g.lineWidth = Math.max(1, 0.03 * q[2]); g.strokeStyle = ink; g.beginPath(); g.arc(q[0], q[1], 0.62 * q[2], 0, 7); g.stroke(); } } }); solid(px - 0.45, px + 0.45, -1.75, -0.85); }
-    [[-15.4, -13.5, 1], [-15.4, -5.2, 4], [-15.4, -2.0, 2], [15.4, -13.5, 6], [15.4, -5.2, 7], [15.4, -2.0, 5]].forEach(([x, zz, dig], i) => { c.push({ x, z: zz, draw(g, C, P, t) { const H = 6.2;
+    [[-16.6, -15.0, 1], [-16.6, -9.0, 4], [-16.6, -6.6, 2], [-16.6, -1.0, 8], [16.6, -15.0, 6], [16.6, -9.0, 7], [16.6, -6.6, 5], [16.6, -1.0, 0]].forEach(([x, zz, dig], i) => { c.push({ x, z: zz, draw(g, C, P, t) { const H = 6.2;
       ydLine(g, C, [x, 0, zz], [x, H, zz], lwK(1.5, 0.06 * ydK(C, x, 3, zz)), '#56606f');
       const n = 6, top = [], bot = []; for (let k = 0; k <= n; k++) { const u = k / n, wv = 0.12 * u * Math.sin((t || 0) * 2.2 + u * 4 + i); top.push([x + 1.7 * u, H - 0.04 * u + wv, zz]); bot.push([x + 1.7 * u, H - 1.0 + 0.04 * u + wv, zz]); }
       ydFill(g, C, top.concat(bot.reverse()), KEY(dig), ink, LW() * 0.7); } }); post(x, zz, 0.12); });
     lamp(-9.4, -3.3); lamp(-2.6, -3.3);
-    c.push({ x: -12.9, z: -4.6, draw(g, C) { ydBox(g, C, { x0: -14.5, x1: -11.3, y0: 0, y1: 1.35, z0: -4.7, z1: -4.5 }, { front: '#efe9e0', side: '#ddd5ca', top: '#cfc6ba', back: '#d6cec3' });
-      sign('dkeat1', -14.5, 0.95, -4.72, 3.2, 'PLEASE DO NOT', 0.165)(g, C); sign('dkeat2', -14.5, 0.55, -4.72, 3.2, 'EAT THE RECTANGLES', 0.165)(g, C); } }); solid(-14.5, -11.3, -4.8, -4.4); }
+    c.push({ x: -12.9, z: -6.85, draw(g, C) { ydBox(g, C, { x0: -14.5, x1: -11.3, y0: 0, y1: 1.35, z0: -6.95, z1: -6.75 }, { front: '#efe9e0', side: '#ddd5ca', top: '#cfc6ba', back: '#d6cec3' });
+      sign('dkeat1', -14.5, 0.95, -6.97, 3.2, 'PLEASE DO NOT', 0.165)(g, C); sign('dkeat2', -14.5, 0.55, -6.97, 3.2, 'EAT THE RECTANGLES', 0.165)(g, C); } }); solid(-14.5, -11.3, -7.05, -6.65); }
 
   // ── 2 · THE GARDEN (GEO grows things): beds that are the quadtree's squares, four in the corners of the cross and
   //   one under the banners; the pool in front of GEO's square holds the dusk; hedges close the court's sides, open
@@ -48532,7 +48533,7 @@ function mmaPlanetDress() {
     const bed = (x0, z0, s, d, k) => { const split = d < 1 || (d < 3 && mmH2(Math.round(x0 * 5) + d, Math.round(z0 * 5)) < 0.62 + 0.1 * (z0 > -8)); if (split) { const h = s / 2; bed(x0, z0, h, d + 1, k + 1); bed(x0 + h, z0, h, d + 1, k + 2); bed(x0, z0 + h, h, d + 1, k + 3); bed(x0 + h, z0 + h, h, d + 1, k + 4); return; }
       const m = 0.12, on = mmH2(Math.round(x0 * 3), Math.round(z0 * 3) + 4) < 0.78;
       c.push({ x: x0 + s / 2, z: z0 + s / 2, dz: 400, draw(g, C) { ydFill(g, C, rect(x0 + m, z0 + m, x0 + s - m, z0 + s - m, 0.02), on ? '#86b47e' : '#b9c9a4', mmRGBA(ink, 0.55), LW() * 0.55); if (on && vis(C, x0 + s / 2, 0.2, z0 + s / 2, s)) dots(g, C, x0 + m * 2, z0 + m * 2, x0 + s - m * 2, z0 + s - m * 2, Math.round(9 * s * s), k * 13 + 1, [cols[k % cols.length], cols[(k + 2) % cols.length]]); } }); };
-    bed(-15.6, -14.4, 5.4, 0, 0); bed(-15.6, -6.6, 5.4, 0, 3); bed(-1.2, -7.2, 5.6, 0, 5); bed(10.2, -14.4, 5.4, 0, 2); bed(10.2, -6.6, 5.4, 0, 6);
+    [[-15.6, -14.4, 5.4, 0], [-15.8, -6.6, 5.4, 3], [0.4, -7.2, 5.6, 5], [10.2, -14.4, 5.4, 2], [10.4, -6.6, 5.4, 6]].forEach(([x0, z0, s, k]) => { beds.push({ x0, x1: x0 + s, z0, z1: z0 + s }); bed(x0, z0, s, 0, k); });
     c.push({ x: 2.5, z: -12.6, dz: 400, draw(g, C) { ydFill(g, C, rect(-0.6, -14.4, 5.6, -10.9, 0.02), '#8fa7c9', mmRGBA(ink, 0.7), LW() * 0.7); ydFill(g, C, rect(-0.2, -14.0, 5.2, -11.3, 0.03), '#6f6a9a', null); ydFill(g, C, rect(-0.2, -12.4, 5.2, -11.3, 0.032), '#c98f9a', null); ydFill(g, C, rect(0.3, -13.6, 2.2, -12.9, 0.035), 'rgba(255,240,230,0.3)', null); } });   // GEO's pool: the dusk in a square
     solid(-0.6, 5.6, -14.4, -10.9);
     hedge(-16.6, -14.6, -9.4); hedge(-16.6, -6.2, -1.4); hedge(16.6, -14.6, -9.4); hedge(16.6, -6.2, -1.4);
@@ -48540,15 +48541,15 @@ function mmaPlanetDress() {
       [20, -14, 'maple', 7, 2.8], [26.5, -8, 'cherry', 6, 2.5], [19, 1.5, 'cherry', 6.5, 2.6], [24, 9, 'mush', 6.5, 2.8], [15.5, 5, 'maple', 6.5, 2.6],
       [-14, -21, 'mush', 5.5, 2.4], [-11, -33, 'maple', 7.5, 3], [1, -20, 'cherry', 5.5, 2.3], [-1, -34, 'mush', 7, 3], [19.5, -22, 'maple', 6.5, 2.6], [-33, -22, 'cherry', 6.5, 2.6]]
       .forEach(([x, z, k, h, r], i) => tree(x, z, k, h, r, i * 7 + 3));
-    bench(-1.7, -12.6, 0); bench(7.6, -4.2, 0); }
+    bench(-1.7, -12.6, 0); bench(6.7, -12.6, 0); }
 
   // ── 3 · THE ART COMES OUTSIDE, a little (sculptures are the slow thing to draw: three, and two plinths still empty,
   //   for what is coming) ──
   {
-    sculpt('mowersville-stone', -11.0, -10.0, Math.PI, 0.55, 1.0);          // on the corner of the south-west bed, left of the way in
-    sculpt('red-blue-chair', 1.6, -4.4, Math.PI, 0.3, 1.1);                 // in the bed under the banners
-    sculpt('doorstop', 12.9, -3.9, Math.PI, 1.05, 0.7);                     // in the north-east bed
-    plinth(12.9, -11.7, 0.9, 1.0); plinth(-19.5, -20.5, 1.2, 0.8); }
+    sculpt('mowersville-stone', -9.3, -5.9, Math.PI, 0.55, 1.0);            // on the paving left of the steps
+    sculpt('red-blue-chair', -1.4, -4.6, Math.PI, 0.3, 1.1);                // on the paving right of the steps, by the first banner
+    sculpt('doorstop', -2.6, -10.0, Math.PI, 1.05, 0.7);                    // on the paving right of the way in
+    plinth(8.2, -10.4, 0.9, 1.0); plinth(-19.5, -20.5, 1.2, 0.8); }
 
   // ── 4 · THE NEIGHBOURHOOD (WFC comes to the door): the road you came in on, the road round to the village, lamps
   //   along both, the bus stop with no bus, a few houses round the edges (two of them still every house at once),
@@ -48574,7 +48575,7 @@ function mmaPlanetDress() {
     for (let i = 0; i < N; i++) { const a = (i + 0.5) / N * Math.PI * 2 + Math.PI / 2, x = cx + rr * Math.sin(a), z = cz + rr * Math.cos(a), h = 1.5 + 0.9 * mmH2(i, 77);   // (turned so the gap between two stones faces the way in from the court)
       c.push({ x, z, draw(g, C) { ydBox(g, C, { x0: x - 0.38, x1: x + 0.38, y0: 0, y1: h, z0: z - 0.22, z1: z + 0.22 }, { front: '#d9d1c4', side: '#c9c0b2', top: KEY(digs[i]), back: '#c9c0b2' });
         ydFill(g, C, [[x - 0.2, h - 0.5, z - 0.23], [x + 0.2, h - 0.5, z - 0.23], [x + 0.2, h - 0.1, z - 0.23], [x - 0.2, h - 0.1, z - 0.23]], KEY(digs[i]), ink, LW() * 0.5); } }); solid(x - 0.38, x + 0.38, z - 0.22, z + 0.22); } }
-  return (cache.planetDress = { cast: c, solids });
+  return (cache.planetDress = { cast: c, solids, beds });
 }
 function mmaMuseumPlanet(g, t, o) {
   o = o || {}; const PL = MMA_PLANET, B = PL.bld;
