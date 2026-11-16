@@ -44,3 +44,11 @@ Added 2026-10-20 (EP7–EP11 breakdowns, written from each episode's report and 
 | `public/images/show/ep-red-beard.jpg` | `.geo/youtube/thumbnails/MM-thumb-EP10-RED-BEARD.jpg` (swap for the YouTube thumbnail at release if a different one is used) |
 | `public/images/show/ep-the-big-one.jpg` | a frame at 8:38.1 of `.geo/episodes/ep11/film/EP11_THE-BIG-ONE_v2.mp4` (no thumbnail yet; swap for the YouTube thumbnail at release) |
 | `public/images/show/sheet-<id>.jpg` (the five above) | `.geo/youtube/_frames/sheet_{su,ja,td,rb,bo}.jpg` made by `_frames/grab5.sh` (40 frames, 8 × 5) from each finished master, resized to 1800 px |
+
+Added 2026-11-16 (EP11–EP15 episode cards and breakdowns, written from each episode's report, its audio lock and Mook's notes; copy approved by Mook 2026-11-16):
+
+| Website asset | Original source |
+|---|---|
+| `public/images/show/ep-the-big-one.jpg`, `ep-matchstick-house.jpg`, `ep-lights-out.jpg`, `ep-draft-night.jpg`, `ep-the-bowl.jpg` | the live YouTube thumbnails (`i.ytimg.com/vi/<id>/maxresdefault.jpg`), retrieved 2026-11-16 |
+| `public/images/show/sheet-the-big-one.jpg` | `.geo/youtube/_frames/sheet_bo.jpg`, resized to 1800 px |
+| `public/images/show/sheet-matchstick-house.jpg`, `sheet-lights-out.jpg`, `sheet-draft-night.jpg`, `sheet-the-bowl.jpg` | 40 frames (8 × 5) from each finished master, 1800 px wide |
