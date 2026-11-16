@@ -48386,8 +48386,17 @@ function mmaMuseumDoorView(g, C, P, R, d, o, t) {
   const inward = { n: [0, 0, -1], s: [0, 0, 1], e: [-1, 0, 0], w: [1, 0, 0] }[d.wall], mid = [(op[0][0] + op[2][0]) / 2, 1, (op[0][2] + op[2][2]) / 2];
   if (mmaDot(mmaV([C.x, C.y, C.z], mid), inward) <= 0) return;
   g.save(); if (!ydPoly(g, C, op)) { g.restore(); return; } g.clip();
-  if (d.to === 'outside') { const sky = g.createLinearGradient(0, 0, 0, 720); sky.addColorStop(0, P.sky0 || '#9fb0d8'); sky.addColorStop(0.6, P.sky1 || '#f3c8b8'); g.fillStyle = sky; g.fillRect(0, 0, 1280, 720);
-    const far = mmaAdd(mid, inward, -60), q = ydPt(C, far[0], 0, far[2]); g.fillStyle = mmMix('#8fae7c', P.sky1 || '#f3c8b8', 0.25); if (q) g.fillRect(0, q[1], 1280, 720 - q[1]); }
+  if (d.to === 'outside') {
+    // the way out shows the planet itself: the same dusk, the forecourt, the road you came in on (it used to be a
+    //   stand-in midday sky over a green field). Drawn on the door's canvas and stamped through the opening once.
+    const W = g.canvas.width, Hc = g.canvas.height, off = mmaDoorCanvas(W, Hc), x = off.getContext('2d');
+    //   Only the opening's own box of the frame is painted and stamped: a canvas pays for the area it fills.
+    const qs = op.map(p => ydPt(C, p[0], p[1], p[2])); let bx = 0, by = 0, bw = W, bh = Hc;
+    if (qs.every(Boolean)) { bx = Math.max(0, Math.floor(Math.min(...qs.map(q => q[0])) - 2)); by = Math.max(0, Math.floor(Math.min(...qs.map(q => q[1])) - 2));
+      bw = Math.min(W, Math.ceil(Math.max(...qs.map(q => q[0])) + 2)) - bx; bh = Math.min(Hc, Math.ceil(Math.max(...qs.map(q => q[1])) + 2)) - by; }
+    if (bw > 0 && bh > 0) { x.setTransform(1, 0, 0, 1, 0, 0); x.save(); x.beginPath(); x.rect(bx, by, bw, bh); x.clip();
+      mmaMuseumPlanet(x, t, { C: Object.assign({}, C), cast: [], tint: 0.2, box: [bx, by, bw, bh] });
+      x.restore(); g.drawImage(off, bx, by, bw, bh, bx, by, bw, bh); } }
   else { const N = mmaMuseumRoom(d.to);
     // the next room is drawn whole on a canvas of its own, then stamped through the opening once: a canvas pays for a
     //   clip path on every fill (the walk's frame went 29 → 6 ms on this)
@@ -48451,6 +48460,122 @@ function mmaPlanetVillage() {
   });
   return (cache.planetVillage = out);
 }
+// ── THE PLANET, DRESSED (2026-11-16, the mix Mook picked from the exterior sheet: the front whole, the garden's
+//   foliage, a few sculptures scattered in it, houses peppered round the edges, the road in, the bus stop with no
+//   bus, the Council's ring of 13 stones). Returns { cast (things that stand, for mmaMuseumPlanet's far-first sort),
+//   solids (what a walker cannot stand in: { x0, x1, z0, z1, thin } ; thin = a post or a trunk, the camera ignores it) }.
+//   The plan: the forecourt is cut by a cross, like everything GEO makes: the way in runs south to north to the doors,
+//   and a second way runs west to east through GEO's square, from the Council's ring to the road round to the village.
+//   Everything is drawn with the show's own painters; where one is missing (a film without that block) it is skipped.
+function mmaPlanetDress() {
+  const cache = window.__mmaCache; if (cache.planetDress) return cache.planetDress;
+  const ink = MM.ink, LW = () => (typeof YD_LW === 'function' ? YD_LW() : 2.2), KEY = (d) => MM_DIG[String(d)], has = (n) => typeof window[n] === 'function' || (function () { try { return typeof eval(n) === 'function'; } catch (e) { return false; } })();
+  const E = { Sun: { L: [-0.55, 0.75, -0.37], s: [0.45, 0.3] }, pal: 'film', sunScr: [-0.6, -0.6], H: [236, 222, 226], hz: (z) => mmClamp((z - 40) / 160, 0, 0.6) };
+  const c = [], solids = [];
+  const solid = (x0, x1, z0, z1, thin) => solids.push({ x0, x1, z0, z1, thin: !!thin }), post = (x, z, r) => solid(x - r, x + r, z - r, z + r, true);
+  // is a thing of half-width m metres at (x, z) in the frame at all? (the walk draws this every frame: what is behind you costs nothing)
+  const vis = (C, x, y, z, m) => { const q = ydPt(C, x, y, z); if (!q) return Math.hypot(x - C.x, z - C.z) < m * 2; const B = window.__mmaBox; return q[0] > (B ? B[0] : 0) - m * q[2] && q[0] < (B ? B[0] + B[2] : 1280) + m * q[2]; };
+  const lwK = (lo, k) => (k > 0 ? Math.min(12, Math.max(lo, k)) : lo);   // a line's width from the lens's scale, capped: a point beside the lens has a huge scale
+  const rect = (x0, z0, x1, z1, y) => [[x0, y, z0], [x1, y, z0], [x1, y, z1], [x0, y, z1]];
+  const flat = (x0, z0, x1, z1, col, a, y) => c.push({ x: (x0 + x1) / 2, z: (z0 + z1) / 2, dz: 500, draw(g, C) { ydFill(g, C, rect(x0, z0, x1, z1, y || 0.012), col, mmRGBA(ink, a === undefined ? 0.5 : a), LW() * 0.6); } });
+  const box = (x0, x1, y0, y1, z0, z1, col) => { c.push({ x: (x0 + x1) / 2, z: (z0 + z1) / 2, draw(g, C) { ydBox(g, C, { x0, x1, y0, y1, z0, z1 }, { front: col, side: mmMix(col, '#000000', 0.1), top: mmMix(col, '#ffffff', 0.12), back: mmMix(col, '#000000', 0.14) }); } }); solid(x0, x1, z0, z1); };
+  const tree = (x, z, kind, h, r, seed) => { if (!has(kind === 'mush' ? 't10Mush' : 't10Tree')) return; c.push({ x, z, draw(g, C, P) { if (!vis(C, x, 3, z, 4)) return; (kind === 'mush' ? t10Mush : t10Tree)(g, C, P, { x, z, y: 0, kind, h, r, seed: seed || 1 }, E); } }); post(x, z, 0.35); };
+  const lamp = (x, z) => { if (!has('e5Lamp')) return; c.push({ x, z, draw(g, C, P, t) { if (!vis(C, x, 2, z, 1.2)) return; e5Lamp(g, C, P, { x, z }, t); } }); post(x, z, 0.16); };
+  const hedge = (x, z0, z1) => { if (!has('s14Hedge')) return; c.push(s14Hedge(x, 0, (z0 + z1) / 2, { w: z1 - z0, d: 0.8, h: 0.9, dir: Math.PI / 2 })); solid(x - 0.4, x + 0.4, z0, z1); };
+  const bench = (x, z, ax) => { c.push({ x, z, draw(g, C) { const w = ax ? 1.0 : 0.26, d = ax ? 0.26 : 1.0, col = '#8a6a58';
+    for (const s of [-1, 1]) ydBox(g, C, ax ? { x0: x + s * 0.8 - 0.06, x1: x + s * 0.8 + 0.06, y0: 0, y1: 0.4, z0: z - 0.2, z1: z + 0.2 } : { x0: x - 0.2, x1: x + 0.2, y0: 0, y1: 0.4, z0: z + s * 0.8 - 0.06, z1: z + s * 0.8 + 0.06 }, { front: '#56606f', side: '#4a5360', top: '#6a7482', back: '#4a5360' });
+    ydBox(g, C, { x0: x - w, x1: x + w, y0: 0.4, y1: 0.48, z0: z - d, z1: z + d }, { front: col, side: mmMix(col, '#000000', 0.1), top: mmMix(col, '#ffffff', 0.15), back: col }); } }); solid(x - (ax ? 1 : 0.26), x + (ax ? 1 : 0.26), z - (ax ? 0.26 : 1), z + (ax ? 0.26 : 1)); };
+  const plinthOk = has('m8Draw') && has('mmaPlinthF');
+  const plinth = (x, z, w, h) => { if (!plinthOk) return; c.push({ x, z, draw(g, C) { m8Draw(g, C, mmaPlinthF(mmaXf({ stand: [x, z], y0: 0, rot: 0 }), w, w, h), { light: [-0.3, 0.8, 0.5], lw: LW() * 0.6 }); } }); solid(x - w / 2, x + w / 2, z - w / 2, z + w / 2); };
+  const sculpt = (id, x, z, rot, ph, pw) => { if (!plinthOk || typeof MMA_SCULPT === 'undefined') return; const pc = mmaPiece(id), S = pc && MMA_SCULPT[pc.sculpt]; if (!S) return;
+    c.push({ x, z, draw(g, C, P, t) { if (!ydPt(C, x, 1, z) || !vis(C, x, 1, z, 2)) return; m8Draw(g, C, mmaPlinthF(mmaXf({ stand: [x, z], y0: 0, rot: rot || 0 }), pw, pw, ph), { light: [-0.3, 0.8, 0.5], lw: LW() * 0.6 });
+      try { S(g, C, P, t, pc, { stand: [x, z], y0: ph, rot: rot || 0 }, pc.params || {}); } catch (e) {} } }); solid(x - pw / 2 - 0.1, x + pw / 2 + 0.1, z - pw / 2 - 0.1, z + pw / 2 + 0.1); };
+  // words on a plane that faces south (read from the forecourt); not drawn from behind, where they would read mirrored, nor from
+  //   edge-on
+  const sign = (key, x0, y, z, w, text, size, col) => (g, C) => { if (!(C.z < z && Math.abs(C.x - x0 - w / 2) < 4 * (z - C.z))) return; const mc = MMA.maxCells, cp = MMA.cellPx; MMA.maxCells = 8; MMA.cellPx = 40;   // (the walk's coarse texture mesh, one cell for a small sign, slides words off a board seen from the side: these few get a finer one)
+    mmaSign(g, C, [x0, y, z], [1, 0, 0], [0, 1, 0], w, key, (x) => { x.scale(1, -1); mmCaps(x, text, w / 2, 0, { size, w: size * 0.15, col: col || '#5a4030', jit: 0.04, seed: 7, align: 'c', track: 0.6 }); }); MMA.maxCells = mc; MMA.cellPx = cp; };
+  // a bed's flowers, drawn as four paths (stems, each of two colours, the ink rings), not a fill per flower: the walk
+  //   draws this every frame, and a canvas pays per fill
+  const dots = (g, C, x0, z0, x1, z1, n, seed, cols) => { const F = [];
+    for (let i = 0; i < n; i++) { const x = x0 + (x1 - x0) * mmH2(i, seed), z = z0 + (z1 - z0) * mmH2(i, seed + 9), q = ydPt(C, x, 0.22 + 0.2 * mmH2(i, seed + 5), z), b = ydPt(C, x, 0.02, z); if (!q || !b) continue; const r = Math.max(0.8, 0.07 * q[2]); if (r > 30) continue; F.push([q[0], q[1], r, b[0], b[1], q[2], Math.floor(mmH2(i, seed + 3) * cols.length)]); }
+    if (!F.length) return; const k = F.reduce((a, f) => a + f[5], 0) / F.length;
+    if (0.07 * k > 1.4) { g.strokeStyle = '#4f7a4a'; g.lineWidth = Math.max(0.6, 0.02 * k); g.beginPath(); for (const f of F) if (f[2] > 1.4) { g.moveTo(f[3], f[4]); g.lineTo(f[0], f[1]); } g.stroke(); }
+    cols.forEach((col, ci) => { g.fillStyle = col; g.beginPath(); for (const f of F) if (f[6] === ci) { g.moveTo(f[0] + f[2], f[1]); g.arc(f[0], f[1], f[2], 0, 7); } g.fill(); });
+    if (0.07 * k > 2.2) { g.lineWidth = Math.max(0.6, 0.07 * k * 0.22); g.strokeStyle = ink; g.beginPath(); for (const f of F) if (f[2] > 2.2) { g.moveTo(f[0] + f[2], f[1]); g.arc(f[0], f[1], f[2], 0, 7); } g.stroke(); } };
+
+  // ── 1 · THE FRONT (the building dresses itself): a banner for each gallery in its mask's colour, a canopy over the
+  //   doors, cheeks and planters beside the steps, lamps, flags down both sides, and the sign ──
+  { const z = -0.36;
+    [['1000', 8], ['0100', 4], ['0010', 2], ['0001', 1]].forEach(([mask, dig], i) => { const x0 = 0.5 + i * 2.6, w = 2.0;
+      c.push({ x: x0 + w / 2, z: z - 0.05, dz: -3, draw(g, C, P, t) { if (C.z > z || !ydPt(C, x0, 5.2, z) || !ydPt(C, x0 + w, 5.2, z)) return; const sw = 0.05 * Math.sin((t || 0) * 1.1 + i), col = dig === 8 ? '#f3efe6' : mmMix(KEY(dig), '#ffffff', 0.08), tx = dig === 8 ? '#3a3040' : '#fff8f0';
+        ydLine(g, C, [x0 - 0.15, 5.25, z], [x0 + w + 0.15, 5.25, z], lwK(1.5, 0.05 * ydK(C, x0, 5.2, z)), MMA_MUSEUM.brass);
+        ydFill(g, C, [[x0, 5.2, z], [x0 + w, 5.2, z], [x0 + w + sw, 1.1, z - 0.05], [x0 + w / 2 + sw, 0.75, z - 0.05], [x0 + sw, 1.1, z - 0.05]], col, ink, LW() * 0.8);
+        sign('dkb' + mask, x0, 4.35, z - 0.06, w, mask, 0.42, tx)(g, C); } }); });
+    c.push({ x: -6, z: -1.2, dz: -2, draw(g, C) { ydBox(g, C, { x0: -8.3, x1: -3.7, y0: 3.75, y1: 3.98, z0: -2.3, z1: -0.3 }, { front: '#e9e2d8', side: '#d8d0c4', top: '#f2ece2', back: '#d8d0c4' });
+      ydLine(g, C, [-8.3, 3.75, -2.3], [-3.7, 3.75, -2.3], lwK(1.5, 0.07 * ydK(C, -6, 3.7, -2.3)), MMA_MUSEUM.brass);
+      for (const px of [-8.1, -3.9]) ydLine(g, C, [px, 0.5, -2.15], [px, 3.75, -2.15], lwK(2, 0.09 * ydK(C, px, 2, -2.15)), '#56606f'); } });
+    for (const s of [-1, 1]) { const x = -6 + s * 3.0, px = x + s * 0.9; box(x - 0.3, x + 0.3, 0, 0.62, -2.4, -0.3, '#e3dbcf');
+      c.push({ x: px, z: -1.3, draw(g, C) { ydBox(g, C, { x0: px - 0.45, x1: px + 0.45, y0: 0, y1: 0.55, z0: -1.75, z1: -0.85 }, { front: '#c9bfb0', side: '#b9ae9e', top: '#8a6a58', back: '#b9ae9e' });
+        const q = ydPt(C, px, 1.15, -1.3); if (q) { mmDot(g, q[0], q[1], 0.62 * q[2], '#6fa06a'); g.lineWidth = Math.max(1, 0.03 * q[2]); g.strokeStyle = ink; g.beginPath(); g.arc(q[0], q[1], 0.62 * q[2], 0, 7); g.stroke(); } } }); solid(px - 0.45, px + 0.45, -1.75, -0.85); }
+    [[-15.4, -13.5, 1], [-15.4, -5.2, 4], [-15.4, -2.0, 2], [15.4, -13.5, 6], [15.4, -5.2, 7], [15.4, -2.0, 5]].forEach(([x, zz, dig], i) => { c.push({ x, z: zz, draw(g, C, P, t) { const H = 6.2;
+      ydLine(g, C, [x, 0, zz], [x, H, zz], lwK(1.5, 0.06 * ydK(C, x, 3, zz)), '#56606f');
+      const n = 6, top = [], bot = []; for (let k = 0; k <= n; k++) { const u = k / n, wv = 0.12 * u * Math.sin((t || 0) * 2.2 + u * 4 + i); top.push([x + 1.7 * u, H - 0.04 * u + wv, zz]); bot.push([x + 1.7 * u, H - 1.0 + 0.04 * u + wv, zz]); }
+      ydFill(g, C, top.concat(bot.reverse()), KEY(dig), ink, LW() * 0.7); } }); post(x, zz, 0.12); });
+    lamp(-9.4, -3.3); lamp(-2.6, -3.3);
+    c.push({ x: -12.9, z: -4.6, draw(g, C) { ydBox(g, C, { x0: -14.5, x1: -11.3, y0: 0, y1: 1.35, z0: -4.7, z1: -4.5 }, { front: '#efe9e0', side: '#ddd5ca', top: '#cfc6ba', back: '#d6cec3' });
+      sign('dkeat1', -14.5, 0.95, -4.72, 3.2, 'PLEASE DO NOT', 0.165)(g, C); sign('dkeat2', -14.5, 0.55, -4.72, 3.2, 'EAT THE RECTANGLES', 0.165)(g, C); } }); solid(-14.5, -11.3, -4.8, -4.4); }
+
+  // ── 2 · THE GARDEN (GEO grows things): beds that are the quadtree's squares, four in the corners of the cross and
+  //   one under the banners; the pool in front of GEO's square holds the dusk; hedges close the court's sides, open
+  //   where the cross goes through; Dwarf's cherry, maple and mushroom trees stand round the outside ──
+  { const cols = [KEY(1), KEY(6), KEY(7), KEY(8), KEY(0), KEY(5)];
+    const bed = (x0, z0, s, d, k) => { const split = d < 1 || (d < 3 && mmH2(Math.round(x0 * 5) + d, Math.round(z0 * 5)) < 0.62 + 0.1 * (z0 > -8)); if (split) { const h = s / 2; bed(x0, z0, h, d + 1, k + 1); bed(x0 + h, z0, h, d + 1, k + 2); bed(x0, z0 + h, h, d + 1, k + 3); bed(x0 + h, z0 + h, h, d + 1, k + 4); return; }
+      const m = 0.12, on = mmH2(Math.round(x0 * 3), Math.round(z0 * 3) + 4) < 0.78;
+      c.push({ x: x0 + s / 2, z: z0 + s / 2, dz: 400, draw(g, C) { ydFill(g, C, rect(x0 + m, z0 + m, x0 + s - m, z0 + s - m, 0.02), on ? '#86b47e' : '#b9c9a4', mmRGBA(ink, 0.55), LW() * 0.55); if (on && vis(C, x0 + s / 2, 0.2, z0 + s / 2, s)) dots(g, C, x0 + m * 2, z0 + m * 2, x0 + s - m * 2, z0 + s - m * 2, Math.round(9 * s * s), k * 13 + 1, [cols[k % cols.length], cols[(k + 2) % cols.length]]); } }); };
+    bed(-15.6, -14.4, 5.4, 0, 0); bed(-15.6, -6.6, 5.4, 0, 3); bed(-1.2, -7.2, 5.6, 0, 5); bed(10.2, -14.4, 5.4, 0, 2); bed(10.2, -6.6, 5.4, 0, 6);
+    c.push({ x: 2.5, z: -12.6, dz: 400, draw(g, C) { ydFill(g, C, rect(-0.6, -14.4, 5.6, -10.9, 0.02), '#8fa7c9', mmRGBA(ink, 0.7), LW() * 0.7); ydFill(g, C, rect(-0.2, -14.0, 5.2, -11.3, 0.03), '#6f6a9a', null); ydFill(g, C, rect(-0.2, -12.4, 5.2, -11.3, 0.032), '#c98f9a', null); ydFill(g, C, rect(0.3, -13.6, 2.2, -12.9, 0.035), 'rgba(255,240,230,0.3)', null); } });   // GEO's pool: the dusk in a square
+    solid(-0.6, 5.6, -14.4, -10.9);
+    hedge(-16.6, -14.6, -9.4); hedge(-16.6, -6.2, -1.4); hedge(16.6, -14.6, -9.4); hedge(16.6, -6.2, -1.4);
+    [[-21, -16, 'cherry', 6.5, 2.6], [-29.5, -12, 'maple', 7.5, 2.9], [-29, -2, 'mush', 6, 2.6], [-19.5, 1, 'maple', 7, 2.7], [-22, 7, 'mush', 6.5, 2.8], [-15.5, 5, 'cherry', 6, 2.4],
+      [20, -14, 'maple', 7, 2.8], [26.5, -8, 'cherry', 6, 2.5], [19, 1.5, 'cherry', 6.5, 2.6], [24, 9, 'mush', 6.5, 2.8], [15.5, 5, 'maple', 6.5, 2.6],
+      [-14, -21, 'mush', 5.5, 2.4], [-11, -33, 'maple', 7.5, 3], [1, -20, 'cherry', 5.5, 2.3], [-1, -34, 'mush', 7, 3], [19.5, -22, 'maple', 6.5, 2.6], [-33, -22, 'cherry', 6.5, 2.6]]
+      .forEach(([x, z, k, h, r], i) => tree(x, z, k, h, r, i * 7 + 3));
+    bench(-1.7, -12.6, 0); bench(7.6, -4.2, 0); }
+
+  // ── 3 · THE ART COMES OUTSIDE, a little (sculptures are the slow thing to draw: three, and two plinths still empty,
+  //   for what is coming) ──
+  {
+    sculpt('mowersville-stone', -11.0, -10.0, Math.PI, 0.55, 1.0);          // on the corner of the south-west bed, left of the way in
+    sculpt('red-blue-chair', 1.6, -4.4, Math.PI, 0.3, 1.1);                 // in the bed under the banners
+    sculpt('doorstop', 12.9, -3.9, Math.PI, 1.05, 0.7);                     // in the north-east bed
+    plinth(12.9, -11.7, 0.9, 1.0); plinth(-19.5, -20.5, 1.2, 0.8); }
+
+  // ── 4 · THE NEIGHBOURHOOD (WFC comes to the door): the road you came in on, the road round to the village, lamps
+  //   along both, the bus stop with no bus, a few houses round the edges (two of them still every house at once),
+  //   and the Council's ring: 13 stones, one each, at the west end of the cross ──
+  { const road = '#bdb3a4';
+    flat(-8, -64, -4, -15, road, 0.4);
+    const R = [[16, -7.8], [22, -6], [28, 0], [32, 8], [35, 16], [38, 24]];
+    for (let i = 0; i < R.length - 1; i++) { const [ax, az] = R[i], [bx, bz] = R[i + 1], dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz), nx = -dz / L * 1.6, nz = dx / L * 1.6;
+      c.push({ x: (ax + bx) / 2, z: (az + bz) / 2, dz: 500, draw(g, C) { ydFill(g, C, [[ax + nx, 0.012, az + nz], [bx + nx, 0.012, bz + nz], [bx - nx, 0.012, bz - nz], [ax - nx, 0.012, az - nz]], road, mmRGBA(ink, 0.3), LW() * 0.5); } });
+      lamp((ax + bx) / 2 + nx * 1.5, (az + bz) / 2 + nz * 1.5); }
+    for (let zz = -20; zz > -62; zz -= 10) lamp(zz % 20 ? -9 : -3, zz);
+    if (has('mmTownHouse') && has('wfcBil')) { const V = mmaPlanetVillage(), sol = V.filter(v => !v.ghost), gh = V.filter(v => v.ghost);
+      [[-23, -30, 0], [11, -31, 1], [-21, -51, 1], [9, -52, 0], [33, -18, 0], [-31, 11, 0]].forEach(([tx, tz, ghost], i) => { const v = ghost && gh.length ? gh[i % gh.length] : sol[i % Math.max(1, sol.length)]; if (!v) return;
+        const c0 = wfcBil(v.lot.quad, 0.5, 0.5), sh = (l) => Object.assign({}, l, { quad: l.quad.map(([x, z]) => [x - c0[0] + tx, z - c0[1] + tz]) }), lot = sh(v.lot), vars = (v.variants || [v.lot]).map(sh);
+        c.push({ x: tx, z: tz, draw(g, C, P) { if (!vis(C, tx, 2, tz, 11)) return; ydFill(g, C, lot.quad.map(([x, z]) => [x, 0.02, z]), ghost ? mmRGBA('#c9d8f0', 0.45) : '#a9d39a', mmRGBA(ink, 0.35), 0.8);
+          try { if (!ghost) mmTownHouse(g, C, P, lot, E); else { g.save(); g.globalAlpha = 0.32; for (const w of vars) mmTownHouse(g, C, P, w, E); g.restore(); } } catch (e) {} } });
+        if (!ghost) { const xs = lot.quad.map(p => p[0]), zs = lot.quad.map(p => p[1]); solid(Math.min(...xs) + 2.5, Math.max(...xs) - 2.5, Math.min(...zs) + 3, Math.max(...zs) - 3); } }); }
+    c.push({ x: -10.5, z: -16.2, draw(g, C) { ydLine(g, C, [-10.5, 0, -16.2], [-10.5, 2.6, -16.2], lwK(1.5, 0.06 * ydK(C, -10.5, 1.3, -16.2)), '#56606f');
+      ydFill(g, C, [[-11.05, 2.0, -16.22], [-9.95, 2.0, -16.22], [-9.95, 2.7, -16.22], [-11.05, 2.7, -16.22]], KEY(2), ink, LW() * 0.7); sign('dkbus', -11.05, 2.24, -16.24, 1.1, 'BUS', 0.3, '#fff8f0')(g, C); } }); post(-10.5, -16.2, 0.12);
+    bench(-12.6, -16.4, 1);
+    const N = 13, cx = -22, cz = -7.8, rr = 4.6, digs = [1, 2, 4, 5, 6, 7, 8, 0, 9, 1, 2, 4, 6];
+    flat(-19, -8.6, -17, -7.0, '#d9d1c4', 0.4); flat(cx - 1.2, cz - 1.2, cx + 1.2, cz + 1.2, '#d9d1c4', 0.5);
+    for (let i = 0; i < N; i++) { const a = (i + 0.5) / N * Math.PI * 2 + Math.PI / 2, x = cx + rr * Math.sin(a), z = cz + rr * Math.cos(a), h = 1.5 + 0.9 * mmH2(i, 77);   // (turned so the gap between two stones faces the way in from the court)
+      c.push({ x, z, draw(g, C) { ydBox(g, C, { x0: x - 0.38, x1: x + 0.38, y0: 0, y1: h, z0: z - 0.22, z1: z + 0.22 }, { front: '#d9d1c4', side: '#c9c0b2', top: KEY(digs[i]), back: '#c9c0b2' });
+        ydFill(g, C, [[x - 0.2, h - 0.5, z - 0.23], [x + 0.2, h - 0.5, z - 0.23], [x + 0.2, h - 0.1, z - 0.23], [x - 0.2, h - 0.1, z - 0.23]], KEY(digs[i]), ink, LW() * 0.5); } }); solid(x - 0.38, x + 0.38, z - 0.22, z + 0.22); } }
+  return (cache.planetDress = { cast: c, solids });
+}
 function mmaMuseumPlanet(g, t, o) {
   o = o || {}; const PL = MMA_PLANET, B = PL.bld;
   const P = Object.assign({}, ydPal(Object.assign({ tod: 'dusk' }, o)), { __warm: 0 });
@@ -48460,18 +48585,21 @@ function mmaMuseumPlanet(g, t, o) {
   g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
   const sky = g.createLinearGradient(0, 0, 0, 720); sky.addColorStop(0, mmMix(P.sky0 || '#3a3a78', '#1a1a3a', 0.35)); sky.addColorStop(0.7, P.sky1 || '#e8a8a0'); g.fillStyle = sky; g.fillRect(0, 0, 1280, 720);
   for (let i = 0; i < 90; i++) { const sx = mmH2(i, 1) * 1280, sy = mmH2(i, 2) * 320, a = 0.25 + 0.6 * mmH2(i, 3) * (1 - sy / 360); g.fillStyle = 'rgba(255,250,240,' + a.toFixed(2) + ')'; g.fillRect(sx, sy, 1.6, 1.6); }
+  window.__mmaBox = o.box || null;
   // GEO's land: the fields, far first
   const F = mmaPlanetFields().map(f => Object.assign({ dd: Math.hypot(f.x0 + f.s / 2 - C.x, f.z0 + f.s / 2 - C.z) }, f)).sort((a, b) => b.dd - a.dd);
   let n = 0;
   for (const f of F) { const k = f.s > 40 ? 6 : f.s > 10 ? 3 : 1, P4 = [];                 // big fields get extra points on their edges so the ground bends
     for (let i = 0; i < k; i++) P4.push([f.x0 + f.s * i / k, 0, f.z0]); for (let i = 0; i < k; i++) P4.push([f.x0 + f.s, 0, f.z0 + f.s * i / k]);
     for (let i = 0; i < k; i++) P4.push([f.x0 + f.s - f.s * i / k, 0, f.z0 + f.s]); for (let i = 0; i < k; i++) P4.push([f.x0, 0, f.z0 + f.s - f.s * i / k]);
+    if (o.box && f.s < 40) { const q = ydPt(C, f.x0 + f.s / 2, 0, f.z0 + f.s / 2); if (q && (q[0] + f.s * q[2] < o.box[0] || q[0] - f.s * q[2] > o.box[0] + o.box[2])) continue; }   // (o.box: only that box of the frame will be seen)
     ydFill(g, C, P4, mmMix(mmMix(f.col, '#9fb88a', 0.55), P.sky1 || '#e8a8a0', 0.12), mmRGBA(ink, f.dd < 90 ? 0.45 : 0.18), f.dd < 90 ? 1 : 0.6); if (++n % 300 === 0) mmaWarm(); }
   // the forecourt: a paved square in front of the doors, the path to them
   ydFill(g, C, [[-16, 0.01, -15], [16, 0.01, -15], [16, 0.01, -0.3], [-16, 0.01, -0.3]], '#d9d1c4', mmRGBA(ink, 0.5), l * 0.6);
   // the things that stand: the Museum, GEO's square, the village, the cast; far first
   const items = [];
-  items.push({ x: 0, z: 16, draw() {
+  const inside = C.x > B.x0 && C.x < B.x1 && C.z > B.z0 && C.z < B.z1;                 // the lens is in a gallery, looking out of the front door
+  if (!inside) items.push({ x: 0, z: 16, draw() {
     const bx = { x0: B.x0, x1: B.x1, y0: 0, y1: B.h, z0: B.z0, z1: B.z1 };
     ydBox(g, C, bx, { front: '#efe9e0', side: '#ddd5ca', top: '#cfc6ba', back: '#d6cec3' });
     // the roof's glass: the quadtree's cut lines (a cross), and each quadrant's skylights
@@ -48480,7 +48608,7 @@ function mmaMuseumPlanet(g, t, o) {
       for (const [qx, qz] of [[-6, 6], [6, 6], [6, 18], [-6, 18]]) for (const [sx, sz] of [[-3, -3], [3, -3], [3, 3], [-3, 3]]) { const x = qx + sx, z = qz + sz;
         ydFill(g, C, [[x - 1.6, B.h + 0.03, z - 1.6], [x + 1.6, B.h + 0.03, z - 1.6], [x + 1.6, B.h + 0.03, z + 1.6], [x - 1.6, B.h + 0.03, z + 1.6]], '#fbe9d0', mmRGBA(ink, 0.4), l * 0.5); } }
     // the cornice, the doors (0001's, on the south), the name over them
-    if (C.z < B.z0) { ydLine(g, C, [B.x0, B.h - 0.5, B.z0 - 0.01], [B.x1, B.h - 0.5, B.z0 - 0.01], Math.max(1.5, 0.12 * ydK(C, 0, B.h, B.z0)), MMA_MUSEUM.brass);
+    if (C.z < B.z0) { ydLine(g, C, [B.x0, B.h - 0.5, B.z0 - 0.01], [B.x1, B.h - 0.5, B.z0 - 0.01], Math.min(12, Math.max(1.5, 0.12 * ydK(C, 0, B.h, B.z0))), MMA_MUSEUM.brass);   // (capped: a point beside the lens has a huge scale, and the line became a disc)
       for (const px of [B.x0 + 0.3, -0.35, B.x1 - 0.3]) ydFill(g, C, [[px - 0.35, 0, B.z0 - 0.05], [px + 0.35, 0, B.z0 - 0.05], [px + 0.35, B.h - 0.5, B.z0 - 0.05], [px - 0.35, B.h - 0.5, B.z0 - 0.05]], '#e6dfd5', mmRGBA(ink, 0.7), l * 0.7);   // pilasters on the quadtree's lines
       ydFill(g, C, [[-7.5, 0, B.z0 - 0.02], [-4.5, 0, B.z0 - 0.02], [-4.5, 3.6, B.z0 - 0.02], [-7.5, 3.6, B.z0 - 0.02]], '#3a3040', ink, l);
       if (typeof c6Glow === 'function') c6Glow(g, C, -6, 1.5, B.z0 - 0.1, 2.6, '#ffe2c8', 0.45);
@@ -48505,8 +48633,10 @@ function mmaMuseumPlanet(g, t, o) {
     ydFill(g, C, v.lot.quad.map(([x, z]) => [x, 0.02, z]), v.ghost ? mmRGBA('#c9d8f0', 0.45) : '#a9d39a', mmRGBA(ink, 0.35), 0.8);
     try { if (!v.ghost) mmTownHouse(g, C, P, v.lot, E); else { g.save(); g.globalAlpha = 0.32; for (const w of v.variants) mmTownHouse(g, C, P, w, E); g.restore(); } } catch (e) {}
   } }); }
+  if (o.dress !== false) for (const c of mmaPlanetDress().cast) items.push(c);        // the dressing (2026-11-16); o.dress false: the bare planet
   for (const c of (o.cast || [])) items.push(c);
   items.map(c => ({ d: ydDepth(C, c.x, c.z) + (c.dz || 0), f: () => c.draw(g, C, P, t) })).sort((a, b) => b.d - a.d).forEach(s => s.f());
+  window.__mmaBox = null;
   mmTint(g, P, o.tint === undefined ? 0.35 : o.tint);
   if (o.after) o.after(g, C, P, t);
   g.restore(); return C;
@@ -48538,8 +48668,9 @@ const MW = (() => {
   // ── where things are ──
   const roomAt = (x, z) => { for (const id of M.order) { const R = M.rooms[id]; if (x >= R.x0 && x <= R.x1 && z >= R.z0 && z <= R.z1) return id; } return 'out'; };
   const doorGap = (R, wall, u, sh) => R.doors.some(d => d.wall === wall && u > d.a + sh && u < d.b - sh);
-  // may a body of half-width `sh` stand at (x, z)? (walls, with the doors as gaps; the building and GEO's plinth outside)
-  function free(x, z, sh) {
+  // may a body of half-width `sh` stand at (x, z)? (walls, with the doors as gaps; the building, GEO's plinth and the
+  //   planet's dressing outside)
+  function free(x, z, sh, cam) {
     const cur = roomAt(x, z);
     if (cur !== 'out') { const R = M.rooms[cur];
       if (x < R.x0 + sh && !(doorGap(R, 'w', z, sh) && z > R.z0 + sh && z < R.z1 - sh)) return false;
@@ -48549,6 +48680,7 @@ const MW = (() => {
       return true; }
     if (x > B.x0 - sh && x < B.x1 + sh && z > B.z0 - sh && z < B.z1 + sh) { if (!(x > -7.5 + sh && x < -4.5 - sh && z > B.z0 - sh)) return false; }
     if (Math.abs(x - MON[0]) < 1.4 + sh && Math.abs(z - MON[1]) < 0.4 + sh) return false;
+    for (const s of mmaPlanetDress().solids) if (!(cam && s.thin) && x > s.x0 - sh && x < s.x1 + sh && z > s.z0 - sh && z < s.z1 + sh) return false;   // the dressing: plinths, hedges, the pool, benches, trunks, posts (the camera passes posts and trunks)
     if (Math.hypot(x, z - 12) > 70) return false;
     return true;
   }
@@ -48591,7 +48723,7 @@ const MW = (() => {
     const dir = [Math.sin(C.yaw) * Math.cos(C.pitch), Math.sin(C.pitch), -Math.cos(C.yaw) * Math.cos(C.pitch)], piv = [S.x, 1.15, S.z];
     if (S.fp) { C.D = 0; C.x = S.x; C.z = S.z; C.y = EYE; S.room = roomAt(S.x, S.z); }
     else { let hit = CAMD;
-      for (let d = 0.5; d <= CAMD; d += 0.12) { const px = piv[0] - dir[0] * d, py = piv[1] - dir[1] * d, pz = piv[2] - dir[2] * d; if (!free(px, pz, 0.36) || py < 0.25 || py > M.H - 0.25) { hit = d - 0.12; break; } }
+      for (let d = 0.5; d <= CAMD; d += 0.12) { const px = piv[0] - dir[0] * d, py = piv[1] - dir[1] * d, pz = piv[2] - dir[2] * d; if (!free(px, pz, 0.36, true) || py < 0.25 || py > M.H - 0.25) { hit = d - 0.12; break; } }
       const D = Math.min(CAMD, hit); C.D = D < C.D ? D : lerp(C.D, D, Math.min(1, dt * 3));
       C.x = piv[0] - dir[0] * C.D; C.y = piv[1] - dir[1] * C.D; C.z = piv[2] - dir[2] * C.D;
       S.room = roomAt(C.x, C.z); if (S.room === 'out' && C.z > B.z0 - 0.4 && C.x > -7.5 && C.x < -4.5) S.room = '0001'; }   // (the front door's own depth counts as the room)
@@ -48601,6 +48733,9 @@ const MW = (() => {
   function mushStep(T, dt) {
     const U = S.mush, dM = Math.hypot(S.x - U.x, S.z - U.z), age = T - U.t0, go = (m, extra) => { U.mode = m; U.t0 = T; Object.assign(U, extra || {}); };
     const uRoom = roomAt(U.x, U.z), items = uRoom !== 'out' ? mmaItems('museum.' + uRoom, {}) : [];
+    // Mook's trail, a crumb every half metre: when Mush is stopped by something on his way to Mook's side (a plinth, a
+    //   hedge's end, a door's jamb) he walks the way Mook walked instead, until he is beside him again
+    const tr = S.trail || (S.trail = []), tl = tr[tr.length - 1]; if (!tl || Math.hypot(S.x - tl[0], S.z - tl[1]) > 0.5) { tr.push([S.x, S.z]); if (tr.length > 80) tr.shift(); }
     if (U.mode !== 'sleep' && U.mode !== 'follow' && dM > 7) go('follow');
     if (U.mode === 'follow') { if (dM < 2.4 && S.v === 0 && age > 1.2) go('idle'); }
     else if (U.mode === 'idle') { if (dM > 4.5) go('follow');
@@ -48616,9 +48751,12 @@ const MW = (() => {
     // where he's going
     let want = 0, hWant;
     if (U.mode === 'follow') { const f = fwd(S.h), tx = S.x - f[0] * 1.3 + f[1] * 0.9, tz = S.z - f[1] * 1.3 - f[0] * 0.9, d = Math.hypot(tx - U.x, tz - U.z);
-      if (d > 0.5) { hWant = Math.atan2(tx - U.x, -(tz - U.z)); want = d > 3 ? Math.min(2.6, S.v + 1.2) : 1.2; } }
+      let gx = tx, gz = tz;
+      if (U.trail) { if (dM < 2.2) U.trail = 0; else { let n = 0, bd = 1e9; tr.forEach((p, i) => { const dd = Math.hypot(p[0] - U.x, p[1] - U.z); if (dd < bd) { bd = dd; n = i; } }); const p = tr[Math.min(tr.length - 1, n + 2)]; gx = p[0]; gz = p[1]; } }
+      if (d > 0.5) { hWant = Math.atan2(gx - U.x, -(gz - U.z)); want = d > 3 ? Math.min(2.6, S.v + 1.2) : 1.2; } }
     else if (U.mode === 'wander') { const d = Math.hypot(U.goal[0] - U.x, U.goal[1] - U.z); if (d > 0.3) { hWant = Math.atan2(U.goal[0] - U.x, -(U.goal[1] - U.z)); want = 1.1; } }
-    const moving = drive(U, want, hWant, dt, 7);
+    const ux = U.x, uz = U.z, moving = drive(U, want, hWant, dt, 7);
+    if (U.mode === 'follow' && want > 0.5) { U.stuck = Math.hypot(U.x - ux, U.z - uz) < want * dt * 0.35 ? (U.stuck || 0) + dt : 0; if (U.stuck > 0.35) { U.trail = 1; U.stuck = 0; } } else U.stuck = 0;
     if (!moving && U.mode === 'look' && U.piece) { const d = wrap(Math.atan2(U.piece.x - U.x, -(U.piece.z - U.z)) - U.h); U.h += clamp(d, -4 * dt, 4 * dt); }
     U.lookAt = U.mode === 'look' && U.piece ? [U.piece.x, 1.6, U.piece.z] : ((U.mode === 'follow' || U.mode === 'idle') && dM < 5 ? [S.x, 1.0, S.z] : null);
     record(U, T, dt, moving);
