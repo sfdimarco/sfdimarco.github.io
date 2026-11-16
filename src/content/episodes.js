@@ -1,6 +1,7 @@
 // Newest upload first. Verified against YouTube on 2026-11-16.
 // Use the YouTube upload title/date; production episode numbers may differ.
 export const episodes = [
+  { id: "get-ready-with-me", title: "Get Ready With Me", videoId: "TXBdDmkvKaw", publishedAt: "2026-11-17", description: "It’s Strut Day, opening night at the Playhouse, Mowersville’s first theatre, and the whole town is getting ready for the fashion show. Finley, Puff and Leo are styling TV Gurl. Rose is helping the boys, badly." },
   { id: "the-bowl", title: "The Bowl", videoId: "ibtiBrn1qFM", publishedAt: "2026-11-13", description: "Overnight, the lake left. The only lake on Dwarf is now a huge dry bowl with a warm, humming hatch at the bottom, and Tortimer says nobody goes down there. Finley drops in anyway, and the whole town follows." },
   { id: "draft-night", title: "Draft Night", videoId: "Ua-E4a9w9eI", publishedAt: "2026-11-10", description: "Draft night at Tortimer’s Card Bazaar: three booster packs each, build a deck from only what you pull, no trades. Mook pulls junk. Dale has never drafted before, says sorry before every move, and plays like a shark." },
   { id: "lights-out", title: "Lights Out", videoId: "IJMqT9mvvkk", publishedAt: "2026-11-06", description: "Tortimer is away for the night, and Mook is in charge of the orphans. Bedtime goes badly, Dale tells a ghost story about the Lantern Man, and then every light in the Cloister goes out." },

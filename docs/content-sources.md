@@ -52,3 +52,5 @@ Added 2026-11-16 (EP11–EP15 episode cards and breakdowns, written from each ep
 | `public/images/show/ep-the-big-one.jpg`, `ep-matchstick-house.jpg`, `ep-lights-out.jpg`, `ep-draft-night.jpg`, `ep-the-bowl.jpg` | the live YouTube thumbnails (`i.ytimg.com/vi/<id>/maxresdefault.jpg`), retrieved 2026-11-16 |
 | `public/images/show/sheet-the-big-one.jpg` | `.geo/youtube/_frames/sheet_bo.jpg`, resized to 1800 px |
 | `public/images/show/sheet-matchstick-house.jpg`, `sheet-lights-out.jpg`, `sheet-draft-night.jpg`, `sheet-the-bowl.jpg` | 40 frames (8 × 5) from each finished master, 1800 px wide |
+| `public/images/show/ep-get-ready-with-me.jpg` | `.geo/youtube/thumbnails/EP16-A.jpg` (the thumbnail uploaded with the episode) |
+| `public/images/show/sheet-get-ready-with-me.jpg` | 40 frames (8 × 5) from the finished 1080p master, 1800 px wide |

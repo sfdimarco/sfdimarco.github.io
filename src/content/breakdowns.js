@@ -7,6 +7,27 @@
 
 export const breakdowns = [
   {
+    slug: "get-ready-with-me", title: "Get Ready With Me: the first episode made in the new engine", publishedAt: "2026-11-17", category: "Episode breakdown", episodeId: "get-ready-with-me",
+    summary: "A fashion show at the Playhouse, and the first full test ride of the show’s own runtime, with rebuilt characters, new face kits and outfits that stay on model.",
+    image: "/images/show/ep-get-ready-with-me.jpg", imageAlt: "Get Ready With Me: Finley",
+    body: [
+      "Mook’s idea: Finley and Puff give TV Gurl a makeover, and the whole town enters a fashion show. His tone note: a girl power episode, “girly but like Kathleen Hanna kinda girly.” His production call: “we start ep 16 using gstack and new updated character designs and workflow and everything, give it a real test ride in a new episode.”",
+      { h: "A new engine" },
+      "Episodes 3 to 15 were animated and exported in GeoV Studio. This one runs on the geo runtime, with the cast rebuilt in it. The audio law did not change: voices, then the dialogue timeline, then the score, then the lock, then picture.",
+      { h: "Faces and outfits" },
+      "A new face kit: 16 keys and a face sheet for each of 24 characters. The episode doubles as a test of dressing one character many ways while keeping them on model. Puff gets a new studded bow.",
+      { h: "Feet in the ground" },
+      "Mook: “TV Gurl’s feet are in the ground.” Her rig was right. The fault was in compositing: each figure was drawn as one flat cel, so a foot away from the lens landed a few pixels low and the floor won. The fix went into the comp, for every character.",
+      { h: "What TV Gurl sees" },
+      "Her point-of-view frames are drawn the way her eyes read them, at 16 by 16.",
+      { h: "Still being worked on" },
+      "Finley’s sleeves and skirt don’t follow her arms and hips, which Mook said reads like “a weird fashion choice.” Cloth that follows through starts in the next episode, with a fabric check in every pass.",
+      { h: "As made" },
+      "8 minutes 46 seconds, 14 scenes, 84 lines of dialogue and 12,632 frames at 24 a second, finished at 1080p. Mook: “this episode is our best yet, humor is coming through and the clipping issues are much better.” And on Puff walking the runway uninvited: “my favorite bit yet.”",
+      { img: "/images/show/sheet-get-ready-with-me.jpg", alt: "Forty frames from across the episode" },
+    ]
+  },
+  {
     slug: "the-bowl", title: "The Bowl: a drained lake, skating with weight, and three masters", publishedAt: "2026-11-13", category: "Episode breakdown", episodeId: "the-bowl",
     summary: "The lake becomes a skate bowl, the skating is rebuilt from real reference, and the episode is mastered three times: the cut, the clean-up, the look.",
     image: "/images/show/ep-the-bowl.jpg", imageAlt: "The Bowl: Mook",
