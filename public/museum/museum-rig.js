@@ -42254,6 +42254,104 @@ const MMA_DATA = {
    "pieces": [
     "tv-gurl-pearl"
    ]
+  },
+  {
+   "id": "de-kooler",
+   "name": "Willem de Kooler",
+   "after": "Willem de Kooning (1904–1997)",
+   "status": "✅ approved (Mook, 2026-10-21: \"named approved\"); 🎬 wave 4: the card itself is Claude's",
+   "side_a": "The slashing brush of the New York painters: his Woman series began in 1950, and Woman I (1950 to 1952, now at the Museum of Modern Art in New York) was started over several times before he let it stand.",
+   "side_b": "A scandal: when Woman I was first shown, critics objected that the figure defamed all womankind by its \"monstrosity\".",
+   "third": "A picnic cooler. He cannot leave the lid shut: every time he opens it to check, the pink lemonade has to be started over.",
+   "in_world": "The cooler at the back of every cookout in Mowersville. Nobody remembers bringing it. It sweats.",
+   "is_open": "who keeps refilling him: open",
+   "pieces": [
+    "started-over-pink"
+   ]
+  },
+  {
+   "id": "grassner",
+   "name": "Lee Grassner",
+   "after": "Lee Krasner (1908–1984)",
+   "status": "✅ approved (Mook, 2026-10-21: \"named approved\"); 🎬 wave 4: the card itself is Claude's",
+   "side_a": "The Little Image series, 1946 to 1949: about forty small paintings of three kinds (mosaic, webbed, hieroglyph), made in a small upstairs bedroom studio at The Springs.",
+   "side_b": "\"Mrs. Jackson Pollock\": a 1949 ARTnews review of the show Artists: Man and Wife said some wives \"tidy up\" their husbands' styles, and named her that way.",
+   "third": "The lawn. Everyone looks at the sprinkler; the lawn is the thing that's actually growing.",
+   "in_world": "Every lawn in town, one small blade at a time. Jack Sprinklock waters her and gets the credit.",
+   "is_open": "what the signs say: open",
+   "pieces": [
+    "little-lawn"
+   ]
+  },
+  {
+   "id": "mattress",
+   "name": "Henri Mattress",
+   "after": "Henri Matisse (1869–1954)",
+   "status": "✅ approved (Mook, 2026-10-21: \"named approved\"); 🎬 wave 4: the card itself is Claude's",
+   "side_a": "The master of colour. After surgery in 1941 left him bedridden he turned to cut paper: sheets painted in gouache by his assistants, cut with shears and pinned in place. The Snail (1953) is nearly three metres square.",
+   "side_b": "A wild beast: of the 1905 exhibition a critic, Camille Mauclair, wrote \"A pot of paint has been flung in the face of the public.\"",
+   "third": "A mattress. He hasn't got up since 1941 and has never been more productive; everything is done from bed with a pair of shears.",
+   "in_world": "The most comfortable mattress on Dwarf. Things left on him come back cut into shapes.",
+   "is_open": "who pins the pieces up for him: open",
+   "pieces": [
+    "shelby-chromatic"
+   ]
+  },
+  {
+   "id": "dial",
+   "name": "Salvador Dial",
+   "after": "Salvador Dalí (1904–1989)",
+   "status": "✅ approved (Mook, 2026-10-21: \"named approved\"); 🎬 wave 4: the card itself is Claude's",
+   "side_a": "The Persistence of Memory (1931): 24 by 33 centimetres, at the Museum of Modern Art in New York since 1934, the gift of an anonymous donor. People saw Einstein in its soft watches; he said it was a Camembert melting in the sun.",
+   "side_b": "\"Avida Dollars\": in 1949 André Breton made the anagram of his name, to mock his appetite for fame and money.",
+   "third": "A sundial that went soft in the sun. He insists it was the cheese.",
+   "in_world": "The sundial on Dwarf's lawns. Time is slow there, and he is why nobody can prove it.",
+   "is_open": "what hour it is on Dwarf: open",
+   "pieces": [
+    "slow-time"
+   ]
+  },
+  {
+   "id": "mirover",
+   "name": "Joan Mirover",
+   "after": "Joan Miró (1893–1983)",
+   "status": "✅ approved (Mook, 2026-10-21: \"named approved\"); 🎬 wave 4: the card itself is Claude's",
+   "side_a": "The Constellations: 23 small works in gouache and oil wash on paper, about 38 by 46 centimetres each, begun at Varengeville-sur-Mer in January 1940 and finished in September 1941. A critic, William Rubin, called them \"a labyrinth of tiny flat shapes linked by tenuous webs of lines.\"",
+   "side_b": "A joke: at his first solo show, in Barcelona in 1918, his work was ridiculed and defaced.",
+   "third": "A dog called Rover. The star maps are where he buried things.",
+   "in_world": "The Dog Stars' ship's dog. He has charted the whole sky and cannot find one bone.",
+   "is_open": "what he buried: open",
+   "pieces": [
+    "where-i-buried-them"
+   ]
+  },
+  {
+   "id": "da-pending",
+   "name": "Leonardo da Pending",
+   "after": "Leonardo da Vinci (1452–1519)",
+   "status": "✅ approved (Mook, 2026-10-21: \"named approved\"); 🎬 wave 4: the card itself is Claude's",
+   "side_a": "The universal genius: the Vitruvian Man (about 1490), pen and brown ink on a sheet 34.4 centimetres tall, after Vitruvius's ideal proportions, kept since 1822 at the Gallerie dell'Accademia in Venice and rarely shown, because light fades it. His notebooks are in mirror writing.",
+   "side_b": "A man who didn't finish: the Council of Florence had to press him to come back and finish The Battle of Anghiari, and Vasari has him lamenting on his deathbed that he had not practised his art as he should have done.",
+   "third": "A to-do list. Everything on him is brilliant and none of it is ticked.",
+   "in_world": "A list pinned up in the Institute. It gets longer. The handwriting only reads in a mirror.",
+   "is_open": "what is at the top of the list: open",
+   "pieces": [
+    "vitruvian-puff"
+   ]
+  },
+  {
+   "id": "hiccups",
+   "name": "David Hiccups",
+   "after": "David Hicks (1929–1998)",
+   "status": "✅ approved (Mook, 2026-10-21: \"named approved\"); 🎬 wave 4: the card itself is Claude's",
+   "side_a": "The English decorator of bold colour who designed his own patterned carpets because he found none on the market good enough. Hicks' Hexagon, a 1960s carpet of interlocking hexagons, is his best known.",
+   "side_b": "A horror film's floor: most people know the hexagons from the hotel corridors of The Shining (1980) and have never heard his name.",
+   "third": "A hiccup. The pattern isn't a decision; it just happens again, and again, and he can't stop it.",
+   "in_world": "Whoever laid the Holy Order's corridors. Hold your breath and count to ten: it doesn't help.",
+   "is_open": "how long the corridor is: open",
+   "pieces": [
+    "carpet-for-a-long-corridor"
+   ]
   }
  ],
  "council": [
@@ -45446,10 +45544,352 @@ const MMA_DATA = {
      "src": ""
     }
    ]
+  },
+  {
+   "id": "started-over-pink",
+   "title": "Started Over (Pink)",
+   "artist": "de-kooler",
+   "kind": "painting",
+   "painter": "slashpink",
+   "size": [
+    1.3,
+    1.0
+   ],
+   "frame": "float",
+   "ground": "canvas",
+   "status": "🎬 wave 4",
+   "plaques": {
+    "his": {
+     "title": "Started Over (Pink)",
+     "by": "Willem de Kooler"
+    },
+    "other": {
+     "title": "A Spill",
+     "by": "the cookout committee"
+    }
+   },
+   "lore": "Wide slashing strokes in pinks and flesh and a little cold green, scraped back with the knife and gone at again, three times over, with the charcoal of every earlier try still showing through. There is no figure in it. It hangs in the Museum; nobody has said where in the show it belongs.",
+   "motifs": [
+    "starting over",
+    "pink lemonade",
+    "the lid that won't stay shut"
+   ],
+   "open": [
+    "How many times was it started over before this one?",
+    "Is it finished?"
+   ],
+   "bibliography": [
+    {
+     "work": "Woman I",
+     "by": "Willem de Kooning",
+     "year": "1950–52",
+     "where": "Museum of Modern Art, New York",
+     "status": "under copyright: the method only",
+     "take": "the slashing loaded brush, scraping back and starting over, charcoal left in",
+     "leave": "the figure, and every composition of his",
+     "src": "https://en.wikipedia.org/wiki/Woman_I"
+    }
+   ],
+   "placements": []
+  },
+  {
+   "id": "little-lawn",
+   "title": "Little Lawn",
+   "artist": "grassner",
+   "kind": "painting",
+   "painter": "littlelawn",
+   "size": [
+    0.62,
+    0.78
+   ],
+   "frame": "wood",
+   "ground": "canvas",
+   "status": "🎬 wave 4",
+   "plaques": {
+    "his": {
+     "title": "Little Lawn",
+     "by": "Lee Grassner"
+    },
+    "other": {
+     "title": "Tidied Up",
+     "by": "Mrs. Jack Sprinklock"
+    }
+   },
+   "lore": "A small picture, and close up it is hundreds of smaller ones: a grid of little green cells, each with a thick sign in it, cream or red or blue, laid on like icing. It reads like a page of writing in a script only she has the key to. It hangs in the Museum beside nothing of Sprinklock's, on purpose.",
+   "motifs": [
+    "the lawn (what the sprinkler waters)",
+    "a private script",
+    "small on purpose"
+   ],
+   "open": [
+    "What do the signs say?",
+    "Who wrote the other plaque?"
+   ],
+   "bibliography": [
+    {
+     "work": "the Little Image series (the hieroglyph kind)",
+     "by": "Lee Krasner",
+     "year": "1946–49",
+     "where": "painted at The Springs, Long Island",
+     "status": "under copyright: the method only",
+     "take": "the grid of small cells, thick paint, signs like a private script",
+     "leave": "every picture of hers",
+     "src": "https://en.wikipedia.org/wiki/Lee_Krasner"
+    }
+   ],
+   "placements": []
+  },
+  {
+   "id": "shelby-chromatic",
+   "title": "Shelby (A Chromatic Composition)",
+   "artist": "mattress",
+   "kind": "painting",
+   "painter": "snailcut",
+   "size": [
+    1.5,
+    1.5
+   ],
+   "frame": "none",
+   "ground": "paper",
+   "status": "🎬 wave 4 · the colours are Shelby's own (green, orange, her plum roof); 🎬 the small brass square is her lit window; she is not drawn",
+   "plaques": {
+    "his": {
+     "title": "Shelby (A Chromatic Composition)",
+     "by": "Henri Mattress"
+    },
+    "other": {
+     "title": "A Pot of Paint, Flung",
+     "by": "Henri Mattress"
+    }
+   },
+   "lore": "Painted paper, cut with shears and pasted on white inside a ragged orange edge: a dozen blocks of colour turning outward in a spiral, green beside plum, orange beside blue. It is a portrait of Shelby the snail, who carries her house, made only of her colours; the one small brass square is a window with the light on. Big, as the real one is. It hangs in the Museum.",
+   "motifs": [
+    "Shelby (a snail who carries her house)",
+    "a window lit: she feels at home",
+    "cut, not painted"
+   ],
+   "open": [
+    "Did Shelby sit for it, or did she just pass through, slowly?",
+    "Which block is the door?"
+   ],
+   "bibliography": [
+    {
+     "work": "The Snail (L'Escargot; he also called it La Composition Chromatique)",
+     "by": "Henri Matisse",
+     "year": "1953",
+     "where": "Tate Modern, London",
+     "status": "public domain where copyright runs 70 years from the artist's death (he died in 1954): quoted closely",
+     "take": "gouache-painted paper cut and pasted, the spiral of blocks pairing opposite colours, the white ground, the ragged orange edge",
+     "leave": "",
+     "src": "https://en.wikipedia.org/wiki/The_Snail"
+    }
+   ],
+   "placements": []
+  },
+  {
+   "id": "slow-time",
+   "title": "Slow Time",
+   "artist": "dial",
+   "kind": "painting",
+   "painter": "softdial",
+   "size": [
+    0.72,
+    0.52
+   ],
+   "frame": "gilt",
+   "ground": "canvas",
+   "status": "🎬 wave 4 · 🎬 the wedge of cheese",
+   "plaques": {
+    "his": {
+     "title": "Slow Time",
+     "by": "Salvador Dial"
+    },
+    "other": {
+     "title": "It Was the Cheese",
+     "by": "Salvador Dial"
+    }
+   },
+   "lore": "A long mown lawn running to a low horizon, Mount Clipping far off, and on a block of stone a sundial that has gone soft: it lies on the top, slides over the edge and hangs down the front, its hours sliding with it. Its pointer has wilted, and its shadow has wandered off the dial onto the grass, pointing at no hour. On the lawn, a wedge of soft cheese. This is why time is slow on Dwarf, or it is a picture of it. It hangs in the Museum.",
+   "motifs": [
+    "Dwarf's slow time",
+    "a hard thing gone soft",
+    "the lawn",
+    "an alibi"
+   ],
+   "open": [
+    "What hour is it?",
+    "Whose cheese?"
+   ],
+   "bibliography": [
+    {
+     "work": "The Persistence of Memory",
+     "by": "Salvador Dalí",
+     "year": "1931",
+     "where": "Museum of Modern Art, New York (since 1934)",
+     "status": "under copyright: the method only",
+     "take": "a hard timepiece painted soft, a long empty plain, long shadows",
+     "leave": "the watches, the beach and cliffs, the branch, the whole composition",
+     "src": "https://en.wikipedia.org/wiki/The_Persistence_of_Memory"
+    }
+   ],
+   "placements": []
+  },
+  {
+   "id": "where-i-buried-them",
+   "title": "Where I Buried Them (Sirius)",
+   "artist": "mirover",
+   "kind": "painting",
+   "painter": "dogstars",
+   "size": [
+    0.46,
+    0.38
+   ],
+   "frame": "black",
+   "ground": "paper",
+   "status": "🎬 wave 4 · 🎬 the bones",
+   "plaques": {
+    "his": {
+     "title": "Where I Buried Them (Sirius)",
+     "by": "Joan Mirover"
+    },
+    "other": {
+     "title": "Chart, Unreliable",
+     "by": "the Dog Stars' navigator"
+    }
+   },
+   "lore": "A small sheet washed like a night sky, and all over it tiny flat signs: stars made of four strokes, discs half one colour and half another, moons, eyes, hourglasses, bones; each tied to its neighbours by a web of thin black line. One big red star, eight points: Sirius. It was made for the Dog Stars' ship, which has no walls to hang it on yet; it hangs in the Museum.",
+   "motifs": [
+    "the Dog Stars of Sirius",
+    "a map that is also a memory",
+    "bones"
+   ],
+   "open": [
+    "What is buried at Sirius?",
+    "Has the navigator ever used it?"
+   ],
+   "bibliography": [
+    {
+     "work": "the Constellations (23 works on paper)",
+     "by": "Joan Miró",
+     "year": "1940–41",
+     "where": "begun at Varengeville-sur-Mer",
+     "status": "under copyright: the method only",
+     "take": "tiny flat signs linked by thin webs of line on a washed ground",
+     "leave": "every sheet of his",
+     "src": "https://en.wikipedia.org/wiki/Constellations_(Mir%C3%B3)"
+    },
+    {
+     "work": "Self-Portrait (Inn of the Dawn Horse)",
+     "by": "Leonora Carrington",
+     "year": "1937–38",
+     "where": "Metropolitan Museum of Art, New York",
+     "status": "under copyright: reference only",
+     "take": "animals as the people of the picture (hers are horses and hyenas; these are dogs, and only their bones)",
+     "leave": "everything else",
+     "src": "https://en.wikipedia.org/wiki/Leonora_Carrington"
+    }
+   ],
+   "placements": []
+  },
+  {
+   "id": "vitruvian-puff",
+   "title": "Vitruvian Puff",
+   "artist": "da-pending",
+   "kind": "drawing",
+   "painter": "vitruvian",
+   "size": [
+    0.49,
+    0.69
+   ],
+   "frame": "wood",
+   "ground": "paper",
+   "mat": 0.06,
+   "status": "🎬 wave 4 · Puff is drawn by her own model (puffDraw); 🎬 the second, leaning position laid faintly over the first, and the notes, are the drawing's",
+   "plaques": {
+    "his": {
+     "title": "Vitruvian Puff",
+     "by": "Leonardo da Pending"
+    },
+    "other": {
+     "title": "Item 1 of 4,000 (Pending)",
+     "by": "Leonardo da Pending"
+    }
+   },
+   "lore": "Brown ink on old paper: Puff standing in a square and a circle, drawn twice more, faintly, leaning left and right, with a scale under her boots and notes above and below in a hand that only reads in a mirror. The notes say she is as wide as she is tall, which no other body in nature manages, and that the bow is not counted. The last line says the rest is pending. It hangs in the Museum, in the light, which the real one never is.",
+   "motifs": [
+    "Puff",
+    "the circle and the square (GEO's own shapes)",
+    "a list that never gets ticked"
+   ],
+   "open": [
+    "Did Puff hold still for it?",
+    "What was the rest going to be?"
+   ],
+   "bibliography": [
+    {
+     "work": "Vitruvian Man",
+     "by": "Leonardo da Vinci",
+     "year": "c. 1490",
+     "where": "Gallerie dell'Accademia, Venice (since 1822)",
+     "status": "public domain: quoted closely",
+     "take": "the figure in the circle and the square, the doubled position, the scale under the feet, the notes in mirror writing above and below",
+     "leave": "",
+     "src": "https://en.wikipedia.org/wiki/Vitruvian_Man"
+    }
+   ],
+   "placements": []
+  },
+  {
+   "id": "carpet-for-a-long-corridor",
+   "title": "Carpet for a Long Corridor",
+   "artist": "hiccups",
+   "kind": "textile",
+   "painter": "hexcarpet",
+   "size": [
+    2.6,
+    1.3
+   ],
+   "frame": "none",
+   "ground": "none",
+   "texLong": 1280,
+   "status": "🎬 wave 4 · 🎬 hung on a wall like a tapestry, because the Museum has no corridor",
+   "plaques": {
+    "his": {
+     "title": "Carpet for a Long Corridor",
+     "by": "David Hiccups"
+    },
+    "other": {
+     "title": "Do Not Ride Tricycles On This",
+     "by": "the Holy Order"
+    }
+   },
+   "lore": "A length of carpet in the Holy Order's hexagons: plum, their gold (which comes out brass, as gold does in this town) and a dark ground; one hexagon, and again, and again, with every seventh one gold at the heart. Worn pale down the middle where a great many feet have gone the same way. Fringed at both ends. It was cut from somewhere longer. It hangs in the Museum on a wall, like a tapestry.",
+   "motifs": [
+    "the Holy Order's hexagons (the Sigil: a cluster of hexagons)",
+    "a repeat that can't stop",
+    "a long corridor nobody has shown us"
+   ],
+   "open": [
+    "How long is the corridor it was cut from?",
+    "Who wore the path down the middle?"
+   ],
+   "bibliography": [
+    {
+     "work": "Hicks' Hexagon (carpet)",
+     "by": "David Hicks",
+     "year": "1960s",
+     "where": "seen in the hotel of The Shining (1980)",
+     "status": "under copyright: the method only",
+     "take": "one hexagon repeated without end, as a floor",
+     "leave": "the famous carpet's own figure and its colours",
+     "src": "https://en.wikipedia.org/wiki/David_Nightingale_Hicks"
+    }
+   ],
+   "placements": []
   }
  ],
  "next": [
-  "STILL NAMED, NOT BUILT (✅ \"named approved\"): de Kooning's slashing pinks · Krasner's little images · Matisse's The Snail as a cut-paper portrait of Shelby · Dalí's melting sundial for Dwarf's slow time · Miró and Carrington for the Dog Stars' ship · Vitruvian Puff · the Overlook's hexagon carpet in the Holy Order's hexagons. (Wave 3 built the rest: Klimt, Frankenthaler, Warhol, Ball, Magritte, Man Ray, Ernst, Brancusi, Vermeer.)",
+  "WAVE 4 (2026-11-16) built the seven that were named: de Kooning, Krasner, Matisse, Dalí, Miró (with Carrington), Leonardo, Hicks. They hang in the Museum only: WHERE EACH GOES IN THE SHOW is open (🎬 proposals: Little Lawn in the dorm, Vitruvian Puff in the Institute lobby, Slow Time in the great hall, the carpet in a Holy Order corridor that is not built, Where I Buried Them on the Dog Stars' ship, not built).",
   "THE BARR CHART: an in-world version of Alfred Barr's 1936 chart of modern art, its arrows between the Orders and the painters of this universe; two copies whose arrows disagree (drift)",
   "PLACES NOT DRESSED YET: other people's houses (the WFC houses have no insides yet: a painting seen through a lit window at dusk), Town Hall (not built), the Snack Shack, the Dog Stars' ship, Fianna's room, the library's glass cases",
   "THE TWO-PLAQUE GAG IN PRACTICE: done once in wave 3 (a print of Eight or Nine in the Bazaar says BLACK ON WHITE; the lobby's says WHITE ON BLACK). More pieces could do it: a print of Black Rectangle saying LEFT IN, somewhere a burnt Poptart would be noticed"
@@ -48183,6 +48623,206 @@ MMA_SCULPT.doorstop = (g, C, P, t, pc, pl, o) => {
 };
 
 // ── _geo/collection/blocks/mm_art_museum.js
+// mm_art_wave4.js · THE COLLECTION · wave 4 (2026-11-16): the seven that were named and not built.
+//   🎬 Claude; the names are ✅ Mook's ("named approved", 2026-10-21). Seven painters, each a METHOD in code:
+//     slashpink   Willem de Kooler     wide slashing strokes in pinks, scraped and started over (method only)
+//     littlelawn  Lee Grassner         a grid of small thick signs, a private script (method only)
+//     snailcut    Henri Mattress       cut painted paper in a spiral, Shelby's colours (public domain: quoted closely)
+//     softdial    Salvador Dial        a soft sundial for Dwarf's slow time (method only: softness; none of his picture)
+//     dogstars    Joan Mirover         tiny flat signs linked by thin webs of lines (method only)
+//     vitruvian   Leonardo da Pending  Puff in the circle and the square (public domain: quoted closely)
+//     hexcarpet   David Hiccups        a hexagon repeat in the Holy Order's hexagons (method only: the repeat)
+//   Every helper here starts mmaW4 (the name check: nothing may share a name with another block).
+function mmaW4Brush(x, x0, y0, a, L, w, col, R, S, o) {            // one loaded brush dragged once: bristle lines, ragged ends, a slight bend
+  o = o || {}; const n = Math.max(6, Math.round(w / (2.2 * S))), bend = (R() - 0.5) * (o.bend === undefined ? 0.5 : o.bend), ca = Math.cos(a), sa = Math.sin(a);
+  x.save(); x.lineCap = 'round';
+  for (let i = 0; i < n; i++) { const u = i / (n - 1) - 0.5, ox = -sa * u * w, oy = ca * u * w, s0 = R() * 0.12, s1 = 1 - R() * 0.2;
+    x.strokeStyle = col; x.globalAlpha = (o.alpha || 0.9) * (0.45 + 0.55 * R()); x.lineWidth = w / n * (1.1 + R());
+    x.beginPath(); const ax = x0 + ox + ca * L * s0, ay = y0 + oy + sa * L * s0, bx = x0 + ox + ca * L * s1, by = y0 + oy + sa * L * s1;
+    x.moveTo(ax, ay); x.quadraticCurveTo((ax + bx) / 2 - sa * bend * L * 0.3, (ay + by) / 2 + ca * bend * L * 0.3, bx, by); x.stroke(); }
+  x.restore();
+}
+function mmaW4Line(x, P, w, col, R, wob) {                          // a hand's line through points: it wavers a little
+  x.strokeStyle = col; x.lineWidth = w; x.lineCap = 'round'; x.lineJoin = 'round'; x.beginPath();
+  P.forEach((p, i) => { const px = p[0] + (R() - 0.5) * wob, py = p[1] + (R() - 0.5) * wob; i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.stroke();
+}
+function mmaW4Paper(x, W, H, base, R, S, n) {                        // a ground that isn't flat: soft blots and a few fibres
+  x.fillStyle = base; x.fillRect(0, 0, W, H);
+  for (let i = 0; i < (n || 60); i++) { const px = R() * W, py = R() * H, r = (30 + R() * 120) * S, g = x.createRadialGradient(px, py, 0, px, py, r), d = R() < 0.5;
+    g.addColorStop(0, d ? 'rgba(60,40,20,0.07)' : 'rgba(255,250,235,0.08)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(px - r, py - r, r * 2, r * 2); }
+}
+
+// ── WILLEM DE KOOLER · STARTED OVER (PINK): slashing strokes in pinks and flesh, scraped back and gone at again,
+//    charcoal left showing. The method only: no figure, none of his pictures' composition. ──
+MMA_PAINT.slashpink = (x, W, H, pc, R, p) => {
+  const S = W / 640, pinks = ['#e88aa0', '#f3b8c0', '#d9566f', '#f6d7c8', '#e9b89a', '#f29aa8', '#c9486a'], cools = ['#9fc6c0', '#b9d3e6', '#f4efe6', '#f4efe6'];
+  x.fillStyle = '#efe6d8'; x.fillRect(0, 0, W, H);
+  for (let pass = 0; pass < 3; pass++) {
+    for (let i = 0; i < 26; i++) { const col = R() < 0.74 ? pinks[Math.floor(R() * pinks.length)] : cools[Math.floor(R() * cools.length)];
+      const a = (R() < 0.6 ? -0.9 + R() * 0.7 : 0.5 + R() * 1.4) + (R() < 0.5 ? Math.PI : 0), L = (120 + R() * 260) * S, w = (26 + R() * 60) * S;
+      mmaW4Brush(x, R() * W, R() * H, a, L, w, col, R, S, { alpha: 0.85 }); }
+    // scraped back: the knife drags a pale veil across, and he starts over
+    if (pass < 2) for (let i = 0; i < 5; i++) mmaW4Brush(x, R() * W, R() * H, -0.2 + R() * 0.4, (260 + R() * 240) * S, (70 + R() * 60) * S, '#efe6d8', R, S, { alpha: 0.5, bend: 0.1 });
+    mmaWarm();
+  }
+  // charcoal: the drawing that every restart left behind
+  for (let i = 0; i < 14; i++) { const P = []; let px = R() * W, py = R() * H, a = R() * 6.3; const n = 5 + Math.floor(R() * 6);
+    for (let k = 0; k < n; k++) { P.push([px, py]); a += (R() - 0.5) * 1.6; const d = (30 + R() * 70) * S; px += Math.cos(a) * d; py += Math.sin(a) * d; }
+    x.globalAlpha = 0.5 + R() * 0.4; mmaW4Line(x, P, (1.4 + R() * 2.6) * S, '#2a2226', R, 3 * S); }
+  x.globalAlpha = 1;
+  // a few runs of thin paint
+  for (let i = 0; i < 9; i++) { const dx = R() * W, dy = R() * H * 0.7; x.strokeStyle = pinks[Math.floor(R() * pinks.length)]; x.globalAlpha = 0.7; x.lineWidth = (1.5 + R() * 2) * S; x.beginPath(); x.moveTo(dx, dy); x.lineTo(dx + (R() - 0.5) * 4 * S, dy + (40 + R() * 120) * S); x.stroke(); }
+  x.globalAlpha = 1;
+};
+
+// ── LEE GRASSNER · LITTLE LAWN: a grid of small cells, each with a thick sign in it, read like a script nobody else
+//    has the key to. The method only (her hieroglyph kind of Little Image): the grid, the thick paint, the private signs. ──
+MMA_PAINT.littlelawn = (x, W, H, pc, R, p) => {
+  const S = W / 640, cols = 26, rows = Math.round(cols * H / W), cw = W / cols, ch = H / rows;
+  const greens = ['#2f5a3a', '#3f7a48', '#274a34', '#4f8f52', '#35663f'], lights = ['#f1ead8', '#e7dcc0', '#cfe3c0', '#f1ead8', MMA_KEY['1'], MMA_KEY['2'], '#f1ead8'];
+  x.fillStyle = '#1e2a22'; x.fillRect(0, 0, W, H);
+  for (let r = 0; r < rows; r++) { for (let c = 0; c < cols; c++) { const x0 = c * cw, y0 = r * ch, m = 1.6 * S;
+      x.fillStyle = greens[Math.floor(R() * greens.length)]; x.fillRect(x0 + m + (R() - 0.5) * 2 * S, y0 + m + (R() - 0.5) * 2 * S, cw - m * 2, ch - m * 2);
+      // the sign: two or three short thick marks, each laid twice (a dark under-edge, then the light paint)
+      const col = lights[Math.floor(R() * lights.length)], n = 2 + Math.floor(R() * 2), kind = Math.floor(R() * 5), cx = x0 + cw / 2, cy = y0 + ch / 2, q = Math.min(cw, ch) * 0.32;
+      for (let pass = 0; pass < 2; pass++) { x.strokeStyle = pass ? col : 'rgba(10,16,12,0.7)'; x.lineWidth = (pass ? 3.0 : 4.6) * S; x.lineCap = 'round'; x.beginPath();
+        const off = pass ? 0 : 1.2 * S;
+        if (kind === 0) { x.moveTo(cx - q, cy - q + off); x.lineTo(cx + q, cy + q + off); x.moveTo(cx + q, cy - q + off); x.lineTo(cx - q * 0.2, cy + off); }
+        else if (kind === 1) { x.arc(cx, cy + off, q * 0.8, 0.6, 5.2); x.moveTo(cx, cy - q + off); x.lineTo(cx, cy + q + off); }
+        else if (kind === 2) { x.moveTo(cx - q, cy + off); x.lineTo(cx + q, cy + off); x.moveTo(cx - q * 0.5, cy - q + off); x.lineTo(cx - q * 0.5, cy + q + off); if (n > 2) { x.moveTo(cx + q * 0.5, cy - q * 0.6 + off); x.lineTo(cx + q * 0.5, cy + q * 0.6 + off); } }
+        else if (kind === 3) { x.moveTo(cx - q, cy + q + off); x.lineTo(cx, cy - q + off); x.lineTo(cx + q, cy + q + off); }
+        else { x.arc(cx - q * 0.3, cy + off, q * 0.5, 0, 7); x.moveTo(cx + q * 0.4, cy - q + off); x.lineTo(cx + q * 0.9, cy + q + off); }
+        x.stroke(); } }
+    if (r % 6 === 0) mmaWarm(); }
+  // the grid's own paint: ridges between the cells
+  x.strokeStyle = 'rgba(12,20,15,0.85)'; x.lineWidth = 2.2 * S; for (let c = 1; c < cols; c++) mmaW4Line(x, [[c * cw, 0], [c * cw, H / 2], [c * cw, H]], 2.2 * S, 'rgba(12,20,15,0.85)', R, 2 * S);
+  for (let r = 1; r < rows; r++) mmaW4Line(x, [[0, r * ch], [W / 2, r * ch], [W, r * ch]], 2.2 * S, 'rgba(12,20,15,0.85)', R, 2 * S);
+};
+
+// ── HENRI MATTRESS · SHELBY (A CHROMATIC COMPOSITION): painted paper, cut with shears and pasted in a spiral on white,
+//    inside a ragged orange edge. After The Snail (public domain: quoted closely). 🎬 the colours are Shelby's own
+//    (green, orange, her plum roof), and one small brass square is her lit window. She is not drawn: the spiral is her house. ──
+MMA_PAINT.snailcut = (x, W, H, pc, R, p) => {
+  const S = W / 640, G = MMA_KEY['4'], O = MMA_KEY['5'], plum = '#6b3a5e';
+  const cut = (cx, cy, w, h, rot, col) => {                       // one piece of cut paper: nearly a rectangle, the shears wander
+    const P = [], c = Math.cos(rot), s = Math.sin(rot), pts = [[-1, -1], [0.1, -1.06], [1, -0.94], [1.05, 0.1], [0.96, 1], [-0.1, 1.05], [-1.02, 0.95], [-0.95, -0.1]];
+    for (const [u, v] of pts) { const px = (u + (R() - 0.5) * 0.14) * w / 2, py = (v + (R() - 0.5) * 0.14) * h / 2; P.push([cx + px * c - py * s, cy + px * s + py * c]); }
+    x.save(); x.shadowColor = 'rgba(40,30,20,0.25)'; x.shadowBlur = 3 * S; x.shadowOffsetY = 1.5 * S; x.fillStyle = col; mmaPolyPx(x, P); x.fill(); x.restore();
+    x.save(); mmaPolyPx(x, P); x.clip(); x.strokeStyle = 'rgba(255,255,255,0.07)'; x.lineWidth = 2 * S;   // the gouache's brush, all one way
+    for (let i = -8; i < 9; i++) { x.beginPath(); x.moveTo(cx - w, cy + i * h / 9 + (R() - 0.5) * 4 * S); x.lineTo(cx + w, cy + i * h / 9 + (R() - 0.5) * 4 * S); x.stroke(); } x.restore(); };
+  x.fillStyle = '#f6f2e8'; x.fillRect(0, 0, W, H);
+  // the ragged edge: orange strips, not quite meeting at the corners
+  const e = 0.07 * W; cut(W / 2, e * 0.55, W * 0.98, e, 0.004, O); cut(W / 2, H - e * 0.55, W * 0.97, e, -0.005, O); cut(e * 0.55, H / 2, e, H * 0.9, 0.003, O); cut(W - e * 0.55, H / 2, e, H * 0.88, -0.004, O);
+  // the spiral: from the middle outward, turning, each piece beside its opposite (green by plum, orange by blue)
+  const cols = ['#1c1a1e', plum, G, O, MMA_KEY['2'], G, plum, '#e86a8a', O, G, MMA_KEY['2'], plum], cx = W * 0.5, cy = H * 0.52;
+  for (let i = cols.length - 1; i >= 0; i--) { const a = -1.2 + i * 0.86, r = (0.045 + i * 0.03) * W, w = (0.15 + i * 0.012 + R() * 0.03) * W, h = (0.13 + R() * 0.07) * W;
+    cut(cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.95, w, h, a + 1.57 + (R() - 0.5) * 0.3, cols[i]); }
+  cut(cx + 0.012 * W, cy - 0.01 * W, 0.045 * W, 0.045 * W, 0.2, '#c9a06a');   // her window, lit
+};
+
+// ── SALVADOR DIAL · SLOW TIME: a sundial gone soft in the sun, sagging off its stone, its shadow pointing at no hour.
+//    The method only (a hard thing painted soft, long shadows, a low empty plain); none of his picture: no watches,
+//    no beach, no branch. 🎬 the wedge of cheese is his own alibi. ──
+MMA_PAINT.softdial = (x, W, H, pc, R, p) => {
+  const S = W / 640, hz = H * 0.52;
+  const sky = x.createLinearGradient(0, 0, 0, hz); sky.addColorStop(0, '#2f5d73'); sky.addColorStop(0.7, '#9fc0b8'); sky.addColorStop(1, '#f0cdb8'); x.fillStyle = sky; x.fillRect(0, 0, W, hz);
+  const gr = x.createLinearGradient(0, hz, 0, H); gr.addColorStop(0, '#7fa46a'); gr.addColorStop(1, '#2f4a34'); x.fillStyle = gr; x.fillRect(0, hz, W, H - hz);
+  x.fillStyle = 'rgba(60,90,70,0.5)'; x.beginPath(); x.moveTo(W * 0.62, hz); x.lineTo(W * 0.78, hz - 26 * S); x.lineTo(W * 0.9, hz - 8 * S); x.lineTo(W, hz - 18 * S); x.lineTo(W, hz); x.closePath(); x.fill();   // Mount Clipping, far off
+  // mown stripes running to the horizon
+  for (let i = -12; i < 13; i++) { x.fillStyle = i % 2 ? 'rgba(255,255,240,0.05)' : 'rgba(0,20,10,0.06)'; x.beginPath(); x.moveTo(W / 2 + i * 6 * S, hz); x.lineTo(W / 2 + (i + 1) * 6 * S, hz); x.lineTo(W / 2 + (i + 1) * 90 * S, H); x.lineTo(W / 2 + i * 90 * S, H); x.closePath(); x.fill(); }
+  // the stone, and its long shadow to the right
+  const bx = W * 0.28, by = H * 0.6, bw = W * 0.26, bh = H * 0.26;
+  x.fillStyle = 'rgba(15,30,25,0.45)'; x.beginPath(); x.moveTo(bx, by + bh); x.lineTo(bx + bw, by + bh); x.lineTo(W * 0.98, by + bh * 0.72); x.lineTo(W * 0.9, by + bh * 0.5); x.closePath(); x.fill();
+  x.fillStyle = '#b9ad98'; x.fillRect(bx, by, bw, bh); x.fillStyle = '#d9cfbc'; x.beginPath(); x.moveTo(bx, by); x.lineTo(bx + bw * 0.16, by - bh * 0.2); x.lineTo(bx + bw * 1.16, by - bh * 0.2); x.lineTo(bx + bw, by); x.closePath(); x.fill();
+  x.fillStyle = '#8d8272'; x.beginPath(); x.moveTo(bx + bw, by); x.lineTo(bx + bw * 1.16, by - bh * 0.2); x.lineTo(bx + bw * 1.16, by + bh * 0.8); x.lineTo(bx + bw, by + bh); x.closePath(); x.fill();
+  x.strokeStyle = '#3a3028'; x.lineWidth = 2 * S; x.strokeRect(bx, by, bw, bh);
+  // the dial: lying on the top, then over the front edge and down, like something left in the sun
+  const dial = () => { x.beginPath(); x.moveTo(bx + bw * 0.2, by - bh * 0.13); x.bezierCurveTo(bx + bw * 0.3, by - bh * 0.26, bx + bw * 0.95, by - bh * 0.25, bx + bw * 1.0, by - bh * 0.12);
+    x.bezierCurveTo(bx + bw * 1.04, by - bh * 0.02, bx + bw * 0.86, by + bh * 0.02, bx + bw * 0.8, by + bh * 0.1);
+    x.bezierCurveTo(bx + bw * 0.78, by + bh * 0.5, bx + bw * 0.7, by + bh * 0.86, bx + bw * 0.52, by + bh * 0.9);
+    x.bezierCurveTo(bx + bw * 0.34, by + bh * 0.92, bx + bw * 0.3, by + bh * 0.5, bx + bw * 0.27, by + bh * 0.08); x.bezierCurveTo(bx + bw * 0.2, by + bh * 0.0, bx + bw * 0.14, by - bh * 0.05, bx + bw * 0.2, by - bh * 0.13); x.closePath(); };
+  const dg = x.createLinearGradient(bx, by - bh * 0.2, bx + bw * 0.6, by + bh); dg.addColorStop(0, '#e9d3a8'); dg.addColorStop(0.5, '#c9a06a'); dg.addColorStop(1, '#8a6a44'); x.fillStyle = dg; dial(); x.fill(); x.strokeStyle = '#3a2a1c'; x.lineWidth = 2.4 * S; x.stroke();
+  // its hours, sliding down with it
+  x.save(); dial(); x.clip(); x.strokeStyle = '#3a2a1c'; x.fillStyle = '#3a2a1c';
+  for (let i = 0; i < 12; i++) { const u = i / 11, hx = bx + bw * (0.3 + 0.62 * u * (1 - u * 0.35)), hy = by - bh * 0.17 + bh * 1.02 * u * u; x.lineWidth = 2.2 * S; x.beginPath(); x.moveTo(hx, hy); x.lineTo(hx + (6 - 10 * u) * S, hy + (9 + 10 * u) * S); x.stroke(); }
+  x.restore();
+  // the gnomon, wilting; and its shadow, which has wandered off the dial onto the grass
+  x.fillStyle = '#b98e62'; x.strokeStyle = '#3a2a1c'; x.lineWidth = 2 * S; x.beginPath(); x.moveTo(bx + bw * 0.46, by - bh * 0.13); x.bezierCurveTo(bx + bw * 0.5, by - bh * 0.6, bx + bw * 0.7, by - bh * 0.78, bx + bw * 0.84, by - bh * 0.5); x.bezierCurveTo(bx + bw * 0.72, by - bh * 0.52, bx + bw * 0.66, by - bh * 0.3, bx + bw * 0.66, by - bh * 0.14); x.closePath(); x.fill(); x.stroke();
+  x.strokeStyle = 'rgba(15,30,25,0.55)'; x.lineWidth = 7 * S; x.lineCap = 'round'; x.beginPath(); x.moveTo(bx + bw * 0.62, by - bh * 0.1); x.quadraticCurveTo(bx + bw * 1.5, by + bh * 0.2, W * 0.86, by + bh * 1.2); x.stroke();
+  // the alibi
+  const kx = W * 0.72, ky = H * 0.86; x.fillStyle = '#efe6d0'; x.strokeStyle = '#3a2a1c'; x.lineWidth = 2 * S; x.beginPath(); x.moveTo(kx, ky); x.lineTo(kx + 46 * S, ky - 10 * S); x.lineTo(kx + 50 * S, ky + 8 * S); x.quadraticCurveTo(kx + 30 * S, ky + 26 * S, kx + 2 * S, ky + 16 * S); x.closePath(); x.fill(); x.stroke();
+  x.fillStyle = '#f7f1e2'; x.beginPath(); x.moveTo(kx, ky); x.lineTo(kx + 46 * S, ky - 10 * S); x.lineTo(kx + 22 * S, ky - 18 * S); x.closePath(); x.fill(); x.stroke();
+};
+
+// ── JOAN MIROVER · WHERE I BURIED THEM (SIRIUS): a washed night, and all over it tiny flat signs (stars, eyes, moons,
+//    bones) linked by thin webs of line. The method only, after the Constellations; 🎬 the bones are the Dog Stars'. ──
+MMA_PAINT.dogstars = (x, W, H, pc, R, p) => {
+  const S = W / 640; mmaW4Paper(x, W, H, '#2b3550', R, S, 90);
+  for (let i = 0; i < 40; i++) { const px = R() * W, py = R() * H, r = (40 + R() * 140) * S, g = x.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, R() < 0.5 ? 'rgba(120,70,60,0.14)' : 'rgba(70,110,140,0.16)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(px - r, py - r, r * 2, r * 2); }
+  const N = [], fills = ['#0d0d12', MMA_KEY['1'], '#f1ead8', MMA_KEY['2'], '#0d0d12', MMA_KEY['4'], '#0d0d12'];
+  for (let i = 0; i < 46; i++) { let px, py, ok = false, tries = 0; while (!ok && tries++ < 30) { px = (0.06 + R() * 0.88) * W; py = (0.07 + R() * 0.86) * H; ok = N.every(n => Math.hypot(n[0] - px, n[1] - py) > 46 * S); } N.push([px, py, Math.floor(R() * 6), (7 + R() * 9) * S]); }
+  // the webs: each sign tied to its two nearest, in one thin line
+  x.globalAlpha = 0.9; for (let i = 0; i < N.length; i++) { const d = N.map((n, j) => [Math.hypot(n[0] - N[i][0], n[1] - N[i][1]), j]).sort((a, b) => a[0] - b[0]);
+    for (const k of [1, 2]) { const m = N[d[k][1]], mx = (N[i][0] + m[0]) / 2 + (R() - 0.5) * 30 * S, my = (N[i][1] + m[1]) / 2 + (R() - 0.5) * 30 * S; x.strokeStyle = '#0d0d12'; x.lineWidth = 1.3 * S; x.beginPath(); x.moveTo(N[i][0], N[i][1]); x.quadraticCurveTo(mx, my, m[0], m[1]); x.stroke(); } }
+  x.globalAlpha = 1;
+  for (const [px, py, kind, r] of N) { const col = fills[Math.floor(R() * fills.length)]; x.fillStyle = col; x.strokeStyle = '#0d0d12'; x.lineWidth = 1.6 * S; x.lineCap = 'round';
+    if (kind === 0) { for (let k = 0; k < 4; k++) { const a = k * Math.PI / 4 + 0.2; x.beginPath(); x.moveTo(px - Math.cos(a) * r, py - Math.sin(a) * r); x.lineTo(px + Math.cos(a) * r, py + Math.sin(a) * r); x.stroke(); } }      // a star: four strokes through a point
+    else if (kind === 1) { x.beginPath(); x.arc(px, py, r, 0, 7); x.fill(); x.fillStyle = col === '#0d0d12' ? MMA_KEY['1'] : '#0d0d12'; x.beginPath(); x.arc(px, py, r, -1.57, 1.57); x.fill(); }                                   // a disc, half and half
+    else if (kind === 2) { x.beginPath(); x.arc(px, py, r, 0.5, 3.9); x.arc(px + r * 0.45, py - r * 0.3, r * 0.8, 3.6, 0.8, true); x.closePath(); x.fill(); }                                                                       // a moon
+    else if (kind === 3) { x.beginPath(); x.moveTo(px - r, py - r); x.lineTo(px + r, py - r); x.lineTo(px - r, py + r); x.lineTo(px + r, py + r); x.closePath(); x.fill(); }                                                         // an hourglass
+    else if (kind === 4) { x.fillStyle = '#f1ead8'; x.beginPath(); x.ellipse(px, py, r * 1.2, r * 0.8, 0, 0, 7); x.fill(); x.stroke(); x.fillStyle = '#0d0d12'; x.beginPath(); x.arc(px, py, r * 0.35, 0, 7); x.fill(); }             // an eye
+    else { const a = R() * 3.1, dx = Math.cos(a) * r * 1.3, dy = Math.sin(a) * r * 1.3; x.strokeStyle = '#f1ead8'; x.lineWidth = r * 0.45; x.beginPath(); x.moveTo(px - dx, py - dy); x.lineTo(px + dx, py + dy); x.stroke();       // a bone
+      x.fillStyle = '#f1ead8'; for (const s of [-1, 1]) for (const q of [-1, 1]) { x.beginPath(); x.arc(px + s * dx - q * dy * 0.22, py + s * dy + q * dx * 0.22, r * 0.32, 0, 7); x.fill(); } } }
+  // Sirius: the one big star, eight points, red
+  const sx = W * 0.7, sy = H * 0.3; x.fillStyle = MMA_KEY['1']; x.strokeStyle = '#0d0d12'; x.lineWidth = 1.8 * S; x.beginPath(); for (let k = 0; k < 16; k++) { const a = k * Math.PI / 8, r = (k % 2 ? 9 : 30) * S; k ? x.lineTo(sx + Math.cos(a) * r, sy + Math.sin(a) * r) : x.moveTo(sx + r, sy); } x.closePath(); x.fill(); x.stroke();
+};
+
+// ── LEONARDO DA PENDING · VITRUVIAN PUFF: Puff in the circle and the square, in brown ink on old paper, with his notes
+//    above and below in mirror writing. After the Vitruvian Man (public domain: quoted closely). Puff is drawn by her
+//    own model (puffDraw); 🎬 the second, leaning position laid faintly over the first is the drawing's, not hers. ──
+MMA_PAINT.vitruvian = (x, W, H, pc, R, p) => {
+  const S = W / 640; mmaW4Paper(x, W, H, '#d9c6a0', R, S, 80);
+  const ink = '#5a3a22', cx = W / 2, gy = H * 0.8, ph = H * 0.5;               // the ground line, and how tall she stands
+  const lay = mmaCv(W, H), lg = lay.getContext('2d'); lg.lineCap = 'round'; lg.lineJoin = 'round'; let top = gy - ph, a = ph * 0.3;
+  try { const r = puffDraw(lg, { x: cx, y: gy, h: ph, t: 0, seed: 2 }); if (r && r.top !== undefined) top = r.top; if (r && r.a) a = r.a; } catch (e) { lg.fillStyle = '#d00'; lg.fillRect(10, 10, 20, 20); }
+  const tall = gy - top;
+  // the second position: the same Puff, leaning each way, faint
+  for (const ln of [-0.3, 0.3]) { const l2 = mmaCv(W, H), g2 = l2.getContext('2d'); g2.lineCap = 'round'; g2.lineJoin = 'round'; try { puffDraw(g2, { x: cx, y: gy, h: ph, t: 0, seed: 2, lean: ln }); } catch (e) {} x.save(); x.globalAlpha = 0.22; x.drawImage(l2, 0, 0); x.restore(); }
+  x.save(); x.globalAlpha = 0.92; x.drawImage(lay, 0, 0); x.restore();
+  // the square: as wide as she is tall, standing on the ground line; the circle: centred a little higher, through her feet
+  const sq = tall, cr = tall * 0.6, ccy = gy - cr;
+  x.globalAlpha = 0.85; mmaW4Line(x, [[cx - sq / 2, gy], [cx + sq / 2, gy], [cx + sq / 2, gy - sq], [cx - sq / 2, gy - sq], [cx - sq / 2, gy]], 2 * S, ink, R, 1.5 * S);
+  const C = []; for (let i = 0; i <= 72; i++) { const an = i / 72 * Math.PI * 2; C.push([cx + Math.cos(an) * cr, ccy + Math.sin(an) * cr]); } mmaW4Line(x, C, 2 * S, ink, R, 1.2 * S);
+  // the scale under her, in fourths
+  mmaW4Line(x, [[cx - sq / 2, gy + 14 * S], [cx + sq / 2, gy + 14 * S]], 1.6 * S, ink, R, 1 * S); for (let i = 0; i <= 8; i++) { const tx = cx - sq / 2 + sq * i / 8; mmaW4Line(x, [[tx, gy + 9 * S], [tx, gy + (i % 2 ? 17 : 21) * S]], 1.4 * S, ink, R, 0.5 * S); }
+  // his notes, in his mirror hand (they read in a mirror)
+  const note = (lines, y0) => { x.save(); x.translate(W, 0); x.scale(-1, 1); lines.forEach((s, i) => mmCaps(x, s, W / 2, y0 + i * 15 * S, { size: 8.5 * S, w: 1.2 * S, col: ink, jit: 0.08, seed: 11 + i, align: 'c', track: 0.5 })); x.restore(); };
+  note(['PUFF IS AS WIDE AS SHE IS TALL', 'WHICH NO OTHER BODY IN NATURE MANAGES', 'THE BOW IS NOT COUNTED IN THE MEASURE'], H * 0.06);
+  note(['FROM BOOT TO BOW SHE IS ONE PUFF', 'THE REST OF THIS IS PENDING'], H * 0.91);
+  x.globalAlpha = 1;
+};
+
+// ── DAVID HICCUPS · CARPET FOR A LONG CORRIDOR: one hexagon, and again, and again, in the Holy Order's hexagons:
+//    plum, their gold (brass, where the town allows none) and a dark ground. The method only: a hexagon repeat is
+//    geometry; the famous carpet's own figure and colours are left alone. ──
+MMA_PAINT.hexcarpet = (x, W, H, pc, R, p) => {
+  const S = W / 640, r = 26 * S, dx = r * Math.sqrt(3), dy = r * 1.5, plum = '#5a2a52', gold = '#c9a06a', dark = '#21121f', rose = '#a04a68';
+  x.fillStyle = dark; x.fillRect(0, 0, W, H);
+  const hex = (cx, cy, rr) => { x.beginPath(); for (let k = 0; k < 6; k++) { const a = Math.PI / 6 + k * Math.PI / 3; k ? x.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr) : x.moveTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } x.closePath(); };
+  let n = 0;
+  for (let j = -1; j * dy < H + r; j++) for (let i = -1; i * dx < W + dx; i++) { const cx = i * dx + (j & 1 ? dx / 2 : 0), cy = j * dy, five = ((i * 3 + j * 5) % 7 + 7) % 7 === 0;
+    x.fillStyle = plum; hex(cx, cy, r * 0.94); x.fill();
+    x.strokeStyle = gold; x.lineWidth = 3.2 * S; hex(cx, cy, r * 0.7); x.stroke();
+    x.fillStyle = five ? gold : rose; hex(cx, cy, r * 0.36); x.fill();
+    if (five) { x.fillStyle = dark; hex(cx, cy, r * 0.16); x.fill(); }
+    if (++n % 200 === 0) mmaWarm(); }
+  // the weave, and the wear down the middle where everyone walks
+  x.strokeStyle = 'rgba(0,0,0,0.13)'; x.lineWidth = 1 * S; for (let y = 0; y < H; y += 3 * S) { x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); }
+  const wear = x.createLinearGradient(0, 0, 0, H); wear.addColorStop(0, 'rgba(240,225,210,0)'); wear.addColorStop(0.5, 'rgba(240,225,210,0.12)'); wear.addColorStop(1, 'rgba(240,225,210,0)'); x.fillStyle = wear; x.fillRect(0, 0, W, H);
+  // a plain border, and the fringe at the two short ends
+  x.strokeStyle = gold; x.lineWidth = 7 * S; x.strokeRect(9 * S, 9 * S, W - 18 * S, H - 18 * S); x.strokeStyle = dark; x.lineWidth = 9 * S; x.strokeRect(0, 0, W, H);
+  x.strokeStyle = '#e7dcc0'; x.lineWidth = 1.6 * S; for (let y = 4 * S; y < H; y += 5 * S) { x.beginPath(); x.moveTo(0, y); x.lineTo(5 * S, y + (R() - 0.5) * 2 * S); x.moveTo(W, y); x.lineTo(W - 5 * S, y + (R() - 0.5) * 2 * S); x.stroke(); }
+};
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 // mm_art_museum.js · THE MUSEUM, a set, on the Council's planet (🎬 Claude, 2026-10-21, after Mook, 2:41 am:
 //   "make a set a actual museum on a new planet that we can put all the paintings in").
@@ -48372,7 +49012,7 @@ function mmaMuseumFurniture(R) {
   const cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2;
   return [{ x: cx, z: cz, draw(g, C, P) {
     const b = { x0: cx - 1.3, x1: cx + 1.3, y0: 0.38, y1: 0.46, z0: cz - 0.3, z1: cz + 0.3 };
-    for (const [lx, lz] of [[-1.15, -0.22], [1.15, -0.22], [-1.15, 0.22], [1.15, 0.22]]) ydLine(g, C, [cx + lx, 0, cz + lz], [cx + lx, 0.38, cz + lz], Math.max(1.5, 0.04 * ydK(C, cx + lx, 0.2, cz + lz)), MMA_MUSEUM.brass);
+    for (const [lx, lz] of [[-1.15, -0.22], [1.15, -0.22], [-1.15, 0.22], [1.15, 0.22]]) ydLine(g, C, [cx + lx, 0, cz + lz], [cx + lx, 0.38, cz + lz], Math.min(12, Math.max(1.5, 0.04 * ydK(C, cx + lx, 0.2, cz + lz))), MMA_MUSEUM.brass);
     ydBox(g, C, b, { front: '#4a3c44', side: '#3a2e36', top: '#5a4a52' });
   } }];
 }
