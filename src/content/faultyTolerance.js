@@ -11,6 +11,20 @@ export const shorts = [
 ];
 export const craftNotes = [
   {
+    slug: "one-aqueduct-many-shots", title: "One aqueduct, many shots: how we used G-Stack", category: "Production tools",
+    deck: "We kept one editable world, gave each shot a job, and rendered only the changes that earned a place in the cut.", film: 0,
+    paragraphs: [
+      "The useful breakthrough was getting back to the .geo source. We knew where the characters could stand, what the stone was made of, and what each camera could see. G-Stack is our combined GeoV Studio and Geo Runtime pipeline. For this pass, we ran the native renderer through Node, without a browser. Each job took an editable scene set and a frame plan, then returned a sequence of images and a receipt with timings and warnings. That made it practical to work on several shots without rebuilding the place for each one.",
+      "The aqueduct is a shared set built with wave function collapse, a rule-based way to assemble neighboring pieces that fit. Aging it was a separate pass: staggered joints, mineral seepage, old iron fittings, and small pools of light. We could judge the new look with the exact same camera before and after. The walls and water changed in appearance. The surfaces the characters stand on and the space their feet need stayed put.",
+      "One fix made the value of that separation obvious. A far wall showed stripes because an old stand-in and the finished masonry occupied the same place. We restored the existing visibility rule for that angle, then checked the repair through the whole move. Keeping the same pose and camera made it clear what fixed the image.",
+      "The same method helped the acting. First check what can hold weight: the planted feet, the hand on the rail, the contact that actually moves the object. If it fails, stage a better action or make a clearer cut. Then ask the editing question: what does the audience need to see before the effort, and how long should they wait for the result? A beat of hesitation can do as much work as a new pose.",
+      "Here are the production counts. The two-minute test cut had 23 shot slots and 2,784 displayed frames at 24 fps. The shared look pass needed 219 distinct native scene-and-camera renders; repeated pictures were reused in the edit. A later three-beat motion revision left 2,580 picture exposures and the sound unchanged. Those are counts of what we rendered and what we kept, rather than a billing or speed benchmark.",
+      "The next things to test are readable outlines where bodies meet stone, more shape in the light and air, and water that tells you what a mechanism is doing. The aim is to spend less time remaking the aqueduct and more time making a scene worth watching.",
+    ],
+    watch: "One Good Look is a separate, public viewing exercise. Before a move or handoff, watch where the shot puts your attention and what it lets you anticipate.",
+    question: "What does the cut let you expect before a character moves?",
+  },
+  {
     slug: "a-hand-under-the-tray", title: "A hand under the tray", category: "Physical comedy", deck: "Before a handoff can be funny, it has to look possible.", film: 0,
     paragraphs: [
       "A tray is a tiny continuity test. Where is its weight? Which hand supports it now? What happens when that hand lets go? If the picture cannot answer those questions, a careful gesture can look like an object floating through the scene.",
