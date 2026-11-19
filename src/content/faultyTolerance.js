@@ -11,6 +11,20 @@ export const shorts = [
 ];
 export const craftNotes = [
   {
+    slug: "sound-first-one-world", title: "Sound first, one world: a Kip & Lo production update", category: "Production diary",
+    deck: "Since the first G-Stack breakdown, we've carried one aqueduct across several chapters and started locking the sound before we animate.", film: 0,
+    paragraphs: [
+      "The first G-Stack breakdown was about getting back to one editable aqueduct. The work since then has been about making that decision count on screen. Instead of starting each chapter with new scenery, we carry forward the spaces, props, and mechanisms that belong there. That buys us time for the things a viewer feels: a hand taking weight, a change in light as the camera looks down the basin, a pause before somebody commits.",
+      "Sound now leads the cut. We record the dialogue with Google Vids, then give it room in a mix with original music, Foley, and the sound of the place itself. We lock that mix before animating. The real takes tell us when mouths open, when a reply needs a beat, and where a sound needs an answer in the picture. In Chapter 17 we could make a small but useful edit on that basis: a brief close-up lands on a latch sound and returns to the wide. Seventeen picture frames changed. The sound and captions stayed exactly as they were.",
+      "Picture still comes from Sean DiMarco's G-Stack: the combined GeoV Studio and Geo Runtime pipeline. We render the editable .geo scenes through Node, without a browser. Cameras, character poses and props stay adjustable in the same space. A good wide makes the route clear before we cut in. If a reach is too long or a hand is not carrying the load, we change the action instead of hiding the mistake with a cut.",
+      "The process got clearer because some early cuts looked finished before they were. Sean flagged rushed framing, empty areas of the set, clipping, and mouths that did not match the lines. The fix was to restore the order of work, not add a coat of polish at the end: lock sound, stage the action, check the rendered movement and edit, then watch the whole cut before calling it ready. Sean sets the creative direction and decides what locks. The AI production work includes working out the shots, staging the action, rendering and editing, and revising against his notes.",
+      "The look work is part of that same process. We give the stone joints, texture and the marks of use, and give the sky and practical lights a job in the shot. The newer mist sits low over the basin and falls into the depth of the set rather than covering the whole image. We can keep the foreground action clear and still feel the distance to the far arches.",
+      "Here is where the work stood on November 19, 2026. Chapters 15 and 16 were locked and scheduled for YouTube as a two-part preview, not as the next two releases in sequence. Chapter 17 had a polished cut in review. Chapter 18 was in dialogue and audio preparation, not yet animated. A render, a producer-approved cut, and a public release are three different things.",
+    ],
+    watch: "One Good Look is a separate public film. Watch it once with the sound on, then again muted. Notice which moments still read and which ones the sound helps you anticipate.",
+    question: "What does the sound tell you to look for just before a cut?",
+  },
+  {
     slug: "one-aqueduct-many-shots", title: "One aqueduct, many shots: how we used G-Stack", category: "Production tools",
     deck: "We kept one editable world, gave each shot a job, and rendered only the changes that earned a place in the cut.", film: 0,
     paragraphs: [
