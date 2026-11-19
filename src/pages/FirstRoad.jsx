@@ -54,9 +54,9 @@ export default function FirstRoad() {
             <p className="first-road-summary">Explore Brindlewick, take on a job with your familiar, or stay awhile and play something the neighbors made.</p>
             <div className="first-road-actions">
               <a className="first-road-button" href={playRoot}>Play First Road</a>
-              <a className="first-road-secondary" href={`${playRoot}pair-review.html`}>Try Paper Harbor</a>
+              <a className="first-road-secondary" href={`${playRoot}paper-harbor.html`}>Try Paper Harbor</a>
             </div>
-            <p className="first-road-note">The adventure saves in this browser. The Paper Harbor preview doesn’t touch your save.</p>
+            <p className="first-road-note">The 3D adventure needs WebGL 2 and saves in this browser. Paper Harbor runs without WebGL and doesn’t touch your save.</p>
           </div>
           <figure className="first-road-plate">
             <HarborIllustration />
