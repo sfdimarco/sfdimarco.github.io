@@ -11,6 +11,19 @@ export const shorts = [
 ];
 export const craftNotes = [
   {
+    slug: "show-the-rule-before-it-breaks", title: "Show the rule before it breaks", category: "Story and staging",
+    deck: "A planter, a flag, and one repeated camera angle show how the aqueduct works without asking the viewer to guess.", film: 0,
+    paragraphs: [
+      "The aqueduct crew can know a rule by heart while the viewer has never heard it. Before a scene asks us to worry, we should know what the crew is trying to do, what tells them it is safe to act, and what happens if that sign is missed. We are testing a simple order: show the rule, show what breaks it, then make the correction visible.",
+      "In a recent G-Stack staging test, a flag carries a signal from one work position to another. From a high, all-knowing angle, the flag is easy to see. From the receiver’s eye level, the same lowered flag disappears behind a planter. We hold that receiver angle and use it again after the flag moves. The viewer can compare before and after without having to learn a new layout in the middle of the action.",
+      "Seeing the flag and being ready to take the weight aren’t the same thing. The first attempt needs a visible consequence for moving early. On the retry, the count stops long enough for the viewer to notice that the weight is still being held. A clear reply ends that wait. The sound gives the pause its length; the picture makes clear who is waiting and what moves only after the reply.",
+      "We also want a test and its larger consequence to look like two different events. A few drops at one joint tell you about that joint, not the whole aqueduct. The next view establishes where the first small flow is actually going. That bit of geography is exposition too. It teaches the viewer what changed rather than simply assuring them that the job worked.",
+      "The build keeps the planter, flag, and cameras in an editable GeoV scene. We checked the view with the same camera and real foreground geometry, then rendered the shots in G-Stack against the locked dialogue and effects. The scene remains in private picture review. The exercise below uses a separate public film.",
+    ],
+    watch: "In One Good Look, pause before a character makes a move and name what they’re trying to do. Resume and look for the shot that tells you whether their move worked.",
+    question: "Could a first-time viewer tell you what the crew is waiting for before they hear the reply?",
+  },
+  {
     slug: "sound-first-one-world", title: "Sound first, one world: a Kip & Lo production update", category: "Production diary",
     deck: "Since the first G-Stack breakdown, we've carried one aqueduct across several chapters and started locking the sound before we animate.", film: 0,
     paragraphs: [
