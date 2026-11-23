@@ -181,6 +181,13 @@
 .halo-pack-actions { display:flex; flex-wrap:wrap; gap:.8rem 1.2rem; align-items:center; justify-content:center; margin-top:1.6rem; }
 .halo-pack-say { width:100%; text-align:center; font:400 1.3rem Georgia,serif; }
 
+/* Draft Night is over (one per visitor) */
+.halo-done { max-width:40rem; margin:1rem auto; text-align:center; background:#22263a; border:1px solid #3a3f52; padding:1.4rem 1.2rem; }
+.halo-done h2 { font:400 clamp(1.5rem,3vw,2rem) Georgia,serif; margin:.6rem 0; }
+.halo-done p { color:#d6d3c6; margin:.5rem auto; max-width:34rem; }
+.halo-done .halo-actions { justify-content:center; }
+.halo-done-badge { display:inline-block; background:#2e7d32; color:#fff; font-weight:800; letter-spacing:.08em; font-size:.8rem; padding:.2rem .6rem; border-radius:3px; }
+
 /* ───── binder */
 .halo-meter { height:6px; background:#2a2f40; border-radius:3px; max-width:24rem; margin-top:.6rem; overflow:hidden; }
 .halo-meter span { display:block; height:100%; background:linear-gradient(90deg,#00bcd4,#f9a825,#c2185b); }

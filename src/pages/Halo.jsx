@@ -3,7 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import HaloCard, { CardBack } from "../components/HaloCard.jsx";
 import { HALO_CARDS, HALO_BASICS, HALO_BOSSES } from "../content/haloCards.js";
 import {
-  BY_ID, SET_SIZE, DECK_SIZE, STARTER_PACKS, loadBinder, saveBinder, openPack, newNight, bestFinish,
+  BY_ID, SET_SIZE, DECK_SIZE, STARTER_PACKS, loadBinder, saveBinder, openPack, bestFinish,
   deckProblems, fillWithBasics, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE,
 } from "../lib/haloBinder.js";
 import { useHaloArt, mountCard, loadHaloArt } from "../lib/haloArt.js";
@@ -241,11 +241,14 @@ function Packs({ binder, setBinder }) {
       )}
 
       {phase === "sealed" && binder.packsLeft === 0 && (
-        <div className="halo-empty">
-          <p>All {opened} packs are open. {Object.keys(binder.owned).length} of {SET_SIZE} cards found.</p>
+        <div className="halo-done">
+          <span className="halo-done-badge">DRAFT NIGHT ✓</span>
+          <h2>You've had your Draft Night.</h2>
+          <p>Three packs each, no trades: that's the rule at Tortimer's. You opened {opened} {opened === 1 ? "pack" : "packs"} and found {Object.keys(binder.owned).length} of {SET_SIZE} cards.</p>
+          <p>Want more Poptarts? Win them. Take your deck against the cast on the bounty board: every win pays points, and points buy packs at the Bazaar.</p>
           <div className="halo-actions">
-            <Link className="halo-button" to="/halo/deck">Build your Draft Night deck</Link>
-            <button className="halo-link" onClick={() => setBinder(newNight(binder))}>Another Draft Night: three more packs</button>
+            <Link className="halo-button" to="/halo/deck">Your Draft Night deck</Link>
+            <Link className="halo-button" to="/halo/bazaar">Hunt a bounty ▸</Link>
           </div>
         </div>
       )}
@@ -462,7 +465,7 @@ export default function Halo({ view = "learn" }) {
         {view === "binder" && <Binder binder={binder} />}
         {view === "deck" && <DraftNight binder={binder} setBinder={setBinder} />}
         {view === "bazaar" && <Bazaar binder={binder} setBinder={setBinder} news={news} />}
-        <p className="halo-starter-note">{STARTER_PACKS} starter packs per Draft Night · finishes are looks only: a First Edition plays the same as a laminate.</p>
+        <p className="halo-starter-note">One Draft Night per visitor: {STARTER_PACKS} starter packs · finishes are looks only: a First Edition plays the same as a laminate.</p>
       </div>
     </article>
   );

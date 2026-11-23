@@ -87,8 +87,7 @@ export function openPack(b) {
   return [{ ...b, owned, finishes, packsLeft: b.packsLeft - 1, packsOpened: b.packsOpened + 1 }, cards];
 }
 
-// 🆕 another Draft Night: three more packs (they add to the binder)
-export const newNight = (b) => ({ ...b, packsLeft: b.packsLeft + STARTER_PACKS, nights: (b.nights || 1) + 1 });
+// 🗣 Mook 11-23: one Draft Night per visitor (three packs, one deck). More packs come only from the Bazaar (bounty points).
 
 export const bestFinish = (b, id) => {
   const f = b.finishes[id] || [];
