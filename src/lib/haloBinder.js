@@ -1,6 +1,6 @@
 // HALO Poptarts: booster packs, the binder and the Draft Night deck, kept in this browser.
 // Storage is wrapped: if localStorage is blocked (private window, cleared data) the page still works, it just forgets on reload.
-import { HALO_CARDS, HALO_BASICS } from "../content/haloCards.js";
+import { HALO_CARDS, HALO_BASICS, HALO_COMBOS } from "../content/haloCards.js";
 
 export const BY_ID = Object.fromEntries([...HALO_CARDS, ...HALO_BASICS].map((c) => [c.id, c]));
 export const SET_SIZE = HALO_CARDS.length;
@@ -35,7 +35,7 @@ export function makePack(rnd = Math.random, commanderHit = false) {
   return cards;
 }
 
-const fresh = () => ({ v: 1, owned: {}, finishes: {}, packsLeft: STARTER_PACKS, packsOpened: 0, nights: 1, deck: null, points: 0, beaten: {}, claimed: [] });
+const fresh = () => ({ v: 1, owned: {}, finishes: {}, packsLeft: STARTER_PACKS, packsOpened: 0, nights: 1, deck: null, points: 0, beaten: {}, claimed: [], learned: false });
 
 // 🆕 bounties (Claude's, for Mook's tick): beat a cast deck 1 on 1 with your Draft Night deck to earn points,
 // spend them at Tortimer's Card Bazaar. Every win pays WIN_POINTS; the first win over a boss also pays its BOUNTY.
@@ -110,9 +110,24 @@ export function deckProblems(b, deck) {
   return out;
 }
 
-// fill the empty places with basics, keeping the grunt / soldier / wall / heavy mix of every planet (4 · 4 · 2 · 1)
+// 11-23: the mixed-deck combos. For each: which pieces are in the deck, which are missing, and whether Armillaria (the wild) can finish it.
+export function comboStatus(cards, owned = {}) {
+  const inDeck = new Set(cards), wild = inDeck.has("mycelium");
+  return HALO_COMBOS.map((co) => {
+    const named = co.parts.filter((x) => !x.startsWith("kInd_")), basic = co.parts.find((x) => x.startsWith("kInd_"));
+    const have = named.filter((x) => inDeck.has(x)), own = named.filter((x) => owned[x]);
+    const ready = have.length === 2 || (have.length === 1 && wild);
+    const gap = have.length === 1 && wild ? named.find((x) => !inDeck.has(x)) : null;   // the piece Armillaria stands in for
+    return { ...co, named, basic, have, own, ready, gap, basicIn: inDeck.has(basic), canBuild: own.length === 2 || (own.length === 1 && !!owned.mycelium) };
+  });
+}
+
+// fill the empty places with basics. First the basic each READY combo needs (three of it, so it turns up), then the
+// grunt / soldier / wall / heavy mix of every planet (4 · 4 · 2 · 1)
 export function fillWithBasics(cards) {
-  const out = cards.slice(), mix = ["kInd_grunt", "kInd_soldier", "kInd_grunt", "kInd_soldier", "kInd_wall", "kInd_grunt", "kInd_soldier", "kInd_heavy", "kInd_grunt", "kInd_soldier", "kInd_wall"];
+  const out = cards.slice();
+  for (const co of comboStatus(out)) if (co.ready) for (let k = out.filter((x) => x === co.basic).length; k < 3 && out.length < DECK_SIZE; k++) out.push(co.basic);
+  const mix = ["kInd_grunt", "kInd_soldier", "kInd_grunt", "kInd_soldier", "kInd_wall", "kInd_grunt", "kInd_soldier", "kInd_heavy", "kInd_grunt", "kInd_soldier", "kInd_wall"];
   for (let i = 0; out.length < DECK_SIZE; i++) out.push(mix[i % mix.length]);
   return out;
 }

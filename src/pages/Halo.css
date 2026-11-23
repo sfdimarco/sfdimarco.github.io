@@ -245,3 +245,44 @@
   .halo-slot { animation-duration:.01s; animation-delay:0s; }
   .halo-flip-face { animation:none; }
 }
+
+/* ───── 11-23: Mush shows you how to play · the path · combos · bounty tiers */
+.halo-mush { border-top:1px solid #3a3f52; margin-top:clamp(2.2rem,6vw,5.4rem); padding-top:1.3rem; }
+.halo-mush h2 { font:400 clamp(1.7rem,3vw,2.45rem)/1.13 Georgia,serif; margin-bottom:1rem; }
+.halo-mush-stage { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); gap:1.4rem; align-items:center; background:#22263a; border:1px solid #3a3f52; padding:1rem; min-height:16rem; }
+.halo-mush-talk { display:flex; gap:1rem; align-items:flex-start; }
+.halo-mush-face { flex:none; animation:halo-mush-bob 1.8s ease-in-out infinite; transform-origin:50% 100%; }
+@keyframes halo-mush-bob { 0%,100% { transform:scale(1,1); } 45% { transform:scale(1.06,.93); } 60% { transform:scale(.96,1.05) translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .halo-mush-face { animation:none; } }
+.halo-mush-bubble { position:relative; background:#f3eee0; color:#1b1e29; border-radius:14px; padding:.9rem 1.1rem; font:400 1.15rem/1.35 Georgia,serif; }
+.halo-mush-bubble::before { content:""; position:absolute; left:-10px; top:22px; border:10px solid transparent; border-left:0; border-right-color:#f3eee0; }
+.halo-mush-bubble p + p { margin-top:.35rem; }
+.halo-mush-bubble .halo-mush-act { font:italic .95rem/1.35 system-ui,sans-serif; color:#5a5648; }
+.halo-mush-show .halo-art, .halo-mush-show .halo-learn-art { width:100%; height:auto; }
+.halo-mush-show .halo-road-mini { grid-template-columns:repeat(auto-fill,minmax(11rem,1fr)); gap:.6rem 1rem; margin:0; }
+.halo-mush-show .halo-road-mini p { font-size:.85rem; }
+.halo-mush-combo { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; justify-content:center; }
+.halo-mush-combo .hc { --w:5.2rem; }
+.halo-mush-combo b { font:700 1.4rem Georgia,serif; color:#f6c744; }
+.halo-mush-nav { display:flex; align-items:center; gap:.8rem 1.2rem; flex-wrap:wrap; margin-top:.9rem; }
+.halo-mush-dots { display:flex; gap:.35rem; margin-right:auto; }
+.halo-mush-dots i { width:.6rem; height:.6rem; border-radius:50%; background:#3a3f52; }
+.halo-mush-dots i.seen { background:#8a7a4a; } .halo-mush-dots i.on { background:#f6c744; }
+.halo-path { list-style:none; padding:0; margin:1.2rem 0 0; display:flex; flex-wrap:wrap; gap:.45rem; }
+.halo-path a { display:flex; align-items:center; gap:.45rem; padding:.4rem .7rem .4rem .45rem; border:1px solid #3a3f52; border-radius:999px; color:#b9b6a8; text-decoration:none; font-size:.9rem; background:#22263a; }
+.halo-path-n { display:inline-grid; place-items:center; width:1.4rem; height:1.4rem; border-radius:50%; background:#3a3f52; color:#ece9dd; font-size:.8rem; font-weight:700; }
+.halo-path li.done a { color:#ece9dd; border-color:#2e7d32; } .halo-path li.done .halo-path-n { background:#2e7d32; }
+.halo .halo-path li.next a { color:#1b1e29; background:#f6c744; border-color:#f6c744; font-weight:700; } .halo-path li.next .halo-path-n { background:#1b1e29; color:#f6c744; }
+.halo-combo-lede { display:flex; align-items:center; gap:.6rem; margin:.2rem 0 .8rem; }
+.halo-combo-lede .halo-mush-face { animation:none; }
+.halo-combos { list-style:none; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(min(19rem,100%),1fr)); gap:.8rem; }
+.halo-combos li { display:flex; gap:.8rem; align-items:center; background:#22263a; border:1px solid #3a3f52; padding:.6rem; }
+.halo-combos li.is-ready { border-color:#f6c744; } .halo-combos li.is-near { border-color:#8a7a4a; }
+.halo-combos .hc { --w:4.6rem; }
+.halo-combos h3 { font:400 1.1rem Georgia,serif; margin-bottom:.2rem; }
+.halo-combos p { font-size:.88rem; margin:.15rem 0; }
+.halo-part { color:#8a8778; } .halo-part.own { color:#ece9dd; } .halo-part.on { color:#f6c744; font-weight:700; }
+.halo-tier { font-size:.78rem; font-weight:700; padding:.1rem .45rem; border-radius:3px; letter-spacing:.03em; }
+.halo-tier.t1 { background:#2e7d32; color:#fff; } .halo-tier.t2 { background:#ef6c00; color:#fff; } .halo-tier.t3 { background:#e53935; color:#fff; }
+.halo-bounty.is-next { border-color:#f6c744; box-shadow:0 0 0 2px rgba(246,199,68,.35); }
+@media (max-width: 760px) { .halo-mush-stage { grid-template-columns:1fr; } .halo-mush-talk .halo-mush-face { width:64px; height:64px; } }

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import HaloCard, { CardBack } from "../components/HaloCard.jsx";
+import { MushTalk, HaloPath, MushFace } from "../components/HaloMush.jsx";
 import { HALO_CARDS, HALO_BASICS, HALO_BOSSES } from "../content/haloCards.js";
 import {
   BY_ID, SET_SIZE, DECK_SIZE, STARTER_PACKS, loadBinder, saveBinder, openPack, bestFinish,
-  deckProblems, fillWithBasics, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE,
+  deckProblems, fillWithBasics, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE, comboStatus,
 } from "../lib/haloBinder.js";
 import { useHaloArt, mountCard, loadHaloArt } from "../lib/haloArt.js";
 import "./Halo.css";
@@ -113,7 +114,7 @@ function SubNav({ binder }) {
   );
 }
 
-function Learn({ binder }) {
+function Learn({ binder, setBinder }) {
   return (
     <>
       <section className="halo-hero" aria-labelledby="halo-title">
@@ -127,6 +128,7 @@ function Learn({ binder }) {
             <a href={playRoot}>or play a show deck now</a>
           </div>
           <p className="halo-note">Runs in this browser, nothing to install. Balanced by bots so far, not by people: tell me what feels off.</p>
+          <HaloPath binder={binder} />
         </div>
         <figure className="halo-plate">
           <SevenPlanets />
@@ -134,8 +136,10 @@ function Learn({ binder }) {
         </figure>
       </section>
 
+      <MushTalk binder={binder} setBinder={setBinder} art={{ planets: <SevenPlanets />, planet: <OnePlanet />, grid: <TheGrid />, roads: <RoadsMini /> }} />
+
       <section className="halo-learn" aria-labelledby="halo-learn-title">
-        <h2 id="halo-learn-title">Learn to play</h2>
+        <h2 id="halo-learn-title">The rules, on one page</h2>
         <div className="halo-learn-grid">
           <figure>
             <OnePlanet />
@@ -166,6 +170,15 @@ function Learn({ binder }) {
         </ul>
       </section>
     </>
+  );
+}
+
+// the seven roads, small (Mush's last-but-one step)
+function RoadsMini() {
+  return (
+    <ul className="halo-road-list halo-road-mini">
+      {ROADS.map((r) => <li key={r.ring}><span className="halo-ring" style={{ background: r.color }} aria-hidden="true" /><div><h3>{r.road}</h3><p><strong>{r.ring}.</strong> {r.how}</p></div></li>)}
+    </ul>
   );
 }
 
@@ -246,6 +259,7 @@ function Packs({ binder, setBinder }) {
           <h2>You've had your Draft Night.</h2>
           <p>Three packs each, no trades: that's the rule at Tortimer's. You opened {opened} {opened === 1 ? "pack" : "packs"} and found {Object.keys(binder.owned).length} of {SET_SIZE} cards.</p>
           <p>Want more Poptarts? Win them. Take your deck against the cast on the bounty board: every win pays points, and points buy packs at the Bazaar.</p>
+          <HaloPath binder={binder} />
           <div className="halo-actions">
             <Link className="halo-button" to="/halo/deck">Your Draft Night deck</Link>
             <Link className="halo-button" to="/halo/bazaar">Hunt a bounty ▸</Link>
@@ -360,6 +374,7 @@ function DraftNight({ binder, setBinder }) {
           <div className="halo-row">
             {HALO_BASICS.map((c) => <HaloCard key={c.id} id={c.id} className={full ? "hc-spent" : ""} onClick={() => add(c.id)} />)}
           </div>
+          <Combos deck={deck} binder={binder} />
         </div>
         <aside className="halo-deck-list" aria-label="Your deck">
           <h2>Your deck <span className={deck.cards.length === DECK_SIZE ? "ok" : ""}>{deck.cards.length}/{DECK_SIZE}</span></h2>
@@ -384,6 +399,33 @@ function DraftNight({ binder, setBinder }) {
         {problems.length ? null : <a className="halo-button" tabIndex={-1} href={playLink(playRoot, deck, "Your Draft deck")}>Play ▸</a>}
       </div>
     </section>
+  );
+}
+
+// 11-23: the mixed-deck combos. Two cards from two decks + one free basic, three in a line on the table = one big card.
+const bn = (id) => (BY_ID[id].rarity === "basic" ? `${BY_ID[id].name} (basic)` : BY_ID[id].name);
+function Combos({ deck, binder }) {
+  const list = comboStatus(deck.cards, binder.owned).sort((a, b) => b.ready - a.ready || b.canBuild - a.canBuild || b.own.length - a.own.length);
+  return (
+    <>
+      <h2>4 · Combos <small>three in a line on the table fuse into one card</small></h2>
+      <p className="halo-dim halo-combo-lede"><MushFace size={40} /> Two cards from two decks and one basic. Lay them in one lane. Armillaria fills any one gap.</p>
+      <ul className="halo-combos">
+        {list.map((co) => (
+          <li key={co.makes} className={co.ready ? "is-ready" : co.canBuild ? "is-near" : ""}>
+            <HaloCard id={co.makes} finish={co.ready ? "lenticular" : "laminate"} className={co.own.length ? "" : "hc-spent"} />
+            <div>
+              <h3>{BY_ID[co.makes].name}</h3>
+              <p>{co.parts.map((x, k) => {
+                const on = x.startsWith("kInd_") ? co.basicIn : co.have.includes(x), owned = x.startsWith("kInd_") || binder.owned[x];
+                return <span key={x}>{k ? " + " : ""}<span className={on ? "halo-part on" : owned ? "halo-part own" : "halo-part"}>{bn(x)}</span></span>;
+              })}</p>
+              <p className="halo-dim">{co.ready ? (co.gap ? `Armillaria stands in for ${BY_ID[co.gap].name}. ` : "") + (co.basicIn ? "In your deck. Lay them in one lane." : `Add a ${bn(co.basic)} or press Fill.`) : co.canBuild ? "You own the pieces: add them to your deck." : co.own.length ? `You own ${co.own.length} of 2. ${binder.owned.mycelium ? "Armillaria can stand in." : "Still out there."}` : "Still out there."}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 
@@ -419,16 +461,19 @@ function Bazaar({ binder, setBinder, news }) {
         </div>
       </div>
 
+      <HaloPath binder={binder} />
       <h2 className="halo-h3">Bounty board</h2>
+      <p className="halo-dim halo-combo-lede"><MushFace size={40} /> Easy ones first. Start with Leo. He's half asleep.</p>
       {!ready && <p className="halo-empty">First build a 20-card deck on <Link to="/halo/deck">Draft Night</Link>, then come back to hunt.</p>}
       <div className="halo-bounties">
         {HALO_BOSSES.map((b) => {
-          const wins = (binder.beaten || {})[b.key] || 0;
+          const wins = (binder.beaten || {})[b.key] || 0, next = HALO_BOSSES.find((x) => !(binder.beaten || {})[x.key])?.key === b.key;
           return (
-            <div key={b.key} className={`halo-bounty ${wins ? "is-beaten" : ""}`}>
+            <div key={b.key} className={`halo-bounty ${wins ? "is-beaten" : ""} ${next ? "is-next" : ""}`}>
               <HaloCard id={b.cmd} finish={wins ? "laminate" : "lenticular"} />
               <div className="halo-bounty-words">
                 <h3>{b.who}</h3>
+                <span className={`halo-tier t${b.tier}`}>{["", "Easy", "Medium", "Hard"][b.tier]}{next ? " · start here" : ""}</span>
                 <p className="halo-dim">{wins ? `Beaten ${wins}×. A win pays ${WIN_POINTS}.` : `Bounty: ${WIN_POINTS + BOUNTY} points`}</p>
                 {ready
                   ? <a className="halo-button" href={playLink(playRoot, deck, "Your Draft deck", b.key)}>Hunt ▸</a>
@@ -460,7 +505,7 @@ export default function Halo({ view = "learn" }) {
     <article className="halo">
       <div className="wrap">
         <SubNav binder={binder} />
-        {view === "learn" && <Learn binder={binder} />}
+        {view === "learn" && <Learn binder={binder} setBinder={setBinder} />}
         {view === "packs" && <Packs binder={binder} setBinder={setBinder} />}
         {view === "binder" && <Binder binder={binder} />}
         {view === "deck" && <DraftNight binder={binder} setBinder={setBinder} />}

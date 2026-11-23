@@ -1206,6 +1206,120 @@ for (const key in KB_CMD) {
   };
 }
 
+// ── art/mix.js
+// mix: the mixed-deck combos (11-23) and Armillaria, Mush's wild fungus. 🆕 every picture is Claude's, for Mook's tick (mix.ticks.md).
+// Each fused card shows BOTH decks that made it. Second picture (a.alt) = the combo's moment.
+
+// ── Armillaria: the honey fungus. A cluster of honey caps above, and under the soil its threads join three squares together
+ART.mycelium = a => {
+  a.layer(-1, () => a.nim('#f2d48a'));
+  a.layer(-0.4, () => { a.fillRect(-130, 10, 130, 110, rgba('#6b4a32', 0.8)); a.curve([[-130, 12], [-50, 6], [40, 14], [130, 8]], 1201, 1.6); });   // the soil line
+  a.layer(0, () => {                                                                                    // the threads (rhizomorphs), black bootlaces under the soil
+    const glow = a.alt ? '#ffe08a' : '#2a1c14';
+    for (let i = 0; i < 5; i++) a.curve([[-110 + i * 6, 30 + i * 9], [-50, 20 + i * 12], [10, 44 - i * 4], [60, 30 + i * 8], [118, 40 + i * 6]], 1210 + i, a.alt ? 2.2 : 1.6);
+    for (const x of [-84, 0, 84]) { a.rect(x - 20, 52, x + 20, 92, 2, a.alt ? rgba('#ffe08a', 0.55) : rgba('#3a2a20', 0.5), 1220 + x, 1.4); if (a.alt) a.dot(x, 72, 4, glow); }   // three squares, joined
+  });
+  a.layer(0.4, () => {                                                                                  // the cluster of honey caps
+    const caps = [[-34, -6, 1.1], [-6, -22, 1.35], [24, -4, 1.05], [46, -18, 0.85], [-56, -16, 0.8]];
+    caps.forEach(([x, y, s], i) => a.at(x, y, (i - 2) * 0.08, () => {
+      a.blob([[-5, 18], [-4, -8], [4, -8], [5, 18]], '#f3e2c0', 1230 + i);                                // stem
+      a.blob([[-7, -2], [7, -2], [6, 2], [-6, 2]], '#e8d6a8', 1240 + i, 1.2);                             // the ring on the stem
+      a.blob([[-20, -6], [-14, -18], [0, -22], [14, -18], [20, -6]], '#d99a3a', 1250 + i);                // honey cap
+      for (let k = 0; k < 4; k++) a.dot(-10 + k * 7, -14 + (k % 2) * 3, 1.4, '#7a4a1a');
+    }, s));
+  });
+};
+
+// ── The Misadventure: Mook's beat-up frigate, with Mush's toadstool guard crewing the deck (Mook + Mush)
+ART.misadventure = a => {
+  a.layer(-1, () => a.nim('#ffd7a0'));
+  a.layer(-0.6, () => { planet(a, -86, -54, 22, '#7fb3e0', 1301); a.star(70, -70, 6, '#ffe08a', 1302); a.star(100, -40, 4, '#ffe08a', 1303); });
+  a.layer(0.1, () => a.at(-6, 34, a.alt ? -0.08 : 0, () => {
+    ship(a, { len: 74, ports: 3, patches: true, masts: [-10, 34], sailCols: ['#f3eadb', '#e0503a'], flagCol: '#e53935' });
+    mgToadstool(a, -40, 0, 0.9, 1310); mgToadstool(a, 6, 0, 0.75, 1312); mgToadstool(a, 50, 0, 0.85, 1314);   // the toadstool guard on deck
+  }, 0.95));
+  a.layer(0.5, () => { a.fillRect(-130, 64, 130, 110, rgba('#3a5a8a', 0.5)); waves(a, 72, 7, 42, 1320); });
+  if (a.alt) a.layer(0.9, () => { for (let i = 0; i < 6; i++) { const an = -2.6 + i * 0.35; a.dot(-6 + Math.cos(an) * 96, 20 + Math.sin(an) * 70, 3, '#f9d38a'); } a.circ(96, -10, 10, 10, '#f9d38a', 1330); });   // spores and a cannonball: it reaches any lane
+};
+
+// ── Libertalia: the free pirate republic. A flag with no king on it, a rat in a tricorne at the gate (Mook + Gil)
+ART.libertalia = a => {
+  a.layer(-1, () => a.nim('#ffe2a8'));
+  a.layer(-0.5, () => { a.blob([[-130, 40], [-70, 8], [0, 0], [70, 10], [130, 40]], '#9fcf72', 1401); });   // the island
+  a.layer(-0.1, () => {                                                                                // the stockade town
+    for (let i = 0; i < 9; i++) { const x = -110 + i * 26; a.poly([[x, 46], [x, 6], [x + 6, -2], [x + 12, 6], [x + 12, 46]], '#b5814f', 1410 + i, 1.6); }
+    a.rect(-24, 6, 24, 46, 2, '#3a2618', 1420); a.line([[0, -90], [0, 6]], 1421, 2.2);
+    a.blob([[0, -90], [52, -84], [46, -70], [54, -56], [0, -60]], '#fdfcf5', 1422);                     // the white flag of Libertalia: no king
+    a.line([[14, -80], [34, -66]], 1423, 1.6); a.line([[34, -80], [14, -66]], 1424, 1.6);
+  });
+  a.layer(0.4, () => { a.fillRect(-130, 50, 130, 110, rgba('#2f6f9a', 0.55)); waves(a, 66, 7, 42, 1430); });
+  a.layer(0.6, () => a.at(-74, 50, 0, () => {                                                         // a rat at the gate, in a tricorne
+    a.blob([[-14, 0], [-16, -26], [0, -36], [16, -26], [14, 0]], MG_RAT, 1440); a.circ(0, -44, 12, 10, MG_RAT, 1441);
+    a.circ(-10, -54, 5, 5, '#e8b0a0', 1442); a.circ(10, -54, 5, 5, '#e8b0a0', 1443); a.dot(-4, -46, 1.8); a.dot(4, -46, 1.8);
+    a.poly([[-16, -56], [0, -66], [16, -56], [0, -60]], INK, 1444, 1.4); a.curve([[14, -6], [30, 4], [40, -8]], 1445, 1.6);
+  }));
+  if (a.alt) a.layer(0.9, () => { for (let i = 0; i < 2; i++) a.at(54 + i * 34, -30 + i * 14, 0, () => { a.circ(0, 0, 14, 14, '#f9c74f', 1450 + i); a.g.save(); a.g.fillStyle = ST.holo ? HOLO : INK; a.g.font = 'bold 13px ' + NUMFONT; a.g.textAlign = 'center'; a.g.textBaseline = 'middle'; a.g.fillText('+1', 0, 1); a.g.restore(); }); });
+};
+
+// ── Dilmun: the garden at the start of the world, where nothing gets old. Mush's turrets grow out of Harriet's shell-terraces (Mush + Tortimer)
+ART.dilmun = a => {
+  a.layer(-1, () => a.nim('#c8eaa0'));
+  a.layer(-0.5, () => { a.circ(70, -64, 18, 18, '#ffe08a', 1501); });
+  a.layer(-0.1, () => {                                                                                // three terraces, like a tortoise shell
+    [[-110, 110, 50, '#7fb069'], [-80, 80, 24, '#8bc34a'], [-48, 48, 0, '#a3d06a']].forEach(([x0, x1, y, c], i) => { a.rect(x0, y, x1, y + 26, 6, c, 1510 + i); for (let k = 0; k < 5; k++) a.dot(x0 + 14 + k * (x1 - x0 - 28) / 4, y + 13, 2.2, '#4a7a3a'); });
+    a.blob([[-20, 0], [-14, -26], [14, -26], [20, 0]], '#d9c9a8', 1520);                                 // the spring house
+    a.poly([[-24, -26], [0, -44], [24, -26]], '#a8442a', 1521, 1.6);
+  });
+  a.layer(0.3, () => { mgToadstool(a, -92, 50, 1, 1530); mgToadstool(a, 92, 50, 1, 1532); mgToadstool(a, -62, 24, 0.8, 1534); mgToadstool(a, 62, 24, 0.8, 1536); });
+  a.layer(0.6, () => { a.fillRect(-130, 76, 130, 110, rgba('#5aa0c8', 0.6)); waves(a, 84, 7, 42, 1540); });
+  if (a.alt) a.layer(0.9, () => { for (let i = 0; i < 3; i++) { const x = -50 + i * 50; a.circ(x, -70 + (i % 2) * 12, 9, 9, ['#e53935', '#f9a825', '#2e7d32'][i], 1550 + i, 1.6); a.curve([[x, -60 + (i % 2) * 12], [x + 6, -46], [x, -34]], 1560 + i, 1.4); } });   // rings grow back, like fruit
+};
+
+// ── Uraniborg: Tycho's castle of the heavens. Rose's lizards at the great quadrant, Leo's stork on the dome (Rose + Leo)
+ART.uraniborg = a => {
+  a.layer(-1, () => a.nim('#b8c8f0'));
+  a.layer(-0.7, () => { for (let i = 0; i < 9; i++) a.star(-120 + H2(i, 7) * 240, -96 + H2(i, 9) * 50, 2 + H2(i, 3) * 3, '#ffe08a', 1601 + i); });
+  a.layer(-0.1, () => {
+    a.rect(-60, -6, 60, 60, 2, '#d98f6a', 1610); for (let i = 0; i < 4; i++) a.rect(-48 + i * 28, 10, -36 + i * 28, 30, 4, '#3a3440', 1611 + i, 1.2);
+    a.blob([[-36, -6], [-30, -40], [0, -56], [30, -40], [36, -6]], '#e8d6a8', 1620);                    // the dome
+    a.line([[0, -56], [0, -70]], 1621, 1.6); a.poly([[0, -70], [-6, -66], [0, -62]], '#e53935', 1622, 1);
+    a.at(-18, -60, 0, () => { a.blob([[-8, 0], [-10, -14], [6, -16], [10, -4], [4, 2]], CREAM, 1623); a.line([[10, -10], [24, -8]], 1624, 1.4); a.line([[-2, 0], [-2, 10]], 1625, 1.2); a.line([[3, 0], [3, 10]], 1626, 1.2); a.dot(4, -10, 1.4); });   // Leo's stork on the dome
+  });
+  a.layer(0.4, () => a.at(84, 56, 0, () => {                                                         // the mural quadrant, a lizard reading it
+    a.curve([[-40, 0], [-36, -40], [0, -60]], 1630, 3); a.line([[-40, 0], [0, 0]], 1631, 2); a.line([[-40, 0], [-6, -54]], 1632, 1.6);
+    a.blob([[-20, -6], [-14, -22], [-4, -24], [0, -10], [-6, 0]], '#c2185b', 1633); a.circ(-6, -28, 7, 6, '#c2185b', 1634); a.dot(-4, -30, 1.4); a.curve([[-20, -4], [-34, 4], [-40, -6]], 1635, 1.6);
+  }));
+  a.layer(0.6, () => { a.fillRect(-130, 60, 130, 110, rgba('#7fb069', 0.6)); });
+  if (a.alt) a.layer(0.9, () => { for (let i = 0; i < 2; i++) a.at(-80 + i * 22, -20 - i * 8, -0.2 + i * 0.3, () => a.rect(-10, -14, 10, 14, 2, PAPER, 1640 + i, 1.4)); });   // one more card a turn
+};
+
+// ── Palais des Papes: the papal palace at Avignon, with Finley's auditors filing in at the gate (Bronconius + Finley)
+ART.palais = a => {
+  a.layer(-1, () => a.nim('#d8b8f0'));
+  a.layer(-0.2, () => {
+    a.rect(-100, -30, 100, 56, 2, '#e6d6b8', 1701);
+    for (const x of [-100, -44, 44, 84]) { a.rect(x, -64, x + 18, 56, 1, '#d9c6a0', 1710 + x, 1.6); for (let k = 0; k < 3; k++) a.rect(x + 2 + k * 6, -70, x + 6 + k * 6, -64, 0, '#d9c6a0', 1720 + x + k, 1); }
+    a.rect(-16, 16, 16, 56, 10, '#3a3440', 1730); for (let i = 0; i < 3; i++) a.rect(-70 + i * 50, -6, -60 + i * 50, 14, 5, '#3a3440', 1731 + i, 1.2);
+    a.at(0, -50, 0, () => { const P = []; for (let i = 0; i < 6; i++) P.push([Math.cos(i / 6 * Math.PI * 2) * 14, Math.sin(i / 6 * Math.PI * 2) * 14]); a.poly(P, '#f6c744', 1740); });   // the Order's gold hexagon
+  });
+  a.layer(0.4, () => { for (let i = 0; i < 4; i++) a.at(-80 + i * 22, 74, 0, () => kaPerson(a, { body: '#5f6f86', skin: '#f0c8a0', h: 0.55, arm: [0.3, -0.3] }), 0.8); });   // auditors in grey, in a queue
+  a.layer(0.6, () => { a.fillRect(-130, 66, 130, 110, rgba('#b5a080', 0.5)); });
+  if (a.alt) a.layer(0.9, () => { a.at(70, -70, 0, () => { a.line([[0, 0], [-30, 40]], 1750, 3); a.line([[-30, 40], [-22, 56]], 1751, 3); a.star(0, 0, 12, '#ffe08a', 1752); }); });   // SMITE
+};
+
+// ── Hamelin: the piper's town. The Fhat's top hat plays the pipe, Gil's rats follow it through an empty gate (The Fhat + Gil)
+ART.hamelin = a => {
+  a.layer(-1, () => a.nim('#f0c8e0'));
+  a.layer(-0.5, () => { for (let i = 0; i < 5; i++) { const x = -120 + i * 50; a.rect(x, -20 - (i % 2) * 14, x + 40, 40, 1, ['#e6c79a', '#c9d8e0', '#e8b0a0', '#d9c9e8', '#f0dca0'][i], 1801 + i); a.poly([[x - 4, -20 - (i % 2) * 14], [x + 20, -52 - (i % 2) * 14], [x + 44, -20 - (i % 2) * 14]], '#a8442a', 1810 + i, 1.6); } });
+  a.layer(0.1, () => { a.fillRect(-130, 40, 130, 110, rgba('#b5a080', 0.7)); });
+  a.layer(0.4, () => a.at(-60, 64, 0, () => {                                                         // the hat, walking, with a pipe
+    a.rect(-16, -52, 16, -14, 2, INK, 1820); a.rect(-26, -16, 26, -10, 3, INK, 1821); a.rect(-16, -24, 16, -18, 0, '#c2185b', 1822, 1);
+    a.line([[-6, -10], [-10, 4]], 1823, 2.6); a.line([[6, -10], [10, 4]], 1824, 2.6);
+    a.line([[14, -34], [42, -46]], 1825, 2.4); for (let i = 0; i < 3; i++) a.curve([[48 + i * 8, -52 - i * 6], [52 + i * 8, -60 - i * 6], [56 + i * 8, -54 - i * 6]], 1826 + i, 1.4);   // the tune
+  }));
+  a.layer(0.6, () => { const n = a.alt ? 6 : 4; for (let i = 0; i < n; i++) a.at(-16 + i * 26 + (a.alt ? -10 : 0), 72 - (i % 2) * 4, 0, () => { a.blob([[-10, 0], [-8, -12], [8, -12], [12, 0]], MG_RAT, 1840 + i); a.circ(12, -10, 6, 5, MG_RAT, 1850 + i); a.dot(14, -11, 1.2); a.curve([[-10, -2], [-22, -8], [-28, 0]], 1860 + i, 1.2); }); });   // rats in a line
+};
+
 // ── art/mush-gil.js
 // ── 🍄 QUEEN BLOOM'S MUSHROOMS (Mush) · 🐀 FLIP CAPONE'S RATS (Gil) · Port Royal (Mook's combo)  ── group mush-gil
 const MG_OR = '#ef8a3a', MG_OR2 = '#c9661f', MG_CAP = '#e0503a', MG_SPOT = '#fdfcf5', MG_STEM = '#f3e2c0', MG_RAT = '#8a8f99', MG_RAT2 = '#5c606b';
