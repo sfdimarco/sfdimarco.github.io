@@ -783,12 +783,22 @@ ART.slipper = a => {                                                       // th
   });
   a.layer(0.6, () => { a.at(-92, 10, a.alt ? 0.5 : 0, () => ffPencil(a), 0.75); a.at(92, 10, a.alt ? -0.5 : 0, () => ffPencil(a), 0.75); });
 };
-ART.archcity = a => {                                                      // Arch's city: streets and brutalist towers on her planet
-  a.layer(-1, () => a.nim('#b8e0b0'));
-  a.layer(-0.5, () => a.blob([[-134, 97], [-134, 58], [-60, 46], [0, 44], [60, 46], [134, 58], [134, 97]], '#9bb39a', 510));
-  a.layer(0.2, () => { const hs = [70, 110, 90, 130, 80, 100]; hs.forEach((h, i) => ffTower(a, -110 + i * 38, 48, 30, h, i % 2 ? '#8a8f99' : '#a2a7b0', 511 + i, false)); });
-  a.layer(0.4, () => { a.line([[-130, 60], [130, 52]], 520, 2); a.g.save(); if (!ST.holo) a.g.setLineDash([6, 6]); a.line([[-130, 66], [130, 58]], 521, 1); a.g.restore(); });
-  if (a.alt) a.layer(0.8, () => { for (let i = 0; i < 4; i++) a.at(-60 + i * 40, -78 + (i % 2) * 12, 0, () => { a.circ(0, 0, 11, 11, '#f9c74f', 522 + i); a.g.save(); a.g.fillStyle = ST.holo ? HOLO : INK; a.g.font = 'bold 11px sans-serif'; a.g.textAlign = 'center'; a.g.textBaseline = 'middle'; a.g.fillText('+1', 0, 1); a.g.restore(); }); });
+ART.archcity = a => {                                                      // ARCOSANTI (wiki: Paolo Soleri's arcology in the Arizona desert): concrete apses and cubes on a mesa, a bronze bell
+  a.layer(-1, () => a.nim('#f2d3a0'));
+  a.layer(-0.6, () => { a.fillRect(-130, 40, 130, 110, rgba('#d9a86a', 0.55)); a.blob([[-134, 97], [-134, 44], [-70, 30], [-20, 36], [40, 28], [134, 40], [134, 97]], '#d9a86a', 510); });   // the mesa
+  a.layer(0.1, () => {
+    for (const [x, w, h] of [[-104, 36, 54], [72, 44, 62], [108, 26, 40]]) a.rect(x - w / 2, 34 - h, x + w / 2, 34, 2, '#c9c1b2', 511 + x, 2);   // the cubes
+    for (const [x, y] of [[60, -12], [84, -12], [72, -36]]) a.rect(x - 6, y - 6, x + 6, y + 6, 1, '#6a6070', 515 + x + y, 1.2);
+  });
+  a.layer(0.35, () => {                                                    // the apse: a quarter-dome vault, cast in silt
+    a.blob([[-70, 36], [-70, -26], [-48, -58], [-10, -70], [28, -58], [50, -26], [50, 36]], '#c9c1b2', 520);
+    a.blob([[-52, 36], [-52, -16], [-34, -40], [-10, -48], [14, -40], [32, -16], [32, 36]], '#8f8577', 521);
+    for (let i = 0; i < 4; i++) a.curve([[-48 + i * 4, 30 - i * 16], [-10, 22 - i * 18], [28 - i * 4, 30 - i * 16]], 522 + i, 1);
+  });
+  a.layer(0.7, () => a.at(-10, a.alt ? -14 : -18, a.alt ? 0.25 : 0, () => {   // a bronze wind bell under the vault
+    a.line([[0, -22], [0, -8]], 530, 1.4); a.blob([[-9, 10], [-7, -6], [0, -10], [7, -6], [9, 10]], '#c58a3a', 531, 1.8); a.dot(0, 13, 2.4, '#c58a3a');
+  }));
+  if (a.alt) a.layer(0.9, () => { for (let i = 0; i < 4; i++) a.at(-80 + i * 52, -82 + (i % 2) * 12, 0, () => { a.circ(0, 0, 11, 11, '#f9c74f', 540 + i); a.g.save(); a.g.fillStyle = ST.holo ? HOLO : INK; a.g.font = 'bold 11px sans-serif'; a.g.textAlign = 'center'; a.g.textBaseline = 'middle'; a.g.fillText('+1', 0, 1); a.g.restore(); }); });
 };
 ART.envoy = a => {                                                         // the envoy: a treaty, sealed
   a.layer(-1, () => a.nim('#d8dce6'));
@@ -826,11 +836,23 @@ ART.jackrabbit = a => {                                                    // sp
   }));
   if (a.alt) a.layer(0.8, () => { a.star(108, 10, 16, '#ffd34d', 583); a.circ(108, -30, 12, 12, null, 584, 2); });          // it hits a ring
 };
-ART.hatunit = a => {                                                       // a Fhat unit: a little grumpy hat with feet
+ART.hatunit = a => {                                                       // GIBUS (wiki: the opera hat, a top hat that folds flat on a spring): a grumpy little Fhat hat that pops up
   a.layer(-1, () => a.nim('#c8d6f2'));
   a.layer(-0.4, () => { a.fillRect(-130, 56, 130, 110, rgba('#7bbf6a', 0.4)); a.curve([[-130, 60], [0, 52], [130, 60]], 590, 1.2); });
-  a.layer(0.2, () => { a.at(-62, 26, 0, () => ffHat(a, a.alt), 0.75); a.at(62, 26, 0, () => ffHat(a, !a.alt), 0.75); });
-  a.layer(0.6, () => a.at(0, a.alt ? 4 : 18, 0, () => ffHat(a, false), 1.1));
+  const up = a.alt ? 1 : 0.28;                                             // folded flat · popped up
+  a.layer(0.2, () => { a.at(-78, 46, 0, () => { a.rect(-22, -6, 22, 0, 3, '#2a2630', 591); a.rect(-14, -12, 14, -6, 2, '#2a2630', 592); }); });   // another one, folded flat
+  a.layer(0.5, () => a.at(10, 44, 0, () => {
+    const h = 20 + 64 * up;
+    for (const s of [-1, 1]) { a.line([[s * 14, 0], [s * 14, 12]], 593 + s, 2.6); a.poly([[s * 14 - 8, 12], [s * 14 + 8, 12], [s * 14 + 8, 17], [s * 14 - 8, 17]], '#ffd34d', 594 + s, 1.4); }   // yellow feet
+    a.rect(-40, -8, 40, 0, 3, '#2a2630', 596);                                                              // the brim
+    a.rect(-26, -8 - h, 26, -8, 4, '#2a2630', 600);                                                         // the crown
+    if (!a.alt) for (let i = 0; i < 3; i++) a.curve([[-18 + i * 18, -8], [-12 + i * 18, -11], [-22 + i * 18, -14], [-16 + i * 18, -17]], 597 + i, 1.2);   // the spring, squashed
+    a.rect(-26, -22, 26, -14, 1, '#d9506a', 601, 1.2);                                                      // the band
+    const ey = -8 - h * 0.62;
+    for (const s of [-1, 1]) { a.circ(s * 10, ey, 6, 6, CREAM, 602 + s, 1.6); a.dot(s * 10 + 1, ey + 1, 2); a.line([[s * 4, ey - 9], [s * 16, ey - 6]], 604 + s, 1.6); }   // grumpy brows
+    a.blob([[-10, ey + 12], [0, ey + 9], [10, ey + 12], [0, ey + 16]], '#e0506a', 606, 1.4);
+  }));
+  if (a.alt) a.layer(0.8, () => { a.star(-44, -40, 10, '#ffd34d', 607); a.curve([[30, -70], [40, -78], [50, -70]], 608, 1.2); });
 };
 ART.burrow = a => {                                                        // BURROW: a hill with a back door. Attack it and you fall in.
   a.layer(-1, () => a.nim('#c8e6b0'));
@@ -839,30 +861,350 @@ ART.burrow = a => {                                                        // BU
   if (a.alt) a.layer(0.6, () => { a.at(0, 24, 2.6, () => ship(a, { len: 26, ports: 2, flagCol: '#2e7d32' })); for (let i = 0; i < 3; i++) a.line([[-14 + i * 14, -40], [-14 + i * 14, -10]], 604 + i, 1.2); });   // an attacker falls in
   else a.layer(0.6, () => { a.dot(-8, 34, 2.4, '#ffd34d'); a.dot(8, 34, 2.4, '#ffd34d'); });                                // eyes in the dark
 };
-ART.pasttrap = a => {                                                      // TRAP 3: a move that goes past the grid is stopped
+ART.pasttrap = a => {                                                      // THE HARBOUR BOOM (wiki: a boom, logs on a chain strung across a harbour mouth to stop ships)
   a.layer(-1, () => a.nim('#c0e4f6'));
-  a.layer(-0.3, () => { for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) a.rect(-60 + c * 40, -20 + r * 30, -26 + c * 40, 6 + r * 30, 3, '#e8eef6', 610 + r * 3 + c, 1.4); });   // the nine squares
-  a.layer(0.3, () => a.curve([[-110, 50], [-92, -36], [0, -62], [92, -36], [110, 50]], 620, 3.4));                     // the dome over them
-  a.layer(0.6, () => {
-    const hit = a.alt ? 1 : 0.7;
-    a.line([[-120, -96], [-120 + 90 * hit, -96 + 34 * hit]], 621, 3); a.poly([[-120 + 90 * hit, -96 + 34 * hit], [-132 + 90 * hit, -98 + 34 * hit], [-124 + 90 * hit, -86 + 34 * hit]], '#e8506a', 622, 1.4);   // the move, coming in
-    if (a.alt) { a.star(-30, -58, 16, '#ffd34d', 623); for (let i = 0; i < 4; i++) a.line([[-40 - i * 6, -70 + i * 6], [-60 - i * 10, -82 + i * 4]], 624 + i, 1.2); }
+  a.layer(-0.5, () => { a.fillRect(-130, 10, 130, 110, rgba('#5a8fc8', 0.45)); waves(a, 20, 7, 40, 611); });
+  a.layer(-0.1, () => { for (const x of [-112, 112]) { a.rect(x - 16, -60, x + 16, 40, 2, '#b9b3a8', 612 + x, 2); for (let i = 0; i < 3; i++) a.rect(x - 16 + i * 12, -68, x - 10 + i * 12, -60, 1, '#b9b3a8', 615 + i + x, 1.4); } });   // two stone towers
+  const sag = a.alt ? 8 : 0;
+  a.layer(0.3, () => {
+    a.curve([[-96, 0], [-40, 14 + sag], [0, 18 + sag], [40, 14 + sag], [96, 0]], 620, 1.6);               // the chain
+    for (let i = 0; i < 7; i++) { const x = -78 + i * 26, y = 8 + Math.sin(i / 6 * Math.PI) * (10 + sag); a.rect(x - 11, y - 4, x + 11, y + 4, 4, '#a8744f', 621 + i, 1.8); }   // the logs
   });
+  a.layer(0.6, () => a.at(a.alt ? 6 : 10, a.alt ? -8 : -24, a.alt ? -0.25 : 0, () => ship(a, { len: 34, ports: 2, flagCol: '#2e7d32' })));   // the move, stopped
+  if (a.alt) a.layer(0.8, () => { a.star(-24, -2, 14, '#ffd34d', 630); for (let i = 0; i < 3; i++) a.line([[-40 - i * 8, -20 + i * 4], [-56 - i * 10, -30 + i * 2]], 631 + i, 1.2); });
 };
-ART.siege = a => {                                                         // SIEGE: a ram for the thickest walls
+ART.siege = a => {                                                         // WARWOLF (wiki: Edward I's giant trebuchet at the siege of Stirling Castle, 1304)
   a.layer(-1, () => a.nim('#e6c8a8'));
-  a.layer(-0.3, () => { for (let r = 0; r < 6; r++) for (let c = 0; c < 3; c++) a.rect(50 + c * 26 + (r % 2 ? 13 : 0), -80 + r * 26, 74 + c * 26 + (r % 2 ? 13 : 0), -56 + r * 26, 2, '#b9b3a8', 630 + r * 3 + c, 1.4);   // the thick wall
-    if (a.alt) { a.line([[56, -30], [70, -6], [60, 16], [74, 40]], 650, 2.4); a.line([[70, -6], [88, -10]], 651, 1.6); } });
-  const x = a.alt ? 0 : -26;
-  a.layer(0.4, () => a.at(x, 10, 0, () => {
-    a.poly([[-90, 10], [10, 10], [4, 34], [-84, 34]], '#8a5a3a', 652);                                                    // the frame
-    for (const s of [-70, -10]) { a.circ(s, 40, 12, 12, '#a8744f', 653 + s, 2); a.dot(s, 40, 2.4); }
-    a.line([[-80, 10], [-40, -40], [0, 10]], 655, 2.6);
-    a.rect(-100, -26, 40, -12, 6, '#a8744f', 656); a.poly([[40, -30], [56, -19], [40, -8]], '#6a6a78', 657);           // the ram, iron-headed
-    a.line([[-60, -40], [-60, -26]], 658, 1.4); a.line([[-20, -40], [-20, -26]], 659, 1.4);
+  a.layer(-0.4, () => { for (let r = 0; r < 6; r++) for (let c = 0; c < 2; c++) a.rect(76 + c * 26 + (r % 2 ? 13 : 0), -80 + r * 26, 100 + c * 26 + (r % 2 ? 13 : 0), -56 + r * 26, 2, '#b9b3a8', 630 + r * 3 + c, 1.4);   // the castle wall
+    if (a.alt) { a.line([[82, -40], [96, -16], [86, 8], [100, 30]], 650, 2.4); a.line([[96, -16], [114, -20]], 651, 1.6); } });
+  a.layer(0.4, () => a.at(-44, 0, 0, () => {
+    a.poly([[-70, 70], [50, 70], [44, 80], [-64, 80]], '#8a5a3a', 652);                                  // the base
+    a.line([[-48, 70], [-6, -30]], 653, 3.4); a.line([[36, 70], [-6, -30]], 654, 3.4); a.line([[-30, 30], [20, 30]], 655, 2);   // the A-frame
+    const arm = a.alt ? -2.2 : -0.55;                                                                      // the throwing arm: cocked, then flung
+    a.at(-6, -30, arm, () => {
+      a.line([[-46, 0], [92, 0]], 656, 3.6);
+      a.rect(-66, -14, -42, 22, 3, '#6a6a78', 657);                                                       // the counterweight
+      a.curve([[92, 0], [100, 14], [96, 28]], 658, 1.4); if (!a.alt) a.circ(96, 32, 7, 7, '#8f8577', 659); // the sling and its stone
+    });
+    a.circ(-6, -30, 4, 4, '#3a3440', 660, 1.4);
   }));
-  if (a.alt) a.layer(0.7, () => a.star(48, -18, 14, '#ffd34d', 660));
+  if (a.alt) a.layer(0.7, () => { a.circ(62, -58, 8, 8, '#8f8577', 661); a.curve([[-20, -80], [20, -96], [56, -64]], 662, 1); a.star(82, -40, 14, '#ffd34d', 663); });
 };
+
+// ── art/kits-a.js
+// kits-a: the kit roles on the core, industry, economy and science roads. Each picture draws the Wikipedia article its name comes from.
+// a cartoon person: o = { body, skin, head, legs, arm: [angleL, angleR] }  (stands with feet at y = 0)
+function kaPerson(a, o) {
+  const skin = o.skin || '#e9b48e', body = o.body || '#7a8a5a', h = o.h || 1;
+  a.line([[-8, 0], [-6, -30 * h]], 300, 3.2); a.line([[8, 0], [6, -30 * h]], 301, 3.2);                       // legs
+  a.blob([[-16, -26 * h], [-14, -62 * h], [14, -62 * h], [16, -26 * h]], body, 302);                          // body
+  const [al, ar] = o.arm || [0.4, -0.4];
+  a.at(-13, -56 * h, al, () => { a.line([[0, 0], [-4, 26]], 303, 3); a.circ(-4, 28, 3.4, 3.4, skin, 304, 1.4); });
+  a.at(13, -56 * h, ar, () => { a.line([[0, 0], [4, 26]], 305, 3); a.circ(4, 28, 3.4, 3.4, skin, 306, 1.4); });
+  a.circ(0, -74 * h, 12, 12, skin, 307);
+  for (const s of [-1, 1]) { a.circ(s * 4.5, -76 * h, 3.4, 3.4, CREAM, 308 + s, 1.2); a.dot(s * 4.5 + 0.5, -76 * h, 1.3); }
+  if (o.head) o.head();
+}
+function kaHand(a, x, y, rot) { a.at(x, y, rot, () => a.circ(0, 0, 4, 4, '#e9b48e', 310, 1.4)); }
+
+// ── Kern: Irish light infantry, a cloak and a sheaf of javelins
+ART.kit_grunt = a => {
+  a.layer(-1, () => a.nim('#b8dca0'));
+  a.layer(-0.4, () => { a.fillRect(-130, 50, 130, 110, rgba('#7fb069', 0.55)); a.curve([[-130, 54], [-40, 46], [40, 52], [130, 46]], 320, 1.4); });
+  a.layer(0.4, () => a.at(-14, 76, 0, () => {
+    kaPerson(a, { body: '#c9a24a', arm: [0.3, a.alt ? -2.4 : -0.6], head: () => a.blob([[-12, -80], [0, -92], [12, -80], [8, -84], [-8, -84]], '#8a5a3a', 321, 1.6) });
+    a.blob([[-18, -60], [-24, -20], [-10, -24]], '#3f6b3a', 322, 1.6);                                    // the cloak
+    if (!a.alt) { a.line([[-18, -30], [-30, -92]], 323, 1.6); a.line([[-14, -30], [-22, -96]], 324, 1.6); a.poly([[-30, -92], [-33, -102], [-27, -98]], '#c0c6cf', 325, 1.2); a.poly([[-22, -96], [-24, -106], [-19, -101]], '#c0c6cf', 326, 1.2); }
+  }, 1.35));
+  a.layer(0.8, () => { const thrown = a.alt; a.at(thrown ? 62 : 30, thrown ? -40 : -20, thrown ? 0.9 : -0.5, () => { a.line([[0, 30], [0, -30]], 327, 2); a.poly([[0, -30], [-4, -40], [4, -40]], '#c0c6cf', 328, 1.2); }); if (thrown) for (let i = 0; i < 3; i++) a.line([[20 - i * 10, -10 + i * 6], [44 - i * 10, -28 + i * 6]], 329 + i, 1); });
+};
+// ── Gallowglass: a mail-coated mercenary with a long axe
+ART.kit_soldier = a => {
+  a.layer(-1, () => a.nim('#c9d0dc'));
+  a.layer(-0.3, () => a.fillRect(-130, 56, 130, 110, rgba('#9aa38f', 0.5)));
+  a.layer(0.45, () => a.at(-16, 80, 0, () => {
+    kaPerson(a, { body: '#9aa3ad', h: 1.1, arm: [0.2, a.alt ? -1.9 : -0.25], head: () => a.blob([[-13, -82], [-12, -96], [0, -102], [12, -96], [13, -82]], '#7d858f', 340, 1.8) });
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) a.dot(-9 + c * 6, -64 + r * 8, 1, '#5d646d');      // mail rings
+    a.blob([[-16, -32], [-18, -6], [18, -6], [16, -32]], '#b07a3a', 341, 1.8);                             // the long coat
+  }, 1.3));
+  a.layer(0.7, () => a.at(34, 10, a.alt ? -1.1 : 0.15, () => { a.line([[0, 60], [0, -80]], 342, 2.6); a.blob([[0, -80], [24, -92], [30, -70], [0, -60]], '#c8ced6', 343, 1.8); }));
+  if (a.alt) a.layer(0.9, () => a.star(70, -20, 14, '#ffd34d', 344));
+};
+// ── Hesco Bastion: a wire-mesh cage filled with earth (a structure)
+function kaHesco(a, x, y, s) { a.at(x, y, 0, () => { a.rect(-24, -40, 24, 0, 2, '#c9b28a', 350); for (let i = 1; i < 4; i++) a.line([[-24 + i * 12, -40], [-24 + i * 12, 0]], 351 + i, 1); for (let j = 1; j < 4; j++) a.line([[-24, -40 + j * 10], [24, -40 + j * 10]], 355 + j, 1); a.rect(-26, -44, 26, -38, 1, '#a08860', 359, 1.4); }, s); }
+ART.kit_wall = a => {
+  a.layer(-1, () => a.nim('#e6d6a8'));
+  a.layer(-0.4, () => a.fillRect(-130, 50, 130, 110, rgba('#c8a874', 0.45)));
+  a.layer(0.3, () => { kaHesco(a, -56, 50, 1); kaHesco(a, 0, 50, 1); kaHesco(a, 56, 50, 1); kaHesco(a, -28, 6, 1); kaHesco(a, 28, 6, 1); });
+  a.layer(0.8, () => { if (a.alt) { a.circ(-96, -40, 7, 7, '#3a3440', 361); a.line([[-130, -50], [-104, -42]], 362, 1); a.star(-50, -30, 14, '#ffd34d', 363); a.puff(-40, -20, 9, 364); } else for (let i = 0; i < 4; i++) a.dot(-100 + i * 70, 64, 2, '#8a7350'); });
+};
+// ── Great Michael: the biggest ship of its day, four masts
+ART.kit_heavy = a => {
+  a.layer(-1, () => a.nim('#a9d2f2'));
+  a.layer(-0.4, () => { a.fillRect(-130, 44, 130, 110, rgba('#5a8fc8', 0.5)); waves(a, 52, 7, 42, 370); });
+  a.layer(0.3, () => a.at(-4, 30, a.alt ? -0.04 : 0, () => {
+    a.poly([[-104, -6], [-70, -20], [92, -20], [108, -6], [84, 20], [-84, 20]], '#7a4a2e', 371);
+    a.rect(-100, -44, -64, -18, 4, '#8a5a3a', 372); a.rect(70, -40, 102, -18, 4, '#8a5a3a', 373);                  // castles
+    for (let i = 0; i < 6; i++) a.rect(-70 + i * 26, -8, -62 + i * 26, 0, 1.5, '#2a1a10', 374 + i, 1.2);
+    [-56, -14, 28, 64].forEach((mx, i) => { const mh = [70, 96, 88, 60][i]; a.line([[mx, -20], [mx, -20 - mh]], 380 + i, 2.4);
+      a.blob([[mx - 18, -24 - mh * 0.9], [mx + 18, -24 - mh * 0.9], [mx + 20, -28 - mh * 0.35], [mx - 20, -28 - mh * 0.35]], '#f3eadb', 384 + i, 1.8);
+      a.poly([[mx, -20 - mh], [mx + 16, -16 - mh], [mx, -12 - mh]], i % 2 ? '#1565c0' : '#f5f5f5', 388 + i, 1); });
+    if (a.alt) for (let i = 0; i < 5; i++) a.puff(90 + (i % 2) * 6, 4 - i * 2, 8 + i * 2, 392 + i);
+  }));
+  a.layer(0.8, () => waves(a, 76, 6, 50, 398));
+};
+// ── Carronade: a short, stubby gun on a slide, "the smasher"
+ART.kit_brute = a => {
+  a.layer(-1, () => a.nim('#ffbf8a'));
+  a.layer(-0.4, () => { a.fillRect(-130, 40, 130, 110, rgba('#8a5a3a', 0.6)); for (let i = 0; i < 6; i++) a.line([[-130 + i * 48, 40], [-150 + i * 48, 110]], 400 + i, 1); });
+  const recoil = a.alt ? -14 : 0;
+  a.layer(0.4, () => a.at(recoil - 10, 24, 0, () => {
+    a.rect(-60, 4, 50, 16, 3, '#6b4528', 406);                                                         // the slide
+    a.blob([[-46, -20], [-30, -30], [30, -26], [44, -22], [44, 6], [30, 8], [-30, 10], [-46, 2]], '#2f2b34', 407);   // the stubby barrel
+    a.circ(44, -8, 6, 14, '#1c1a21', 408); a.circ(-50, -10, 8, 8, '#2f2b34', 409);
+    a.circ(-40, 22, 9, 9, '#a8744f', 410, 1.8); a.circ(36, 22, 9, 9, '#a8744f', 411, 1.8);
+  }));
+  a.layer(0.8, () => { if (a.alt) { a.puff(64, 8, 16, 412); a.puff(88, -4, 12, 413); a.star(80, 4, 18, '#ffb02a', 414); } else a.at(-80, -40, 0, () => { for (let i = 0; i < 3; i++) a.circ(i * 14, 0, 6, 6, '#3a3440', 415 + i); }); });
+};
+// ── Chasqui: an Inca relay runner with a conch and a quipu
+ART.kit_runner = a => {
+  a.layer(-1, () => a.nim('#ffd8a0'));
+  a.layer(-0.5, () => { a.poly([[-130, 60], [-70, -30], [-10, 40], [40, -50], [130, 50], [130, 110], [-130, 110]], '#b9a98a', 420, 1.4); a.line([[-130, 70], [130, 56]], 421, 1.2); });
+  a.layer(0.4, () => a.at(a.alt ? 30 : -14, 62, -0.18, () => {
+    kaPerson(a, { body: '#d0483a', arm: [1.1, -1.2], head: () => a.blob([[-12, -82], [0, -88], [12, -82]], '#f9a825', 422, 1.4) });
+    a.at(-24, -40, 0.6, () => { a.line([[0, 0], [0, 26]], 423, 1.4); for (let i = 0; i < 5; i++) a.line([[-6 + i * 3, 4], [-6 + i * 3, 18 + (i % 2) * 5]], 424 + i, 1); });   // quipu
+    a.at(22, -46, -0.3, () => a.blob([[0, 0], [16, -6], [20, 4], [6, 8]], '#f2e2cc', 429, 1.4));                 // conch
+  }));
+  a.layer(0.8, () => { for (let i = 0; i < 3; i++) a.line([[-96 + (a.alt ? 40 : 0), 20 + i * 10], [-60 + (a.alt ? 40 : 0), 20 + i * 10]], 430 + i, 1.2); if (a.alt) a.at(-70, 40, 0, () => kaPerson(a, { body: '#a03a30', h: 0.7, arm: [0.4, -0.4] }), 0.7); });
+};
+// ── Congreve Rocket: rockets on a ladder frame (an action)
+ART.kit_barrage = a => {
+  a.layer(-1, () => a.nim('#ffc08a'));
+  a.layer(-0.5, () => { if (a.alt) { a.star(76, -56, 26, '#ffb02a', 440); a.star(76, -56, 12, '#fff2a8', 441); } else a.at(76, -56, 0.08, () => ship(a, { len: 26, ports: 2, flagCol: '#2e7d32', sailCol: '#e8f0f6' })); });
+  a.layer(0.2, () => { for (let i = 0; i < 3; i++) { const t0 = a.alt ? 0.9 : 0.35 + i * 0.12, x = -70 + 140 * t0, y = 40 - 90 * t0 - Math.sin(t0 * Math.PI) * 20;
+    a.at(x, y, -0.7, () => { a.rect(-4, -14, 4, 10, 2, '#c84a3a', 442 + i, 1.6); a.poly([[-4, -14], [0, -22], [4, -14]], '#3a3440', 445 + i, 1.2); a.line([[0, 10], [0, 40]], 448 + i, 1); });
+    a.puff(x - 14, y + 14, 6 + i, 451 + i); } });
+  a.layer(0.7, () => a.at(-74, 66, -0.75, () => { a.line([[-8, 10], [-8, -60]], 455, 2.4); a.line([[8, 10], [8, -60]], 456, 2.4); for (let j = 0; j < 5; j++) a.line([[-8, -j * 14], [8, -j * 14]], 457 + j, 1.4); a.line([[-8, 10], [-20, 30]], 462, 2); a.line([[8, 10], [20, 30]], 463, 2); }));
+};
+// ── Tianguis: an open-air Mesoamerican market (+1 ECON a turn)
+function kaStall(a, x, col, goods) { a.at(x, 40, 0, () => { a.line([[-22, 0], [-22, -40]], 470, 1.8); a.line([[22, 0], [22, -40]], 471, 1.8); a.poly([[-30, -40], [0, -54], [30, -40]], col, 472, 1.8); a.rect(-24, -14, 24, -2, 2, '#a8744f', 473, 1.6); for (let i = 0; i < 4; i++) a.circ(-15 + i * 10, -18, 4, 4, goods[i % goods.length], 474 + i, 1); }); }
+ART.kit_market = a => {
+  a.layer(-1, () => a.nim('#ffe0a0'));
+  a.layer(-0.4, () => a.fillRect(-130, 40, 130, 110, rgba('#d8b88a', 0.5)));
+  a.layer(0.2, () => { kaStall(a, -70, '#e53935', ['#f9a825', '#2e7d32']); kaStall(a, 0, '#00bcd4', ['#ef6c00', '#c2185b']); kaStall(a, 70, '#f9a825', ['#7a4a2e', '#2e7d32']); });
+  a.layer(0.7, () => { a.at(-34, 92, 0, () => kaPerson(a, { body: '#ffffff', h: 0.6 }), 0.8); if (a.alt) a.at(40, -50, 0, () => { a.circ(0, 0, 16, 16, '#f9c74f', 480); a.g.save(); a.g.fillStyle = ST.holo ? HOLO : INK; a.g.font = 'bold 15px "Comic Sans MS", sans-serif'; a.g.textAlign = 'center'; a.g.textBaseline = 'middle'; a.g.fillText('+1', 0, 1); a.g.restore(); }); });
+};
+// ── Hawaladar: a hawala broker with a ledger, money moving on a handshake
+ART.kit_banker = a => {
+  a.layer(-1, () => a.nim('#c8e6b0'));
+  a.layer(-0.3, () => a.rect(-90, 30, 90, 52, 3, '#8a5a3a', 490));                                       // the counter
+  a.layer(0.3, () => a.at(-40, 34, 0, () => kaPerson(a, { body: '#2e7d32', arm: [0.5, a.alt ? -1.4 : -0.9], head: () => a.blob([[-13, -80], [-10, -92], [10, -92], [13, -80]], '#f5f5f5', 491, 1.6) })));
+  a.layer(0.5, () => { a.rect(4, 4, 60, 30, 2, '#f6efe2', 492); a.line([[32, 4], [32, 30]], 493, 1.2); for (let i = 0; i < 3; i++) { a.line([[8, 10 + i * 6], [28, 10 + i * 6]], 494 + i, 0.8); a.line([[36, 10 + i * 6], [56, 10 + i * 6]], 497 + i, 0.8); } });   // the ledger
+  if (a.alt) a.layer(0.8, () => { a.at(70, -30, 0, () => kaPerson(a, { body: '#6a1b9a', h: 0.8, arm: [0.4, 1.2] }), 0.8); a.curve([[-20, -40], [20, -70], [60, -50]], 500, 1.2); a.circ(20, -64, 7, 7, '#f9c74f', 501, 1.2); });
+  else a.layer(0.8, () => { for (let i = 0; i < 3; i++) a.circ(70 + i * 4, 22 - i * 5, 7, 3, '#f9c74f', 502 + i, 1.2); });
+};
+// ── Mississippi Bubble: John Law's shares blow up into a bubble, and pop (an action)
+ART.kit_takeover = a => {
+  a.layer(-1, () => a.nim('#d8e8f6'));
+  a.layer(-0.3, () => { for (let i = 0; i < 6; i++) a.at(-90 + i * 34, 60 + (i % 2) * 8, (i - 3) * 0.15, () => { a.rect(-12, -8, 12, 8, 1, '#f3eadb', 510 + i, 1.2); a.line([[-7, -2], [7, -2]], 516 + i, 0.8); a.line([[-7, 3], [4, 3]], 522 + i, 0.8); }); });
+  if (!a.alt) a.layer(0.4, () => { a.circ(0, -20, 62, 58, rgba('#bfe6ff', 0.5), 530, 1.8); a.curve([[-36, -50], [-24, -64], [-6, -70]], 531, 1.4);
+    a.at(0, -20, 0.1, () => { a.rect(-24, -16, 24, 16, 2, '#f3eadb', 532, 1.4); for (let j = 0; j < 3; j++) a.line([[-16, -8 + j * 8], [16, -8 + j * 8]], 533 + j, 0.8); a.circ(14, 10, 5, 5, '#e53935', 536, 1); }); });
+  else a.layer(0.4, () => { a.star(0, -20, 54, '#e6f4fb', 537); for (let i = 0; i < 8; i++) { const an = i / 8 * Math.PI * 2; a.at(Math.cos(an) * 70, -20 + Math.sin(an) * 60, an, () => a.rect(-9, -6, 9, 6, 1, '#f3eadb', 538 + i, 1.2)); } });
+  a.layer(0.8, () => { a.curve([[-110, 40], [-80, 10], [-60, 24]], 546, 1.6); a.poly([[-60, 24], [-70, 20], [-64, 30]], '#e53935', 547, 1.2); });     // the price line, falling
+};
+// ── Kilwa Kisiwani: a coral-stone trade city with dhows (fused, +2 ECON a turn)
+ART.kit_city = a => {
+  a.layer(-1, () => a.nim('#ffe2b0'));
+  a.layer(-0.4, () => { a.fillRect(-130, 44, 130, 110, rgba('#2fa6b8', 0.45)); waves(a, 52, 7, 42, 550); });
+  a.layer(0.1, () => { a.poly([[-130, 30], [130, 30], [130, 46], [-130, 46]], '#e8dcc0', 551, 1.6);
+    a.rect(-100, -10, -50, 30, 3, '#efe4cc', 552); a.blob([[-90, -10], [-75, -30], [-60, -10]], '#efe4cc', 553); a.dot(-75, 6, 4, '#3a3440');                 // the great mosque's dome
+    a.rect(-40, -34, 20, 30, 3, '#e8dcc0', 554); for (let i = 0; i < 3; i++) a.rect(-34 + i * 18, -24, -26 + i * 18, -12, 4, '#3a3440', 555 + i, 1); a.rect(-14, 6, -4, 30, 4, '#3a3440', 558, 1);   // Husuni Kubwa
+    a.rect(30, -4, 70, 30, 3, '#efe4cc', 559); a.rect(76, 8, 110, 30, 3, '#e8dcc0', 560); });
+  a.layer(0.7, () => a.at(a.alt ? 40 : 70, 70, 0, () => { a.poly([[-34, 0], [34, 0], [24, 12], [-26, 12]], '#8a5a3a', 561); a.line([[0, 0], [2, -44]], 562, 1.8); a.poly([[2, -44], [36, -4], [-14, -6]], '#f3eadb', 563); }));   // a dhow
+  if (a.alt) a.layer(0.9, () => { for (let i = 0; i < 2; i++) a.circ(-90 + i * 22, -50, 9, 9, '#f9c74f', 564 + i, 1.2); });
+};
+// ── Escapement: the escape wheel and its anchor (a machine part)
+function kaWheel(a, r, teeth, fill, seed) { const P = []; for (let i = 0; i < teeth * 2; i++) { const an = i / (teeth * 2) * Math.PI * 2, rr = i % 2 ? r * 0.82 : r; P.push([Math.cos(an) * rr, Math.sin(an) * rr]); } a.poly(P, fill, seed, 1.8); a.circ(0, 0, r * 0.18, r * 0.18, '#3a3440', seed + 1, 1.2); for (let i = 0; i < 4; i++) a.line([[0, 0], [Math.cos(i * Math.PI / 2) * r * 0.7, Math.sin(i * Math.PI / 2) * r * 0.7]], seed + 2 + i, 1.2); }
+ART.kit_part = a => {
+  a.layer(-1, () => a.nim('#e6d6a8'));
+  a.layer(-0.5, () => { for (let i = 0; i < 4; i++) a.line([[-130, -60 + i * 40], [130, -60 + i * 40]], 570 + i, 0.6); });
+  const tick = a.alt ? 0.22 : 0;
+  a.layer(0.3, () => a.at(0, 34, tick, () => kaWheel(a, 46, 15, '#d9a441', 575)));
+  a.layer(0.6, () => a.at(0, -40, a.alt ? 0.25 : -0.25, () => { a.poly([[-40, 26], [-4, -6], [4, -6], [40, 26], [34, 30], [0, 4], [-34, 30]], '#9aa3ad', 582); a.circ(0, -6, 5, 5, '#3a3440', 583, 1.2); a.line([[0, -6], [0, -60]], 584, 2.2); a.circ(0, -62, 8, 8, '#d9a441', 585, 1.6); }));
+  if (a.alt) a.layer(0.9, () => a.curve([[50, -70], [60, -80], [72, -76]], 586, 1.2));
+};
+// ── Strasbourg Clock: the great astronomical clock (the machine's core)
+ART.kit_core = a => {
+  a.layer(-1, () => a.nim('#f0d8a8'));
+  a.layer(-0.3, () => { a.poly([[-70, 94], [-70, -60], [-40, -90], [40, -90], [70, -60], [70, 94]], '#c8a874', 590); a.poly([[-40, -90], [0, -110], [40, -90]], '#8a5a3a', 591, 1.6); });
+  a.layer(0.2, () => { a.circ(0, -30, 34, 34, '#1d2b55', 592); for (let i = 0; i < 12; i++) { const an = i / 12 * Math.PI * 2; a.dot(Math.cos(an) * 28, -30 + Math.sin(an) * 28, 1.6, '#f9c74f'); }
+    a.at(0, -30, a.alt ? 1.6 : 0.4, () => { a.line([[0, 0], [0, -26]], 593, 2); a.circ(0, -26, 4, 4, '#f9c74f', 594, 1); });
+    a.at(0, -30, a.alt ? -0.6 : -2.1, () => a.line([[0, 0], [0, -18]], 595, 2.4));
+    a.rect(-50, 18, 50, 60, 3, '#efe4cc', 596); a.circ(0, 39, 16, 16, '#f9c74f', 597, 1.6); a.circ(0, 39, 6, 6, '#3a3440', 598, 1); });
+  a.layer(0.7, () => { const x = a.alt ? 30 : -30; a.at(x, 88, 0, () => kaPerson(a, { body: '#e53935', h: 0.5, arm: [0.3, -0.3] }), 0.8); a.rect(-60, 76, 60, 82, 1, '#8a5a3a', 599, 1.4); });   // a procession figure
+};
+// ── Ulugh Beg: the astronomer prince at his giant sextant in Samarkand
+ART.kit_scientist = a => {
+  a.layer(-1, () => a.nim('#c8c8f0'));
+  a.layer(-0.6, () => { a.fillRect(-130, -100, 130, 20, rgba('#2b2350', 0.22)); for (let i = 0; i < 16; i++) a.dot(-120 + H2(i, 61) * 240, -90 + H2(i, 62) * 100, 1 + H2(i, 63), '#fff6d8'); if (a.alt) a.circ(80, -60, 10, 10, '#fff2a8', 610, 1.4); });
+  a.layer(0.1, () => { a.curve([[-110, 90], [-110, 20], [-80, -40], [-30, -80]], 611, 5); a.curve([[-90, 90], [-90, 30], [-64, -26], [-20, -62]], 612, 2); for (let i = 0; i < 6; i++) a.line([[-110 + i * 2, 70 - i * 24], [-90 + i * 4, 66 - i * 22]], 613 + i, 1); });   // the meridian arc
+  a.layer(0.5, () => a.at(40, 86, 0, () => kaPerson(a, { body: '#1565c0', h: 1.05, arm: [0.4, a.alt ? -2.3 : -1.2], head: () => { a.blob([[-14, -82], [-10, -96], [10, -96], [14, -82]], '#f5f5f5', 620, 1.6); a.circ(0, -98, 4, 4, '#e53935', 621, 1); } })));
+  a.layer(0.8, () => a.at(66, -10, a.alt ? -0.6 : -0.2, () => { a.rect(-4, -28, 4, 10, 2, '#d9a441', 622, 1.4); a.circ(0, -30, 6, 6, '#d9a441', 623, 1.2); }));
+};
+
+// ── art/kits-b.js
+// kits-b · the kit roles of the Religion, Food, Population and Politics roads, and the 8 test-seat commanders (🆕 Claude's, for Mook's tick)
+// Each picture follows the obscure Wikipedia article its card is named after.
+function kbFig(a, o) {                                                   // a plain figure, drawn standing on y = 0: o = { robe, skin, hat, arm }
+  const R = o.robe || '#8a6a4a', SK = o.skin || '#f0c8a8';
+  a.line([[-8, -2], [-9, -24]], 300, 3.2); a.line([[8, -2], [9, -24]], 301, 3.2);
+  a.blob([[-18, -22], [-14, -60], [14, -60], [18, -22]], R, 302);
+  a.blob([[-14, -56], [-26, -38], [-22, -32], [-12, -48]], R, 303);
+  if (o.arm !== 'none') a.blob([[14, -56], [26, -38 - (o.raise || 0)], [22, -32 - (o.raise || 0)], [12, -48]], R, 304);
+  a.circ(0, -72, 12, 12, SK, 305);
+  a.dot(-4, -74, 1.6); a.dot(4, -74, 1.6); a.curve([[-4, -67], [0, -65], [4, -67]], 306, 1.2);
+  if (o.hat === 'mitre') a.poly([[-10, -80], [0, -104], [10, -80]], '#f3eadb', 307, 2);
+  if (o.hat === 'mitre') a.line([[0, -100], [0, -82]], 308, 1.4);
+  if (o.hat === 'tall') a.rect(-9, -108, 9, -80, 4, '#e8e0cc', 309);
+  if (o.hat === 'cap') a.blob([[-13, -78], [0, -88], [13, -78]], '#5a6a3a', 310, 1.8);
+  if (o.hat === 'hood') a.blob([[-14, -66], [-12, -86], [0, -90], [12, -86], [14, -66]], R, 311, 1.8);
+}
+// ── ⛪ RELIGION
+ART.kit_sigil = a => {                                                   // Sator Square: SATOR AREPO TENET OPERA ROTAS, carved in a stone
+  a.layer(-1, () => a.nim('#e0c89a'));
+  a.layer(0.2, () => { a.rect(-70, -72, 70, 72, 6, '#c9bca4', 320, 2.6);
+    const W = ['SATOR', 'AREPO', 'TENET', 'OPERA', 'ROTAS'];
+    W.forEach((w, r) => { for (let i = 0; i < 5; i++) uText(a.g, w[i], -48 + i * 24, -42 + r * 25, 15, { align: 'center', seed: 321 + r * 5 + i, col: '#3a3440', whim: 0.6 }); });
+    if (a.alt) { a.g.save(); if (!ST.holo) { a.g.strokeStyle = rgba('#ffd34d', 0.9); a.g.lineWidth = 4; } a.rect(-62, -11, 62, 12, 3, null, 330, 2); a.rect(-12, -62, 12, 62, 3, null, 331, 2); a.g.restore(); }   // TENET, the cross, lit
+  });
+  if (a.alt) a.layer(0.7, () => { for (let i = 0; i < 6; i++) a.line([[Math.cos(i) * 80, Math.sin(i) * 70], [Math.cos(i) * 100, Math.sin(i) * 88]], 335 + i, 1.4); });
+};
+ART.kit_preacher = a => {                                                // Boy Bishop: a choirboy in a bishop's mitre and cope
+  a.layer(-1, () => a.nim('#f3d68a'));
+  a.layer(-0.4, () => { a.poly([[-90, 70], [-90, -40], [-60, -70], [-30, -40], [-30, 70]], '#d9cdb6', 340, 1.6); a.poly([[30, 70], [30, -40], [60, -70], [90, -40], [90, 70]], '#d9cdb6', 341, 1.6); });   // the arches
+  a.layer(0.4, () => a.at(0, 94, 0, () => { kbFig(a, { robe: '#b3262e', hat: 'mitre', raise: a.alt ? 26 : 0 });
+    a.line([[24, -40 - (a.alt ? 26 : 0)], [30, 0]], 342, 2.4); a.curve([[30, -2 - 0], [30, -50 - (a.alt ? 26 : 0)], [40, -56 - (a.alt ? 26 : 0)], [38, -46 - (a.alt ? 26 : 0)]], 343, 2.4);   // the crozier
+    a.poly([[-14, -24], [14, -24], [10, -60], [-10, -60]], '#f3eadb', 344, 1.6); }, 1.4));
+  if (a.alt) a.layer(0.8, () => { a.line([[46, -60], [92, 40]], 345, 3); a.star(96, 46, 12, '#ffd34d', 346); });   // the smite
+};
+ART.kit_acolyte = a => {                                                 // Thurifer: an altar server swinging a thurible
+  a.layer(-1, () => a.nim('#d8c8ef'));
+  const sw = a.alt ? 0.7 : -0.35;
+  a.layer(0.3, () => a.at(-40, 94, 0, () => { kbFig(a, { robe: '#f3eadb', raise: 10 }); a.poly([[-16, -58], [16, -58], [12, -46], [-12, -46]], '#8a3a5a', 350, 1.4); }, 1.4));
+  a.layer(0.3, () => a.at(-5, 34, sw, () => { a.line([[0, 0], [0, 56]], 351, 1.4); a.circ(0, 64, 11, 9, '#e0b84a', 352); a.poly([[-7, 56], [7, 56], [0, 48]], '#e0b84a', 353, 1.4); }));
+  a.layer(0.9, () => { const sx = -5 + Math.sin(sw) * -64, sy = 34 + Math.cos(sw) * 64 - 40; for (let i = 0; i < 4; i++) a.puff(sx + i * 10 + 8, sy - 16 - i * 16, 7 + i * 2, 355 + i); });
+};
+ART.kit_revival = a => {                                                 // Tent Revival: a striped tent at night, lit from inside
+  a.layer(-1, () => { a.fillRect(-130, -105, 130, 105, rgba('#1e2244', 0.55)); for (let i = 0; i < 16; i++) a.dot(-120 + H2(i, 61) * 240, -95 + H2(i, 62) * 90, 1 + H2(i, 63), '#fff6d8'); });
+  a.layer(-0.2, () => a.fillRect(-130, 56, 130, 105, rgba('#3a5a3a', 0.7)));
+  a.layer(0.3, () => {
+    a.poly([[-80, 60], [-60, -20], [0, -60], [60, -20], [80, 60]], '#f3eadb', 360);
+    for (let i = 0; i < 4; i++) a.poly([[-60 + i * 30, -20 + Math.abs(i - 1.5) * 0], [0, -60], [-45 + i * 30, -20]], '#d33440', 361 + i, 1);
+    a.line([[0, -60], [0, -80]], 366, 2); a.poly([[0, -80], [16, -75], [0, -70]], '#d33440', 367, 1.4);
+    a.poly([[-18, 60], [-14, 10], [14, 10], [18, 60]], a.alt ? '#ffd34d' : '#f6c460', 368);         // the door, lit
+    if (a.alt) for (let i = 0; i < 3; i++) a.circ(-8 + i * 8, 46, 4, 4, '#3a3440', 369 + i, 1);  // the faithful come back
+  });
+  a.layer(0.8, () => { for (let i = 0; i < 5; i++) a.line([[-10 + i * 5, 10], [-40 + i * 20, -8 - (a.alt ? 10 : 0)]], 372 + i, 0.8); });
+};
+// ── 🌾 FOOD
+ART.kit_farm = a => {                                                    // Chinampa: floating garden plots in a lake, willows at the corners
+  a.layer(-1, () => a.nim('#b8e0b0'));
+  a.layer(-0.5, () => { a.fillRect(-130, -20, 130, 105, rgba('#5a8fc8', 0.5)); waves(a, -6, 7, 42, 380); });
+  a.layer(0.3, () => { for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) { const x = -96 + c * 66, y = 8 + r * 44;
+    a.rect(x, y, x + 54, y + 26, 4, '#7a5a3a', 381 + r * 3 + c);
+    for (let k = 0; k < 4; k++) a.circ(x + 8 + k * 13, y + 2, 5, 5 + (a.alt ? 4 : 0), '#4fae6a', 390 + k, 1.2);       // rows of crops (taller on the flip)
+  } });
+  a.layer(0.6, () => { for (const x of [-104, 104]) { a.line([[x, 70], [x, 0]], 400, 2.4); a.blob([[x - 20, 10], [x, -26], [x + 20, 10], [x + 14, 30], [x - 14, 30]], '#6fbf5a', 401); } });
+  if (a.alt) a.layer(0.8, () => a.at(0, -40, 0, () => { a.blob([[-30, 0], [-22, -14], [22, -14], [30, 0], [20, 6], [-20, 6]], '#a8744f', 405); a.line([[-4, -14], [-6, -40]], 406, 1.6); }));   // a canoe of harvest
+};
+ART.kit_harvester = a => {                                               // Gleaner: picking up the last ears of grain
+  a.layer(-1, () => a.nim('#ffd890'));
+  a.layer(-0.4, () => { a.fillRect(-130, 30, 130, 105, rgba('#e2b85a', 0.6)); for (let i = 0; i < 18; i++) a.line([[-120 + i * 14, 34], [-118 + i * 14, 50]], 410, 1); });   // the stubble
+  a.layer(0.3, () => a.at(-10, 80, 0, () => {
+    const bend = a.alt ? 0 : 0.5;
+    a.at(0, -24, bend, () => { a.blob([[-16, 0], [-12, -40], [12, -40], [16, 0]], '#7a6a9a', 411); a.circ(0, -50, 11, 11, '#f0c8a8', 412); a.blob([[-12, -54], [0, -66], [12, -54]], '#e8e0cc', 413, 1.6); a.blob([[12, -34], [30, -10], [26, -4], [10, -24]], '#7a6a9a', 414); });
+    a.line([[-8, -2], [-8, -24]], 415, 3.2); a.line([[8, -2], [8, -24]], 416, 3.2);
+  }));
+  a.layer(0.7, () => { a.blob([[30, 60], [36, 30], [64, 30], [70, 60]], '#c9a06a', 417); for (let i = 0; i < (a.alt ? 7 : 4); i++) a.curve([[40 + i * 4, 32], [38 + i * 5, 10], [44 + i * 4, 0]], 418 + i, 1.4); });   // the basket of ears
+};
+ART.kit_seed = a => {                                                    // Seed Ball: clay and compost, rolled round a seed, sprouting
+  a.layer(-1, () => a.nim('#c8e8a0'));
+  a.layer(-0.3, () => a.fillRect(-130, 50, 130, 105, rgba('#8a6a4a', 0.55)));
+  a.layer(0.4, () => { a.circ(0, 26, 36, 32, '#b07a52', 430, 2.6, 0.08); for (let i = 0; i < 9; i++) a.dot(-22 + H2(i, 431) * 44, 10 + H2(i, 432) * 34, 1.8, '#5a3a24');
+    const h = a.alt ? 70 : 26; a.curve([[0, -4], [-2, -4 - h * 0.5], [4, -4 - h]], 433, 2.4);
+    a.blob([[2, -4 - h], [24, -14 - h], [12, -2 - h]], '#4fae6a', 434, 1.6); a.blob([[2, -4 - h * 0.7], [-22, -10 - h * 0.7], [-10, h * -0.7 + 2]], '#4fae6a', 435, 1.6);
+    if (a.alt) a.circ(6, -10 - h, 8, 8, '#ffd34d', 436, 1.4); });
+};
+// ── 👥 POPULATION
+ART.kit_villager = a => {                                                // Crofter: a small stone croft, a crofter at the gate
+  a.layer(-1, () => a.nim('#c8dcc0'));
+  a.layer(-0.5, () => { a.curve([[-140, 30], [-60, 10], [40, 20], [140, 6]], 440, 1.4); a.fillRect(-130, 30, 130, 105, rgba('#7fae6a', 0.5)); });
+  a.layer(0.1, () => { a.rect(-10, -14, 90, 40, 3, '#b9b0a0', 441); for (let i = 0; i < 6; i++) a.line([[-6 + i * 16, -6 + (i % 2) * 18], [6 + i * 16, -6 + (i % 2) * 18]], 442, 1); a.poly([[-18, -12], [40, -50], [98, -12]], '#c9a85a', 443); a.rect(30, 10, 48, 40, 2, '#5a3a24', 444); a.line([[70, -40], [70, -60]], 445, 3); });   // the croft
+  a.layer(0.4, () => a.at(-62, 94, 0, () => { kbFig(a, { robe: '#5a7a9a', hat: 'cap' }); a.line([[22, -36], [26, 0]], 446, 2); }, 1.3));
+  if (a.alt) a.layer(0.7, () => { a.at(-96, 90, 0, () => kbFig(a, { robe: '#9a5a7a' }), 0.7); a.at(-20, 92, 0, () => kbFig(a, { robe: '#6a9a5a' }), 0.65); });   // the crowd comes
+};
+ART.kit_guard = a => {                                                   // Hayward: the village officer who guards the hedges and fences
+  a.layer(-1, () => a.nim('#c8e0b0'));
+  a.layer(-0.3, () => { a.fillRect(-130, 40, 130, 105, rgba('#7fae6a', 0.55)); for (let i = 0; i < 7; i++) a.blob([[-130 + i * 40, 40], [-118 + i * 40, 4], [-96 + i * 40, 2], [-90 + i * 40, 40]], '#4f8a4a', 450 + i); });   // the hedge
+  a.layer(0.2, () => { for (let i = 0; i < 5; i++) a.line([[-110 + i * 52, 70], [-110 + i * 52, 38]], 460 + i, 2.4); a.line([[-116, 46], [104, 46]], 466, 2); a.line([[-116, 60], [104, 60]], 467, 2); });   // the fence
+  a.layer(0.5, () => a.at(30, 96, 0, () => { kbFig(a, { robe: '#3a5a7a', hat: 'cap', raise: a.alt ? 30 : 0 }); a.line([[24, -36 - (a.alt ? 30 : 0)], [30, 6]], 468, 2.2); a.circ(28, -40 - (a.alt ? 30 : 0), 4, 4, '#e0b84a', 469, 1.2); }, 1.3));   // his staff
+  if (a.alt) a.layer(0.8, () => { a.at(-70, 70, 0, () => { a.circ(0, 0, 14, 10, '#f3eadb', 470); a.circ(14, -6, 6, 6, '#f3eadb', 471); a.line([[-6, 8], [-6, 18]], 472, 1.6); a.line([[6, 8], [6, 18]], 473, 1.6); }); });   // a stray sheep, stopped
+};
+// ── 🏛️ POLITICS
+function kbHorse(a, col) {                                               // a small horse, standing on y = 0
+  a.blob([[-30, -24], [-26, -44], [22, -44], [30, -26], [22, -18], [-24, -18]], col, 480);
+  a.blob([[20, -40], [30, -64], [42, -60], [34, -36]], col, 481);
+  for (const x of [-22, -12, 12, 22]) a.line([[x, -20], [x, 0]], 482, 2.6);
+  a.curve([[-30, -34], [-42, -20], [-40, -8]], 483, 2);
+}
+ART.kit_envoy = a => {                                                   // Missus Dominicus: a pair of the king's envoys, riding out
+  a.layer(-1, () => a.nim('#e0d0a0'));
+  a.layer(-0.4, () => { a.curve([[-140, 64], [-40, 50], [60, 58], [140, 46]], 490, 1.4); a.fillRect(-130, 64, 130, 105, rgba('#b8a070', 0.45)); });
+  [[-50, 0.82, '#8a5a3a', '#3a5a9a'], [40, 0.9, '#5a4a40', '#9a3a3a']].forEach(([x, s, horse, robe], i) => a.layer(0.2 + i * 0.4, () => a.at(x + (a.alt ? 18 : 0), 80, 0, () => {
+    kbHorse(a, horse); a.at(2, -40, 0, () => kbFig(a, { robe, hat: i ? 'hood' : 'cap', arm: 'none' }), 0.7);
+  }, s)));
+  if (a.alt) a.layer(0.9, () => a.at(-6, -60, 0.1, () => { a.rect(-22, -12, 22, 12, 2, '#f3eadb', 495); a.circ(0, 8, 5, 5, '#c62828', 496, 1.2); }));   // the capitulary, sealed
+};
+ART.kit_diplomat = a => {                                                // Dragoman: an interpreter-diplomat, tall hat, scrolls
+  a.layer(-1, () => a.nim('#a8d0d8'));
+  a.layer(-0.4, () => { a.blob([[-110, 60], [-110, -10], [-80, -50], [-50, -10], [-50, 60]], '#d9cdb6', 500, 1.6); a.circ(-80, -58, 8, 8, '#d9cdb6', 501, 1.4); });   // a dome
+  a.layer(0.4, () => a.at(14, 94, 0, () => { kbFig(a, { robe: '#2f6f6a', hat: 'tall', raise: a.alt ? 20 : 0 }); a.poly([[-18, -24], [18, -24], [14, -30], [-14, -30]], '#e0b84a', 502, 1.2);
+    a.at(26, -40 - (a.alt ? 20 : 0), 0.3, () => { a.rect(-4, -14, 4, 14, 2, '#f3eadb', 503, 1.4); a.circ(0, -15, 4, 2, '#c9a06a', 504, 1.2); }); }, 1.2));
+  a.layer(0.8, () => { a.at(-50, 60, -0.2, () => { a.rect(-14, -8, 14, 8, 3, '#f3eadb', 505); a.line([[-8, -2], [8, -2]], 506, 1); }); if (a.alt) { a.blob([[48, -66], [100, -66], [100, -40], [70, -40], [62, -30], [62, -40], [48, -40]], CREAM, 507, 1.6); uText(a.g, 'SALAAM · CIAO', 74, -48, 7, { align: 'center', seed: 508, col: '#3a3440', whim: 0.5 }); } });
+};
+// ── the 8 test-seat commanders: a hologram figure in its road's colour, holding the road's emblem; the big move faint behind
+const KB_CMD = {
+  kInd: { col: '#c0392b', nim: '#f2b0a8', big: 'holyleague', emblem: 'hammer' }, kEco: { col: '#d4a017', nim: '#f6e0a0', big: 'canopy', emblem: 'coin' }, kSci: { col: '#1f9bb0', nim: '#a8e0ea', big: 'moodpink', emblem: 'gear' },
+  kRel: { col: '#7b4fa0', nim: '#d8c0ef', big: 'holyleague', emblem: 'hex' }, kFood: { col: '#5a9a3a', nim: '#c8e8b0', big: 'canopy', emblem: 'wheat' }, kPop: { col: '#e07a2a', nim: '#f8d0a8', big: 'multiply', emblem: 'crowd' },
+  kPol: { col: '#6a7a8a', nim: '#d0d8e0', big: 'canopy', emblem: 'scroll' }, kEcoInd: { col: '#b8862a', nim: '#f0dca8', big: 'canopy', emblem: 'coinhammer' },
+};
+function kbEmblem(a, e) {
+  if (e === 'hammer' || e === 'coinhammer') a.at(e === 'coinhammer' ? 8 : 0, 0, -0.5, () => { a.line([[0, 0], [0, -34]], 520, 3); a.rect(-12, -44, 12, -32, 2, '#7a7f8a', 521); });
+  if (e === 'coin' || e === 'coinhammer') a.at(e === 'coinhammer' ? -14 : 0, -18, 0, () => { a.circ(0, 0, 13, 13, '#f9c74f', 522); a.circ(0, 0, 8, 8, null, 523, 1.2); });
+  if (e === 'gear') { const P = []; for (let i = 0; i < 16; i++) { const an = i / 16 * Math.PI * 2, r = i % 2 ? 11 : 16; P.push([Math.cos(an) * r, -18 + Math.sin(an) * r]); } a.poly(P, '#aab3c0', 524); a.circ(0, -18, 5, 5, CREAM, 525, 1.2); }
+  if (e === 'hex') { const P = []; for (let i = 0; i < 6; i++) P.push([Math.cos(i * Math.PI / 3) * 15, -18 + Math.sin(i * Math.PI / 3) * 15]); a.poly(P, '#e0b84a', 526); }
+  if (e === 'wheat') for (let i = -1; i <= 1; i++) { a.line([[i * 4, 0], [i * 8, -34]], 527 + i, 1.8); for (let k = 0; k < 3; k++) a.circ(i * 8 + 3, -30 + k * 7, 3, 5, '#e2b85a', 530 + k, 1); }
+  if (e === 'scroll') { a.rect(-6, -40, 6, 0, 3, '#f3eadb', 534); a.circ(0, -40, 7, 3, '#c9a06a', 535, 1.2); a.circ(0, 0, 7, 3, '#c9a06a', 536, 1.2); }
+  if (e === 'crowd') for (let i = 0; i < 3; i++) a.at(-14 + i * 14, 0, 0, () => { a.circ(0, -26, 5, 5, CREAM, 537 + i, 1.2); a.blob([[-6, 0], [-5, -20], [5, -20], [6, 0]], '#e8b07a', 540 + i, 1.2); });
+}
+function kbBig(a, big, col) {                                            // the road's big move, drawn small
+  if (big === 'holyleague') for (let i = 0; i < 3; i++) a.at(-40 + i * 40, 10 - (i % 2) * 14, 0, () => { a.poly([[-14, 0], [14, 0], [10, 8], [-10, 8]], '#f3eadb', 550 + i, 1.4); for (let k = 0; k < 3; k++) a.poly([[-10 + k * 8, 0], [-6 + k * 8, -18 - (k % 2) * 8], [-2 + k * 8, 0]], '#f3eadb', 553 + k, 1.2); });
+  if (big === 'canopy') { a.curve([[-70, 30], [-60, -30], [0, -56], [60, -30], [70, 30]], 560, 2.4); for (let i = 0; i < 7; i++) { const an = Math.PI + i / 6 * Math.PI; a.circ(Math.cos(an) * 64, -4 + Math.sin(an) * 50, 9, 9, '#6fbf5a', 561 + i, 1.2); } }
+  if (big === 'moodpink') { a.circ(0, -10, 64, 56, rgba('#ff8fc8', 0.35), 570, 1.6); for (let i = 0; i < 5; i++) { const P = []; for (let k = 0; k < 6; k++) P.push([-40 + i * 20 + Math.cos(k * Math.PI / 3) * 8, -14 + (i % 2) * 18 + Math.sin(k * Math.PI / 3) * 8]); a.poly(P, null, 571 + i, 1); } }
+  if (big === 'multiply') for (let i = 0; i < 4; i++) a.at(-60 + i * 40, 30, 0, () => { a.circ(0, -40, 7, 7, CREAM, 580 + i, 1.2); a.blob([[-9, 0], [-7, -30], [7, -30], [9, 0]], col, 584 + i, 1.2); });
+}
+for (const key in KB_CMD) {
+  const K = KB_CMD[key];
+  ART['kitcmd_' + key] = a => {
+    a.layer(-1, () => a.nim(K.nim));
+    if (!a.alt) a.layer(-0.7, () => { a.g.save(); a.g.globalAlpha = ST.holo ? 0.5 : 0.35; a.at(54, -20, 0, () => kbBig(a, K.big, K.col), 0.8); a.g.restore(); });
+    a.layer(0.35, () => a.at(-34, 96, 0, () => {
+      kbFig(a, { robe: K.col, skin: mix(K.col, '#ffffff', 0.55), raise: a.alt ? 34 : 14 });
+      a.at(28, -44 - (a.alt ? 34 : 14), 0, () => kbEmblem(a, K.emblem));
+    }, 1.4));
+    if (a.alt) a.layer(0.8, () => a.at(50, 40, 0, () => kbBig(a, K.big, K.col), 0.7));
+  };
+}
 
 // ── art/mush-gil.js
 // ── 🍄 QUEEN BLOOM'S MUSHROOMS (Mush) · 🐀 FLIP CAPONE'S RATS (Gil) · Port Royal (Mook's combo)  ── group mush-gil
@@ -1255,21 +1597,34 @@ ART.gravdrive = a => {                                                   // THE 
     a.poly([[-20, -18], [-4, -54], [30, -20]], rgba('#fff4c8', ST.holo ? 0.1 : 0.9), 491, 1.8);       // IKAROS as its sail
   }));
 };
-ART.part = a => {                                                        // Machine Part (no name yet): one piece of Rose's great machine
+ART.part = a => {                                                        // THE WRITER (wiki: the Jaquet-Droz automata, 1770s: a boy doll that writes with a quill, ~6000 parts)
   a.layer(-1, () => a.nim('#c9e9ff'));
-  a.layer(-0.4, () => { a.g.save(); if (!ST.holo) a.g.setLineDash([3, 5]); for (let i = -1; i <= 1; i++) { a.line([[i * 70 - 35, -90], [i * 70 - 35, 90]], 500 + i, 1); a.line([[-122, i * 60 - 30], [122, i * 60 - 30]], 503 + i, 1); } a.g.restore(); });   // the nine squares
-  a.layer(0.4, () => a.at(0, 0, a.alt ? 0.5 : 0, () => {
-    const P = []; for (let i = 0; i < 16; i++) { const an = i / 16 * Math.PI * 2, r = i % 2 ? 44 : 54; P.push([Math.cos(an) * r, Math.sin(an) * r]); } a.poly(P, '#b6c3d6', 506);   // a gear
-    a.circ(0, 0, 18, 18, '#7f8aa0', 507); a.circ(0, 0, 6, 6, '#2a2630', 508, 1.4);
+  a.layer(-0.4, () => { const P = []; for (let i = 0; i < 20; i++) { const an = i / 20 * Math.PI * 2, r = i % 2 ? 30 : 36; P.push([82 + Math.cos(an) * r, -54 + Math.sin(an) * r]); } a.poly(P, '#d7dde8', 500, 1.4); a.circ(82, -54, 10, 10, '#b6c3d6', 501, 1.2);
+    const Q = []; for (let i = 0; i < 14; i++) { const an = i / 14 * Math.PI * 2 + 0.2, r = i % 2 ? 18 : 23; Q.push([-90 + Math.cos(an) * r, -66 + Math.sin(an) * r]); } a.poly(Q, '#d7dde8', 502, 1.2); });   // the works behind him
+  a.layer(0.2, () => { a.rect(-70, 40, 80, 52, 2, '#a8744f', 503); a.line([[-60, 52], [-60, 90]], 504, 3); a.line([[70, 52], [70, 90]], 505, 3);   // the desk
+    a.rect(-10, 32, 60, 40, 1, CREAM, 506, 1.2); if (a.alt) a.curve([[0, 36], [8, 34], [14, 37], [22, 34], [30, 36]], 507, 1); });   // the paper
+  a.layer(0.5, () => a.at(-26, 0, 0, () => {
+    a.blob([[-20, 40], [-22, 0], [-12, -10], [12, -10], [22, 0], [20, 40]], '#5b6fb0', 510);             // the coat
+    a.circ(0, -28, 17, 18, '#f3d6c0', 511);                                                               // the porcelain head
+    a.blob([[-17, -32], [-12, -48], [0, -50], [12, -48], [17, -32], [8, -40], [-8, -40]], '#a8744f', 512, 1.6);   // hair
+    for (const s of [-1, 1]) { a.circ(s * 6, -28, 3, 3, CREAM, 513 + s, 1.2); a.dot(s * 6, a.alt ? -27 : -28, 1.2); }
+    a.curve([[-4, -18], [0, -17], [4, -18]], 515, 1.2);
+    const r = a.alt ? 0.35 : 0;
+    a.at(16, 6, r, () => { a.line([[0, 0], [24, 22]], 516, 3); a.circ(25, 24, 3.5, 3.5, '#f3d6c0', 517, 1.2); a.curve([[22, 26], [34, 6], [44, -14]], 518, 1.2); });   // the arm and the quill
   }));
-  a.layer(0.7, () => { a.rect(50, 40, 96, 74, 4, '#e0368c', 509); for (let i = 0; i < 3; i++) a.dot(60 + i * 12, 57, 3, '#ffe27a'); a.line([[30, 30], [50, 50]], 510, 2); });
 };
-ART.core = a => {                                                        // Machine Core (no name yet): the middle square of the great machine
-  a.layer(-1, () => a.nim('#bfeff5'));
-  a.layer(-0.3, () => { for (let i = 0; i < 8; i++) { const an = i / 8 * Math.PI * 2; a.line([[Math.cos(an) * 60, Math.sin(an) * 50], [Math.cos(an) * 120, Math.sin(an) * 100]], 520 + i, 1.4); } });
-  a.layer(0.3, () => { rlHex(a, 0, 0, 56, '#b6c3d6', 530); rlHex(a, 0, 0, 40, '#7f8aa0', 531, 1.8); });
-  a.layer(0.6, () => { const r = a.alt ? 30 : 22; a.circ(0, 0, r, r, '#26c6da', 532); a.circ(0, 0, r * 0.5, r * 0.5, '#e0fbff', 533, 1.4);
-    if (a.alt) for (let i = 0; i < 8; i++) { const an = i / 8 * Math.PI * 2; a.line([[Math.cos(an) * 34, Math.sin(an) * 34], [Math.cos(an) * 48, Math.sin(an) * 48]], 534 + i, 1.6); } });
+ART.core = a => {                                                        // ANTIKYTHERA (wiki: the ancient Greek bronze geared mechanism found in a shipwreck)
+  a.layer(-1, () => a.nim('#bfe8d8'));
+  a.layer(-0.4, () => { a.rect(-96, -84, 96, 84, 10, '#a8744f', 520); a.rect(-86, -74, 86, 74, 6, '#8a5a3a', 521, 1.4); });   // the wooden case
+  const turn = a.alt ? 0.6 : 0, gear = (x, y, r, n, col, seed, rot) => { const P = []; for (let i = 0; i < n * 2; i++) { const an = i / (n * 2) * Math.PI * 2 + rot, rr = i % 2 ? r * 0.86 : r; P.push([x + Math.cos(an) * rr, y + Math.sin(an) * rr]); } a.poly(P, col, seed, 1.6); };
+  a.layer(0.2, () => { gear(-40, 30, 34, 18, '#6fae8f', 522, -turn * 2); gear(46, 38, 26, 14, '#7fbf9c', 523, turn * 2.6); gear(48, -34, 20, 11, '#6fae8f', 524, -turn * 3); });   // bronze gone green
+  a.layer(0.45, () => {
+    gear(0, -6, 52, 28, '#8fcfaa', 525, turn);                                                            // the great wheel
+    a.circ(0, -6, 40, 40, null, 526, 1.2);
+    for (let i = 0; i < 4; i++) { const an = i * Math.PI / 2 + turn; a.line([[Math.cos(an) * 8, -6 + Math.sin(an) * 8], [Math.cos(an) * 40, -6 + Math.sin(an) * 40]], 527 + i, 2.4); }   // the spokes
+    a.circ(0, -6, 8, 8, '#c58a3a', 531, 1.6);
+    if (a.alt) { a.line([[0, -6], [0, -44]], 532, 2); a.circ(0, -48, 5, 5, '#ffd34d', 533, 1.2); a.circ(26, -24, 4, 4, '#cfd6e0', 534, 1); }   // its pointers: the sun, the moon
+  });
 };
 ART.lab = a => {                                                         // Rose's works (no name yet): the lab the three cards fuse into
   a.layer(-1, () => a.nim('#f7b6d6'));
@@ -1331,12 +1686,17 @@ ART.leoA = a => {                                                        // Leo 
   a.layer(0.4, () => a.at(0, -8, 0, () => rlStork(a, !a.alt), 1.05));
   a.layer(0.7, () => { if (!a.alt) for (let i = 0; i < 3; i++) uText(a.g, 'Z', 44 + i * 12, -46 - i * 12, 10 + i * 2, { seed: 640 + i, col: '#3a3440' }); else a.star(60, -50, 12, '#ffd34d', 643); });
 };
-ART.leoB = a => {                                                        // Leo unit B (no name yet): two little stork balls, a pair of lookouts
+ART.leoB = a => {                                                        // PFEILSTORCH (wiki: a stork that flew home from Africa with an arrow through it; proof that birds migrate)
   a.layer(-1, () => a.nim('#d8e8c8'));
-  a.layer(-0.4, () => { a.fillRect(-130, 70, 130, 110, rgba('#9fd3a8', 0.6)); a.line([[-130, 70], [130, 70]], 650, 1.4); });
-  a.layer(0.2, () => a.at(46, 12, a.alt ? 0.15 : 0, () => rlStork(a, false), 0.7));
-  a.layer(0.5, () => a.at(-44, 18, a.alt ? -0.15 : 0, () => rlStork(a, false), 0.78));
-  if (a.alt) a.layer(0.8, () => { a.star(0, -60, 12, '#ffd34d', 651); });
+  a.layer(-0.5, () => { a.fillRect(-130, 70, 130, 110, rgba('#9fd3a8', 0.6)); a.line([[-130, 70], [130, 70]], 650, 1.4); });
+  a.layer(-0.2, () => { a.circ(-88, -60, 16, 16, '#ffd34d', 652); for (let i = 0; i < 3; i++) a.curve([[60 + i * 16, -70 + i * 8], [66 + i * 16, -76 + i * 8], [72 + i * 16, -70 + i * 8]], 653 + i, 1.2); });   // the far south sun, birds flying north
+  a.layer(0.45, () => a.at(0, -2, a.alt ? 0.08 : 0, () => {
+    rlStork(a, false);
+    a.line([[-62, 12], [62, -6]], 656, 2.4);                                                            // the arrow, straight through, harmless
+    a.poly([[62, -6], [52, -12], [54, 0]], '#8f8577', 657, 1.4);
+    for (const s of [0, 1]) a.poly([[-62 + s * 8, 12], [-70 + s * 8, 4], [-74 + s * 8, 16]], '#e0506a', 658 + s, 1.2);   // the fletching
+  }, 1.0));
+  if (a.alt) a.layer(0.8, () => { a.at(64, -44, 0, () => { a.rect(-18, -10, 18, 10, 2, CREAM, 660, 1.4); a.line([[-12, -2], [12, -2]], 661, 0.8); a.line([[-12, 3], [6, 3]], 662, 0.8); }); a.line([[40, -36], [30, -22]], 663, 1.2); });   // a note: proof
 };
 // @@ART-END
 

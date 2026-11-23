@@ -12,7 +12,8 @@ window.HALO_CARD_DATA = {
   "tortimer": "Tortimer's deck",
   "leo": "Leo's deck",
   "every": "In every deck",
-  "library": "The library"
+  "library": "The library",
+  "kits": "The kit cards (the table's test seats)"
  },
  "deckOrder": [
   "mook",
@@ -25,7 +26,8 @@ window.HALO_CARD_DATA = {
   "tortimer",
   "leo",
   "every",
-  "library"
+  "library",
+  "kits"
  ],
  "roads": {
   "table": [
@@ -612,7 +614,7 @@ window.HALO_CARD_DATA = {
    "dev": 2,
    "no": "20/25",
    "flavor": "Men in crisp, high thread count, dress shirts and grey slacks … wielding calculators.",
-   "rule": "Combo: in a line with The Sapphire Slipper + Arch's Battle Station = Arch's city (no name yet).",
+   "rule": "Combo: in a line with The Sapphire Slipper + Arch's Battle Station = Arcosanti.",
    "painted": true,
    "src": "book",
    "faceInv": [
@@ -638,7 +640,7 @@ window.HALO_CARD_DATA = {
    "dev": 1,
    "no": "21/25",
    "flavor": "Three floors of paperwork, armed.",
-   "rule": "Combo: in a line with Army of Auditors + The Sapphire Slipper = Arch's city (no name yet).",
+   "rule": "Combo: in a line with Army of Auditors + The Sapphire Slipper = Arcosanti.",
    "painted": true,
    "src": "book",
    "faceInv": [
@@ -688,7 +690,7 @@ window.HALO_CARD_DATA = {
    "dev": 4,
    "no": "22/25",
    "flavor": "A sapphire slipper guarded by pocket protectors.",
-   "rule": "Combo: in a line with Army of Auditors + Arch's Battle Station = Arch's city (no name yet).",
+   "rule": "Combo: in a line with Army of Auditors + Arch's Battle Station = Arcosanti.",
    "painted": true,
    "src": "book",
    "faceInv": [
@@ -698,7 +700,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "archcity",
-   "name": "Arch's city (no name yet)",
+   "name": "Arcosanti",
    "type": "structure",
    "deck": "finley",
    "road": "econ",
@@ -724,7 +726,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "envoy",
-   "name": "Envoy (no name yet)",
+   "name": "Twelve Years' Truce",
    "type": "action",
    "deck": "finley",
    "road": "politics",
@@ -1029,7 +1031,7 @@ window.HALO_CARD_DATA = {
    "dev": 1,
    "no": "II 8/25",
    "flavor": "A hodgepodge of space-dews and cosmo-yachts.",
-   "rule": "Science: +1 A and +1 D a turn (up to +3). Combo: in a line with Balistrai Corporation + Fuchsia Speedster = Rose's works (no name yet).",
+   "rule": "Science: +1 A and +1 D a turn (up to +3). Combo: in a line with Balistrai Corporation + Fuchsia Speedster = Biosphere 2.",
    "painted": true,
    "src": "book",
    "faceInv": [
@@ -1055,7 +1057,7 @@ window.HALO_CARD_DATA = {
    "dev": 0,
    "no": "II 9/25",
    "flavor": "Out in front, always.",
-   "rule": "Science: +1 A and +1 D a turn (up to +3). Combo: in a line with Balistrai Corporation + Geconian Fleet = Rose's works (no name yet).",
+   "rule": "Science: +1 A and +1 D a turn (up to +3). Combo: in a line with Balistrai Corporation + Geconian Fleet = Biosphere 2.",
    "painted": true,
    "src": "book",
    "faceInv": [
@@ -1082,7 +1084,7 @@ window.HALO_CARD_DATA = {
    "dev": 5,
    "no": "II 10/25",
    "flavor": "That all comes down to a lucky draw next turn.",
-   "rule": "Pays +1 ECON at the start of your turn. Science: +1 A and +1 D a turn (up to +3). Combo: in a line with Geconian Fleet + Fuchsia Speedster = Rose's works (no name yet).",
+   "rule": "Pays +1 ECON at the start of your turn. Science: +1 A and +1 D a turn (up to +3). Combo: in a line with Geconian Fleet + Fuchsia Speedster = Biosphere 2.",
    "painted": true,
    "src": "book",
    "faceInv": [
@@ -1197,7 +1199,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "part",
-   "name": "Machine Part (no name yet)",
+   "name": "The Writer",
    "type": "structure",
    "deck": "rose",
    "road": "science",
@@ -1225,7 +1227,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "core",
-   "name": "Machine Core (no name yet)",
+   "name": "Antikythera",
    "type": "structure",
    "deck": "rose",
    "road": "science",
@@ -1253,7 +1255,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "lab",
-   "name": "Rose's works (no name yet)",
+   "name": "Biosphere 2",
    "type": "structure",
    "deck": "rose",
    "road": "science",
@@ -1464,7 +1466,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "hatunit",
-   "name": "Fhat unit (no name yet)",
+   "name": "Gibus",
    "type": "unit",
    "deck": "fhat",
    "road": "table",
@@ -1479,13 +1481,14 @@ window.HALO_CARD_DATA = {
    "econ": 2,
    "dev": 1,
    "no": "II 23/25",
-   "flavor": "Grumpy, and there are more of them.",
+   "flavor": "Flat one minute. Tall the next.",
    "rule": "",
    "painted": true,
    "src": "claude",
    "faceInv": [
     "all three move names",
-    "flavor"
+    "flavor",
+    "11-23, for the new name: flavor"
    ],
    "rebalanced": false
   },
@@ -1569,7 +1572,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "tortunit",
-   "name": "Tortimer unit (no name yet)",
+   "name": "Harriet",
    "type": "unit",
    "deck": "tortimer",
    "road": "table",
@@ -1624,7 +1627,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "tortB",
-   "name": "Tortimer unit B (no name yet)",
+   "name": "Tu'i Malila",
    "type": "unit",
    "deck": "tortimer",
    "road": "table",
@@ -1752,7 +1755,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "leoA",
-   "name": "Leo unit A (no name yet)",
+   "name": "One Eye Open",
    "type": "unit",
    "deck": "leo",
    "road": "table",
@@ -1780,7 +1783,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "leoB",
-   "name": "Leo unit B (no name yet)",
+   "name": "Pfeilstorch",
    "type": "unit",
    "deck": "leo",
    "road": "table",
@@ -1788,27 +1791,28 @@ window.HALO_CARD_DATA = {
    "D": 4,
    "moves": {
     "A": "Peck",
-    "D": "Lookout",
-    "M": "Two of Us"
+    "D": "Arrow-Proof",
+    "M": "Fly Home"
    },
    "big": false,
    "econ": 2,
    "dev": 1,
    "no": "III 8/25",
-   "flavor": "One looks left. One looks right.",
+   "flavor": "It flew home with the proof.",
    "rule": "",
    "painted": true,
    "src": "claude",
    "faceInv": [
     "the picture (two small stork balls)",
     "all three move names",
-    "flavor"
+    "flavor",
+    "11-23, for the new name: a, d, m, flavor"
    ],
    "rebalanced": false
   },
   {
    "id": "pasttrap",
-   "name": "TRAP 3 (no name yet)",
+   "name": "THE HARBOUR BOOM",
    "type": "trap",
    "deck": "every",
    "road": "table",
@@ -1835,7 +1839,7 @@ window.HALO_CARD_DATA = {
   },
   {
    "id": "siege",
-   "name": "SIEGE (no name yet)",
+   "name": "WARWOLF",
    "type": "action",
    "deck": "every",
    "road": "table",
@@ -1844,7 +1848,7 @@ window.HALO_CARD_DATA = {
    "moves": {
     "A": "—",
     "D": "—",
-    "M": "Batter"
+    "M": "Fling"
    },
    "big": false,
    "econ": 3,
@@ -1856,7 +1860,2133 @@ window.HALO_CARD_DATA = {
    "src": "claude",
    "faceInv": [
     "M move name",
+    "flavor",
+    "11-23, for the new name: m"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kInd_grunt",
+   "name": "Kern",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_grunt",
+   "role": "grunt",
+   "kit": "kInd",
+   "alias": false,
+   "A": 2,
+   "D": 2,
+   "moves": {
+    "A": "Javelin",
+    "D": "Bog Run",
+    "M": "Skirmish"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": 0,
+   "no": "K 1/25",
+   "flavor": "Light on his feet, heavy on the javelins.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
     "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kInd_soldier",
+   "name": "Gallowglass",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_soldier",
+   "role": "soldier",
+   "kit": "kInd",
+   "alias": false,
+   "A": 3,
+   "D": 3,
+   "moves": {
+    "A": "Long Axe",
+    "D": "Mail Coat",
+    "M": "Hold the Line"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 2/25",
+   "flavor": "Hired from over the sea. Worth every coin.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kInd_wall",
+   "name": "Hesco Bastion",
+   "type": "structure",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_wall",
+   "role": "wall",
+   "kit": "kInd",
+   "alias": false,
+   "A": null,
+   "D": 4,
+   "moves": {
+    "A": "—",
+    "D": "Wire and Earth",
+    "M": "Fill It Up"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 2,
+   "no": "K 3/25",
+   "flavor": "A cage of wire, a heap of dirt, a wall by lunch.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kInd_heavy",
+   "name": "Great Michael",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_heavy",
+   "role": "heavy",
+   "kit": "kInd",
+   "alias": false,
+   "A": 5,
+   "D": 5,
+   "moves": {
+    "A": "Broadside",
+    "D": "Ten-Foot Oak",
+    "M": "Flagship"
+   },
+   "big": false,
+   "econ": 4,
+   "dev": 0,
+   "no": "K 4/25",
+   "flavor": "So big it took all the forests of Fife.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kInd_brute",
+   "name": "Carronade",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_brute",
+   "role": "brute",
+   "kit": "kInd",
+   "alias": false,
+   "A": 4,
+   "D": 4,
+   "moves": {
+    "A": "Smasher",
+    "D": "Short Barrel",
+    "M": "Point Blank"
+   },
+   "big": false,
+   "econ": 3,
+   "dev": 0,
+   "no": "K 5/25",
+   "flavor": "Not far. Very hard.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kInd_runner",
+   "name": "Chasqui",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_runner",
+   "role": "runner",
+   "kit": "kInd",
+   "alias": false,
+   "A": 2,
+   "D": 2,
+   "moves": {
+    "A": "Relay",
+    "D": "Mountain Road",
+    "M": "Runner"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 0,
+   "no": "K 6/25",
+   "flavor": "Blow the conch. Pass the knots. Run.",
+   "rule": "Runner: may attack any empty enemy lane.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "M = its keyword",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kInd_barrage",
+   "name": "Congreve Rocket",
+   "type": "action",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_barrage",
+   "role": "barrage",
+   "kit": "kInd",
+   "alias": false,
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Rocket Frame"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": null,
+   "no": "K 7/25",
+   "flavor": "Nobody knows where it lands. Including us.",
+   "rule": "Knock out one enemy front card with D 3 or less.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kInd_cmd",
+   "name": "Kit Industry (commander)",
+   "type": "commander",
+   "deck": "kits",
+   "road": "table",
+   "art": "kitcmd_kInd",
+   "role": null,
+   "kit": "kInd",
+   "alias": false,
+   "A": 3,
+   "D": 4,
+   "moves": {
+    "A": "Hammer",
+    "D": "Plate",
+    "M": "HOLY LEAGUE"
+   },
+   "big": true,
+   "econ": null,
+   "dev": null,
+   "no": "★",
+   "flavor": "A test seat: it plays the road, not a character.",
+   "rule": "Once a game: your attackers get +2 A this turn.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "A and D move names",
+    "flavor",
+    "the picture: a hologram figure with the road's emblem",
+    "M spelt as the engine names the big move (the default printed HOLYLEAGUE / MOODPINK)"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEco_grunt",
+   "name": "Kern",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_grunt",
+   "role": "grunt",
+   "kit": "kEco",
+   "alias": true,
+   "A": 2,
+   "D": 2,
+   "moves": {
+    "A": "Javelin",
+    "D": "Bog Run",
+    "M": "Skirmish"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": 0,
+   "no": "K 1/25",
+   "flavor": "Light on his feet, heavy on the javelins.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEco_soldier",
+   "name": "Gallowglass",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_soldier",
+   "role": "soldier",
+   "kit": "kEco",
+   "alias": true,
+   "A": 3,
+   "D": 3,
+   "moves": {
+    "A": "Long Axe",
+    "D": "Mail Coat",
+    "M": "Hold the Line"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 2/25",
+   "flavor": "Hired from over the sea. Worth every coin.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEco_wall",
+   "name": "Hesco Bastion",
+   "type": "structure",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_wall",
+   "role": "wall",
+   "kit": "kEco",
+   "alias": true,
+   "A": null,
+   "D": 4,
+   "moves": {
+    "A": "—",
+    "D": "Wire and Earth",
+    "M": "Fill It Up"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 2,
+   "no": "K 3/25",
+   "flavor": "A cage of wire, a heap of dirt, a wall by lunch.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEco_heavy",
+   "name": "Great Michael",
+   "type": "unit",
+   "deck": "kits",
+   "road": "econ",
+   "art": "kit_heavy",
+   "role": "heavy",
+   "kit": "kEco",
+   "alias": true,
+   "A": 5,
+   "D": 5,
+   "moves": {
+    "A": "Broadside",
+    "D": "Ten-Foot Oak",
+    "M": "Flagship"
+   },
+   "big": false,
+   "econ": 4,
+   "dev": 0,
+   "no": "K 4/25",
+   "flavor": "So big it took all the forests of Fife.",
+   "rule": "Combo: in a line with Tianguis + Hawaladar = Kilwa Kisiwani.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEco_market",
+   "name": "Tianguis",
+   "type": "structure",
+   "deck": "kits",
+   "road": "econ",
+   "art": "kit_market",
+   "role": "market",
+   "kit": "kEco",
+   "alias": false,
+   "A": null,
+   "D": 3,
+   "moves": {
+    "A": "—",
+    "D": "Stall Row",
+    "M": "Market Day"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 8/25",
+   "flavor": "Cacao beans in, everything else out.",
+   "rule": "Pays +1 ECON at the start of your turn. Combo: in a line with Hawaladar + Great Michael = Kilwa Kisiwani.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEco_banker",
+   "name": "Hawaladar",
+   "type": "unit",
+   "deck": "kits",
+   "road": "econ",
+   "art": "kit_banker",
+   "role": "banker",
+   "kit": "kEco",
+   "alias": false,
+   "A": 2,
+   "D": 4,
+   "moves": {
+    "A": "Ledger",
+    "D": "Handshake",
+    "M": "Send Word"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 9/25",
+   "flavor": "The money never moves. The promise does.",
+   "rule": "Combo: in a line with Tianguis + Great Michael = Kilwa Kisiwani.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEco_takeover",
+   "name": "Mississippi Bubble",
+   "type": "action",
+   "deck": "kits",
+   "road": "econ",
+   "art": "kit_takeover",
+   "role": "takeover",
+   "kit": "kEco",
+   "alias": false,
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Pop"
+   },
+   "big": false,
+   "econ": 3,
+   "dev": null,
+   "no": "K 10/25",
+   "flavor": "Everyone was rich for a whole year.",
+   "rule": "Put out one enemy's ECONOMY ring, past the grid.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEco_city",
+   "name": "Kilwa Kisiwani",
+   "type": "structure",
+   "deck": "kits",
+   "road": "econ",
+   "art": "kit_city",
+   "role": "city",
+   "kit": "kEco",
+   "alias": false,
+   "A": null,
+   "D": 8,
+   "moves": {
+    "A": "—",
+    "D": "Coral Walls",
+    "M": "Trade Winds"
+   },
+   "big": false,
+   "econ": 0,
+   "dev": 3,
+   "no": "K 11/25",
+   "flavor": "Gold from the south, dhows from everywhere.",
+   "rule": "Pays +2 ECON at the start of your turn. Made by Tianguis + Hawaladar + Great Michael in a line.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEco_cmd",
+   "name": "Kit Economy (commander)",
+   "type": "commander",
+   "deck": "kits",
+   "road": "table",
+   "art": "kitcmd_kEco",
+   "role": null,
+   "kit": "kEco",
+   "alias": false,
+   "A": 3,
+   "D": 4,
+   "moves": {
+    "A": "Coin Toss",
+    "D": "Purse",
+    "M": "CANOPY"
+   },
+   "big": true,
+   "econ": null,
+   "dev": null,
+   "no": "★",
+   "flavor": "A test seat: it plays the road, not a character.",
+   "rule": "Once a game: your rings cannot go dark until your next turn.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "A and D move names",
+    "flavor",
+    "the picture: a hologram figure with the road's emblem",
+    "M spelt as the engine names the big move (the default printed HOLYLEAGUE / MOODPINK)"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kSci_grunt",
+   "name": "Kern",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_grunt",
+   "role": "grunt",
+   "kit": "kSci",
+   "alias": true,
+   "A": 2,
+   "D": 2,
+   "moves": {
+    "A": "Javelin",
+    "D": "Bog Run",
+    "M": "Skirmish"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": 0,
+   "no": "K 1/25",
+   "flavor": "Light on his feet, heavy on the javelins.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kSci_soldier",
+   "name": "Gallowglass",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_soldier",
+   "role": "soldier",
+   "kit": "kSci",
+   "alias": true,
+   "A": 3,
+   "D": 3,
+   "moves": {
+    "A": "Long Axe",
+    "D": "Mail Coat",
+    "M": "Hold the Line"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 2/25",
+   "flavor": "Hired from over the sea. Worth every coin.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kSci_wall",
+   "name": "Hesco Bastion",
+   "type": "structure",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_wall",
+   "role": "wall",
+   "kit": "kSci",
+   "alias": true,
+   "A": null,
+   "D": 4,
+   "moves": {
+    "A": "—",
+    "D": "Wire and Earth",
+    "M": "Fill It Up"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 2,
+   "no": "K 3/25",
+   "flavor": "A cage of wire, a heap of dirt, a wall by lunch.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kSci_heavy",
+   "name": "Great Michael",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_heavy",
+   "role": "heavy",
+   "kit": "kSci",
+   "alias": true,
+   "A": 5,
+   "D": 5,
+   "moves": {
+    "A": "Broadside",
+    "D": "Ten-Foot Oak",
+    "M": "Flagship"
+   },
+   "big": false,
+   "econ": 4,
+   "dev": 0,
+   "no": "K 4/25",
+   "flavor": "So big it took all the forests of Fife.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kSci_part",
+   "name": "Escapement",
+   "type": "structure",
+   "deck": "kits",
+   "road": "science",
+   "art": "kit_part",
+   "role": "part",
+   "kit": "kSci",
+   "alias": false,
+   "A": null,
+   "D": 3,
+   "moves": {
+    "A": "—",
+    "D": "Anchor",
+    "M": "Tick"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": 1,
+   "no": "K 12/25",
+   "flavor": "Tick. Tock. Let one tooth go.",
+   "rule": "Science: +1 A and +1 D a turn (up to +3). Machine: the Core in the middle and eight Parts round it wins.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kSci_core",
+   "name": "Strasbourg Clock",
+   "type": "structure",
+   "deck": "kits",
+   "road": "science",
+   "art": "kit_core",
+   "role": "core",
+   "kit": "kSci",
+   "alias": false,
+   "A": null,
+   "D": 5,
+   "moves": {
+    "A": "—",
+    "D": "Cathedral Stone",
+    "M": "Procession"
+   },
+   "big": false,
+   "econ": 4,
+   "dev": 1,
+   "no": "K 13/25",
+   "flavor": "Noon, and every figure walks.",
+   "rule": "Science: +1 A and +1 D a turn (up to +3). Machine: the Core in the middle and eight Parts round it wins.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kSci_scientist",
+   "name": "Ulugh Beg",
+   "type": "unit",
+   "deck": "kits",
+   "road": "science",
+   "art": "kit_scientist",
+   "role": "scientist",
+   "kit": "kSci",
+   "alias": false,
+   "A": 3,
+   "D": 2,
+   "moves": {
+    "A": "Star Table",
+    "D": "Meridian Arc",
+    "M": "Measure"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 14/25",
+   "flavor": "He counted a thousand stars from one hill.",
+   "rule": "Science: +1 A and +1 D a turn (up to +3).",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kSci_cmd",
+   "name": "Kit Science (commander)",
+   "type": "commander",
+   "deck": "kits",
+   "road": "table",
+   "art": "kitcmd_kSci",
+   "role": null,
+   "kit": "kSci",
+   "alias": false,
+   "A": 3,
+   "D": 4,
+   "moves": {
+    "A": "Spark",
+    "D": "Gear Shield",
+    "M": "MOOD: PINK"
+   },
+   "big": true,
+   "econ": null,
+   "dev": null,
+   "no": "★",
+   "flavor": "A test seat: it plays the road, not a character.",
+   "rule": "Once a game: your cards cannot be attacked until your next turn.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "A and D move names",
+    "flavor",
+    "the picture: a hologram figure with the road's emblem",
+    "M spelt as the engine names the big move (the default printed HOLYLEAGUE / MOODPINK)"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kRel_grunt",
+   "name": "Kern",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_grunt",
+   "role": "grunt",
+   "kit": "kRel",
+   "alias": true,
+   "A": 2,
+   "D": 2,
+   "moves": {
+    "A": "Javelin",
+    "D": "Bog Run",
+    "M": "Skirmish"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": 0,
+   "no": "K 1/25",
+   "flavor": "Light on his feet, heavy on the javelins.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kRel_soldier",
+   "name": "Gallowglass",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_soldier",
+   "role": "soldier",
+   "kit": "kRel",
+   "alias": true,
+   "A": 3,
+   "D": 3,
+   "moves": {
+    "A": "Long Axe",
+    "D": "Mail Coat",
+    "M": "Hold the Line"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 2/25",
+   "flavor": "Hired from over the sea. Worth every coin.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kRel_wall",
+   "name": "Hesco Bastion",
+   "type": "structure",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_wall",
+   "role": "wall",
+   "kit": "kRel",
+   "alias": true,
+   "A": null,
+   "D": 4,
+   "moves": {
+    "A": "—",
+    "D": "Wire and Earth",
+    "M": "Fill It Up"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 2,
+   "no": "K 3/25",
+   "flavor": "A cage of wire, a heap of dirt, a wall by lunch.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kRel_heavy",
+   "name": "Great Michael",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_heavy",
+   "role": "heavy",
+   "kit": "kRel",
+   "alias": true,
+   "A": 5,
+   "D": 5,
+   "moves": {
+    "A": "Broadside",
+    "D": "Ten-Foot Oak",
+    "M": "Flagship"
+   },
+   "big": false,
+   "econ": 4,
+   "dev": 0,
+   "no": "K 4/25",
+   "flavor": "So big it took all the forests of Fife.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kRel_sigil",
+   "name": "Sator Square",
+   "type": "action",
+   "deck": "kits",
+   "road": "religion",
+   "art": "kit_sigil",
+   "role": "sigil",
+   "kit": "kRel",
+   "alias": false,
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Read It Both Ways"
+   },
+   "big": false,
+   "econ": 3,
+   "dev": null,
+   "no": "K 15/25",
+   "flavor": "Sator, arepo, tenet, opera, rotas: it reads the same from any side.",
+   "rule": "Put out one enemy's RELIGION ring, past the grid.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kRel_preacher",
+   "name": "Boy Bishop",
+   "type": "unit",
+   "deck": "kits",
+   "road": "religion",
+   "art": "kit_preacher",
+   "role": "preacher",
+   "kit": "kRel",
+   "alias": false,
+   "A": 0,
+   "D": 4,
+   "moves": {
+    "A": "Crozier",
+    "D": "Choir Stall",
+    "M": "Holy Innocents"
+   },
+   "big": false,
+   "econ": 4,
+   "dev": 1,
+   "no": "K 16/25",
+   "flavor": "Bishop until Holy Innocents' Day. Then back to the choir.",
+   "rule": "PAPAL SMITE: after one full turn on the grid, put out any one enemy ring.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "all three move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kRel_acolyte",
+   "name": "Thurifer",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_acolyte",
+   "role": "acolyte",
+   "kit": "kRel",
+   "alias": false,
+   "A": 2,
+   "D": 4,
+   "moves": {
+    "A": "Swing",
+    "D": "Smoke Screen",
+    "M": "Cense"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 17/25",
+   "flavor": "Three swings to the left, three to the right, and the room goes holy.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "all three move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kRel_revival",
+   "name": "Tent Revival",
+   "type": "action",
+   "deck": "kits",
+   "road": "food",
+   "art": "kit_revival",
+   "role": "revival",
+   "kit": "kRel",
+   "alias": false,
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Sawdust Trail"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": null,
+   "no": "K 18/25",
+   "flavor": "The lights come back on in a field outside town.",
+   "rule": "Relight one dark ring, yours or a team-mate's.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kRel_cmd",
+   "name": "Kit Religion (commander)",
+   "type": "commander",
+   "deck": "kits",
+   "road": "table",
+   "art": "kitcmd_kRel",
+   "role": null,
+   "kit": "kRel",
+   "alias": false,
+   "A": 3,
+   "D": 4,
+   "moves": {
+    "A": "Sermon",
+    "D": "Vigil",
+    "M": "HOLY LEAGUE"
+   },
+   "big": true,
+   "econ": null,
+   "dev": null,
+   "no": "★",
+   "flavor": "A test seat: it plays the road, not a character.",
+   "rule": "Once a game: your attackers get +2 A this turn.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "A and D move names",
+    "flavor",
+    "the picture: a hologram figure with the road's emblem",
+    "M spelt as the engine names the big move (the default printed HOLYLEAGUE / MOODPINK)"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kFood_grunt",
+   "name": "Kern",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_grunt",
+   "role": "grunt",
+   "kit": "kFood",
+   "alias": true,
+   "A": 2,
+   "D": 2,
+   "moves": {
+    "A": "Javelin",
+    "D": "Bog Run",
+    "M": "Skirmish"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": 0,
+   "no": "K 1/25",
+   "flavor": "Light on his feet, heavy on the javelins.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kFood_soldier",
+   "name": "Gallowglass",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_soldier",
+   "role": "soldier",
+   "kit": "kFood",
+   "alias": true,
+   "A": 3,
+   "D": 3,
+   "moves": {
+    "A": "Long Axe",
+    "D": "Mail Coat",
+    "M": "Hold the Line"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 2/25",
+   "flavor": "Hired from over the sea. Worth every coin.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kFood_wall",
+   "name": "Hesco Bastion",
+   "type": "structure",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_wall",
+   "role": "wall",
+   "kit": "kFood",
+   "alias": true,
+   "A": null,
+   "D": 4,
+   "moves": {
+    "A": "—",
+    "D": "Wire and Earth",
+    "M": "Fill It Up"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 2,
+   "no": "K 3/25",
+   "flavor": "A cage of wire, a heap of dirt, a wall by lunch.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kFood_heavy",
+   "name": "Great Michael",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_heavy",
+   "role": "heavy",
+   "kit": "kFood",
+   "alias": true,
+   "A": 5,
+   "D": 5,
+   "moves": {
+    "A": "Broadside",
+    "D": "Ten-Foot Oak",
+    "M": "Flagship"
+   },
+   "big": false,
+   "econ": 4,
+   "dev": 0,
+   "no": "K 4/25",
+   "flavor": "So big it took all the forests of Fife.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kFood_farm",
+   "name": "Chinampa",
+   "type": "structure",
+   "deck": "kits",
+   "road": "food",
+   "art": "kit_farm",
+   "role": "farm",
+   "kit": "kFood",
+   "alias": false,
+   "A": null,
+   "D": 3,
+   "moves": {
+    "A": "—",
+    "D": "Mud and Reeds",
+    "M": "Floating Field"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 4,
+   "no": "K 19/25",
+   "flavor": "A garden on the lake, staked down with willows.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "D and M move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kFood_harvester",
+   "name": "Gleaner",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_harvester",
+   "role": "harvester",
+   "kit": "kFood",
+   "alias": false,
+   "A": 2,
+   "D": 3,
+   "moves": {
+    "A": "Sickle",
+    "D": "Bent Low",
+    "M": "The Last Ears"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 2,
+   "no": "K 20/25",
+   "flavor": "What the reapers leave, the gleaners take home.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "all three move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kFood_seed",
+   "name": "Seed Ball",
+   "type": "action",
+   "deck": "kits",
+   "road": "food",
+   "art": "kit_seed",
+   "role": "seed",
+   "kit": "kFood",
+   "alias": false,
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Throw It"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": null,
+   "no": "K 21/25",
+   "flavor": "Clay, compost and a seed. Throw it and wait for rain.",
+   "rule": "Your FOOD ring relights (only Food: a harvest card, not a heal).",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kFood_cmd",
+   "name": "Kit Food (commander)",
+   "type": "commander",
+   "deck": "kits",
+   "road": "table",
+   "art": "kitcmd_kFood",
+   "role": null,
+   "kit": "kFood",
+   "alias": false,
+   "A": 3,
+   "D": 4,
+   "moves": {
+    "A": "Sickle",
+    "D": "Full Barn",
+    "M": "CANOPY"
+   },
+   "big": true,
+   "econ": null,
+   "dev": null,
+   "no": "★",
+   "flavor": "A test seat: it plays the road, not a character.",
+   "rule": "Once a game: your rings cannot go dark until your next turn.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "A and D move names",
+    "flavor",
+    "the picture: a hologram figure with the road's emblem",
+    "M spelt as the engine names the big move (the default printed HOLYLEAGUE / MOODPINK)"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPop_grunt",
+   "name": "Kern",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_grunt",
+   "role": "grunt",
+   "kit": "kPop",
+   "alias": true,
+   "A": 2,
+   "D": 2,
+   "moves": {
+    "A": "Javelin",
+    "D": "Bog Run",
+    "M": "Skirmish"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": 0,
+   "no": "K 1/25",
+   "flavor": "Light on his feet, heavy on the javelins.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPop_soldier",
+   "name": "Gallowglass",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_soldier",
+   "role": "soldier",
+   "kit": "kPop",
+   "alias": true,
+   "A": 3,
+   "D": 3,
+   "moves": {
+    "A": "Long Axe",
+    "D": "Mail Coat",
+    "M": "Hold the Line"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 2/25",
+   "flavor": "Hired from over the sea. Worth every coin.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPop_wall",
+   "name": "Hesco Bastion",
+   "type": "structure",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_wall",
+   "role": "wall",
+   "kit": "kPop",
+   "alias": true,
+   "A": null,
+   "D": 4,
+   "moves": {
+    "A": "—",
+    "D": "Wire and Earth",
+    "M": "Fill It Up"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 2,
+   "no": "K 3/25",
+   "flavor": "A cage of wire, a heap of dirt, a wall by lunch.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPop_heavy",
+   "name": "Great Michael",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_heavy",
+   "role": "heavy",
+   "kit": "kPop",
+   "alias": true,
+   "A": 5,
+   "D": 5,
+   "moves": {
+    "A": "Broadside",
+    "D": "Ten-Foot Oak",
+    "M": "Flagship"
+   },
+   "big": false,
+   "econ": 4,
+   "dev": 0,
+   "no": "K 4/25",
+   "flavor": "So big it took all the forests of Fife.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPop_villager",
+   "name": "Crofter",
+   "type": "unit",
+   "deck": "kits",
+   "road": "pop",
+   "art": "kit_villager",
+   "role": "villager",
+   "kit": "kPop",
+   "alias": false,
+   "A": 1,
+   "D": 2,
+   "moves": {
+    "A": "Spade",
+    "D": "Stone Dyke",
+    "M": "Common Grazing"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": 0,
+   "no": "K 22/25",
+   "flavor": "A small farm, a long winter, and neighbours on every side.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "all three move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPop_guard",
+   "name": "Hayward",
+   "type": "unit",
+   "deck": "kits",
+   "road": "pop",
+   "art": "kit_guard",
+   "role": "guard",
+   "kit": "kPop",
+   "alias": false,
+   "A": 2,
+   "D": 3,
+   "moves": {
+    "A": "Staff",
+    "D": "Mend the Fence",
+    "M": "The Pound"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 0,
+   "no": "K 23/25",
+   "flavor": "Every stray goes to the pound, and so do you.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "all three move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPop_cmd",
+   "name": "Kit Population (commander)",
+   "type": "commander",
+   "deck": "kits",
+   "road": "table",
+   "art": "kitcmd_kPop",
+   "role": null,
+   "kit": "kPop",
+   "alias": false,
+   "A": 3,
+   "D": 4,
+   "moves": {
+    "A": "Shove",
+    "D": "Crowd",
+    "M": "MULTIPLY"
+   },
+   "big": true,
+   "econ": null,
+   "dev": null,
+   "no": "★",
+   "flavor": "A test seat: it plays the road, not a character.",
+   "rule": "Once a game: one of your cards becomes one in every empty square of its row (the copies cannot attack this turn).",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "A and D move names",
+    "flavor",
+    "the picture: a hologram figure with the road's emblem",
+    "M spelt as the engine names the big move (the default printed HOLYLEAGUE / MOODPINK)"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPol_grunt",
+   "name": "Kern",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_grunt",
+   "role": "grunt",
+   "kit": "kPol",
+   "alias": true,
+   "A": 2,
+   "D": 2,
+   "moves": {
+    "A": "Javelin",
+    "D": "Bog Run",
+    "M": "Skirmish"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": 0,
+   "no": "K 1/25",
+   "flavor": "Light on his feet, heavy on the javelins.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPol_soldier",
+   "name": "Gallowglass",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_soldier",
+   "role": "soldier",
+   "kit": "kPol",
+   "alias": true,
+   "A": 3,
+   "D": 3,
+   "moves": {
+    "A": "Long Axe",
+    "D": "Mail Coat",
+    "M": "Hold the Line"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 2/25",
+   "flavor": "Hired from over the sea. Worth every coin.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPol_wall",
+   "name": "Hesco Bastion",
+   "type": "structure",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_wall",
+   "role": "wall",
+   "kit": "kPol",
+   "alias": true,
+   "A": null,
+   "D": 4,
+   "moves": {
+    "A": "—",
+    "D": "Wire and Earth",
+    "M": "Fill It Up"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 2,
+   "no": "K 3/25",
+   "flavor": "A cage of wire, a heap of dirt, a wall by lunch.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPol_heavy",
+   "name": "Great Michael",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_heavy",
+   "role": "heavy",
+   "kit": "kPol",
+   "alias": true,
+   "A": 5,
+   "D": 5,
+   "moves": {
+    "A": "Broadside",
+    "D": "Ten-Foot Oak",
+    "M": "Flagship"
+   },
+   "big": false,
+   "econ": 4,
+   "dev": 0,
+   "no": "K 4/25",
+   "flavor": "So big it took all the forests of Fife.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPol_envoy",
+   "name": "Missus Dominicus",
+   "type": "action",
+   "deck": "kits",
+   "road": "politics",
+   "art": "kit_envoy",
+   "role": "envoy",
+   "kit": "kPol",
+   "alias": false,
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Ride in Pairs"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": null,
+   "no": "K 24/25",
+   "flavor": "Two of the king's envoys: one to talk, one to watch.",
+   "rule": "Seal a treaty with one rival (it lasts until that rival aims a move at you).",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPol_diplomat",
+   "name": "Dragoman",
+   "type": "unit",
+   "deck": "kits",
+   "road": "politics",
+   "art": "kit_diplomat",
+   "role": "diplomat",
+   "kit": "kPol",
+   "alias": false,
+   "A": 2,
+   "D": 4,
+   "moves": {
+    "A": "Sharp Word",
+    "D": "Tall Hat",
+    "M": "Translate"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 25/25",
+   "flavor": "He says what you meant, not what you said.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "all three move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPol_brute",
+   "name": "Carronade",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_brute",
+   "role": "brute",
+   "kit": "kPol",
+   "alias": true,
+   "A": 4,
+   "D": 4,
+   "moves": {
+    "A": "Smasher",
+    "D": "Short Barrel",
+    "M": "Point Blank"
+   },
+   "big": false,
+   "econ": 3,
+   "dev": 0,
+   "no": "K 5/25",
+   "flavor": "Not far. Very hard.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kPol_cmd",
+   "name": "Kit Politics (commander)",
+   "type": "commander",
+   "deck": "kits",
+   "road": "table",
+   "art": "kitcmd_kPol",
+   "role": null,
+   "kit": "kPol",
+   "alias": false,
+   "A": 3,
+   "D": 4,
+   "moves": {
+    "A": "Veto",
+    "D": "Recess",
+    "M": "CANOPY"
+   },
+   "big": true,
+   "econ": null,
+   "dev": null,
+   "no": "★",
+   "flavor": "A test seat: it plays the road, not a character.",
+   "rule": "Once a game: your rings cannot go dark until your next turn.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "A and D move names",
+    "flavor",
+    "the picture: a hologram figure with the road's emblem",
+    "M spelt as the engine names the big move (the default printed HOLYLEAGUE / MOODPINK)"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_grunt",
+   "name": "Kern",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_grunt",
+   "role": "grunt",
+   "kit": "kEcoInd",
+   "alias": true,
+   "A": 2,
+   "D": 2,
+   "moves": {
+    "A": "Javelin",
+    "D": "Bog Run",
+    "M": "Skirmish"
+   },
+   "big": false,
+   "econ": 1,
+   "dev": 0,
+   "no": "K 1/25",
+   "flavor": "Light on his feet, heavy on the javelins.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_soldier",
+   "name": "Gallowglass",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_soldier",
+   "role": "soldier",
+   "kit": "kEcoInd",
+   "alias": true,
+   "A": 3,
+   "D": 3,
+   "moves": {
+    "A": "Long Axe",
+    "D": "Mail Coat",
+    "M": "Hold the Line"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 2/25",
+   "flavor": "Hired from over the sea. Worth every coin.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_wall",
+   "name": "Hesco Bastion",
+   "type": "structure",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_wall",
+   "role": "wall",
+   "kit": "kEcoInd",
+   "alias": true,
+   "A": null,
+   "D": 4,
+   "moves": {
+    "A": "—",
+    "D": "Wire and Earth",
+    "M": "Fill It Up"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 2,
+   "no": "K 3/25",
+   "flavor": "A cage of wire, a heap of dirt, a wall by lunch.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_heavy",
+   "name": "Great Michael",
+   "type": "unit",
+   "deck": "kits",
+   "road": "econ",
+   "art": "kit_heavy",
+   "role": "heavy",
+   "kit": "kEcoInd",
+   "alias": true,
+   "A": 5,
+   "D": 5,
+   "moves": {
+    "A": "Broadside",
+    "D": "Ten-Foot Oak",
+    "M": "Flagship"
+   },
+   "big": false,
+   "econ": 4,
+   "dev": 0,
+   "no": "K 4/25",
+   "flavor": "So big it took all the forests of Fife.",
+   "rule": "Combo: in a line with Tianguis + Hawaladar = Kilwa Kisiwani.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_market",
+   "name": "Tianguis",
+   "type": "structure",
+   "deck": "kits",
+   "road": "econ",
+   "art": "kit_market",
+   "role": "market",
+   "kit": "kEcoInd",
+   "alias": true,
+   "A": null,
+   "D": 3,
+   "moves": {
+    "A": "—",
+    "D": "Stall Row",
+    "M": "Market Day"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 8/25",
+   "flavor": "Cacao beans in, everything else out.",
+   "rule": "Pays +1 ECON at the start of your turn. Combo: in a line with Hawaladar + Great Michael = Kilwa Kisiwani.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_banker",
+   "name": "Hawaladar",
+   "type": "unit",
+   "deck": "kits",
+   "road": "econ",
+   "art": "kit_banker",
+   "role": "banker",
+   "kit": "kEcoInd",
+   "alias": true,
+   "A": 2,
+   "D": 4,
+   "moves": {
+    "A": "Ledger",
+    "D": "Handshake",
+    "M": "Send Word"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "K 9/25",
+   "flavor": "The money never moves. The promise does.",
+   "rule": "Combo: in a line with Tianguis + Great Michael = Kilwa Kisiwani.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_takeover",
+   "name": "Mississippi Bubble",
+   "type": "action",
+   "deck": "kits",
+   "road": "econ",
+   "art": "kit_takeover",
+   "role": "takeover",
+   "kit": "kEcoInd",
+   "alias": true,
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Pop"
+   },
+   "big": false,
+   "econ": 3,
+   "dev": null,
+   "no": "K 10/25",
+   "flavor": "Everyone was rich for a whole year.",
+   "rule": "Put out one enemy's ECONOMY ring, past the grid.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_brute",
+   "name": "Carronade",
+   "type": "unit",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_brute",
+   "role": "brute",
+   "kit": "kEcoInd",
+   "alias": true,
+   "A": 4,
+   "D": 4,
+   "moves": {
+    "A": "Smasher",
+    "D": "Short Barrel",
+    "M": "Point Blank"
+   },
+   "big": false,
+   "econ": 3,
+   "dev": 0,
+   "no": "K 5/25",
+   "flavor": "Not far. Very hard.",
+   "rule": "",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_barrage",
+   "name": "Congreve Rocket",
+   "type": "action",
+   "deck": "kits",
+   "road": "table",
+   "art": "kit_barrage",
+   "role": "barrage",
+   "kit": "kEcoInd",
+   "alias": true,
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Rocket Frame"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": null,
+   "no": "K 7/25",
+   "flavor": "Nobody knows where it lands. Including us.",
+   "rule": "Knock out one enemy front card with D 3 or less.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_city",
+   "name": "Kilwa Kisiwani",
+   "type": "structure",
+   "deck": "kits",
+   "road": "econ",
+   "art": "kit_city",
+   "role": "city",
+   "kit": "kEcoInd",
+   "alias": true,
+   "A": null,
+   "D": 8,
+   "moves": {
+    "A": "—",
+    "D": "Coral Walls",
+    "M": "Trade Winds"
+   },
+   "big": false,
+   "econ": 0,
+   "dev": 3,
+   "no": "K 11/25",
+   "flavor": "Gold from the south, dhows from everywhere.",
+   "rule": "Pays +2 ECON at the start of your turn. Made by Tianguis + Hawaladar + Great Michael in a line.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "kEcoInd_cmd",
+   "name": "Kit Econ+Ind (commander)",
+   "type": "commander",
+   "deck": "kits",
+   "road": "table",
+   "art": "kitcmd_kEcoInd",
+   "role": null,
+   "kit": "kEcoInd",
+   "alias": false,
+   "A": 3,
+   "D": 4,
+   "moves": {
+    "A": "Hammer",
+    "D": "Purse",
+    "M": "CANOPY"
+   },
+   "big": true,
+   "econ": null,
+   "dev": null,
+   "no": "★",
+   "flavor": "A test seat: it plays the road, not a character.",
+   "rule": "Once a game: your rings cannot go dark until your next turn.",
+   "painted": true,
+   "src": "kit",
+   "faceInv": [
+    "A and D move names",
+    "flavor",
+    "the picture: a hologram figure with the road's emblem",
+    "M spelt as the engine names the big move (the default printed HOLYLEAGUE / MOODPINK)"
    ],
    "rebalanced": false
   }
