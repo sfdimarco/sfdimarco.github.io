@@ -1,0 +1,1817 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HALO playtest table</title>
+<style>
+  :root { --bg:#10141c; --panel:#171d29; --line:#2c3547; --ink:#eef1f6; --dim:#8d97aa; --P:#26c6da; --S:#ef5350; --gold:#f6c744; --cw:72px; --ch:56px; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.35 Verdana, Geneva, sans-serif; }
+  button { font:inherit; color:var(--ink); background:#243044; border:2px solid #3a4a66; border-radius:8px; padding:8px 14px; cursor:pointer; }
+  button:hover { border-color:var(--gold); }
+  button.primary { background:var(--gold); color:#111; border-color:var(--gold); font-weight:bold; }
+  button:disabled { opacity:.35; cursor:default; border-color:#3a4a66; }
+  h1 { margin:0 0 4px; font-size:30px; letter-spacing:1px; } h2 { font-size:17px; margin:22px 0 8px; color:var(--gold); }
+
+  /* start screen */
+  .start { max-width:900px; margin:40px auto; padding:0 20px; }
+  .sub { color:var(--dim); margin:0; }
+  .seats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .seat { text-align:left; padding:12px; display:flex; flex-direction:column; gap:2px; }
+  .seat b { font-size:19px; } .seat i { color:var(--dim); font-style:normal; font-size:13px; }
+  .seat.tP { border-left:8px solid var(--P); } .seat.tS { border-left:8px solid var(--S); }
+  .seat.on, .pick.on { border-color:var(--gold); background:#3a3520; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; } .pick { flex:1; min-width:240px; text-align:left; } .pick span { display:block; color:var(--dim); font-size:13px; }
+  .go { margin-top:26px; font-size:24px; padding:14px 60px; }
+  .small { color:var(--dim); font-size:13px; }
+
+  /* table */
+  .top { display:flex; gap:6px; padding:6px; flex-wrap:wrap; justify-content:center; }
+  .planet { background:var(--panel); border:2px solid var(--line); border-radius:10px; padding:8px; }
+  .planet.tP { border-top:6px solid var(--P); } .planet.tS { border-top:6px solid var(--S); }
+  .planet.turn { box-shadow:0 0 0 3px var(--gold); }
+  .planet.out { opacity:.4; }
+  .planet.target { box-shadow:0 0 0 4px #7CFC8A; cursor:pointer; }
+  .ph { display:flex; align-items:center; gap:8px; } .ph b { font-size:17px; }
+  .tag { font-size:11px; padding:1px 7px; border-radius:9px; background:#2c3547; color:var(--dim); }
+  .me .tag { background:var(--gold); color:#111; } .enemy .tag { background:#4a2326; color:#ffb3b0; }
+  .badge { font-size:11px; padding:1px 7px; border-radius:9px; background:#5b3b86; color:#fff; }
+  .rings { display:flex; gap:3px; margin:6px 0; }
+  .ring { flex:1; text-align:center; font-size:10px; padding:3px 0; border-radius:10px; border:2px solid #5a6680; color:#5a6680; }
+  .ring.on { background:#f3f5f9; color:#111; border-color:#f3f5f9; font-weight:bold; }
+  .ring.target { box-shadow:0 0 0 3px #7CFC8A; cursor:pointer; }
+  .ring.fl-ring { animation:pop 1.2s; }
+  .cmd { font-size:12px; padding:4px 6px; border:1px dashed #5a6680; border-radius:6px; margin-bottom:6px; color:#cfd6e4; cursor:pointer; }
+  .cmd.usable { border:2px solid var(--gold); } .cmd.sel { background:#3a3520; }
+  .grid { display:grid; grid-template-columns:30px repeat(3,var(--cw)); gap:4px; align-items:stretch; }
+  .rl { font-size:10px; color:var(--dim); display:flex; align-items:center; }
+  .ln { font-size:11px; text-align:center; border-radius:5px; font-weight:bold; padding:1px 0; }
+  .l1 { background:#e53935; color:#fff; } .l2 { background:#1565c0; color:#fff; } .l3 { background:#f9a825; color:#111; }
+  .cell { height:var(--ch); border:1px solid var(--line); border-radius:6px; padding:3px 4px; font-size:11px; overflow:hidden; background:#121722; position:relative; }
+  .cell.unit, .cell.commander { background:#22304a; } .cell.structure { background:#2d2a3d; } .cell.down { background:#3b3b3b; }
+  .cell.iscmd { outline:2px solid var(--gold); outline-offset:-3px; }
+  .cell.covered { opacity:.6; }
+  .cell.front { border-color:#7f8aa3; }
+  .cell.ready { border:2px solid var(--gold); cursor:pointer; }
+  .cell.sel { background:#5a4a12; border:2px solid var(--gold); }
+  .cell.target { box-shadow:0 0 0 3px #7CFC8A; cursor:pointer; }
+  .cell.open { background:repeating-linear-gradient(45deg,#121722,#121722 6px,#1f3524 6px,#1f3524 12px); }
+  .cell.fl-in { animation:pop 1.2s; } .cell.fl-gone { animation:gone 1.4s; }
+  @keyframes pop { 0% { box-shadow:0 0 0 6px var(--gold); } 100% { box-shadow:0 0 0 0 transparent; } }
+  @keyframes gone { 0% { background:#c62828; } 100% { background:#121722; } }
+  .nm { font-weight:bold; line-height:1.15; max-height:2.3em; overflow:hidden; }
+  .ad { position:absolute; left:4px; right:4px; bottom:2px; display:flex; justify-content:space-between; font-weight:bold; font-size:12px; }
+  .st { color:var(--gold); font-size:10px; }
+  .ring7 { display:grid; grid-template-columns:298px minmax(600px,1fr) 298px; grid-template-areas:"s2 top s5" "s1 mid s6"; gap:8px; padding:8px; align-items:start; max-width:1660px; margin:0 auto; }
+  .s1 { grid-area:s1; } .s2 { grid-area:s2; } .s5 { grid-area:s5; } .s6 { grid-area:s6; } .midc { grid-area:mid; }
+  .topc { grid-area:top; display:flex; justify-content:center; align-items:center; gap:14px; }
+  .s1, .s6 { display:flex; flex-direction:column; gap:8px; }
+  .ring7 .planet { width:296px; } .ring7 .mine .planet { width:auto; } .ring7 .rl { font-size:9px; } .ring7 .mine .rl { font-size:10px; }
+  .sun { width:74px; height:74px; border-radius:50%; flex:none; background:radial-gradient(circle,#fff7c2,#f6c744 45%,#ef6c00 72%,rgba(239,108,0,0) 76%); box-shadow:0 0 44px 12px rgba(246,199,68,.3); }
+  .planet.nihil { display:flex; gap:10px; align-items:center; opacity:.45; border-style:dashed; min-height:110px; }
+  .planet.me { border-top:6px solid var(--gold); } .planet.ally { border-top:6px solid var(--P); } .planet.enemy { border-top:6px solid var(--S); }
+  .halo { flex:none; } .hfl { animation:hpop 1.2s; } @keyframes hpop { 0% { stroke-width:6; stroke:#fff; } }
+  .badge.warn { background:#b71c1c; }
+  #banner { position:fixed; left:50%; top:36%; transform:translate(-50%,-50%); opacity:0; pointer-events:none; z-index:15; font-size:52px; font-weight:bold; letter-spacing:3px; padding:14px 40px; border-radius:14px; background:rgba(11,14,20,.9); border:4px solid var(--gold); color:var(--gold); text-align:center; max-width:92vw; }
+  #banner.show { animation:bang 1.7s ease-out; } #banner.bad { border-color:#ef5350; color:#ff8a80; } #banner.trap { border-color:#7CFC8A; color:#7CFC8A; }
+  @keyframes bang { 0% { opacity:0; transform:translate(-50%,-50%) scale(.5); } 12% { opacity:1; transform:translate(-50%,-50%) scale(1.08); } 20% { transform:translate(-50%,-50%) scale(1); } 80% { opacity:1; } 100% { opacity:0; transform:translate(-50%,-50%) scale(1.03); } }
+  @media (max-width:1250px) { .ring7 { display:flex; flex-wrap:wrap; justify-content:center; } }
+  .meta { font-size:11px; color:var(--dim); margin-top:2px; display:block; }
+
+  .bar { background:#0b0e14; border:2px solid var(--line); border-radius:10px; margin-bottom:8px; padding:8px 14px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; min-height:64px; }
+  .who { font-size:20px; font-weight:bold; } .who.mine { color:var(--gold); }
+  .econ { font-size:20px; font-weight:bold; background:#243044; border-radius:8px; padding:4px 12px; }
+  .peace { background:#1b5e20; padding:3px 10px; border-radius:8px; font-size:13px; }
+  .news { flex:1; min-width:300px; font-size:14px; } .news div { padding:1px 0; }
+  .hint { color:#7CFC8A; font-weight:bold; }
+  .err { color:#ff8a80; }
+
+  .bottom { display:flex; gap:12px; padding:10px; align-items:flex-start; flex-wrap:wrap; justify-content:center; }
+  .mine .planet { --cw:128px; --ch:72px; } .mine .cell { font-size:13px; } .mine .ad { font-size:15px; } .mine .ring { font-size:12px; padding:5px 0; } .mine .cmd { font-size:14px; }
+  .mine { display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap; } .hand { display:flex; gap:12px 10px; flex-wrap:wrap; margin-top:12px; width:300px; }
+  .handt { margin-top:2px; font-size:13px; color:var(--dim); }
+  .hc { width:88px; height:104px; border:2px solid var(--line); border-radius:8px; padding:5px; font-size:11px; background:#22304a; position:relative; cursor:pointer; }
+  .hc.structure { background:#2d2a3d; } .hc.action { background:#3d2a2a; } .hc.trap { background:#3b3b3b; }
+  .hc.can { border-color:var(--gold); } .hc.cant { opacity:.5; } .hc.sel { transform:translateY(-8px); box-shadow:0 0 0 3px var(--gold); opacity:1; }
+  .hc .cost { position:absolute; top:-8px; right:-8px; width:26px; height:26px; border-radius:50%; background:var(--gold); color:#111; font-weight:bold; font-size:14px; display:flex; align-items:center; justify-content:center; }
+  .hc .ty { position:absolute; left:5px; bottom:4px; font-size:11px; color:#cfd6e4; }
+  .side { width:auto; max-width:100%; display:flex; flex-direction:column; gap:10px; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; } .btns .primary { font-size:18px; padding:10px 22px; }
+  .info { background:var(--panel); border:2px solid var(--line); border-radius:10px; padding:10px 12px; min-height:110px; }
+  .info b { font-size:17px; }
+  details { background:var(--panel); border:2px solid var(--line); border-radius:10px; padding:8px 12px; } summary { cursor:pointer; font-weight:bold; }
+  .mv { display:block; width:100%; text-align:left; margin-top:5px; padding:5px 9px; font-size:13px; }
+  .log { font-size:12px; color:#b8c1d3; max-height:260px; overflow:auto; } .log div { padding:1px 0; border-bottom:1px solid #1f2736; }
+  .how li { margin:3px 0; }
+  .ov { position:fixed; inset:0; background:rgba(5,7,12,.8); display:flex; align-items:center; justify-content:center; z-index:9; }
+  .ovb { background:var(--panel); border:3px solid var(--gold); border-radius:14px; padding:26px 34px; max-width:620px; text-align:center; }
+  .ovb h1 { font-size:36px; } .ovb .btns { justify-content:center; margin-top:18px; }
+  .geo { vertical-align:-2px; fill:currentColor; }
+  .seat { background:#243044; border:2px solid #3a4a66; border-radius:8px; cursor:pointer; } .seat:hover { border-color:var(--gold); } .seat span { display:block; }
+  .chg { margin-top:6px; font-size:12px; text-decoration:underline; color:var(--gold); }
+  #tip { position:fixed; display:none; gap:12px; z-index:20; max-width:440px; background:#1d2535; color:var(--ink); border:3px solid var(--gold); border-radius:10px; padding:10px 12px; font-size:14px; box-shadow:0 8px 30px rgba(0,0,0,.7); pointer-events:none; }
+  #tip b { font-size:17px; } .tipg { text-align:center; } .tipfam { font-size:10px; margin-top:2px; white-space:nowrap; color:var(--dim); } .tipsrc { margin-top:6px; padding-top:6px; border-top:1px solid #3a4a66; font-size:12px; color:#aab3c5; }
+  .libr { width:auto; max-width:none; } .lc { cursor:default; } .new { color:#7CFC8A; } .ok { color:#7CFC8A; font-size:13px; } h2 .err { font-size:13px; }
+  .rtag { display:inline-block; font-size:10px; font-weight:bold; color:#111; padding:1px 7px; border-radius:9px; white-space:nowrap; }
+  .road { margin-top:6px; font-size:13px; } .combo { margin-top:5px; font-size:13px; padding:5px 7px; border-left:3px solid var(--gold); background:rgba(246,199,68,.1); }
+  .ways { background:var(--panel); border:2px solid var(--line); border-radius:10px; padding:8px 10px; font-size:12px; }
+  .way { display:grid; grid-template-columns:74px 1fr; gap:2px 8px; align-items:center; margin-top:6px; cursor:help; } .way .rtag { text-align:center; }
+  .wbar { height:8px; background:#0b0e14; border-radius:5px; overflow:hidden; } .wbar i { display:block; height:100%; }
+  .wval { grid-column:2; color:#cfd6e4; } .wnote { grid-column:2; color:#ff8a80; font-weight:bold; }
+  .threat { margin-top:7px; padding:4px 6px; border-radius:6px; background:#4a2326; color:#ffb3b0; font-weight:bold; }
+  .foot { color:var(--dim); font-size:11px; padding:0 14px 14px; text-align:center; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="tip"></div>
+<div id="banner"></div>
+<script>
+const __defs = {}, __mods = {};
+function require(n) { if (!__mods[n]) { const m = { exports: {} }; __mods[n] = m; __defs[n](m, m.exports, require); } return __mods[n].exports; }
+__defs['./cards.js'] = function (module, exports, require) {
+// HALO ALIQUID NIHIL · card data for the rules engine (v0, 2026-11-16)
+// src: 'book' = Mook's book / C Mook · 'mook' = his drawing or his words · 'draft' = his rulebook draft
+//      'show'  = Claude's, already on screen in an episode (in SHOW-BIBLE/10-CARDS.md)
+// inv: a list of the fields on this card that Claude INVENTED for this engine (placeholders, his to change).
+'use strict';
+
+const RINGS = ['economy', 'industry', 'science', 'food', 'population', 'religion', 'politics']; // book
+
+// type: unit (fights) · structure (blocks, A 0) · action (resolves, leaves) · commander
+const C = {
+  // ───────── Barbarossa's pirates (Mook)
+  barbarossa: { name: 'Barbarossa', type: 'commander', A: 4, D: 5, big: 'broadside', tags: [], src: 'book', inv: ['A', 'D'] },
+  frigate:    { name: 'The Beat-Up Frigate', type: 'unit', A: 3, D: 4, econ: 2, dev: 1, tags: ['ship'], src: 'show', inv: [] },
+  kickflip:   { name: 'KICKFLIP', type: 'unit', A: 2, D: 1, econ: 1, dev: 0, tags: ['ship'], src: 'show', inv: [] },
+  crew:       { name: "Barbarossa's Crew", type: 'unit', A: 3, D: 2, econ: 2, dev: 1, tags: [], src: 'show', inv: ['econ', 'dev'] },
+  tether:     { name: 'The Tether', type: 'structure', A: 0, D: 5, econ: 3, dev: 3, tags: [], src: 'show', inv: [] },
+  pirateship: { name: 'Pirate Ship', type: 'unit', A: 7, D: 3, econ: 4, dev: 0, tags: ['ship'], src: 'show', inv: ['D', 'econ', 'dev'] },
+  barrage:    { name: 'Cannon Barrage', type: 'action', econ: 1, fx: 'barrage', tags: [], src: 'draft', inv: ['fx: knocks out one enemy front card with D 3 or less (his draft: 3 damage, adjacent planet)'] },
+
+  // ───────── Queen Bloom's mushrooms (Mush)
+  bloom:      { name: 'Queen Bloom', type: 'commander', A: 2, D: 6, big: 'canopy', tags: [], src: 'book', inv: ['A', 'D', 'big move CANOPY (no big move in the bible)'] },
+  toadstool:  { name: 'Toadstool Guard', type: 'unit', A: 2, D: 4, econ: 2, dev: 1, tags: [], src: 'book', inv: ['A', 'D', 'econ', 'dev'] },
+  fighters:   { name: 'Mushroom Fighters', type: 'unit', A: 3, D: 1, econ: 1, dev: 0, tags: [], src: 'book', inv: ['A', 'D', 'econ', 'dev'] },
+  turrets:    { name: 'Two-Nosed Turrets', type: 'structure', A: 0, D: 3, econ: 2, dev: 2, tags: [], src: 'book', inv: ['D', 'econ', 'dev', 'type'] },
+  slugs:      { name: 'Silk Slugs', type: 'structure', A: 0, D: 2, econ: 2, dev: 4, tags: [], src: 'book', inv: ['D', 'econ', 'dev'] },
+  pyramid:    { name: 'Pirámide del Adivino', type: 'structure', A: 0, D: 4, econ: 4, dev: 5, tags: [], src: 'book', inv: ['D', 'econ', 'dev', "the book's 3x / 15 % text is not in the engine"] },
+  warship:    { name: "Bloom's Warship", type: 'unit', A: 5, D: 5, econ: 5, dev: 0, tags: [], src: 'book', inv: ['A', 'D', 'econ', 'dev'] },
+  lichen:     { name: 'Spreading Lichen', type: 'action', econ: 2, fx: 'relight', tags: [], src: 'book', inv: ['fx: relights one dark ring, yours or a team-mate\'s (can bring an out team-mate back)', 'econ'] },
+
+  // ───────── Joanna Arch's auditors (Finley)
+  arch:       { name: 'Joanna Arch', type: 'commander', A: 3, D: 4, big: 'audit', tags: [], src: 'book', inv: ['A', 'D'] },
+  protectors: { name: 'Pocket Protectors', type: 'unit', A: 2, D: 1, econ: 1, dev: 1, tags: [], src: 'show', inv: [] },
+  auditors:   { name: 'Army of Auditors', type: 'unit', A: 1, D: 3, econ: 2, dev: 2, tags: ['auditor'], src: 'book', inv: ['A', 'D', 'econ', 'dev'] },
+  station:    { name: "Arch's Battle Station", type: 'unit', A: 4, D: 6, econ: 5, dev: 1, tags: [], src: 'book', inv: ['A', 'D', 'econ', 'dev'] },
+  takeover:   { name: 'Hostile Takeover', type: 'action', econ: 4, fx: 'takeover', tags: [], src: 'show', inv: ['fx: puts out the ECONOMY ring of one enemy, past the grid ("Economy dies")'] },
+  slipper:    { name: 'The Sapphire Slipper', type: 'structure', A: 0, D: 2, econ: 2, dev: 4, tags: [], src: 'book', inv: ['D', 'econ', 'dev', 'type'] },
+
+  // ───────── The Holy Order (Bronconius)
+  doria:      { name: 'Giovanni Andrea Doria', type: 'commander', A: 3, D: 5, big: 'holyleague', tags: [], src: 'book', inv: ['A', 'D', 'big move HOLY LEAGUE (no big move in the bible)'] },
+  fleet:      { name: "Doria's Fleet", type: 'unit', A: 4, D: 9, econ: 5, dev: 0, tags: [], src: 'show', inv: ['econ', 'dev'] },
+  pius:       { name: 'Pope Pius V', type: 'unit', A: 0, D: 4, econ: 4, dev: 1, move: 'smite', tags: [], src: 'show', inv: ['D', 'econ', 'dev'] },
+  pfrigate:   { name: "Pius V's Space Frigate", type: 'unit', A: 3, D: 3, econ: 2, dev: 1, tags: [], src: 'book', inv: ['A', 'D', 'econ', 'dev'] },
+  firstmate:  { name: "Doria's First Mate", type: 'unit', A: 2, D: 2, econ: 1, dev: 0, tags: [], src: 'book', inv: ['A', 'D', 'econ', 'dev'] },
+  pollen:     { name: 'The Pollen', type: 'action', econ: 5, fx: 'pollen', tags: [], src: 'book', inv: ['fx: puts out one ring of one enemy, past the grid', 'econ'] },
+  tithe:      { name: 'Tithe', type: 'action', econ: 0, fx: 'gain3', tags: [], src: 'book', inv: ['fx: +3 ECON this turn'] },
+  gold:       { name: 'Smugglers Gold', type: 'action', econ: 0, fx: 'gain2', tags: [], src: 'book', inv: ['fx: +2 ECON this turn'] },
+
+  // ───────── Titania's lizards (Rose)
+  titania:    { name: 'Titania', type: 'commander', A: 4, D: 3, big: 'moodpink', tags: [], src: 'book', inv: ['A', 'D', 'big move MOOD: PINK (no big move in the bible)'] },
+  geconian:   { name: 'Geconian Fleet', type: 'unit', A: 3, D: 2, econ: 2, dev: 1, tags: ['science'], src: 'book', inv: ['A', 'D', 'econ', 'dev'] },
+  speedster:  { name: 'Fuchsia Speedster', type: 'unit', A: 5, D: 1, econ: 3, dev: 0, tags: ['science'], src: 'book', inv: ['as a card (it is her ship in the book)', 'A', 'D', 'econ', 'dev'] },
+  balistrai:  { name: 'Balistrai Corporation', type: 'structure', A: 0, D: 3, econ: 3, dev: 5, income: 1, tags: ['science'], src: 'book', inv: ['D', 'econ', 'dev', 'v1: +1 ECON a turn (the pattern of his draft\'s Rum Distillery)'] },
+
+  // ───────── Flip Capone's rats (Gil)
+  capone:     { name: 'Flip Capone', type: 'commander', A: 3, D: 4, big: 'parlay', tags: [], src: 'book', inv: ['A', 'D', 'big move PARLAY (he opens parlay in the book; no big move in the bible)'] },
+  cruisers:   { name: 'Rat Cruisers', type: 'unit', A: 2, D: 2, econ: 1, dev: 0, tags: [], src: 'book', inv: ['A', 'D', 'econ', 'dev'] },
+  ratking:    { name: 'The Rat King', type: 'unit', A: 5, D: 7, econ: 6, dev: 1, tags: [], src: 'book', inv: ['A', 'D', 'econ', 'dev', 'as a unit (open question 7)'] },
+  reinforce:  { name: "Gil's reinforcements", type: 'unit', A: 3, D: 3, econ: 2, dev: 1, tags: [], src: 'book', inv: ['A', 'D', 'econ', 'dev'] },
+
+  // ───────── The library's cards (nobody's deck) and their combo
+  lucy:       { name: 'LUCY', type: 'structure', A: 0, D: 3, econ: 2, dev: 1, tags: ['grav'], src: 'show', inv: ['D', 'econ', 'dev', 'type'] },
+  ikaros:     { name: 'IKAROS', type: 'structure', A: 0, D: 1, econ: 2, dev: 1, tags: ['grav'], src: 'show', inv: ['D', 'econ', 'dev', 'type'] },
+  gw150914:   { name: 'GW150914', type: 'structure', A: 0, D: 2, econ: 2, dev: 1, tags: ['grav'], src: 'show', inv: ['D', 'econ', 'dev', 'type'] },
+  gravdrive:  { name: 'THE GRAV DRIVE', type: 'unit', A: 7, D: 7, econ: 0, dev: 0, tags: ['anylane'], src: 'show', inv: ['A', 'D', 'it may attack any lane of any enemy'] },
+
+  // ───────── v1 (2026-11-16, interview 2). Traps: his tick "on a square, pay now" + "each trap says its own" (trig).
+  burrow:     { name: 'BURROW', type: 'trap', trig: 'attacked', econ: 2, tags: [], src: 'show', inv: ['econ', 'in these six decks (in the show it is the Fhat\'s)'] },
+  brumation:  { name: 'Brumation', type: 'trap', trig: 'ringdark', econ: 3, tags: [], src: 'show', inv: ['econ', 'in these six decks (in the show it is Tortimer\'s)', 'Spring is cut down to: the ring that was hit stays lit'] },
+  pasttrap:   { name: 'TRAP 3 (no name yet)', type: 'trap', trig: 'pastgrid', econ: 2, tags: [], src: 'claude', inv: ['the whole card: it stops one move that goes past the grid'] },
+  siege:      { name: 'SIEGE (no name yet)', type: 'action', econ: 3, fx: 'siege', tags: [], src: 'claude', inv: ['the whole card: knocks out one enemy front card with D 6 or more'] },
+  part:       { name: 'Machine Part (no name yet)', type: 'structure', A: 0, D: 2, econ: 2, dev: 1, tags: ['part', 'science'], src: 'claude', inv: ['the whole card'] },
+  core:       { name: 'Machine Core (no name yet)', type: 'structure', A: 0, D: 4, econ: 4, dev: 1, tags: ['core', 'science'], src: 'claude', inv: ['the whole card'] },
+
+  // ───────── the library (2026-11-22, his ask: more variety, three test players). Every card here has lib: true.
+  // None of them is in a deck unless a seat uses a test deck, or the dial `lib` is on. So v0 and v1 matches replay unchanged.
+  // The three test players' own cards are from SHOW-BIBLE/10-CARDS.md; every NUMBER on them is Claude's unless inv says otherwise.
+  // 🎩 the Fhat
+  rabbit:      { name: 'Rabbit', type: 'commander', A: 2, D: 4, big: 'multiply', tags: [], lib: true, src: 'show', inv: ['A', 'D', 'MULTIPLY as coded: one of your cards becomes one in every empty square OF ITS ROW (the show had one row of four slots); the copies cannot attack that turn'] },
+  jackrabbit:  { name: 'Jackrabbit', type: 'unit', A: 2, D: 1, econ: 2, dev: 0, tags: ['runner'], lib: true, src: 'show', inv: ['A', 'econ', 'dev', 'runner as coded: it may attack any EMPTY enemy lane (show: "sprints through empty slots and hits rings")'] },
+  hatunit:     { name: 'Fhat unit (no name yet)', type: 'unit', A: 2, D: 3, econ: 2, dev: 1, tags: [], lib: true, src: 'claude', inv: ['the whole card: the bible gives the Fhat only the Rabbit, BURROW and Jackrabbit'] },
+  // 🐢 Tortimer
+  librarycard: { name: 'The library card', type: 'commander', A: 0, D: 6, big: 'none', tags: [], lib: true, src: 'show', inv: ['A', 'D'] },   // show: "It does nothing, and he still wins."
+  shell:       { name: 'Shell', type: 'unit', A: 2, D: 9, econ: 4, dev: 0, tags: [], lib: true, src: 'show', inv: ['A', 'econ', 'dev'] },
+  tortunit:    { name: 'Tortimer unit (no name yet)', type: 'unit', A: 4, D: 4, econ: 3, dev: 1, tags: [], lib: true, src: 'claude', inv: ['the whole card: the bible gives Tortimer only Shell, Brumation and the library card'] },
+  spring:      { name: 'Spring', type: 'action', econ: 2, fx: 'spring', tags: [], lib: true, src: 'show', inv: ['as its own card (in the show Spring is the second half of Brumation)', 'fx: up to two of your own dark rings relight', 'econ'] },
+  tortB:       { name: 'Tortimer unit B (no name yet)', type: 'unit', A: 2, D: 4, econ: 2, dev: 1, tags: [], lib: true, src: 'claude', inv: ['the whole card: a cheap body for his free-for-all list'] },
+  // 🐦 Leo
+  leocmd:      { name: "Leo's commander (face down)", type: 'commander', A: 3, D: 4, big: 'none', tags: [], lib: true, src: 'show', inv: ['A', 'D', 'no big move: who it is has not been said'] },
+  absorb:      { name: 'ABSORB', type: 'action', econ: 3, fx: 'absorb', tags: [], lib: true, src: 'mook', inv: ['fx: your rings cannot go dark until your next turn', 'econ'] },
+  snooze:      { name: 'SNOOZE +5', type: 'action', econ: 5, fx: 'snooze', tags: [], lib: true, src: 'mook', inv: ['fx as a rule: up to five of your own dark rings relight', 'econ'] },
+  smash:       { name: 'SMASH', type: 'action', econ: 5, fx: 'smash', tags: [], lib: true, src: 'mook', inv: ['fx cut down: two rings of one enemy go dark, past the grid (EP6: every ring the other team has left)', 'econ'] },
+  leoA:        { name: 'Leo unit A (no name yet)', type: 'unit', A: 4, D: 4, econ: 3, dev: 0, tags: [], lib: true, src: 'claude', inv: ['the whole card: the bible gives Leo only ABSORB, SNOOZE +5 and SMASH'] },
+  leoB:        { name: 'Leo unit B (no name yet)', type: 'unit', A: 3, D: 4, econ: 2, dev: 1, tags: [], lib: true, src: 'claude', inv: ['the whole card'] },
+  // ───── 11-22 the four ways to win, each with its own cards. Fused cards cost nothing: they are MADE by three cards in a line (COMBOS).
+  portroyal:   { name: 'Port Royal', type: 'structure', A: 0, D: 7, econ: 0, dev: 2, income: 3, tags: ['fused'], lib: true, src: 'draft', inv: ['made by a combo: Pirate Cruiser + Rum Distillery + The Tether in a line (his draft: a City; its mission needs a Pirate Cruiser and pays Economy points)', 'D', 'dev', '+3 ECON a turn'] },
+  archcity:    { name: "Arch's city (no name yet)", type: 'structure', A: 0, D: 8, econ: 0, dev: 3, income: 4, tags: ['fused', 'auditor'], lib: true, src: 'book', inv: ['made by a combo: Army of Auditors + The Sapphire Slipper + Arch\'s Battle Station in a line', 'D', 'dev', '+4 ECON a turn', 'it counts as an Army of Auditors for AUDIT'] },
+  lab:         { name: "Rose's works (no name yet)", type: 'structure', A: 0, D: 5, econ: 0, dev: 2, tags: ['fused', 'science', 'lab'], lib: true, src: 'claude', inv: ['the whole card. Made by a combo: Balistrai Corporation + Geconian Fleet + Fuchsia Speedster in a line. You draw one more card a turn'] },
+  envoy:       { name: 'Envoy (no name yet)', type: 'action', econ: 1, fx: 'envoy', tags: [], lib: true, src: 'claude', inv: ['the whole card: the Politics road (a treaty with one rival). In the deck of Finley: Joanna Arch is the politician (🗣 11-22 night)'] },
+  sigil:       { name: 'The Sigil of the Holy Order', type: 'action', econ: 3, fx: 'sigil', tags: [], lib: true, src: 'book', inv: ['fx: puts out the RELIGION ring of one enemy, past the grid (book: five golden hexagons that call the Pollen)', 'econ'] },
+  // 📄 from his rulebook draft and his binder, into Mook's deck when the dial `lib` is on
+  cruiser:     { name: 'Pirate Cruiser', type: 'unit', A: 3, D: 2, econ: 3, dev: 0, tags: ['ship', 'anylane'], lib: true, src: 'draft', inv: ['D', 'econ', 'dev', 'reach: any lane of any enemy (his draft: power 3, "can move to adjacent planets")'] },
+  distillery:  { name: 'Rum Distillery', type: 'structure', A: 0, D: 3, econ: 3, dev: 1, income: 1, tags: [], lib: true, src: 'draft', inv: ['D', 'dev', '+1 ECON at the START of your turn (his draft: at the end; cost 3 Economy + 1 Resource)'] },
+  marvin:      { name: "Marvin's Inquisition", type: 'unit', A: 3, D: 3, econ: 2, dev: 1, tags: [], lib: true, src: 'book', inv: ['A', 'D', 'econ', 'dev', 'in Mook\'s deck (it is in his binder in the book)'] },
+};
+// ───────── the 11-22 rebalance (dial `bal`), after the three-table sweep. A changed card is a NEW entry (id + "_b"),
+// so every match recorded with the old numbers still replays. Every number changed here was Claude's to begin with.
+const REBAL = {};
+const rebal = (id, change, was) => { C[id + '_b'] = Object.assign({}, C[id], change, { bal: was, v2: true }); REBAL[id] = id + '_b'; };
+rebal('auditors',  { A: 2, D: 4 }, 'was A 1 · D 3');      // Finley won 25 % of team games and 0 % of free-for-alls
+rebal('station',   { A: 5, D: 7 }, 'was A 4 · D 6');
+rebal('takeover',  { econ: 3 },    'was cost 4');
+rebal('geconian',  { D: 3 },       'was D 2');            // Rose: 13 % one on one
+rebal('speedster', { D: 2 },       'was D 1');
+rebal('toadstool', { A: 3 },       'was A 2');            // Mush: 20 % one on one
+rebal('fighters',  { D: 2 },       'was D 1');
+rebal('warship',   { econ: 4 },    'was cost 5');
+rebal('part',      { D: 3, econ: 1 }, 'was D 2 · cost 2');   // the science road: the machine won 0 to 2 % of games
+rebal('core',      { D: 5, econ: 4 }, 'was D 4 · cost 4');
+rebal('distillery', { econ: 2 },   'was cost 3');         // 11-22 evening: the ECON road's own card read 16 points weak; +1 ECON a turn pays back too slowly at 3
+for (const k in C) C[k].id = k;
+
+// three cards in a line (row, column or diagonal) fuse into one (his tick: "Three slots in a row")
+const COMBOS = [{ parts: ['lucy', 'ikaros', 'gw150914'], makes: 'gravdrive' },
+  // 11-22 (dial `lib`): one combo for the ECON road in two decks, one for the science road
+  { parts: ['cruiser', 'distillery', 'tether'], makes: 'portroyal', lib: true },
+  { parts: ['auditors', 'slipper', 'station'], makes: 'archcity', lib: true },
+  { parts: ['balistrai', 'geconian', 'speedster'], makes: 'lab', lib: true }];
+
+const n = (id, k) => Array(k).fill(id);
+// deck sizes (20) and the number of copies are ALL Claude's.
+const DECKS = {
+  mook:       { who: 'Mook',       commander: 'barbarossa', cards: [...n('frigate', 4), ...n('kickflip', 4), ...n('crew', 4), ...n('tether', 3), ...n('pirateship', 3), ...n('barrage', 2)] },
+  mush:       { who: 'Mush',       commander: 'bloom',      cards: [...n('toadstool', 4), ...n('fighters', 4), ...n('turrets', 3), ...n('slugs', 3), ...n('pyramid', 2), ...n('warship', 2), ...n('lichen', 2)] },
+  finley:     { who: 'Finley',     commander: 'arch',       cards: [...n('protectors', 6), ...n('auditors', 5), ...n('station', 3), ...n('takeover', 3), ...n('slipper', 3)] },
+  bronconius: { who: 'Bronconius', commander: 'doria',      cards: [...n('fleet', 4), ...n('pius', 2), ...n('pfrigate', 4), ...n('firstmate', 4), ...n('pollen', 2), ...n('tithe', 2), ...n('gold', 2)] },
+  rose:       { who: 'Rose',       commander: 'titania',    cards: [...n('geconian', 10), ...n('speedster', 6), ...n('balistrai', 4)] },
+  gil:        { who: 'Gil',        commander: 'capone',     cards: [...n('cruisers', 9), ...n('ratking', 4), ...n('reinforce', 7)] },
+  // the three test players (2026-11-22). The lists and every count are Claude's.
+  fhat:       { who: 'The Fhat',   commander: 'rabbit',      test: true, cards: [...n('jackrabbit', 9), ...n('hatunit', 8), ...n('burrow', 3)] },
+  tortimer:   { who: 'Tortimer',   commander: 'librarycard', test: true, cards: [...n('shell', 8), ...n('tortunit', 7), ...n('brumation', 2), ...n('spring', 3)] },
+  leo:        { who: 'Leo',        commander: 'leocmd',      test: true, cards: [...n('leoA', 7), ...n('leoB', 7), ...n('absorb', 2), ...n('snooze', 2), ...n('smash', 2)] },
+};
+// ───────── per-table lists (2026-11-22, dial `table`). The first lists above are TEAM decks: some carry a team and some are carried.
+// Alone at a table that changes, so a deck may have its own 20-card list for 1 on 1 (duel) and for a free for all (ffa).
+// Same cards, different counts. Every count is Claude's, found with  node _scratch/table-eval.js .
+const L = (key, table, ...pairs) => { DECKS[key][table] = pairs.flatMap(([id, k]) => n(id, k)); };
+TABLE_LISTS();
+function TABLE_LISTS() {
+  // 1 on 1: with the team lists Gil and Mook won 71 % and 64 %, Rose and Mush 19 % and 27 %. Only those four have a 1 on 1 list.
+  L('gil',  'duel', ['cruisers', 7], ['ratking', 7], ['reinforce', 6]);   // 11-22 night, tune-duel.js: 62 % → 52 % (as the crowd, Gil swarmed one rival too well)
+  L('mook', 'duel', ['frigate', 4], ['kickflip', 4], ['crew', 3], ['tether', 3], ['pirateship', 4], ['barrage', 2]);   // 11-22 night, _scratch/tune-duel.js (two passes): 68 % → 49 %
+  L('mush', 'duel', ['toadstool', 5], ['fighters', 4], ['turrets', 3], ['slugs', 1], ['pyramid', 2], ['warship', 3], ['lichen', 2]);   // 11-22 night, tune-duel.js: 60 % → 48 %
+  L('tortimer', 'duel', ['shell', 7], ['tortunit', 7], ['brumation', 3], ['spring', 3]);   // 11-22 night, tune-duel.js: 59 % → 52 %
+  L('fhat', 'duel', ['jackrabbit', 10], ['hatunit', 8], ['burrow', 2]);   // 11-22 night, tune-duel.js
+  L('rose', 'duel', ['geconian', 11], ['speedster', 6], ['balistrai', 3]);     // and only part of her machine (picks.js: roseMachine)
+  // free for all: what wins is BODIES. With six rivals any empty lane is hit by somebody, so a deck of a few dear cards bleeds rings.
+  // With the team lists Gil, Tortimer, Bronconius and Finley won 5 %, 2 %, 7 % and 9 % of seven-planet games (fair is 14 %).
+  // Found by  node _scratch/tune-ffa.js  (a search that moves one card at a time between a deck's cheap body and its dear card).
+  L('mook',     'ffa', ['frigate', 4], ['kickflip', 5], ['crew', 3], ['tether', 3], ['pirateship', 2], ['barrage', 3]);   // 11-22 night, _scratch/tune-ffa2.js: 30/22 % → 25/13 %
+  L('finley',   'ffa', ['protectors', 5], ['auditors', 7], ['station', 2], ['takeover', 3], ['slipper', 3]);   // 11-22 night: the politician needs a front that holds a treaty
+  L('bronconius', 'ffa', ['fleet', 3], ['pius', 1], ['pfrigate', 4], ['firstmate', 5], ['pollen', 2], ['tithe', 3], ['gold', 2]);   // 11-22 night, tune-ffa2.js with a fresh-game check, seats fair: 19/8 % -> 30/13 % on fresh games
+  L('leo',      'ffa', ['leoA', 8], ['leoB', 7], ['absorb', 1], ['snooze', 1], ['smash', 3]);   // 11-22 night, _scratch/tune-ffa2.js: 27/29 % → 23/13 %
+  L('rose',     'ffa', ['geconian', 11], ['speedster', 5], ['balistrai', 4]);   // 11-22 night, _scratch/tune-ffa2.js: 36/11 % → 35/16 %
+  L('finley',   'duel', ['protectors', 5], ['auditors', 8], ['station', 1], ['takeover', 3], ['slipper', 3]);   // 11-22 night, tune-duel.js: 25 % → 51 %
+  L('gil',      'ffa', ['cruisers', 11], ['ratking', 3], ['reinforce', 6]);   // 11-22 night, _scratch/tune-ffa2.js: 24/7 % → 24/15 %
+  L('tortimer', 'ffa', ['shell', 7], ['tortunit', 5], ['tortB', 5], ['brumation', 1], ['spring', 2]);   // 11-22 night, tune-ffa2.js with a fresh-game check, seats fair: 32/14 % -> 23/13 %
+  L('fhat', 'ffa', ['jackrabbit', 10], ['hatunit', 9], ['burrow', 1]);   // 11-22 night, tune-ffa2.js with a fresh-game check, seats fair: 13/14 % -> 23/14 %
+  L('mush', 'ffa', ['toadstool', 3], ['fighters', 4], ['turrets', 4], ['slugs', 2], ['pyramid', 1], ['warship', 4], ['lichen', 2]);   // 11-22 night, tune-ffa2.js with a fresh-game check, seats fair: 20/9 % -> 25/13 %
+}
+// dial `lib`: library cards that join an existing deck (they take the place of scaled cards, like the traps do)
+const LIB = { mook: ['cruiser', 'cruiser', 'distillery', 'distillery', 'marvin', 'marvin'], bronconius: ['sigil', 'sigil', 'sigil'], finley: ['envoy', 'envoy', 'envoy'], rose: ['lucy', 'ikaros', 'gw150914'] };   // rose: a second copy of each grav card
+
+
+// v1: deck size is a dial (his "30-60 … test it"). The 20-card list is scaled, copies in the same proportion (INV).
+// Extras (traps, siege, Rose's science kit) take the place of scaled cards, so the deck is exactly deckSize.
+function buildDeck(key, cfg) {
+  const base = (cfg.table && DECKS[key][cfg.table]) || DECKS[key].cards, size = cfg.deckSize || base.length, extra = [];
+  for (const id of ['burrow', 'brumation', 'pasttrap']) extra.push(...n(id, cfg.traps || 0));
+  extra.push(...n('siege', cfg.siege || 0));
+  if (cfg.lib && LIB[key]) extra.push(...LIB[key]);
+  if (key === 'rose' && cfg.roseV1 && cfg.roseMachine !== 0) { const k = size / 20 * (cfg.roseMachine === undefined ? 1 : cfg.roseMachine); extra.push(...n('part', Math.round(5 * k)), ...n('core', Math.max(1, Math.round(k))), 'lucy', 'ikaros', 'gw150914'); }
+  const cnt = {}; base.forEach(id => cnt[id] = (cnt[id] || 0) + 1);
+  const ids = Object.keys(cnt), want = Math.max(ids.length, size - extra.length), out = []; let acc = 0, made = 0;
+  ids.forEach((id, i) => { acc += cnt[id] * want / base.length; const m = i === ids.length - 1 ? want - made : Math.round(acc) - made; made += m; out.push(...n(id, m)); });
+  return out.concat(extra).map(id => (cfg.bal && REBAL[id]) || id);
+}
+module.exports = { C, DECKS, RINGS, COMBOS, LIB, REBAL, buildDeck };
+require('./kits.js');   // 11-22 night: the ring kits add their characters to C and DECKS (kits.js)
+
+};
+__defs['./kits.js'] = function (module, exports, require) {
+// HALO · RING KITS (2026-11-22, night). The expansion system.  🆕 the whole file is Claude's, for Mook's tick.
+//
+// His ask: "a system so that we can add more names and art on a core working deck, so next season the game is easy
+// to follow and character behaviours land in the 7 [rings] or a combo of those win condition starts."
+//
+// So a new character is NOT new numbers. It is:
+//   1. a ROAD: the ring their behaviour lands on (one, or a main one + a second one)
+//   2. NAMES (and later art) for the card ROLES that road uses
+// Every number lives here, once, per role. Balance a role once and every character that uses it is balanced.
+//
+// A deck's 20-card list (scaled to the deck size like every deck):
+//   CORE  11 cards every deck has: grunt ×4 · soldier ×4 · wall ×2 · heavy ×1
+//   ROAD   9 cards from the main road   (or 6 from the main road + 3 from a second road)
+'use strict';
+const { C, DECKS, COMBOS } = require('./cards.js');
+
+// ───── the roles. Prices sit on balance.js's fitted price line (fair = 0.39·A + 0.46·D + 0.38·DEV − 0.23 + keywords).
+const ROLES = {
+  // core: what every planet fields
+  grunt:     { type: 'unit',      A: 2, D: 2, econ: 1, dev: 0, what: 'cheap body' },
+  soldier:   { type: 'unit',      A: 3, D: 3, econ: 2, dev: 1, what: 'the line' },
+  wall:      { type: 'structure', A: 0, D: 4, econ: 2, dev: 2, what: 'holds a lane, grows the planet' },
+  heavy:     { type: 'unit',      A: 5, D: 5, econ: 4, dev: 0, tags: ['ship'], what: 'the big one' },
+  // ⚔️ INDUSTRY · the table road: knock planets out
+  brute:     { type: 'unit',      A: 4, D: 4, econ: 3, dev: 0, tags: ['ship'], what: 'hits hard' },
+  runner:    { type: 'unit',      A: 2, D: 2, econ: 2, dev: 0, tags: ['runner'], what: 'runs through any empty lane' },
+  barrage:   { type: 'action', econ: 2, fx: 'barrage', what: 'knocks out a low-D front card' },
+  // 💰 ECONOMY · buy the win
+  market:    { type: 'structure', A: 0, D: 3, econ: 2, dev: 1, income: 1, what: '+1 ECON a turn (and in a free for all, the win costs half while it stands)' },
+  banker:    { type: 'unit',      A: 2, D: 4, econ: 2, dev: 1, what: 'guards the money' },
+  // windfall (+3 ECON for 0) was tried and cut: two in a deck took the Economy kit from 55 % to 73 % one on one
+  takeover:  { type: 'action', econ: 3, fx: 'takeover', what: "puts out a rival's Economy ring" },
+  city:      { type: 'structure', A: 0, D: 8, econ: 0, dev: 3, income: 2, tags: ['fused'], what: 'MADE by market + banker + heavy in a line: +2 ECON a turn' },
+  // 🔬 SCIENCE · the great machine
+  part:      { type: 'structure', A: 0, D: 3, econ: 1, dev: 1, tags: ['part', 'science'], what: 'a machine piece (eight around the core)' },
+  core:      { type: 'structure', A: 0, D: 5, econ: 4, dev: 1, tags: ['core', 'science'], what: 'the machine core (middle square)' },
+  scientist: { type: 'unit',      A: 3, D: 2, econ: 2, dev: 1, tags: ['science'], what: 'grows +1 A/D a turn (to +3) while Science is lit' },
+  // 🌾 FOOD · the harvest
+  farm:      { type: 'structure', A: 0, D: 3, econ: 2, dev: 4, what: 'big growth: the planet grows back rings faster' },
+  harvester: { type: 'unit',      A: 2, D: 3, econ: 2, dev: 2, what: 'fights and grows' },
+  seed:      { type: 'action', econ: 1, fx: 'seed', what: 'your FOOD ring relights (only Food): a harvest, not a heal' },
+  sprout:    { type: 'action', econ: 1, fx: 'sprout', what: 'one of your dark rings relights (Food first): one harvest, a small heal' },
+  spring:    { type: 'action', econ: 2, fx: 'spring', what: 'up to two of your dark rings relight (Food first)' },
+  // 👥 POPULATION · the crowd
+  villager:  { type: 'unit',      A: 1, D: 2, econ: 1, dev: 0, tags: ['crowd'], what: 'one of the crowd: cheap, fills a square' },
+  guard:     { type: 'unit',      A: 2, D: 3, econ: 2, dev: 0, tags: ['crowd'], what: 'keeps the crowd standing' },
+  // 🏛️ POLITICS · the treaty
+  envoy:     { type: 'action', econ: 1, fx: 'envoy', what: 'seals a treaty with one rival, until that rival aims a move at you' },
+  diplomat:  { type: 'unit',      A: 2, D: 4, econ: 2, dev: 1, what: 'hard to attack: makes tearing up a treaty cost something' },
+  // ⛪ RELIGION · convert the table
+  sigil:     { type: 'action', econ: 3, fx: 'sigil', what: "puts out a rival's Religion ring" },
+  preacher:  { type: 'unit',      A: 0, D: 4, econ: 4, dev: 1, move: 'smite', what: 'after a turn on the grid: put out any one enemy ring' },
+  acolyte:   { type: 'unit',      A: 2, D: 4, econ: 2, dev: 1, what: 'holds the faithful' },
+  revival:   { type: 'action', econ: 2, fx: 'relight', what: 'relights a dark ring (yours or a team-mate\'s)' },
+};
+// what each road puts in a deck: [role, copies in the 20-card list] · MAIN = 9 cards · SIX = the main road when there is a second one · SECOND = 3 cards
+// tables: each road's list TUNED per table by _scratch/tune-kit.js (11-22 night), as role counts in the 20-card list. A one-road character uses them.
+const ROADS = {
+  // industry's big move was BROADSIDE: with a ship on every list it was worth 8 points one on one (the kit won 67 %). HOLY LEAGUE (11-22 night)
+  industry: { ring: 1, label: 'INDUSTRY · knock them out', big: 'holyleague', main: [['brute', 5], ['runner', 3], ['barrage', 1]], six: [['brute', 3], ['runner', 2], ['barrage', 1]], second: [['brute', 2], ['barrage', 1]],
+    tables: { team: [['grunt', 4], ['soldier', 4], ['wall', 1], ['heavy', 1], ['brute', 5], ['runner', 4], ['barrage', 1]], duel: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 2], ['brute', 1], ['runner', 6], ['barrage', 1]], ffa: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 1], ['brute', 4], ['runner', 4], ['barrage', 1]] } },
+  economy:  { ring: 0, label: 'ECONOMY · buy the win',      big: 'canopy',    main: [['market', 2], ['banker', 5], ['takeover', 2]], six: [['market', 2], ['banker', 3], ['takeover', 1]], second: [['market', 2], ['banker', 1]],
+    tables: { team: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 2], ['market', 1], ['banker', 5], ['takeover', 2]], duel: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 1], ['market', 2], ['banker', 5], ['takeover', 2]], ffa: [['grunt', 3], ['soldier', 4], ['wall', 2], ['heavy', 2], ['market', 2], ['banker', 5], ['takeover', 2]] } },
+  science:  { ring: 2, label: 'SCIENCE · the great machine', big: 'moodpink', main: [['part', 6], ['core', 1], ['scientist', 2]], six: [['part', 5], ['core', 1]], second: [['scientist', 2], ['part', 1]],
+    tables: { team: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 2], ['part', 5], ['core', 1], ['scientist', 2]], duel: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 1], ['part', 6], ['core', 1], ['scientist', 2]], ffa: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 1], ['part', 6], ['core', 1], ['scientist', 2]] } },
+  food:     { ring: 3, label: 'FOOD · the harvest',          big: 'canopy',   main: [['farm', 5], ['harvester', 2], ['seed', 2]], six: [['farm', 3], ['harvester', 1], ['seed', 2]], second: [['seed', 2], ['farm', 1]],   // 🗣 11-22 night (pick B): Seeds, no Spring
+    tables: { team: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 1], ['farm', 5], ['harvester', 2], ['seed', 2]], duel: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 1], ['farm', 4], ['harvester', 3], ['seed', 2]], ffa: [['grunt', 2], ['soldier', 4], ['wall', 2], ['heavy', 2], ['farm', 5], ['harvester', 2], ['seed', 3]] } },
+  pop:      { ring: 4, label: 'POPULATION · the crowd',      big: 'multiply', main: [['villager', 6], ['guard', 3]], six: [['villager', 4], ['guard', 2]], second: [['villager', 3]],
+    tables: { team: [['grunt', 4], ['soldier', 4], ['wall', 3], ['heavy', 1], ['villager', 5], ['guard', 3]], duel: [['grunt', 4], ['soldier', 3], ['wall', 2], ['heavy', 1], ['villager', 7], ['guard', 3]], ffa: [['grunt', 2], ['soldier', 4], ['wall', 2], ['heavy', 2], ['villager', 7], ['guard', 3]] } },
+  politics: { ring: 6, label: 'POLITICS · the treaty',      big: 'canopy',     main: [['envoy', 3], ['diplomat', 5], ['brute', 1]], six: [['envoy', 2], ['diplomat', 4]], second: [['envoy', 2], ['diplomat', 1]],
+    tables: { team: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 1], ['envoy', 3], ['diplomat', 5], ['brute', 1]], duel: [['grunt', 3], ['soldier', 4], ['wall', 3], ['heavy', 2], ['envoy', 3], ['diplomat', 4], ['brute', 1]], ffa: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 2], ['envoy', 4], ['diplomat', 3], ['brute', 1]] } },
+  religion: { ring: 5, label: 'RELIGION · convert the table', big: 'holyleague', main: [['sigil', 3], ['preacher', 2], ['acolyte', 3], ['revival', 1]], six: [['sigil', 2], ['preacher', 2], ['acolyte', 1], ['revival', 1]], second: [['sigil', 2], ['preacher', 1]],
+    tables: { team: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 1], ['sigil', 3], ['preacher', 2], ['acolyte', 3], ['revival', 1]], duel: [['grunt', 4], ['soldier', 6], ['wall', 1], ['heavy', 2], ['sigil', 2], ['preacher', 1], ['acolyte', 3], ['revival', 1]], ffa: [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 1], ['sigil', 4], ['preacher', 2], ['acolyte', 2], ['revival', 1]] } },
+};
+const CORE = [['grunt', 4], ['soldier', 4], ['wall', 2], ['heavy', 1]];
+const BOT_ROAD = { industry: 'table', economy: 'econ', science: 'science', religion: 'religion', food: 'food', pop: 'pop', politics: 'politics' };
+
+// ───── make a character.  character('tst1', { who: 'Captain Test', main: 'economy', second: 'industry', commander: 'The Test Captain', names: { market: 'Toll Gate', ... } })
+// Any role without a name gets a plain one ("Market (no name yet)"), so a new character plays on day one and the names come later.
+function character(key, o) {
+  const id = r => `${key}_${r}`, nm = r => (o.names && o.names[r]) || `${r[0].toUpperCase() + r.slice(1)} (no name yet)`;
+  const road = ROADS[o.main], two = o.second && ROADS[o.second];
+  const list = [...CORE, ...(two ? road.six : road.main), ...(two ? two.second : [])];
+  const roles = new Set(list.map(([r]) => r)); if (roles.has('market') && roles.has('banker')) roles.add('city');
+  for (const r of roles) C[id(r)] = Object.assign({ tags: [] }, JSON.parse(JSON.stringify(ROLES[r])), { id: id(r), name: nm(r), role: r, lib: true, kit: key, src: 'kit', inv: ['the whole card: a kit role, numbers from kits.js'] });
+  C[id('cmd')] = { id: id('cmd'), name: o.commander || `${o.who} (commander)`, type: 'commander', A: 3, D: 4, big: o.big || road.big, tags: [], lib: true, kit: key, src: 'kit', inv: ['the whole card'] };
+  if (roles.has('city')) COMBOS.push({ parts: [id('market'), id('banker'), id('heavy')], makes: id('city'), lib: true });   // the heavy (one copy) makes the city rare: with the wall it formed in 81 of 100 games
+  // the list as it stands has 20 cards (11 core + 9 road); a second road trades 3 main-road cards for 3 of its own
+  const flat = l => l.flatMap(([r, k]) => Array(k).fill(id(r)));
+  const T = (!two && road.tables) || {};   // 11-22 night: a one-road character takes its road's TUNED list for each table (_scratch/tune-kit.js); a two-road one, the plain recipe
+  DECKS[key] = { who: o.who, commander: id('cmd'), cards: flat(T.team || list), kit: true, road: o.main, second: o.second || null, botRoad: BOT_ROAD[o.main] };
+  if (T.duel) DECKS[key].duel = flat(T.duel);
+  if (T.ffa) DECKS[key].ffa = flat(T.ffa);
+  return DECKS[key];
+}
+// ───── four kit-only test characters: no art, no show lore, placeholder names. They exist to prove the kits, not to ship.
+character('kInd', { who: 'Kit Industry', main: 'industry' });
+character('kEco', { who: 'Kit Economy', main: 'economy' });
+character('kSci', { who: 'Kit Science', main: 'science' });
+character('kRel', { who: 'Kit Religion', main: 'religion' });
+character('kFood', { who: 'Kit Food', main: 'food' });
+character('kPop', { who: 'Kit Population', main: 'pop' });
+character('kPol', { who: 'Kit Politics', main: 'politics' });
+// show deck on the Population road (🆕, his tick): Gil (the rat swarm). The Fhat was tried and stays a fighter: as a crowd its bot fell to 18 % one on one
+DECKS.gil.road = 'pop';
+// 🗣 11-22 night: Joanna Arch (Finley) is the politician. Politics first, ECON second (the auditors and Arch's city stay)
+DECKS.finley.road = 'politics'; DECKS.finley.second = 'economy';
+// show decks whose behaviour lands on the Food road (🆕, his tick): Mush's mushrooms grow (Lichen, Silk Slugs, the Pyramid) · Tortimer sleeps and wakes (Brumation, Spring)
+DECKS.mush.road = 'food'; DECKS.tortimer.road = 'food';
+character('kEcoInd', { who: 'Kit Econ+Ind', main: 'economy', second: 'industry' });
+module.exports = { ROLES, ROADS, CORE, character };
+
+};
+__defs['./engine.js'] = function (module, exports, require) {
+// HALO ALIQUID NIHIL · the rules engine (v0, 2026-11-16). No pictures. Seeded. The move list IS the match.
+// Rules that are Mook's own are marked  MOOK ;  rules Claude invented are marked  INV  (and listed in RULES-v0.md).
+'use strict';
+const { C, DECKS, RINGS, COMBOS, buildDeck } = require('./cards.js');
+// 2026-11-22 the library: new keywords live on new cards only (runner, MULTIPLY, absorb, snooze, smash, income on lib cards), so older matches replay unchanged.
+
+// The dials. Every "test it" answer from the 2026-11-16 interview is a dial here.
+const DEFAULTS = {
+  rings: 7,              // 7 = the full game · 3 = Tortimer's quick game (EP10)
+  handStart: 7,          // show
+  draw: 'ring',          // 'ring' = one card per lit ring (show) · 'fixed' = drawFixed cards a turn
+  drawFixed: 2,
+  econ: 'ring',          // 'ring' = 1 ECON per lit ring · 'economy' = econLit while the Economy ring is lit, econDark after
+  econLit: 5, econDark: 2,
+  dev: 'relight',        // 'relight' = DEV on your grid adds up; at devStep one dark ring relights · 'income' = +1 ECON per devPer DEV
+  devStep: 7, devPer: 3,
+  target: 'numbers',     // 'numbers' = any enemy, lane k meets lane k · 'neighbours' = left lane/left planet, right/right, middle/anyone
+  order: 'alternate',    // 'alternate' = A B A B A B round the table · 'team' = all of one team, then all of the other
+  peace: 0,              // INV dial: 1 = nobody may attack during the first round (found by the sweep: going first wins too often)
+  auditCap: 3,
+  turnLimit: 240,
+  // ───── v1 dials (2026-11-16, interview 2). Every default is the v0 behaviour, so v0 matches replay unchanged.
+  keepEcon: 0,           // MOOK (call E): 1 = ECON you do not spend stays
+  deckSize: 20,          // MOOK (call D): test 30 to 60
+  handCap: 0,            // his rulebook draft: hand limit 10 (0 = none)
+  ringsMode: 'feed',     // 'feed' = rings give draw/ECON (v0) · 'life' = rings are life points only: draw drawFixed, ECON econFixed
+  econFixed: 5,
+  dmgStays: 0,           // wall-breaker 1: a hit that does not kill stays on the card
+  gang: 0,               // wall-breaker 2: two or three of your front cards hit one card together, A added up
+  relightCap: 0,         // wall-breaker 3: DEV growth may relight this many rings a game (0 = no cap)
+  siege: 0, siegeD: 6,   // wall-breaker 4: copies of SIEGE in every deck · it knocks out a front card with D siegeD or more
+  traps: 0,              // copies of each of the three traps in every deck
+  barrageCost: 1, barrageD: 3,   // call B
+  econWin: 0,            // MOOK "buy the win": pay this much ECON in one go and your team wins (0 = off)
+  relWin: 0,             // MOOK "convert the table": start your turn with your Religion ring lit and every living enemy's dark
+  techWin: 0,            // MOOK "one great machine": Core in the middle square, Parts on the other eight
+  roseV1: 0,             // Rose as econ + science player: +1 draw, science cards grow, Balistrai pays, the machine and the grav cards in her deck
+  upgradeCap: 3,
+  ringsMatter: 0,        // 2026-11-22: 1 = each road to a win hangs on one ring. Economy dark: no income, no buying the win. Science dark: nothing grows, the machine cannot be finished. (Religion: the conversion, as before.)
+  floorEcon: 0, floorDraw: 0,   // 2026-11-22: with rings that feed you, a planet still gets at least this much ECON and this many cards a turn (no death spiral)
+  spoils: 0,             // 2026-11-22: 'card' or 'econ' = whoever puts out an enemy ring draws a card / gains 1 ECON (attacking has to pay, most of all in a free for all)
+  table: '',             // 2026-11-22: 'duel' or 'ffa' = use a deck's own list for that table when it has one (cards.js)
+  reshuffle: 0,          // 2026-11-22: 1 = when your deck is empty, the cards you have LOST from your grid are shuffled into a new deck (actions you played are spent)
+  bal: 0,                // 2026-11-22: 1 = the rebalanced versions of eight first-deck cards (cards.js REBAL)
+  rotate: 0,             // 2026-11-22: 1 = the player who starts moves one seat on every round (free for all: going first every round loses)
+  secondEcon: 0,         // 2026-11-22: the team that moves second starts with this much ECON (it needs keepEcon)
+  ringCap: 0,            // 2026-11-22: a planet can lose at most this many rings between two of its own turns (0 = no limit)
+  lib: 0,                // 2026-11-22: 1 = the library cards that join an existing deck are shuffled in (cards.js LIB)
+  noMarket: 0,           // 2026-11-22 (evening): buying the win costs this many times econWin while NO card that pays ECON stands face up on your grid (0 or 1 = one price for all)
+  harvestWin: 0,         // 2026-11-22 night: the FOOD road. Reap this many relit rings (Food ring lit) and win at the start of your next turn (0 = off)
+  polWin: 0,             // 2026-11-22 night: the POLITICS road. This many treaties at once (or one with every rival, if fewer are left) at the start of your turn, Politics lit, wins
+  crowdHold: 1,         // the crowd must start this many of your turns full (2 = it stands a second round)
+  crowdWin: 0,         // 2026-11-22 night: the POPULATION road. This many units on your grid at the start of your turn, Population lit, wins (0 = off)
+  harvestTurn: 0,       // 1 = a turn in which any of your rings relights is ONE harvest (not one per ring)
+  foodCap: 2,           // a Food-road planet's growth may relight relightCap × foodCap rings a game
+  techHold: 0,         // 2026-11-22 (evening): 1 = the great machine must still be whole at the START of your next turn (the table gets one round to break a piece, like the conversion)
+};
+
+function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function shuffle(a, r) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+// players: [{ name, team: 'A'|'B'|..., deck: key of DECKS }] in seat order (seat 0, 1, 2 ...). Up to 7 seats; empty seats are blank planets.
+function newMatch(seed, players, config) { return { seed, players, config: Object.assign({}, config || {}), moves: [] }; }
+
+function start(match) {
+  const cfg = Object.assign({}, DEFAULTS, match.config);
+  const r = rng(match.seed);
+  const S = { cfg, r, players: [], cur: 0, turnNo: 0, pending: null, offer: null, quiet: 0, active: false, result: null, log: [], uid: 1, stats: { handAtEnd: [], firstBlood: null, drawn: {} } };
+  match.players.forEach((p, i) => {
+    const d = DECKS[p.deck];
+    const pl = { id: i, name: p.name, team: p.team, seat: i, deckKey: p.deck,
+      rings: RINGS.map((_, k) => k < cfg.rings), grid: Array(9).fill(null), hand: [], deck: shuffle(buildDeck(p.deck, cfg), r), relit: 0,
+      cmd: { id: d.commander, where: 'shoulder', used: false }, econ: 0, devPool: 0, out: false,
+      canopy: false, pink: false, parlay: null, league: false };
+    for (let k = 0; k < cfg.handStart && pl.deck.length; k++) pl.hand.push(pl.deck.pop());
+    S.players.push(pl); S.stats.drawn[i] = 0;
+  });
+  if (Array.isArray(cfg.secondEcon)) S.players.forEach((pl, i) => { pl.econ = cfg.secondEcon[i] || 0; });   // one number per seat
+  else if (cfg.secondEcon) for (const pl of S.players) if (pl.team !== S.players[0].team) pl.econ = cfg.secondEcon;
+  S.order = S.players.map(p => p.id);
+  if (cfg.order === 'team') S.order.sort((a, b) => (S.players[a].team < S.players[b].team ? -1 : S.players[a].team > S.players[b].team ? 1 : a - b));
+  S.oi = 0; S.cur = S.order[0];
+  beginTurn(S);
+  return S;
+}
+
+const lit = p => p.rings.filter(Boolean).length;
+const say = (S, t) => S.log.push(`t${S.turnNo} ${t}`);
+const card = cell => C[cell.card];
+function front(p, lane) { for (let r = 0; r < 3; r++) { const c = p.grid[r * 3 + lane]; if (c) return { cell: c, sq: r * 3 + lane }; } return null; }
+const atk = (S, p, cell) => cell.down ? 0 : card(cell).A + (card(cell).A > 0 ? (cell.up || 0) : 0) + (p.league && card(cell).type !== 'structure' && card(cell).A > 0 ? 2 : 0);
+const Dof = cell => cell.down ? 0 : Math.max(0, card(cell).D + (cell.up || 0) - (cell.dmg || 0));   // v1: growth and damage that stays
+const costOf = (S, id) => id === 'barrage' ? S.cfg.barrageCost : (C[id].econ || 0);
+const RELIGION = RINGS.indexOf('religion');
+const living = S => S.players.filter(p => !p.out);
+const enemies = (S, p) => S.players.filter(q => !q.out && q.team !== p.team);
+// 2026-11-22 dial ringCap: a planet can lose only this many rings between two of its own turns (so nobody is stripped before they can answer)
+const ECONOMY = 0, SCIENCE = 2, FOOD = 3, POP = 4;
+// 11-22 night, the POPULATION road · THE CROWD: units (not walls, machines or traps; not your commander) on your squares. crowdWin of them, still there at the
+// start of your next turn with your Population ring lit, wins. The answer: knock one out, or put out their Population ring.
+// 11-22 night, the POLITICS road · THE TREATY: an Envoy seals a treaty with one rival. Hold a treaty with every living rival at the start of your turn,
+// Politics ring lit: you win. A rival tears up its treaty with you by aiming any move at you. Peace is the politician's weapon; war is the answer.
+const POLITICS = 6;
+// polWin = how many treaties you need at once (never more than the rivals still in): 1 on 1 that is one; at a big table it is a few, not all
+const treaties = (S, p) => enemies(S, p).filter(q => (p.seals || []).includes(q.id)).length;
+const sealedAll = (S, p) => { const en = enemies(S, p); return en.length > 0 && treaties(S, p) >= Math.min(en.length, S.cfg.polWin || en.length); };
+const crowd = p =>p.grid.filter(c => c && !c.down && !c.isCmd && card(c).type === 'unit').length;
+const roadOf = p => DECKS[p.deckKey] && DECKS[p.deckKey].road;   // the ring a deck's behaviour lands on (kits.js), for the road perks
+// 11-22 night, the FOOD road · THE HARVEST: every ring that relights on your planet is reaped (growth, Spring, Lichen, SNOOZE …), while your Food ring is lit.
+// Reap harvestWin and you win at the start of your next turn, if your Food ring is still lit. The answer: put out their Food ring.
+function reap(S, p, n) {
+  if (!S.cfg.harvestWin || n <= 0 || p.out || !p.rings[FOOD]) return;
+  if (S.cfg.harvestTurn) { if (p.reaped === S.turnNo) return; p.reaped = S.turnNo; n = 1; }   // one harvest a turn, however many rings come back: a burst of relight cards was a cliff (one Lichen moved Mush 5 % → 40 %)
+  const was = p.harvest || 0; p.harvest = was + n;
+  if (was < S.cfg.harvestWin && p.harvest >= S.cfg.harvestWin) say(S, `${p.name}'s HARVEST IS IN: put out ${p.name}'s Food ring before ${p.name}'s next turn`);
+}
+const ringOK = (S, p, k) => !S.cfg.ringsMatter || p.rings[k];
+const baseId = id => id && id.replace(/_b$/, '');
+const machine = c => card(c).tags.includes('part') || card(c).tags.includes('core');
+const capped = (S, p) => !!S.cfg.ringCap && (p.lost || 0) >= S.cfg.ringCap;
+// a card that pays its owner ECON every turn (Balistrai pays only Rose, as before)
+const pays = (S, p, c) => !!c && !c.down && !!card(c).income && ((S.cfg.roseV1 && p.deckKey === 'rose') || !!card(c).lib);
+const market = (S, p) => p.grid.some(c => pays(S, p, c));
+const winPrice = (S, p) => S.cfg.econWin * (S.cfg.noMarket > 1 && !market(S, p) ? S.cfg.noMarket : 1);   // the ECON road is BUILT: a market on your grid, or you pay noMarket times the price
+const whole = (S, p) => p.grid.every((c, i) => c && !c.down && card(c).tags.includes(i === 4 ? 'core' : 'part'));
+
+function beginTurn(S) {
+  const p = S.players[S.cur]; S.turnNo++; S.active = false;
+  p.canopy = false; p.pink = false; p.parlay = null; p.league = false; p.lost = 0;       // "until your next turn" effects end
+  for (const c of p.grid) if (c) { c.attacked = false; if (c.frozen) c.frozen--; if (card(c).move === 'smite') c.charge = Math.min(2, (c.charge || 0) + 1); }
+  if (S.cfg.harvestWin && (p.harvest || 0) >= S.cfg.harvestWin && p.rings[FOOD]) { say(S, `${p.name} brings in the harvest`); return finish(S, { type: 'win', team: p.team, how: 'food' }); }
+  if (S.cfg.polWin && p.rings[POLITICS] && sealedAll(S, p)) { say(S, `${p.name} holds its treaties: the table is at peace on ${p.name}'s terms`); return finish(S, { type: 'win', team: p.team, how: 'politics' }); }
+  if (S.cfg.crowdWin) { const full =crowd(p) >= S.cfg.crowdWin && p.rings[POP]; p.crowdCount = full ? (p.crowdCount || 0) + 1 : 0;   // crowdHold: how many of your turns it must start full
+    if (full && p.crowdCount >= (S.cfg.crowdHold || 1)) { say(S, `${p.name}'s crowd fills the planet`); return finish(S, { type: 'win', team: p.team, how: 'pop' }); } }
+  const life = S.cfg.ringsMode === 'life', rose =S.cfg.roseV1 && (p.deckKey === 'rose' || (DECKS[p.deckKey] && DECKS[p.deckKey].road === 'science'));   // 11-22 night: the science road's perks go to any science-road deck (kits.js)
+  if (S.cfg.relWin) { const conv = p.rings[RELIGION] && enemies(S, p).length && enemies(S, p).every(q => !q.rings[RELIGION]); p.relCount = conv ? (p.relCount || 0) + 1 : 0;
+    if (conv && p.relCount >= S.cfg.relWin) { say(S, `${p.name}'s Religion ring is the only one lit: the table is converted`); return finish(S, { type: 'win', team: p.team, how: 'religion' }); }
+    if (conv) say(S, `${p.name} is CONVERTING THE TABLE: put out ${p.name}'s Religion ring or relight your own before ${p.name}'s next turn`); }
+  if (S.cfg.techWin && S.cfg.techHold) { const up = whole(S, p) && ringOK(S, p, SCIENCE);   // the machine has to stand a whole round
+    if (up && p.whole) { say(S, `${p.name}'s great machine still stands: it starts`); return finish(S, { type: 'win', team: p.team, how: 'tech' }); }
+    if (up) say(S, `${p.name}'s GREAT MACHINE IS WHOLE: break a piece or put out ${p.name}'s Science ring before ${p.name}'s next turn`);
+    p.whole = up; }
+  if (rose && ringOK(S, p, SCIENCE)) for (const c of p.grid) if (c && !c.down && card(c).tags.includes('science')) c.up = Math.min(S.cfg.upgradeCap, (c.up || 0) + 1);
+  const n = (life || S.cfg.draw !== 'ring' ? S.cfg.drawFixed : Math.max(lit(p), S.cfg.floorDraw)) + (rose ? 1 : 0) + (ringOK(S, p, SCIENCE) ? p.grid.filter(c => c && !c.down && card(c).tags.includes('lab')).length : 0);
+  let got = 0; for (let k = 0; k < n && (!S.cfg.handCap || p.hand.length < S.cfg.handCap); k++) {
+    if (!p.deck.length && S.cfg.reshuffle && p.discard && p.discard.length) { p.deck = shuffle(p.discard, S.r); p.discard = []; say(S, `${p.name}'s deck is empty: ${p.deck.length} lost cards are shuffled into a new one`); }
+    if (!p.deck.length) break; p.hand.push(p.deck.pop()); got++; }
+  S.stats.drawn[p.id] += got; if (got) S.active = true;
+  p.econ = (S.cfg.keepEcon ? p.econ : 0) + (life ? S.cfg.econFixed : S.cfg.econ === 'ring' ? Math.max(lit(p), S.cfg.floorEcon) : (p.rings[0] ? S.cfg.econLit : S.cfg.econDark));
+  if (ringOK(S, p, ECONOMY)) p.econ += p.grid.reduce((s, c) => s + (pays(S, p, c) ? card(c).income : 0), 0);
+  if (S.cfg.dev === 'income') p.econ += Math.floor(devSum(p) / S.cfg.devPer);
+  say(S, `${p.name} draws ${got}, has ${p.econ} ECON`);
+}
+const devSum = p => p.grid.reduce((s, c) => s + (c ? (card(c).dev || 0) : 0), 0);
+
+// who can player p's lane hit?  → [{ tp, lane }]
+function targets(S, p, lane, any) {
+  const en = enemies(S, p).filter(q => q.parlay !== p.id);
+  if (any) return en.flatMap(q => [0, 1, 2].map(l => ({ tp: q.id, lane: l })));
+  if (S.cfg.target === 'numbers' || lane === 1) return en.map(q => ({ tp: q.id, lane }));
+  // neighbours (INV): left lane (0) → the next planet on your left, right lane (2) → on your right. Blank and out planets are skipped;
+  // if the first live planet that way is a team-mate, that side is quiet.
+  const dir = lane === 0 ? -1 : 1, N = 7;
+  for (let k = 1; k < N; k++) { const seat = ((p.seat + dir * k) % N + N) % N; const q = S.players.find(x => x.seat === seat && !x.out); if (!q) continue; return q.team !== p.team && q.parlay !== p.id ? [{ tp: q.id, lane: 2 - lane }] : []; }
+  return [];
+}
+
+function legal(S) {
+  if (S.result) return [];
+  if (S.pending) { const o = [{ t: 'pass' }]; return o.concat(bigOptions(S, S.players[S.pending.responder]).filter(b => b.tp === S.pending.from).map(b => Object.assign({}, b, { t: 'answer' }))); }
+  const p = S.players[S.cur], o = [];
+  const peace = S.turnNo <= S.cfg.peace * S.players.length;
+  const empty = p.grid.map((c, i) => c ? -1 : i).filter(i => i >= 0);
+  for (const id of new Set(p.hand)) {
+    const cd = C[id]; if (costOf(S, id) > p.econ) continue;
+    if (cd.type === 'action') {
+      if (peace && (cd.fx === 'barrage' || cd.fx === 'takeover' || cd.fx === 'pollen' || cd.fx === 'siege' || cd.fx === 'smash')) continue;
+      if (cd.fx === 'absorb') o.push({ t: 'play', card: id });
+      if (cd.fx === 'seed' && !p.rings[FOOD] && FOOD < S.cfg.rings) o.push({ t: 'play', card: id });   // 🗣 11-22 night (his pick B): a Food-only relight
+      if ((cd.fx === 'snooze' || cd.fx === 'spring' || cd.fx === 'sprout') && p.rings.some((on, k) => !on && k < S.cfg.rings)) o.push({ t: 'play', card: id });
+      if (cd.fx === 'smash') for (const q of enemies(S, p)) if (!capped(S, q)) o.push({ t: 'play', card: id, tp: q.id });
+      if (cd.fx === 'siege') for (const q of enemies(S, p)) for (let l = 0; l < 3; l++) { const f = front(q, l); if (f && !q.pink && !f.cell.down && Dof(f.cell) >= S.cfg.siegeD) o.push({ t: 'play', card: id, tp: q.id, lane: l }); }
+      if (cd.fx === 'gain3' || cd.fx === 'gain2') o.push({ t: 'play', card: id });
+      if (cd.fx === 'barrage') for (const q of enemies(S, p)) for (let l = 0; l < 3; l++) { const f = front(q, l); if (f && !q.pink && Dof(f.cell) <= S.cfg.barrageD) o.push({ t: 'play', card: id, tp: q.id, lane: l }); }
+      if (cd.fx === 'envoy' && !peace) for (const q of enemies(S, p)) if (!(p.seals || []).includes(q.id)) o.push({ t: 'play', card: id, tp: q.id });   // not in the peace round: the rival must get a turn to answer
+      if (cd.fx === 'sigil') { if (!peace) for (const q of enemies(S, p)) if (q.rings[RELIGION] && !capped(S, q)) o.push({ t: 'play', card: id, tp: q.id }); }
+      if (cd.fx === 'takeover') for (const q of enemies(S, p)) if (q.rings[0] && !capped(S, q)) o.push({ t: 'play', card: id, tp: q.id });
+      if (cd.fx === 'pollen') for (const q of enemies(S, p)) if (!capped(S, q)) q.rings.forEach((on, k) => { if (on) o.push({ t: 'play', card: id, tp: q.id, ring: k }); });
+      if (cd.fx === 'relight') for (const q of S.players) if (q.team === p.team && (!q.out || q.cmd.where !== 'out')) q.rings.forEach((on, k) => { if (!on && k < S.cfg.rings) o.push({ t: 'play', card: id, tp: q.id, ring: k }); });
+    } else { for (const sq of empty) o.push({ t: 'play', card: id, sq });
+      // 11-22: a machine piece may be BUILT OVER one of your own cards (the nine squares are otherwise full long before the machine is)
+      if (S.cfg.techWin && S.cfg.lib && (cd.tags.includes('part') || cd.tags.includes('core'))) p.grid.forEach((c, sq) => { if (c && !c.isCmd && !machine(c)) o.push({ t: 'play', card: id, sq }); }); }
+  }
+  if (p.cmd.where === 'shoulder') for (const sq of empty) o.push({ t: 'deploy', sq });
+  for (let lane = 0; lane < 3 && !peace; lane++) {
+    const f = front(p, lane); if (!f || f.cell.attacked || f.cell.frozen || atk(S, p, f.cell) <= 0) continue;
+    const tgs = targets(S, p, lane, card(f.cell).tags.includes('anylane'));
+    if (card(f.cell).tags.includes('runner')) for (const q of enemies(S, p)) if (q.parlay !== p.id) for (let l = 0; l < 3; l++) if (!front(q, l) && !tgs.some(t => t.tp === q.id && t.lane === l)) tgs.push({ tp: q.id, lane: l });   // runner: any EMPTY enemy lane
+    for (const tg of tgs) {
+      const q = S.players[tg.tp], d = front(q, tg.lane);
+      if (d) { if (!q.pink) o.push({ t: 'attack', lane, tp: q.id, at: tg.lane }); }
+      else if (!capped(S, q)) q.rings.forEach((on, k) => { if (on) o.push({ t: 'attack', lane, tp: q.id, at: tg.lane, ring: k }); });
+    }
+  }
+  if (S.cfg.gang && !peace) {   // v1 wall-breaker 2 (INV): ganging cards may all hit the same enemy lane
+    const ok = [0, 1, 2].filter(l => { const f = front(p, l); return f && !f.cell.attacked && !f.cell.frozen && atk(S, p, f.cell) > 0; });
+    const sets = []; for (let i = 0; i < ok.length; i++) for (let j = i + 1; j < ok.length; j++) sets.push('' + ok[i] + ok[j]); if (ok.length === 3) sets.push('012');
+    for (const lanes of sets) for (const q of enemies(S, p)) if (q.parlay !== p.id && !q.pink) for (let l = 0; l < 3; l++) if (front(q, l)) o.push({ t: 'gang', lanes, tp: q.id, at: l });
+  }
+  if (S.cfg.econWin && p.econ >= winPrice(S, p) && ringOK(S, p, ECONOMY)) o.push({ t: 'buywin' });
+  if (!peace) p.grid.forEach((c, sq) => { if (c && card(c).move === 'smite' && (c.charge || 0) >= 2 && !c.attacked) for (const q of enemies(S, p)) if (!capped(S, q)) q.rings.forEach((on, k) => { if (on) o.push({ t: 'smite', sq, tp: q.id, ring: k }); }); });
+  if (!peace) for (const b of bigOptions(S, p)) o.push(b);
+  if (!S.offer) o.push({ t: 'offer' });
+  else if (S.offer.from !== p.id && S.players[S.offer.from].team !== p.team && !S.offer.yes.includes(p.id)) o.push({ t: 'accept' });
+  o.push({ t: 'end' });
+  return o;
+}
+
+function bigOptions(S, p) {
+  const o = []; if (p.out || p.cmd.used || p.cmd.where === 'out') return o;
+  const big = C[p.cmd.id].big, en = enemies(S, p);
+  const count = tag => p.grid.filter(c => c && card(c).tags.includes(tag)).length;
+  if (big === 'broadside' && count('ship')) for (const q of en) if (!capped(S, q)) q.rings.forEach((on, k) => { if (on) o.push({ t: 'big', big, tp: q.id, ring: k }); });
+  if (big === 'audit' && count('auditor')) for (const q of en) if (!capped(S, q)) o.push({ t: 'big', big, tp: q.id });
+  if (big === 'canopy' || big === 'holyleague' || big === 'moodpink') o.push({ t: 'big', big });
+  if (big === 'parlay') for (const q of en) o.push({ t: 'big', big, tp: q.id });
+  if (big === 'multiply') p.grid.forEach((c, sq) => { const r = sq - sq % 3; if (c && !c.isCmd && !c.down && [r, r + 1, r + 2].some(i => !p.grid[i])) o.push({ t: 'big', big, sq }); });
+  return o;
+}
+
+// a rival that really HURTS a planet it has a treaty with (a ring put out, a card knocked out) tears the treaty up
+function tear(S, p) { const a = S.players[S.cur]; if (a && a.team !== p.team && (p.seals || []).includes(a.id)) { p.seals = p.seals.filter(i => i !== a.id); say(S, `${a.name} tears up the treaty with ${p.name}`); } }
+function knock(S, p, sq) { // a card leaves the table
+  const c = p.grid[sq]; p.grid[sq] = null; if (!c) return; tear(S, p);
+  if (!c.isCmd && S.cfg.reshuffle && !C[c.card].tags.includes('anylane-fused')) (p.discard = p.discard || []).push(c.card);
+  if (c.isCmd) { p.cmd.where = 'out'; say(S, `${p.name}'s commander ${C[c.card].name} is knocked out: ${p.name} is OUT`); putOut(S, p); } // MOOK: lose your commander, you are out
+}
+function putOut(S, p) { if (p.out) return; p.out = true; p.grid.fill(null); if (p.cmd.where === 'grid') p.cmd.where = 'shoulder'; } // a planet gone dark sends its commander back to the shoulder (found in playtest 1)
+function dark(S, p, k, why) {
+  if (p.canopy) { say(S, `${p.name}'s canopy holds (${why})`); return false; }
+  if (!p.rings[k]) return false;
+  if (capped(S, p)) { say(S, `${p.name}'s halo holds: ${S.cfg.ringCap} rings is all it can lose before its next turn (${why})`); return false; }
+  const tr = p.grid.findIndex(c => c && c.down && card(c).trig === 'ringdark');
+  if (tr >= 0) { const a = S.players[S.cur]; p.grid[tr] = null; say(S, `${p.name}'s face-down card flips: BRUMATION. Snow. The ${RINGS[k]} ring stays lit (${why})`);
+    if (a.team !== p.team) for (let l = 0; l < 3; l++) { const f = front(a, l); if (f) f.cell.frozen = 2; } return false; }
+  p.rings[k] = false; p.lost = (p.lost || 0) + 1; say(S, `${p.name}'s ${RINGS[k]} ring goes dark (${why})`); tear(S, p);
+  if (!S.stats.firstBlood) S.stats.firstBlood = S.players[S.cur].team;
+  if (S.cfg.spoils) { const a = S.players[S.cur]; if (a.team !== p.team && !a.out) {
+    if (S.cfg.spoils === 'econ') a.econ++;
+    else if (!S.cfg.handCap || a.hand.length < S.cfg.handCap) { if (!a.deck.length && S.cfg.reshuffle && a.discard && a.discard.length) { a.deck = shuffle(a.discard, S.r); a.discard = []; } if (a.deck.length) a.hand.push(a.deck.pop()); } } }
+  if (lit(p) === 0) { say(S, `${p.name}'s planet goes quiet: OUT`); putOut(S, p); }
+  return true;
+}
+// v1: a move that goes past the grid. A face-down trap that says "past the grid" stops all of it (call C).
+function past(S, q, rings, why) {
+  const tr = q.grid.findIndex(c => c && c.down && card(c).trig === 'pastgrid');
+  if (tr >= 0) { say(S, `${q.name}'s face-down card flips: ${card(q.grid[tr]).name} stops ${why}`); q.grid[tr] = null; return; }
+  for (const k of rings) dark(S, q, k, why);
+}
+function trapHit(S, p, q, d, cells) {   // an attack lands on a face-down card
+  const t = card(d.cell);
+  if (t.trig === 'attacked') { say(S, `${q.name}'s face-down card flips: ${t.name}. What attacked falls in`); q.grid[d.sq] = null; for (const f of cells) knock(S, p, f.sq); }
+  else { say(S, `${q.name}'s face-down ${t.name} is knocked out before its moment`); q.grid[d.sq] = null; }
+}
+function auditRings(S, p, q) { const n = Math.min(S.cfg.auditCap, p.grid.filter(c => c && card(c).tags.includes('auditor')).length); return q.rings.map((on, k) => on ? k : -1).filter(k => k >= 0).slice(0, n); }
+function bigDamage(S, p, a) { const q = S.players[a.tp]; return a.big === 'broadside' ? [a.ring] : a.big === 'audit' ? auditRings(S, p, q) : []; }
+
+function checkCombos(S, p) {
+  const L = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+  for (const co of COMBOS) for (const l of L) {
+    if (co.lib && !S.cfg.lib) continue;
+    const ids = l.map(i => p.grid[i] && !p.grid[i].down && baseId(p.grid[i].card)); if (ids.includes(null) || ids.includes(undefined)) continue;
+    if (co.parts.every(x => ids.includes(x))) { l.forEach(i => p.grid[i] = null); p.grid[l[1]] = { uid: S.uid++, card: co.makes, attacked: true }; say(S, `${p.name}: three in a row fuse into ${C[co.makes].name}`); }
+  }
+}
+
+function sameAction(a, b) { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => a[k] === b[k]); }
+
+function apply(S, a) {
+  const ok = legal(S).find(x => sameAction(x, a)); if (!ok) throw new Error('illegal move ' + JSON.stringify(a));
+  if (S.pending) return resolveClash(S, a);
+  const p = S.players[S.cur];
+  if (a.t === 'end') return endTurn(S);
+  if (a.t === 'offer') { S.offer = { from: p.id, yes: [] }; say(S, `${p.name} offers a handshake`); return; }
+  if (a.t === 'accept') { S.offer.yes.push(p.id); say(S, `${p.name} shakes`);
+    if (enemies(S, S.players[S.offer.from]).every(q => S.offer.yes.includes(q.id))) finish(S, { type: 'amiable' }); return; }
+  S.active = true;
+  if (a.t === 'deploy') { p.grid[a.sq] = { uid: S.uid++, card: p.cmd.id, isCmd: true, attacked: false }; p.cmd.where = 'grid'; say(S, `${p.name} puts ${C[p.cmd.id].name} on the grid`); return; }
+  if (a.t === 'play') {
+    const cd = C[a.card]; p.hand.splice(p.hand.indexOf(a.card), 1); p.econ -= costOf(S, a.card);
+    if (cd.type === 'trap') { p.grid[a.sq] = { uid: S.uid++, card: a.card, attacked: false, down: true }; say(S, `${p.name} sets a card face down`); return; }
+    if (cd.type !== 'action') { const old = p.grid[a.sq]; if (old && S.cfg.reshuffle) (p.discard = p.discard || []).push(old.card);
+      p.grid[a.sq] = { uid: S.uid++, card: a.card, attacked: false, charge: 0 }; say(S, old ? `${p.name} builds ${cd.name} over ${old.down ? 'a face-down card' : card(old).name}` : `${p.name} plays ${cd.name}`); checkCombos(S, p);
+      if (S.cfg.techWin && ringOK(S, p, SCIENCE) && whole(S, p)) {
+        if (S.cfg.techHold) { p.whole = true; say(S, `${p.name}'s GREAT MACHINE IS WHOLE: break a piece or put out ${p.name}'s Science ring before ${p.name}'s next turn`); }
+        else { say(S, `${p.name}'s great machine is whole`); finish(S, { type: 'win', team: p.team, how: 'tech' }); } }
+      return; }
+    const q = a.tp !== undefined ? S.players[a.tp] : null;
+    if (cd.fx === 'gain3') p.econ += 3; if (cd.fx === 'gain2') p.econ += 2;
+    if (cd.fx === 'gain3' || cd.fx === 'gain2') say(S, `${p.name} plays ${cd.name}: +${cd.fx === 'gain3' ? 3 : 2} ECON`);
+    if (cd.fx === 'barrage') { const f = front(q, a.lane); say(S, `${p.name}'s Cannon Barrage knocks out ${card(f.cell).name}`); knock(S, q, f.sq); }
+    if (cd.fx === 'siege') { const f = front(q, a.lane); say(S, `${p.name}'s SIEGE breaks ${card(f.cell).name}`); knock(S, q, f.sq); }
+    if (cd.fx === 'takeover') past(S, q, [0], 'Hostile Takeover');
+    if (cd.fx === 'envoy') { (p.seals = p.seals || []).push(q.id); say(S, `${p.name} sends an envoy: a treaty with ${q.name} (${treaties(S, p)} of ${Math.min(enemies(S, p).length, S.cfg.polWin || 99)})`); }
+    if (cd.fx === 'sigil') { say(S, `${p.name} raises THE SIGIL over ${q.name}`); past(S, q, [RELIGION], 'The Sigil'); }
+    if (cd.fx === 'absorb') { p.canopy = true; say(S, `${p.name} plays ABSORB: a soft cloud over the planet`); }
+    if (cd.fx === 'seed') { p.rings[FOOD] = true; say(S, `${p.name} plants a seed: the Food ring relights`); reap(S, p, 1); }
+    if (cd.fx === 'snooze' || cd.fx === 'spring' || cd.fx === 'sprout') { const max = cd.fx === 'snooze' ? 5 : cd.fx === 'sprout' ? 1 : 2; let k = 0; if (S.cfg.harvestWin && roadOf(p) === 'food' && !p.rings[FOOD] && FOOD < S.cfg.rings) { p.rings[FOOD] = true; k++; } p.rings.forEach((on, i) => { if (!on && i < S.cfg.rings && k < max) { p.rings[i] = true; k++; } }); reap(S, p, k); say(S, `${p.name} plays ${cd.name}: ${k} ring${k === 1 ? '' : 's'} relight`); }
+    if (cd.fx === 'smash') { say(S, `${p.name} plays SMASH on ${q.name}`); past(S, q, q.rings.map((on, k) => on ? k : -1).filter(k => k >= 0).slice(0, 2), 'SMASH'); }
+    if (cd.fx === 'pollen') past(S, q, [a.ring], 'The Pollen');
+    if (cd.fx === 'relight') { q.rings[a.ring] = true; if (q.out) { q.out = false; say(S, `${q.name} is back in`); } say(S, `${p.name} relights ${q.name}'s ${RINGS[a.ring]} ring`); reap(S, q, 1); }
+    return after(S);
+  }
+  if (a.t === 'attack') {
+    const f = front(p, a.lane), q = S.players[a.tp], d = front(q, a.at); f.cell.attacked = true;
+    if (!d) { dark(S, q, a.ring, `${card(f.cell).name} through an empty lane`); return after(S); }
+    if (d.cell.down) { trapHit(S, p, q, d, [f]); return after(S); }
+    const A = atk(S, p, f.cell), D = Dof(d.cell);
+    say(S, `${p.name}'s ${card(f.cell).name} (A ${A}) attacks ${q.name}'s ${card(d.cell).name} (D ${D})`);
+    if (A < D && S.cfg.dmgStays) d.cell.dmg = (d.cell.dmg || 0) + A;
+    if (A >= D) knock(S, q, d.sq);          // show: higher stays, a tie takes both
+    if (A <= D) knock(S, p, f.sq);
+    return after(S);
+  }
+  if (a.t === 'gang') {
+    const cells = a.lanes.split('').map(l => front(p, +l)), q = S.players[a.tp], d = front(q, a.at); cells.forEach(f => f.cell.attacked = true);
+    if (d.cell.down) { trapHit(S, p, q, d, cells); return after(S); }
+    const A = cells.reduce((s, f) => s + atk(S, p, f.cell), 0), D = Dof(d.cell);
+    say(S, `${p.name}'s ${cells.map(f => card(f.cell).name).join(' + ')} (A ${A} together) attack ${q.name}'s ${card(d.cell).name} (D ${D})`);
+    if (A < D && S.cfg.dmgStays) d.cell.dmg = (d.cell.dmg || 0) + A;
+    if (A >= D) knock(S, q, d.sq);
+    if (A <= D) for (const f of cells) knock(S, p, f.sq);
+    return after(S);
+  }
+  if (a.t === 'buywin') { const price = winPrice(S, p); p.econ -= price; say(S, `${p.name} pays ${price} ECON and buys the win`); return finish(S, { type: 'win', team: p.team, how: 'econ' }); }
+  if (a.t === 'smite') { const c = p.grid[a.sq]; c.charge = 0; c.attacked = true; past(S, S.players[a.tp], [a.ring], 'PAPAL SMITE'); return after(S); }
+  if (a.t === 'big') {
+    const q = a.tp !== undefined ? S.players[a.tp] : null;
+    if (a.big === 'broadside' || a.big === 'audit') {
+      const rings = bigDamage(S, p, a);
+      // INV, from EP7: if a big move would put you out and your own big move is unused, you may answer on the same frame.
+      if (!q.canopy && rings.length >= lit(q) && bigOptions(S, q).some(b => b.tp === p.id && (b.big === 'broadside' || b.big === 'audit'))) { S.pending = { responder: q.id, from: p.id, move: a }; say(S, `${p.name} calls ${a.big.toUpperCase()} on ${q.name}'s last rings. ${q.name} may answer.`); return; }
+      p.cmd.used = true; say(S, `${p.name}: ${a.big.toUpperCase()}`); past(S, q, rings, a.big.toUpperCase()); return after(S);
+    }
+    p.cmd.used = true; say(S, `${p.name}: ${a.big.toUpperCase()}`);
+    if (a.big === 'multiply') { const src = p.grid[a.sq]; let k = 0; const r0 = a.sq - a.sq % 3; [r0, r0 + 1, r0 + 2].forEach(i => { if (!p.grid[i]) { p.grid[i] = { uid: S.uid++, card: src.card, attacked: true, charge: 0 }; k++; } }); say(S, `${card(src).name} becomes ${k} more`); }
+    if (a.big === 'canopy') p.canopy = true;
+    if (a.big === 'holyleague') p.league = true;
+    if (a.big === 'moodpink') p.pink = true;
+    if (a.big === 'parlay') p.parlay = q.id;   // q cannot attack p until p's next turn
+    return;
+  }
+}
+
+function resolveClash(S, a) {
+  const pd = S.pending, p = S.players[pd.from], q = S.players[pd.responder]; S.pending = null; S.active = true;
+  const r1 = bigDamage(S, p, pd.move); p.cmd.used = true;
+  if (a.t === 'pass') { say(S, `${p.name}: ${pd.move.big.toUpperCase()}`); past(S, q, r1, pd.move.big.toUpperCase()); return after(S); }
+  const r2 = bigDamage(S, q, a); q.cmd.used = true;
+  say(S, `SAME FRAME: ${p.name}'s ${pd.move.big.toUpperCase()} and ${q.name}'s ${a.big.toUpperCase()}`);
+  past(S, q, r1, pd.move.big.toUpperCase());
+  past(S, p, r2, a.big.toUpperCase());
+  return after(S);
+}
+
+function after(S) {
+  if (S.result) return;
+  const teams = [...new Set(living(S).map(p => p.team))];
+  if (teams.length === 1) finish(S, { type: 'win', team: teams[0] });
+  else if (teams.length === 0) finish(S, { type: 'bothLose' });           // MOOK: you blew each other up, you both lose
+  else if (S.players[S.cur].out && !S.pending) nextPlayer(S);
+}
+function finish(S, r) { S.result = r; say(S, 'RESULT ' + JSON.stringify(r)); }
+
+function endTurn(S) {
+  const p = S.players[S.cur];
+  const food = S.cfg.harvestWin && roadOf(p) === 'food', cap = S.cfg.relightCap * (food ? S.cfg.foodCap : 1);   // 11-22 night: a Food planet may grow back more rings
+  if (S.cfg.dev === 'relight') { p.devPool += devSum(p); while (p.devPool >= S.cfg.devStep) { const threat = S.cfg.relWin > 1 && !p.rings[RELIGION] && S.players.some(q => !q.out && q.team !== p.team && (q.relCount || 0) > 0); const k = threat ? RELIGION : food && !p.rings[FOOD] ? FOOD : p.rings.findIndex((on, i) => !on && i < S.cfg.rings); if (k < 0 || (!threat && cap && p.relit >= cap)) { p.devPool = S.cfg.devStep; break; } p.rings[k] = true; if (!threat) p.relit++; p.devPool -= S.cfg.devStep; say(S, `${p.name}'s planet grows: the ${RINGS[k]} ring relights`); reap(S, p, 1); } }
+  if (S.cfg.polWin && p.rings[POLITICS] && sealedAll(S, p)) say(S, `${p.name} HOLDS ENOUGH TREATIES: a rival with a treaty must hurt ${p.name} (a ring out, a card knocked out), or put out ${p.name}'s Politics ring, before ${p.name}'s next turn`);
+  if (S.cfg.crowdWin && crowd(p) >= S.cfg.crowdWin && p.rings[POP]) say(S, `${p.name}'s CROWD FILLS THE GRID: knock one out or put out ${p.name}'s Population ring before ${p.name}'s next turn`);
+  S.stats.handAtEnd.push(p.hand.length);
+  if (S.offer && S.offer.from !== p.id && S.players[S.offer.from].team !== p.team && !S.offer.yes.includes(p.id)) { say(S, `${p.name} does not shake: the offer lapses`); S.offer = null; }
+  S.quiet = S.active ? 0 : S.quiet + 1;
+  if (S.quiet >= living(S).length) return finish(S, { type: 'stalemate' });   // MOOK: a stalemate is a peaceful draw
+  if (S.turnNo >= S.cfg.turnLimit) return finish(S, { type: 'limit' });
+  nextPlayer(S);
+}
+function nextPlayer(S) { for (let k = 0; k < S.order.length; k++) { S.oi = (S.oi + 1) % S.order.length; if (S.oi === 0 && S.cfg.rotate) S.order.push(S.order.shift()); if (!S.players[S.order[S.oi]].out) break; } S.cur = S.order[S.oi]; beginTurn(S); }
+
+function replay(match) { const S = start(match); for (const m of match.moves) apply(S, m); return S; }
+
+// ───────── the referee view: what the player to move can see (never another hand, never a score)
+function describe(S, a) {
+  const P = i => S.players[i].name, sq = n => `${['FRONT', 'mid', 'back'][Math.floor(n / 3)]} row, lane ${n % 3 + 1}`;
+  if (a.t === 'gang') return `attack TOGETHER with lanes ${a.lanes.split('').map(l => +l + 1).join(' + ')} → ${P(a.tp)} lane ${a.at + 1} (A added up)`;
+  if (a.t === 'buywin') return `BUY THE WIN: pay ${winPrice(S, S.players[S.cur])} ECON`;
+  if (a.t === 'play') { const cd = C[a.card]; if (cd.type === 'trap') return `set ${cd.name} FACE DOWN (${cd.econ} ECON) at ${sq(a.sq)}`; if (cd.type !== 'action') return `play ${cd.name} (${cd.econ} ECON) at ${sq(a.sq)}`;
+    return `play ${cd.name} (${costOf(S, a.card)} ECON)` + (a.tp !== undefined ? ` on ${P(a.tp)}` : '') + (a.lane !== undefined ? ` lane ${a.lane + 1}` : '') + (a.ring !== undefined ? ` · ${RINGS[a.ring]} ring` : ''); }
+  if (a.t === 'deploy') return `put your commander on the grid at ${sq(a.sq)} (they can fight; lose them and you are out)`;
+  if (a.t === 'attack') return `attack with lane ${a.lane + 1} → ${P(a.tp)} lane ${a.at + 1}` + (a.ring !== undefined ? ` (empty): put out their ${RINGS[a.ring]} ring` : '');
+  if (a.t === 'smite') return `PAPAL SMITE → ${P(a.tp)}'s ${RINGS[a.ring]} ring`;
+  if (a.t === 'big' || a.t === 'answer') return `${a.t === 'answer' ? 'ANSWER on the same frame with' : 'BIG MOVE'} ${a.big.toUpperCase()}` + (a.tp !== undefined ? ` → ${P(a.tp)}` : '') + (a.ring !== undefined ? ` · ${RINGS[a.ring]} ring` : '') + (a.sq !== undefined ? ` · copy the card at ${sq(a.sq)}` : '');
+  return { offer: 'offer a handshake (an amiable draw)', accept: 'shake hands (accept the draw)', end: 'end your turn', pass: 'do not answer' }[a.t];
+}
+const TRIG = { attacked: 'flips when it is attacked: what attacked falls in', ringdark: 'flips when one of your rings would go dark: the ring stays lit and the attacker\'s front cards freeze for a turn', pastgrid: 'flips when a move goes past your grid (AUDIT, BROADSIDE, The Pollen, Hostile Takeover, PAPAL SMITE): the move is stopped' };
+const FX = { seed: 'your FOOD ring relights (only Food: a harvest card, not a heal)', sprout: 'one of your own dark rings relights (Food first, on a Food planet)', siege: 'knock out one enemy front card with D 6 or more', barrage: 'knock out one enemy front card with low D', takeover: "put out one enemy's ECONOMY ring, past the grid", pollen: 'put out one enemy ring, past the grid', relight: "relight one dark ring, yours or a team-mate's", gain3: '+3 ECON this turn', gain2: '+2 ECON this turn', absorb: 'your rings cannot go dark until your next turn', snooze: 'up to five of your own dark rings relight', spring: 'up to two of your own dark rings relight', smash: 'two rings of one enemy go dark, past the grid', sigil: "put out one enemy's RELIGION ring, past the grid", envoy: 'seal a treaty with one rival (it lasts until that rival aims a move at you)' };
+const BIG = { broadside: 'BROADSIDE: needs a ship on your grid; one enemy ring goes dark, past the grid', audit: 'AUDIT: one enemy ring per Army of Auditors on your grid (max 3), past the grid', canopy: 'CANOPY: your rings cannot go dark until your next turn', holyleague: 'HOLY LEAGUE: your attackers get +2 A this turn', moodpink: 'MOOD: PINK: your cards cannot be attacked until your next turn', parlay: 'PARLAY: one enemy cannot attack you until your next turn', multiply: 'MULTIPLY: one of your cards becomes one in every empty square of its row (the copies cannot attack this turn)', none: 'no big move' };
+function view(S, pid) {
+  const me = S.players[pid], out = [];
+  const cellTxt = (p, c) => !c ? '  ·  ' : c.down ? (p.id === pid ? `▼ ${C[c.card].name.slice(0, 12)} (down)` : '▼ face down') : `${(c.isCmd ? '★' : '') + C[c.card].name.slice(0, 14)} ${atk(S, p, c)}/${Dof(c)}${c.frozen ? ' (frozen)' : ''}`;
+  for (const p of S.players) {
+    out.push(`${p.id === pid ? 'YOU ' : ''}${p.name} · team ${p.team} · seat ${p.seat}${p.out ? ' · OUT' : ''} · rings ${p.rings.slice(0, S.cfg.rings).map((on, k) => (on ? RINGS[k].slice(0, 4).toUpperCase() : '----')).join(' ')} · hand ${p.hand.length} · deck ${p.deck.length} · commander ${C[p.cmd.id].name} A${C[p.cmd.id].A} D${C[p.cmd.id].D} (${p.cmd.where}${p.cmd.used ? ', big move used' : ''})`);
+    if (!p.out) for (let r = 0; r < 3; r++) out.push(`   ${r === 0 ? 'front' : r === 1 ? 'mid  ' : 'back '} | ` + [0, 1, 2].map(l => cellTxt(p, p.grid[r * 3 + l]).padEnd(22)).join('| '));
+  }
+  out.push('', `Your hand: ${me.hand.map(id => `${C[id].name}${C[id].type === 'trap' ? ` [TRAP, set face down: ${TRIG[C[id].trig]}]` : C[id].type === 'action' ? ` [action: ${FX[C[id].fx]}]` : C[id].move === 'smite' ? ` [A0 D${C[id].D} DEV${C[id].dev} · PAPAL SMITE: after one full turn on the grid, put out any one enemy ring; then recharge]` : ` [A${C[id].A} D${C[id].D} DEV${C[id].dev}]`} cost ${costOf(S, id)}`).join(' · ') || '(empty)'}`);
+  out.push(`Your commander's big move (once a game): ${BIG[C[me.cmd.id].big]}${me.cmd.used ? ' (USED)' : ''}`);
+  out.push(`Your ECON this turn: ${me.econ}` + (S.cfg.dev === 'relight' ? ` · growth ${me.devPool}/${S.cfg.devStep}` : ''));
+  if (S.offer) out.push(`A handshake is on offer from ${S.players[S.offer.from].name}.`);
+  out.push('', 'Last things that happened:', ...S.log.slice(-10).map(l => '  ' + l));
+  return out.join('\n');
+}
+
+const toMove = S => S.pending ? S.pending.responder : S.cur;
+module.exports = { treaties, sealedAll, crowd,pays, market, winPrice, whole, capped, ringOK, baseId, COMBOS, LIB: require('./cards.js').LIB, TRIG, FX, BIG, Dof, atk, costOf, toMove, DEFAULTS, newMatch, start, replay, legal, apply, view, describe, lit, front, RINGS, C, DECKS };
+
+};
+__defs['./bots.js'] = function (module, exports, require) {
+// Simple seeded bots for volume. They read the same legal list a player gets. Two temperaments (colosseum: distinct theories).
+'use strict';
+const E = require('./engine.js'); const { C } = E;
+const REL = 5;   // the Religion ring
+function converting(S, q) { if (!S.cfg.relWin || q.out || !q.rings[REL]) return false; const en = S.players.filter(x => !x.out && x.team !== q.team); return en.length > 0 && en.every(x => !x.rings[REL]); }
+const ffa = S => S.cfg.table === 'ffa';
+const want = (S, q, style) => ffa(S) ? (E.lit(q) - 4) * 0.9 + (S.cfg.econWin && q.econ >= E.winPrice(S, q) * 0.6 ? 4 : 0) : (7 - E.lit(q)) * style.focus;   // who to hit: the leader (and whoever is close to buying the win) in a free for all, the weakest otherwise
+function score(S, a, me, style, r) {
+  const p = S.players[me];
+  if (a.tp !== undefined && S.players[a.tp].team !== p.team && converting(S, S.players[a.tp])) {   // stop the conversion
+    if (a.ring === REL) return 60; if (a.t === 'play' && C[a.card].fx === 'relight') return 0; }
+  if (a.t === 'play' && C[a.card].fx === 'relight' && a.ring === REL && S.players.some(q => q.team !== p.team && converting(S, q))) return 55;   // or relight our own
+  if (a.t === 'pass') return 0; if (a.t === 'answer') return style.spite ? 5 : -1;
+  if (a.t === 'buywin') return 1e6; if (a.t === 'end') return 0.01; if (a.t === 'offer' || a.t === 'accept') return -1;
+  if (a.t === 'attack') { if (a.ring !== undefined) return 10 + (a.ring === 0 ? 0.5 : 0) + want(S, S.players[a.tp], style);
+    const f = E.front(p, a.lane).cell, d = E.front(S.players[a.tp], a.at).cell, A = E.atk(S, p, f), D = d.down ? 2 : E.Dof(d);   // a face-down card: the bot guesses D 2 and never reads it
+    if (d.down) return f.isCmd ? -50 : 4 - (C[f.card].econ || 0) * 0.5;
+    if (d.isCmd && A >= D) return 50; if (f.isCmd && A <= D) return -50;
+    if (A > D) return 6 + C[d.card].econ; if (A === D) return (C[d.card].econ || 0) - (C[f.card].econ || 0) + 1;
+    if (S.cfg.dmgStays && !f.isCmd) return (C[d.card].econ || 0) * A / D - (C[f.card].econ || 0) + 1.5;   // v1: chipping a wall is worth a cheap card
+    return -5; }
+  if (a.t === 'gang') { const d = E.front(S.players[a.tp], a.at).cell; if (d.down) return -3; const cells = a.lanes.split('').map(l => E.front(p, +l).cell), A = cells.reduce((s, f) => s + E.atk(S, p, f), 0), D = E.Dof(d), best = Math.max(...cells.map(f => E.atk(S, p, f)));
+    if (best > D) return -9; if (cells.some(f => f.isCmd) && A <= D) return -50; if (A > D) return 5 + (C[d.card].econ || 0) + (d.isCmd ? 50 : 0); if (A === D) return (C[d.card].econ || 0) - cells.reduce((s, f) => s + (C[f.card].econ || 0), 0) + 1; return -6; }
+  if (a.t === 'smite') return 10; if (a.t === 'big' && a.big === 'multiply') { const r0 = a.sq - a.sq % 3, e = [r0, r0 + 1, r0 + 2].filter(i => !p.grid[i]).length, cd = C[p.grid[a.sq].card]; return e >= 2 ? 3 + e + cd.A + cd.D * 0.3 + (r0 === 0 ? 1 : 0) : -1; }   // 2026-11-22
+  if (a.t === 'big') return a.tp !== undefined ? 8 + (ffa(S) ? want(S, S.players[a.tp], style) : 7 - E.lit(S.players[a.tp])) : (E.lit(p) <= 3 ? 7 : -1);
+  if (a.t === 'deploy') return S.cfg.ringCap || S.cfg.lib ? -1 : (style.bold && S.turnNo > 12 ? 1 : -1);   // 2026-11-22: with the new dials a bot never puts its commander on the grid. Even the "last stand in the back row" was suicide: 61 of 133 Gil knock-outs in a free for all were his commander, the turn after it came down
+  if (a.t === 'play' && C[a.card].fx === 'seed') return 9;   // Food is dark (that is the only time it is legal): plant it
+  if (a.t === 'play') { const cd = C[a.card]; if (cd.fx === 'absorb') return E.lit(p) < 7 && !p.canopy ? 5 : -1; if (cd.fx === 'snooze' || cd.fx === 'spring' || cd.fx === 'sprout') { const dk = p.rings.filter(on => !on).length; return cd.fx === 'spring' ? (dk >= 2 ? 8 : 4) : 3 + 2 * dk; }   // 2026-11-22
+    if (cd.type === 'action') return cd.fx.startsWith('gain') ? 9 : 7;
+    if (cd.type === 'trap') return 3.5 + (Math.floor(a.sq / 3) === 0 && !E.front(p, a.sq % 3) ? (cd.trig === 'attacked' ? 2 : 0.5) : cd.trig === 'attacked' ? -1 : 1) + r() * 0.2;
+    if (S.cfg.techWin && (cd.tags.includes('part') || cd.tags.includes('core'))) return cd.tags.includes('core') === (a.sq === 4) ? 6 + r() * 0.2 : -3;
+    const row = Math.floor(a.sq / 3), lane = a.sq % 3, laneEmpty = !E.front(p, lane);
+    let v = 2 + cd.A * style.aggro + cd.D * 0.3 + (cd.dev || 0) * style.grow;
+    if (cd.type === 'structure') v += row === 0 && laneEmpty ? 1.5 : row > 0 ? 0.5 : 0; else v += row === 0 ? 2 : laneEmpty ? 1 : -1;
+    return v + r() * 0.2; }
+  return 0;
+}
+// ───── 2026-11-22: a ROAD to victory per deck, so bot games show four ways of playing, not one. (A person at the table is free; this only steers bots.)
+//   table = knock planets out · econ = hold the lanes, bank ECON, buy the win · science = build the great machine · religion = put out Religion rings and convert
+const ROAD = { mook: 'table', mush: 'food', finley: 'politics', bronconius: 'religion', rose: 'science', gil: 'pop', fhat: 'table', tortimer: 'food', leo: 'table' };   // 11-22 night: Gil → pop (the crowd)   // 11-22 night: Mush and Tortimer → food
+const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+const isMachine = c => C[c.card].tags.includes('part') || C[c.card].tags.includes('core');
+const stands = (S, q) => !!q.whole && E.whole(S, q) && q.rings[2];   // a whole machine waiting for its owner's next turn
+// how many OTHER pieces of the same combo already stand in a clean line through this square
+function comboReach(S, p, id, sq) { let best = 0; const me = E.baseId(id);
+  for (const co of E.COMBOS) { if (!co.parts.includes(me) || (co.lib && !S.cfg.lib)) continue;
+    // columns only: three cards fused in one LANE still block it; a fused row or diagonal opens two lanes (Finley went out first in 46 % of duels)
+    for (const l of LINES.slice(3, 6)) { if (!l.includes(sq)) continue; const others = l.filter(i => i !== sq && p.grid[i]);
+      if (others.some(i => p.grid[i].down || !co.parts.includes(E.baseId(p.grid[i].card)) || E.baseId(p.grid[i].card) === me)) continue;
+      best = Math.max(best, new Set(others.map(i => E.baseId(p.grid[i].card))).size); } }
+  return best; }
+function hurts(S, a, p, q) {
+  if (a.ring !== undefined || a.t === 'smite') return true;
+  if (a.t === 'big') return a.big === 'broadside' || a.big === 'audit';
+  if (a.t === 'play') return ['barrage', 'siege', 'pollen', 'smash', 'sigil', 'takeover'].includes(C[a.card].fx);
+  if (a.t === 'attack' || a.t === 'gang') { const d = E.front(q, a.at); if (!d || d.cell.down) return false; const A = a.t === 'gang' ? a.lanes.split('').reduce((s, l) => s + E.atk(S, p, E.front(p, +l).cell), 0) : E.atk(S, p, E.front(p, a.lane).cell); return A >= E.Dof(d.cell); }
+  return false; }
+function road(S, a, me, style) {
+  if (S.cfg.polWin && a.tp !== undefined) { const q = S.players[a.tp], p0 = S.players[me];   // a rival holds its treaties: HURT it (a ring out, a card knocked out) to tear ours up
+    if (q.team !== p0.team && E.sealedAll(S, q) && q.rings[6] && (q.seals || []).includes(me) && hurts(S, a, p0, q)) return 45; }
+  const p = S.players[me]; let goal = style.goal || ROAD[p.deckKey] || (E.DECKS[p.deckKey] && E.DECKS[p.deckKey].botRoad) || 'table', v = 0;
+  if (goal === 'religion' && S.players.filter(q => !q.out && q.team !== p.team).length > 3) goal = 'table';   // converting six rivals is not a plan
+  if (a.ring !== undefined && a.tp !== undefined && S.players[a.tp].team !== p.team) { const q = S.players[a.tp];   // everybody reads the table: hit the ring a rival's road hangs on
+    if (a.ring === 0 && S.cfg.econWin && (q.econ >= E.winPrice(S, q) * 0.5 || E.market(S, q))) v += 3 + (q.econ >= E.winPrice(S, q) * 0.8 ? 20 : 0);
+    if (a.ring === 2 && stands(S, q)) v += 45;                                                                                              // the machine is whole: its Science ring is the answer
+    if (a.ring === 2 && S.cfg.techWin) { const m = q.grid.filter(c => c && !c.down && isMachine(c)).length; if (m >= 4) v += 2 + m; }
+    if (goal === 'religion' && a.ring === REL) v += 4;
+    if (S.cfg.harvestWin) { const h = q.harvest || 0, W = S.cfg.harvestWin;   // the harvest: put out their Food ring; any other ring they lose, they grow back and reap
+      if (a.ring === 3 && h >= W) v += 45; else if (a.ring === 3 && h >= W - 2) v += 6; }
+    if (S.cfg.polWin && E.sealedAll(S, q) && q.rings[6] && a.ring === 6) v += 45;
+    if (S.cfg.crowdWin && a.ring === 4) { const n = E.crowd(q); if (n >= S.cfg.crowdWin) v += 45; } }   // (sparing a Food planet's other rings was tried: in a free for all it made Tortimer untouchable, 41 %)
+  if ((a.t === 'attack' || a.t === 'gang') && a.ring === undefined && S.cfg.techWin) { const q = S.players[a.tp], d = E.front(q, a.at); if (d && !d.cell.down && isMachine(d.cell)) { const m = q.grid.filter(c => c && !c.down && isMachine(c)).length; if (m >= 5) v += m - 2; } }   // break the machine before it is whole
+  if ((a.t === 'attack' || a.t === 'gang') && a.ring === undefined) { const q = S.players[a.tp], d = E.front(q, a.at);
+    if (d && !d.cell.down) { const A = a.t === 'gang' ? a.lanes.split('').reduce((s, l) => s + E.atk(S, p, E.front(p, +l).cell), 0) : E.atk(S, p, E.front(p, a.lane).cell), kills = A >= E.Dof(d.cell);
+      if (S.cfg.crowdWin && kills && !d.cell.isCmd && C[d.cell.card].type === 'unit') { const n = E.crowd(q); if (n >= S.cfg.crowdWin) v += 45; }   // break the crowd, once it is full (warning one unit early made six rivals pile on the Fhat: 1 % of seven-planet games)
+      if (stands(S, q) && isMachine(d.cell) && kills) v += 45;                                                                              // the machine IS whole: any hit that breaks a piece, whatever it costs
+      if (S.cfg.noMarket > 1 && kills && E.pays(S, q, d.cell) && q.econ >= S.cfg.econWin * 0.6 && q.grid.filter(c => E.pays(S, q, c)).length === 1) v += 6; } }   // a rival near the price with ONE market: break it and the price doubles
+  if (a.t === 'play') { const cd = C[a.card];
+    if (cd.fx === 'sigil' && goal === 'religion') v += 3;
+    if (cd.fx === 'takeover' && S.players[a.tp].econ >= E.winPrice(S, S.players[a.tp]) * 0.5) v += 6;
+    if (a.sq !== undefined && cd.type !== 'trap' && cd.type !== 'action') { v += comboReach(S, p, a.card, a.sq) * 3;                     // lay combo pieces in a line
+      if (p.grid[a.sq]) v -= 1.5; }                                                                                                    // build a machine piece over a card only when no square is free
+    const second = E.DECKS[p.deckKey] && E.DECKS[p.deckKey].second;   // a deck with a second road keeps its habits (Finley: politics first, ECON second)
+    if ((goal === 'econ' || second === 'economy') && cd.income) v += 5;
+    if (cd.fx === 'envoy') { const need = Math.min(S.players.filter(q => !q.out && q.team !== p.team).length, S.cfg.polWin || 99); const have = E.treaties(S, p), inHand = p.hand.filter(id => C[id].fx === 'envoy').length; v += goal !== 'politics' ? -6 : have === need - 1 ? 12 : have + inHand >= need ? 5 : -2; }   // send envoys when the treaties can be finished, not one at a time   // only a politician sends envoys
+    if (goal === 'food' && a.sq !== undefined && cd.type !== 'trap' && (cd.dev || 0) >= 2) v += cd.dev * 0.8;                       // food: grow (real growth cards only: on every card it made Tortimer a better fighter, 17 % → 32 %)
+    if (goal === 'food' && cd.fx === 'relight' && a.tp === me) v += a.ring === 3 ? 6 : 3;
+    if (S.cfg.crowdWin && (cd.fx === 'barrage' || cd.fx === 'siege') && a.tp !== undefined) { const q = S.players[a.tp], n = E.crowd(q); if (n >= S.cfg.crowdWin) v += 45; }
+    if (goal === 'pop' && a.sq !== undefined && !p.grid[a.sq]) v += cd.type === 'unit' ? 2.5 : cd.type === 'structure' ? -2 : 0; }   // pop: fill the squares with people
+  if (goal === 'pop' && a.t === 'big' && a.big === 'multiply') v += 3;
+  return v;
+}
+const STYLES = { raider: { aggro: 1, grow: 0.1, focus: 0.6, bold: true, spite: true }, gardener: { aggro: 0.4, grow: 0.9, focus: 0.1, bold: false, spite: false } };
+function pick(S, style, r) { const me = E.toMove(S), L = E.legal(S); let best = L[0], bv = -1e9; const jit = S.cfg.ringCap || S.cfg.lib ? 0.4 : 0;   // a little noise breaks ties between equal targets (new dials only: old sweeps replay the same)
+  const stuck = jit && S.quiet >= 1 ? 7 : 0;   // the table has gone quiet: a stalemate is one round away, so a bot will now take an even or slightly losing fight (never with its commander)
+  for (const a of L) { let v = score(S, a, me, style, r) + (jit && a.tp !== undefined ? r() * jit : 0); if (S.cfg.ringsMatter && v > -40 && v < 1000) v += road(S, a, me, style); if (stuck && (a.t === 'attack' || a.t === 'gang') && v > -40) v += stuck; if (v > bv) { bv = v; best = a; } } return best; }
+module.exports = { pick, STYLES, ROAD };
+
+};
+__defs['./budget.js'] = function (module, exports, require) {
+// HALO · the card budget (2026-11-22). One question: is this card's ECON cost fair for what it does?
+// The price list is NOT typed in by hand. It is FITTED to the cards the game already has (least squares):
+//   cost ≈ a·A + d·D + e·DEV + k      over the plain fighting cards of the six first decks.
+// A new card is then priced by the same line, plus a fixed price for each keyword it carries (KEYWORDS: Claude's numbers).
+// Actions, traps and commanders have no line to sit on: they are judged by the sweep only (balance.js).
+'use strict';
+const { C } = require('./cards.js');
+
+// keyword → what it means on the table, and what it adds to the fair cost (INV: every price here is Claude's)
+const KEYWORDS = {
+  runner:  { price: 1,   text: 'Runner: may attack ANY empty enemy lane, not only its own' },
+  anylane: { price: 1.5, text: 'Reach: may attack any lane of any enemy' },
+  income:  { price: 1,   text: 'Income: pays ECON at the start of your turn' },
+  smite:   { price: 3,   text: 'Papal Smite: after a full turn on the grid, puts out one enemy ring' },
+  science: { price: 0,   text: 'Science: grows in Rose\'s hands' },
+};
+const kwOf = c => [...(c.tags || []).filter(t => KEYWORDS[t]), ...(c.income ? ['income'] : []), ...(c.move === 'smite' ? ['smite'] : [])];
+const plain = c => (c.type === 'unit' || c.type === 'structure') && !c.lib && !c.v2 && c.src !== 'claude' && c.econ > 0 && !kwOf(c).some(k => KEYWORDS[k].price);
+
+function solve(M, v) { // Gaussian elimination, 4 unknowns
+  const n = v.length, A = M.map((r, i) => [...r, v[i]]);
+  for (let i = 0; i < n; i++) { let p = i; for (let r = i + 1; r < n; r++) if (Math.abs(A[r][i]) > Math.abs(A[p][i])) p = r; [A[i], A[p]] = [A[p], A[i]];
+    for (let r = 0; r < n; r++) if (r !== i) { const f = A[r][i] / A[i][i]; for (let c = i; c <= n; c++) A[r][c] -= f * A[i][c]; } }
+  return A.map((r, i) => r[n] / r[i]);
+}
+function fit() {
+  const rows = Object.values(C).filter(plain).map(c => [[c.A, c.D, c.dev || 0, 1], c.econ]);
+  const M = [0, 1, 2, 3].map(i => [0, 1, 2, 3].map(j => rows.reduce((s, [x]) => s + x[i] * x[j], 0)));
+  const v = [0, 1, 2, 3].map(i => rows.reduce((s, [x, y]) => s + x[i] * y, 0));
+  const [a, d, e, k] = solve(M, v); return { a, d, e, k, n: rows.length };
+}
+const F = fit();
+
+// → { fair, diff, verdict } for a fighting card; null for actions, traps and commanders
+function budget(id) {
+  const c = C[id]; if (c.type !== 'unit' && c.type !== 'structure') return null; if (!c.econ) return null;
+  const fair = F.a * c.A + F.d * c.D + F.e * (c.dev || 0) + F.k + kwOf(c).reduce((s, k) => s + KEYWORDS[k].price, 0);
+  const diff = c.econ - fair;   // minus = cheaper than the line says (strong for its price)
+  return { fair: Math.round(fair * 10) / 10, diff: Math.round(diff * 10) / 10, verdict: diff < -1 ? 'cheap' : diff > 1 ? 'dear' : 'fair' };
+}
+module.exports = { KEYWORDS, kwOf, fit: F, budget };
+
+};
+__defs['./picks.js'] = function (module, exports, require) {
+// HALO · the dials the game is played at right now. One place: the table, balance.js and modes.js all read this.
+// 🗣 = Mook picked it · 🆕 = Claude's number, found by a sweep, his to change.
+'use strict';
+module.exports = {
+  peace: 1,          // 🆕 nobody attacks in the first round
+  keepEcon: 1,       // 🗣 ECON you do not spend stays
+  deckSize: 40,      // 🗣 11-16
+  handCap: 10,       // his rulebook draft
+  ringsMode: 'feed', // 🗣 11-22 "rings feed you is the winner"
+  dmgStays: 1, gang: 1, relightCap: 2, siege: 2,   // 🗣 all four wall-breakers
+  traps: 2,          // 🗣 traps; 🆕 two of each
+  roseV1: 1,         // 🗣 Rose as econ + science player
+  roseMachine: 1.25,  // 🆕 half as many Machine Parts and Cores again in her deck: the machine has to be drawable to be a road
+  lib: 1,            // the library cards are in
+  techWin: 1,        // 🗣 one great machine
+  // ───── 11-22, from the "what feels off" sweeps (all 🆕)
+  ringCap: 2,        // a planet can lose only 2 rings between two of its own turns: nobody is stripped before they can answer
+  secondEcon: 1,     // whoever does not move first starts with ECON in hand (see MODES): moving first was worth 58 % to 37 %
+  relWin: 2,         // 🗣 convert the table · 🆕 it must stand for two of your turns, and growth relights Religion first: the table can answer
+  econWin: 50,       // 🗣 buy the win · 🆕 50 (at 25 it ended half of all long games)
+  ringsMatter: 1,    // each road to a win hangs on one ring: Economy (income, buying the win) · Science (growth, the machine) · Religion (the conversion)
+  reshuffle: 1,      // when your deck runs out, your lost cards come back as a new deck: 4 in 5 no-winner games were two planets with no cards left
+  bal: 1,            // the rebalanced versions of eight first-deck cards (Finley, Rose, Mush were far behind)
+  harvestWin: 5,     // 🗣 "Food: the harvest" (11-22 night) · 🆕 a turn your planet grows a ring back is one harvest; 5 of them with Food lit wins at the start of your next turn
+  harvestTurn: 1,    // 🆕 one harvest a turn, however many rings come back (per ring was a cliff)
+  polWin: 2,         // 🗣 "Yes, Politics" (11-22 night) · 🆕 two treaties at once (one, one on one) at the start of your turn, Politics lit, wins. A rival that HURTS you tears its treaty up
+  crowdWin: 9,       // 🗣 "Population: crowd" (11-22 night) · 🆕 nine units on your nine squares, still there at the start of your next turn with Population lit, wins
+  foodCap: 2,        // 🆕 a Food-road planet's growth may relight twice the relight cap
+  barrageCost: 2,    // 🗣 "not sure test" (call B) · 🆕 2: at 1 it was the best card in the game against low-D decks
+};
+// what changes at each table (all 🆕)
+module.exports.MODES = {
+  team: { secondEcon: [0, 2, 0, 2, 0, 1] },      // 3 on 3, one number per seat: 2 each gave the second team 56 %, 1 each gave the first team 62 %, this gives 53 / 47
+  duel: { secondEcon: 6, table: 'duel', harvestWin: 5, polWin: 1, roseMachine: 1.5 },   // roseMachine 1.5 one on one (11-22 night): 41 % → 48 %, and she wins by the machine   // harvest: at 4 Mush won 67 % one on one                       // 1 on 1 (at 5 the first seat wins 54 %, at 7 the second wins 55 %)
+  ffa:  { rotate: 1, secondEcon: [2, 0, 1, 2, 1, 1, 1], econWin: 80, table: 'ffa',   // 11-22 night, starting ECON by seat: the start rotates, so the first FIGHTING round (round 2) began with seat 2 (33 % of 4-planet games). Now 24 / 25 / 25 / 26 %   // free for all: the start player moves one seat on every round
+          noMarket: 2,      // 🗣 "Yes, keep it" · 11-22 evening: buying the win costs DOUBLE (160) with no card on your grid that pays ECON: bought wins 50 % → 23 % of seven-planet games
+          turnLimit: 420,   // 11-22 evening: seven planets used up 240 turns before the last two could finish (it is a safety stop, not a rule)
+          harvestWin: 7,
+          crowdHold: 2 },   // 11-22 night: a full crowd has no empty lane, so six rivals could not answer it in one round (it ended 26 % of seven-planet games; now 10 %)  // 11-22 night: in a free for all every rival hits you, so rings come back more often
+};
+
+};
+window.__report = {
+ "date": "2026-11-22",
+ "games": 200,
+ "fit": {
+  "a": 0.38615182188871966,
+  "d": 0.4584854287984783,
+  "e": 0.3781086749781792,
+  "k": -0.23152903166972835,
+  "n": 26
+ },
+ "band": {
+  "table": 8,
+  "outFirst": 30,
+  "card": 15
+ },
+ "price": {
+  "jackrabbit": {
+   "fair": 2,
+   "diff": 0,
+   "verdict": "fair"
+  },
+  "hatunit": {
+   "fair": 2.3,
+   "diff": -0.3,
+   "verdict": "fair"
+  },
+  "shell": {
+   "fair": 4.7,
+   "diff": -0.7,
+   "verdict": "fair"
+  },
+  "tortunit": {
+   "fair": 3.5,
+   "diff": -0.5,
+   "verdict": "fair"
+  },
+  "tortB": {
+   "fair": 2.8,
+   "diff": -0.8,
+   "verdict": "fair"
+  },
+  "leoA": {
+   "fair": 3.1,
+   "diff": -0.1,
+   "verdict": "fair"
+  },
+  "leoB": {
+   "fair": 3.1,
+   "diff": -1.1,
+   "verdict": "cheap"
+  },
+  "cruiser": {
+   "fair": 3.3,
+   "diff": -0.3,
+   "verdict": "fair"
+  },
+  "distillery": {
+   "fair": 2.5,
+   "diff": 0.5,
+   "verdict": "fair"
+  },
+  "marvin": {
+   "fair": 2.7,
+   "diff": -0.7,
+   "verdict": "fair"
+  },
+  "distillery_b": {
+   "fair": 2.5,
+   "diff": -0.5,
+   "verdict": "fair"
+  }
+ },
+ "baseWin": {
+  "P": 52,
+  "S": 48
+ },
+ "table": {
+  "fhat": {
+   "delta": 6,
+   "outFirst": 6,
+   "pass": true
+  },
+  "tortimer": {
+   "delta": 0,
+   "outFirst": 15,
+   "pass": true
+  },
+  "leo": {
+   "delta": 4,
+   "outFirst": 17,
+   "pass": true
+  }
+ },
+ "all3": {
+  "P": 56,
+  "S": 44
+ },
+ "cards": {
+  "absorb": {
+   "games": 427,
+   "win": 61,
+   "pull": 8,
+   "flag": false
+  },
+  "archcity": {
+   "games": 129,
+   "win": 66,
+   "pull": 13,
+   "flag": false
+  },
+  "cruiser": {
+   "games": 2687,
+   "win": 58,
+   "pull": 3,
+   "flag": false
+  },
+  "distillery_b": {
+   "games": 1795,
+   "win": 52,
+   "pull": -3,
+   "flag": false
+  },
+  "hatunit": {
+   "games": 1400,
+   "win": 54,
+   "pull": 0,
+   "flag": false
+  },
+  "jackrabbit": {
+   "games": 1379,
+   "win": 54,
+   "pull": 0,
+   "flag": false
+  },
+  "lab": {
+   "games": 187,
+   "win": 35,
+   "pull": -11,
+   "flag": false
+  },
+  "leoA": {
+   "games": 1388,
+   "win": 53,
+   "pull": 0,
+   "flag": false
+  },
+  "leoB": {
+   "games": 1383,
+   "win": 53,
+   "pull": 0,
+   "flag": false
+  },
+  "marvin": {
+   "games": 2880,
+   "win": 60,
+   "pull": 5,
+   "flag": false
+  },
+  "portroyal": {
+   "games": 153,
+   "win": 44,
+   "pull": -10,
+   "flag": false
+  },
+  "shell": {
+   "games": 1297,
+   "win": 50,
+   "pull": 1,
+   "flag": false
+  },
+  "sigil": {
+   "games": 2970,
+   "win": 45,
+   "pull": 0,
+   "flag": false
+  },
+  "smash": {
+   "games": 1068,
+   "win": 58,
+   "pull": 5,
+   "flag": false
+  },
+  "snooze": {
+   "games": 415,
+   "win": 52,
+   "pull": -1,
+   "flag": false
+  },
+  "spring": {
+   "games": 1111,
+   "win": 47,
+   "pull": -1,
+   "flag": false
+  },
+  "tortunit": {
+   "games": 1397,
+   "win": 49,
+   "pull": 0,
+   "flag": false
+  }
+ }
+};
+window.__modes = {
+ "team": {
+  "label": "3 ON 3 (teams alternate round the table)",
+  "fair": 50,
+  "rounds": 9.9,
+  "none": 0,
+  "how": {
+   "religion": 133,
+   "table": 248,
+   "food": 121,
+   "econ": 150,
+   "pop": 105,
+   "tech": 35,
+   "politics": 7
+  },
+  "seat": [
+   51,
+   49,
+   51,
+   49,
+   51,
+   49
+  ],
+  "deck": {
+   "mook": 57,
+   "mush": 58,
+   "finley": 36,
+   "bronconius": 44,
+   "rose": 49,
+   "gil": 57,
+   "fhat": 48,
+   "tortimer": 48,
+   "leo": 54
+  }
+ },
+ "duel": {
+  "label": "1 ON 1",
+  "fair": 50,
+  "rounds": 13.2,
+  "none": 0,
+  "how": {
+   "religion": 284,
+   "table": 544,
+   "pop": 168,
+   "food": 115,
+   "politics": 51,
+   "tech": 171,
+   "econ": 260
+  },
+  "seat": [
+   49,
+   51
+  ],
+  "deck": {
+   "mook": 48,
+   "mush": 53,
+   "finley": 51,
+   "bronconius": 51,
+   "rose": 49,
+   "gil": 54,
+   "fhat": 43,
+   "tortimer": 55,
+   "leo": 45
+  }
+ },
+ "ffa4": {
+  "label": "FREE FOR ALL · 4 planets",
+  "fair": 25,
+  "rounds": 17.9,
+  "none": 1,
+  "how": {
+   "table": 337,
+   "econ": 104,
+   "food": 25,
+   "tech": 83,
+   "religion": 165,
+   "pop": 53,
+   "politics": 26
+  },
+  "seat": [
+   22,
+   23,
+   27,
+   27
+  ],
+  "deck": {
+   "mook": 25,
+   "mush": 20,
+   "finley": 24,
+   "bronconius": 25,
+   "rose": 28,
+   "gil": 29,
+   "fhat": 23,
+   "tortimer": 25,
+   "leo": 24
+  }
+ },
+ "ffa7": {
+  "label": "FREE FOR ALL · 7 planets",
+  "fair": 14,
+  "rounds": 17.2,
+  "none": 1,
+  "how": {
+   "econ": 157,
+   "religion": 75,
+   "politics": 12,
+   "tech": 65,
+   "table": 385,
+   "pop": 66,
+   "food": 32
+  },
+  "seat": [
+   15,
+   14,
+   16,
+   16,
+   13,
+   12,
+   14
+  ],
+  "deck": {
+   "mook": 20,
+   "mush": 16,
+   "finley": 13,
+   "bronconius": 14,
+   "rose": 12,
+   "gil": 9,
+   "fhat": 12,
+   "tortimer": 10,
+   "leo": 21
+  }
+ }
+};
+</script>
+<script>
+'use strict';
+// HALO playtest table (2026-11-21). This file only DRAWS the table and passes clicks to the engine.
+// Every move comes from engine.legal(); nothing here decides a rule.
+const E = require('./engine.js'), B = require('./bots.js'), BG = require('./budget.js'); const { C, RINGS, DECKS } = E;
+B.STYLES.sharp = { aggro: 1, grow: 0.1, focus: 3, bold: true, spite: true };            // the third bot temperament from rose.js
+const ST = ['raider', 'gardener', 'sharp'];
+const FIRST6 = ['mook', 'bronconius', 'mush', 'rose', 'finley', 'gil'], TEST3 = ['mook', 'fhat', 'mush', 'tortimer', 'finley', 'leo'];
+const PICKS = require('./picks.js'), { REBAL } = require('./cards.js');
+let table = 'team', lineup = FIRST6.slice();                                             // which table, and which deck sits in which seat
+const mode = () => table === 'team' ? 'team' : table === 'duel' ? 'duel' : 'ffa';
+const teamOf = i => table === 'team' ? (i % 2 ? 'S' : 'P') : 'ABCDEFG'[i];              // 3 on 3: seats alternate. Otherwise everyone is their own team
+const seatsNow = () => lineup.map((d, i) => ({ name: DECKS[d].who, team: teamOf(i), deck: d }));
+const teamName = t => ({ P: 'Poptarts', S: 'Smite' }[t] || (S ? S.players.filter(p => p.team === t).map(p => p.name).join(' + ') : t));
+const CFG = () => S ? S.cfg : Object.assign({}, E.DEFAULTS, { roseV1: 1 });
+const bigName = id => C[id].big === 'none' ? 'no big move' : C[id].big.toUpperCase();
+const TEAM = { P: 'Poptarts', S: 'Smite' };
+const RSHORT = ['ECON', 'IND', 'SCI', 'FOOD', 'POP', 'REL', 'POL'];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+let S = null, match = null, human = 0, sel = null, info = '', fl = {}, news = [], timer = null, speed = 700, err = '';
+let opt = { life: false, wins: true }, showAll = false, hideResult = false, curL = [], curT = {}, canAtk = new Set();
+
+// ----- start screen
+const TABLES = { team: ['3 ON 3', 'Two teams of three. Seats alternate round the sun.', FIRST6],
+  duel: ['1 ON 1', 'You against one planet.', ['mook', 'bronconius']],
+  ffa4: ['FREE FOR ALL · 4', 'Four planets. Everyone for themselves.', ['mook', 'bronconius', 'mush', 'gil']],
+  ffa7: ['FREE FOR ALL · 7', 'All seven planets lit. Everyone for themselves.', ['mook', 'bronconius', 'mush', 'rose', 'finley', 'gil', 'fhat']] };
+function startScreen() {
+  clearTimeout(timer); S = null; const R = window.__modes && window.__modes[table];
+  $('app').innerHTML = `<div class="start"><h1>HALO ALIQUID NIHIL</h1><p class="sub">Playtest table &middot; seven planets round a sun &middot; you play one, bots play the rest</p>
+  <h2>1 &middot; The table</h2><div class="row">${Object.keys(TABLES).map(k => `<button class="pick ${k === table ? 'on' : ''}" data-a="table" data-k="${k}"><b>${TABLES[k][0].replace('·', '&middot;')}</b><span>${TABLES[k][1]}</span></button>`).join('')}</div>
+  ${R ? `<p class="small">Bot test of this table: about ${R.rounds} rounds &middot; no winner ${R.none} % &middot; win by seat ${R.seat.join(' / ')} %.</p>` : ''}
+  <h2>2 &middot; Pick your seat</h2><div class="seats">${seatsNow().map((s, i) => `<div class="seat ${table === 'team' ? 't' + s.team : ''} ${i === human ? 'on' : ''}" data-a="seat" data-i="${i}"><b>${esc(s.name)}${i === human ? ' &middot; YOU' : ''}</b><span>${glyph('commander')} ${esc(C[DECKS[s.deck].commander].name)}</span><i>seat ${i + 1}${table === 'team' ? ' &middot; team ' + TEAM[s.team] : ''}${DECKS[s.deck].test ? ' &middot; test player' : ''}</i><span class="chg" data-a="deck" data-i="${i}">change player</span></div>`).join('')}</div>
+  <div class="row" style="margin-top:10px">${table === 'team' ? '<button data-a="first6">The first six</button><button data-a="test3">Put the three test players in (the Fhat, Tortimer, Leo)</button>' : ''}<button data-a="lib">CARD LIBRARY</button></div>
+  <h2>3 &middot; The other ways to win</h2><div class="row">
+    <button class="pick ${opt.wins ? 'on' : ''}" data-a="winson"><b>On</b><span>Buy the win (${(m => m.econWin + ' ECON' + (m.noMarket > 1 ? `, ${m.econWin * m.noMarket} with no card that pays you` : ''))(Object.assign({}, PICKS, PICKS.MODES[mode()]))}) &middot; convert the table &middot; one great machine &middot; the harvest &middot; the crowd &middot; the treaty.</span></button>
+    <button class="pick ${!opt.wins ? 'on' : ''}" data-a="winsoff"><b>Off</b><span>Only the table wins: the last one with a lit planet.</span></button></div>
+  <button class="go primary" data-a="go">PLAY</button>
+  <p class="small"><b>Four roads to a win, each hanging on one ring:</b> TABLE (the last planet lit) &middot; ECON (buy the win; Economy ring) &middot; SCIENCE (the great machine; Science ring) &middot; RELIGION (convert the table; Religion ring). Hover any card, ring or tracker row to read it.</p>
+  <p class="small">Rings feed you (your pick, 11-22). Earlier today: a planet can lose only 2 rings before its next turn &middot; whoever does not move first starts with a little ECON &middot; a conversion can be answered &middot; Finley, Rose and Mush are stronger &middot; Cannon Barrage costs 2.</p></div>`;
+}
+function newGame() {
+  const cfg = Object.assign({}, PICKS, PICKS.MODES[mode()], opt.wins ? {} : { techWin: 0, relWin: 0, econWin: 0 }); delete cfg.MODES;
+  match = E.newMatch(Math.floor(Math.random() * 1e9), seatsNow(), cfg); S = E.start(match);
+  sel = null; info = ''; fl = {}; err = ''; hideResult = false; news = S.log.slice(); audio(); step();
+}
+
+// ----- sound (Web Audio, no files) and the big-moment banner
+let AC = null, muted = false;
+function audio() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) { AC = null; } }
+function tone(f0, f1, dur, type, vol, when) {
+  if (!AC || muted) return; try { const t = AC.currentTime + (when || 0), o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.15, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + 0.02); } catch (e) {} }
+const SFX = { play: () => tone(520, 660, 0.09, 'triangle', 0.08), hit: () => { tone(180, 50, 0.22, 'sawtooth', 0.16); tone(90, 40, 0.25, 'square', 0.08); },
+  ring: () => tone(700, 120, 0.6, 'sine', 0.18), up: () => { tone(330, 660, 0.25, 'sine', 0.12); tone(495, 990, 0.3, 'sine', 0.08, 0.1); },
+  trap: () => { tone(900, 200, 0.18, 'square', 0.1); tone(200, 900, 0.3, 'triangle', 0.1, 0.15); },
+  big: () => [196, 247, 294, 392].forEach((f, i) => tone(f, f * 1.01, 0.9, 'sawtooth', 0.07, i * 0.07)),
+  out: () => [392, 330, 262, 196].forEach((f, i) => tone(f, f * 0.98, 0.5, 'triangle', 0.12, i * 0.16)),
+  win: () => [262, 330, 392, 523, 659, 784].forEach((f, i) => tone(f, f, 0.5, 'triangle', 0.12, i * 0.12)), lose: () => [330, 294, 247, 196].forEach((f, i) => tone(f, f * 0.97, 0.7, 'sine', 0.12, i * 0.22)) };
+let bannerHold = 0;
+function banner(text, kind) { const b = $('banner'); b.className = ''; b.textContent = text; void b.offsetWidth; b.className = 'show ' + (kind || ''); bannerHold = 900; }
+// read the new log lines: make the sound, and raise a banner for the big moments
+function moments(lines, quiet) {
+  let big = null, snd = null;
+  for (const raw of lines) { const l = raw.replace(/^t\d+ /, ''); let m;
+    if (l.startsWith('RESULT')) continue;
+    if ((m = l.match(/^SAME FRAME/))) { big = ['SAME FRAME', 'bad']; snd = 'big'; }
+    else if ((m = l.match(/^(.+?): ([A-Z][A-Z :]{3,})$/))) { big = [m[2] + '!', 'gold']; snd = 'big'; }
+    else if ((m = l.match(/flips: ([A-Za-z0-9 ()]+?)[.: ]/))) { big = [m[1].toUpperCase() + '!', 'trap']; snd = 'trap'; }
+    else if (/is OUT|goes quiet: OUT/.test(l)) { big = [l.match(/^(.+?)'s/)[1].toUpperCase() + ' IS OUT', 'bad']; snd = 'out'; }
+    else if (/HOLDS ENOUGH TREATIES/.test(l)) { big = [l.match(/^(.+?) HOLDS/)[1].toUpperCase() + ' HOLDS ITS TREATIES', 'bad']; snd = 'big'; }   // 11-22 night
+    else if (/tears up the treaty/.test(l)) { if (!big) big = ['TREATY TORN UP', 'trap']; snd = snd || 'hit'; }
+    else if (/CROWD FILLS THE GRID/.test(l)) { big = [l.match(/^(.+?)'s/)[1].toUpperCase() + "'S CROWD FILLS THE GRID", 'bad']; snd = 'big'; }   // 11-22 night
+    else if (/HARVEST IS IN/.test(l)) { big = [l.match(/^(.+?)'s/)[1].toUpperCase() + "'S HARVEST IS IN", 'bad']; snd = 'big'; }   // 11-22 night
+    else if (/CONVERTING THE TABLE/.test(l)) { big = [l.match(/^(.+?) is/)[1].toUpperCase() + ' IS CONVERTING THE TABLE', 'bad']; snd = 'big'; }
+    else if (/fuse into/.test(l)) { big = [l.match(/fuse into (.+)$/)[1].replace(/ (no name yet)/, '').toUpperCase(), 'gold']; snd = 'big'; }   // 11-22 night: it said THE GRAV DRIVE for every combo
+    else if (/is back in/.test(l)) { big = [l.match(/^(.+?) is/)[1].toUpperCase() + ' IS BACK IN', 'gold']; snd = 'up'; }
+    else if (/halo holds/.test(l)) { if (!big) big = ['THE HALO HOLDS', 'trap']; snd = snd || 'trap'; }
+    else if (/goes dark/.test(l)) snd = snd && snd !== 'hit' && snd !== 'play' ? snd : 'ring';
+    else if (/relight/.test(l)) snd = snd || 'up';
+    else if (/attack|knocks out|breaks/.test(l)) snd = snd || 'hit';
+    else if (/plays|sets a card|puts/.test(l)) snd = snd || 'play';
+  }
+  if (S.result) { const mine = S.result.type === 'win' && S.result.team === S.players[human].team; SFX[mine ? 'win' : 'lose'](); return; }
+  if (snd && !quiet) SFX[snd]();
+  if (big) banner(big[0], big[1]);
+}
+
+// ----- the loop: a person clicks, or a bot picks, and the engine applies it
+const myTurn = () => S && !S.result && !S.pending && E.toMove(S) === human;
+const botPick = () => B.pick(S, B.STYLES[ST[E.toMove(S) % 3]], Math.random);
+const snap = () => S.players.map(p => ({ g: p.grid.map(c => c ? c.uid + (c.down ? 'd' : '') + ':' + (c.dmg || 0) : ''), r: p.rings.slice() }));
+function diff(b) { fl = {}; S.players.forEach((p, i) => { p.grid.forEach((c, sq) => { const now = c ? c.uid + (c.down ? 'd' : '') + ':' + (c.dmg || 0) : ''; if (now !== b[i].g[sq]) fl['c:' + i + ':' + sq] = c ? 'in' : 'gone'; }); p.rings.forEach((on, k) => { if (on !== b[i].r[k]) fl['r:' + i + ':' + k] = 1; }); }); }
+function act(a) {
+  clearTimeout(timer); err = '';
+  const before = snap(), n = S.log.length;
+  try { E.apply(S, a); } catch (e) { err = e.message; render(); return; }
+  match.moves.push(a); sel = null; info = ''; news = S.log.slice(n); diff(before); moments(news); step();
+}
+function step() { render(); const hold = bannerHold; bannerHold = 0; if (S.result) return; if (E.toMove(S) !== human) timer = setTimeout(() => act(botPick()), speed + hold); }
+function skip() {
+  clearTimeout(timer); const before = snap(), n = S.log.length; let k = 0;
+  while (!S.result && E.toMove(S) !== human && k++ < 5000) { const a = botPick(); E.apply(S, a); match.moves.push(a); }
+  news = S.log.slice(n).slice(-8); diff(before); moments(S.log.slice(n).filter(l => /OUT|CONVERTING|HARVEST IS IN|CROWD FILLS|HOLDS ENOUGH TREATIES|RESULT/.test(l)), true); bannerHold = 0; step();
+}
+
+// ----- what can be clicked for the thing that is selected
+function targetsFor(L) {
+  const T = {}, add = (k, m) => { if (!T[k]) T[k] = m; };
+  if (!sel) return T;
+  const put = m => { if (m.sq !== undefined && m.t !== 'smite') add('c:' + human + ':' + m.sq, m);
+    else if (m.lane !== undefined && m.t === 'play') add('c:' + m.tp + ':' + E.front(S.players[m.tp], m.lane).sq, m);
+    else if (m.ring !== undefined) add('r:' + m.tp + ':' + m.ring, m);
+    else if (m.tp !== undefined) add('p:' + m.tp, m); else T.now = m; };
+  if (sel.k === 'hand') L.filter(m => m.t === 'play' && m.card === sel.card).forEach(put);
+  if (sel.k === 'cmd') L.filter(m => m.t === 'deploy').forEach(put);
+  if (sel.k === 'big') L.filter(m => m.t === 'big').forEach(put);
+  if (sel.k === 'smite') L.filter(m => m.t === 'smite' && m.sq === sel.sq).forEach(put);
+  if (sel.k === 'atk') {
+    const many = sel.lanes.length > 1, key = sel.lanes.join('');
+    for (const m of L) {
+      if (!(many ? m.t === 'gang' && m.lanes === key : m.t === 'attack' && m.lane === sel.lanes[0])) continue;
+      if (m.ring !== undefined) { add('r:' + m.tp + ':' + m.ring, m); T['o:' + m.tp + ':' + m.at] = 1; }
+      else add('c:' + m.tp + ':' + E.front(S.players[m.tp], m.at).sq, m);
+    }
+  }
+  return T;
+}
+function hint() {
+  if (!sel) return '';
+  if (sel.k === 'hand') { const t = C[sel.card].type; return curT.now ? 'Press PLAY IT in the box on the right.' : t === 'action' ? 'Click the glowing green target.' : t === 'trap' ? 'Click a glowing square on your grid to set it face down.' : 'Click a glowing square on your grid.'; }
+  if (sel.k === 'cmd') return 'Click a glowing square to put your commander on the grid. (They are safe at your shoulder.)';
+  if (sel.k === 'big') return curT.now ? 'Press USE IT in the box on the right.' : C[S.players[human].cmd.id].big === 'multiply' ? 'Click the glowing card on your grid to copy.' : 'Click the glowing green target of your big move.';
+  if (sel.k === 'smite') return 'Click a glowing enemy ring to smite it.';
+  if (sel.k === 'atk') return sel.lanes.length > 1 ? 'Attacking TOGETHER: click a glowing enemy card.' : 'Click a glowing enemy card to fight it. Striped lane = empty: click one of the rings of that planet.' + (S.cfg.gang ? ' Or click another of your front cards to attack TOGETHER.' : '');
+  return '';
+}
+
+// ----- words for a card
+function cardText(id) {
+  const c = C[id];
+  if (c.type === 'trap') return 'TRAP. Set it face down on a square. It ' + E.TRIG[c.trig] + '.';
+  if (c.type === 'action') return 'ACTION. ' + (c.fx === 'barrage' ? `Knock out one enemy front card with D ${CFG().barrageD} or less` : c.fx === 'siege' ? `Knock out one enemy front card with D ${CFG().siegeD} or more` : cap(E.FX[c.fx])) + '.';
+  if (c.type === 'commander') return `COMMANDER. A ${c.A} &middot; D ${c.D}. Lose them and you are out.<br>Big move, once a game: ${esc(E.BIG[c.big])}.`;
+  let t = (c.type === 'structure' ? 'STRUCTURE. It blocks; it does not attack.' : 'UNIT.') + ` A ${c.A} &middot; D ${c.D} &middot; DEV ${c.dev}.`;
+  if (c.move === 'smite') t += '<br>PAPAL SMITE: after one full turn on the grid, put out any one enemy ring. Then it recharges.';
+  if (c.income && (c.lib || CFG().roseV1)) t += `<br>Pays +${c.income} ECON at the start of your turn.` + (CFG().noMarket > 1 ? ` While it stands, buying the win costs ${CFG().econWin}, not ${CFG().econWin * CFG().noMarket}.` : '');
+  if (c.tags.includes('runner')) t += '<br>Runner: may attack ANY empty enemy lane, not only its own.';
+  if (c.tags.includes('science') && CFG().roseV1) t += '<br>Science: in the deck of Rose it grows +1 A and +1 D each turn, up to +' + CFG().upgradeCap + '.';
+  if (c.tags.includes('grav')) t += '<br>LUCY + IKAROS + GW150914 in a line fuse into THE GRAV DRIVE (A 7 &middot; D 7).';
+  if (c.tags.includes('part') || c.tags.includes('core')) t += '<br>The great machine: the Core in the middle square and Parts on the other eight wins the game.';
+  if (c.tags.includes('anylane')) t += '<br>Reach: may attack any lane of any enemy.';
+  return t;
+}
+function handInfo(id) {
+  let t = `<b>${esc(C[id].name)}</b> &middot; costs ${E.costOf(S, id)} ECON<br>${cardText(id)}`;
+  if (myTurn() && !curL.some(m => m.t === 'play' && m.card === id)) {
+    const me = S.players[human], peace = S.turnNo <= S.cfg.peace * S.players.length;
+    t += `<br><span class="err">${E.costOf(S, id) > me.econ ? `You have ${me.econ} ECON. Not enough.` : C[id].type !== 'action' ? 'Your grid is full.' : peace && ['barrage', 'takeover', 'pollen', 'siege'].includes(C[id].fx) ? 'Not during the peace round.' : 'No target for it right now.'}</span>`;
+  }
+  return t;
+}
+function cellInfo(p, c) {
+  if (c.down && p.id !== human) return '<b>Face down card</b><br>You cannot see it. It may be a trap.';
+  const cd = C[c.card];
+  let t = `<b>${esc(cd.name)}</b> &middot; ${esc(p.name)}${c.down ? ' &middot; face down (only you see it)' : ''}<br>${cardText(c.card)}`;
+  if (!c.down) t += `<br>Now: A ${E.atk(S, p, c)} &middot; D ${E.Dof(c)}${c.dmg ? ` (hurt ${c.dmg})` : ''}${c.frozen ? ' &middot; frozen' : ''}`;
+  return t;
+}
+function cmdInfo(p) { const c = C[p.cmd.id]; return `<b>${esc(c.name)}</b> &middot; commander of ${esc(p.name)} &middot; ${p.cmd.where === 'shoulder' ? 'safe at the shoulder' : p.cmd.where === 'grid' ? 'on the grid' : 'OUT'}<br>${cardText(p.cmd.id)}${p.cmd.used ? '<br><span class="err">Big move already used.</span>' : ''}`; }
+// ----- the marks are geo nodes (redone 2026-11-22 from ANGLE-PATH-SPEC.md and the Everything Bagel Theorem).
+// A node is a 4-bit mask: TL 8, TR 4, BR 2, BL 1 (the Python lab's order TL, TR, BR, BL). Each lit quadrant is split again by the same mask.
+// One loop family per card type; the small mark shows the family's FIRST mask. Which family means which type is Claude's pick (his to change).
+const FAM = { unit: ['Z_LOOP', [0b0111, 0b1011, 0b1101, 0b1110]], structure: ['X_LOOP', [0b1100, 0b0101, 0b0011, 0b1010]], action: ['Y_LOOP', [0b1000, 0b0100, 0b0010, 0b0001]], trap: ['DIAG_LOOP', [0b1001, 0b0110]], commander: ['GATE', [0b1111]] };
+const QUAD = [[8, 0, 0], [4, 1, 0], [2, 1, 1], [1, 0, 1]];   // bit, column, row (screen: row 0 is the top)
+function geoNode(mask, d, x, y, s) { let o = ''; for (const [b, qx, qy] of QUAD) if (mask & b) o += d > 1 ? geoNode(mask, d - 1, x + qx * s / 2, y + qy * s / 2, s / 2) : `<rect x="${x + qx * s / 2}" y="${y + qy * s / 2}" width="${s / 2}" height="${s / 2}"/>`; return o; }
+const glyph = t => `<svg class="geo" viewBox="-0.5 -0.5 9 9" width="13" height="13"><rect width="8" height="8" fill="none" stroke="currentColor" stroke-width=".6"/>${geoNode(FAM[t][1][0], 2, 0, 0, 8)}</svg>`;
+// The angle path of the spec: two lit, edge-adjacent quadrants A and B. P0 = the node corner inside A, C = the outer end of the edge they share,
+// P2 = the node centre. The curve is the spec's quadratic B(t) = (1-t)^2 P0 + 2(1-t)t C + t^2 P2 (SVG "Q" draws exactly that).
+// The dashed curve is the ghost (the theorem's mirrored path G = V(-t)): the same path from B's corner. They meet at the centre: the fork, where the node splits.
+const CORNER = { 8: [0, 0], 4: [1, 0], 2: [1, 1], 1: [0, 1] }, NEXT = { 1: 2, 2: 4, 4: 8, 8: 1 }, OUTER = { 3: [0.5, 1], 6: [1, 0.5], 12: [0.5, 0], 9: [0, 0.5] };
+function anglePath(mask) { for (const a of [1, 2, 4, 8]) { const b = NEXT[a]; if ((mask & a) && (mask & b)) return { P0: CORNER[a], G0: CORNER[b], C: OUTER[a | b], P2: [0.5, 0.5] }; } return null; }
+function bigGlyph(type, step) {
+  const [fam, cyc] = FAM[type], mask = cyc[step % cyc.length], ap = anglePath(mask), q = p => p[0] * 40 + ' ' + p[1] * 40;
+  return `<svg class="geo" viewBox="-1 -1 42 42" width="64" height="64"><rect width="40" height="40" fill="none" stroke="currentColor" stroke-width="1"/><g opacity=".8">${geoNode(mask, 3, 0, 0, 40)}</g>${ap ? `<path d="M ${q(ap.G0)} Q ${q(ap.C)} ${q(ap.P2)}" fill="none" stroke="#f3f5f9" stroke-width="1.4" stroke-dasharray="2 2"/><path d="M ${q(ap.P0)} Q ${q(ap.C)} ${q(ap.P2)}" fill="none" stroke="#e53935" stroke-width="1.8"/>` : ''}</svg><div class="tipfam">${fam} &middot; ${mask.toString(2).padStart(4, '0')}</div>`;
+}
+
+// ----- hover descriptions: the same words as the info box, plus where the card comes from and the price check
+const SRC = { book: 'your book', show: 'the show', draft: 'your rulebook draft', mook: 'your own card (2020)', claude: "Claude's placeholder" };
+// which road to a win a card is for, and what it fuses with
+const ROADS = { table: ['TABLE', 'knock planets out: the last one lit wins', '#ef5350'], econ: ['ECON', 'bank ECON and buy the win. Needs your ECONOMY ring lit', '#f6c744'], science: ['SCIENCE', 'build the great machine. Needs your SCIENCE ring lit', '#26c6da'], religion: ['RELIGION', 'put out Religion rings and convert the table', '#c58af9'], food: ['FOOD', 'grow rings back and bring in the harvest. Needs your FOOD ring lit', '#8bc34a'], pop: ['CROWD', 'fill all nine squares with your people. Needs your POPULATION ring lit', '#ff9800'], politics: ['TREATY', 'send envoys and hold treaties with your rivals. Needs your POLITICS ring lit', '#90a4ae'] };
+function roadOf(id) { const c = C[id];
+  if (c.income || c.fx === 'gain2' || c.fx === 'gain3' || c.fx === 'takeover') return 'econ';
+  if (c.tags.includes('part') || c.tags.includes('core') || c.tags.includes('science') || c.tags.includes('grav')) return 'science';
+  if (c.fx === 'sigil' || c.fx === 'pollen' || c.move === 'smite') return 'religion';
+  if (c.tags.includes('crowd')) return 'pop';
+  if (c.fx === 'envoy' || c.role === 'diplomat') return 'politics';
+  if (c.fx === 'seed' || c.fx === 'sprout' || c.fx === 'spring' || c.fx === 'relight' || c.fx === 'snooze' || (c.type === 'structure' && (c.dev || 0) >= 4)) return 'food';   // 11-22 night: relights and big growth feed the harvest
+  for (const co of E.COMBOS) if (co.parts.includes(E.baseId(id))) { const m = C[co.makes]; if (m.income) return 'econ'; if (m.tags.includes('science')) return 'science'; }   // a piece of an ECON or science combo
+  return 'table'; }
+function roadLines(id) {
+  const r = ROADS[roadOf(id)], me = E.baseId(id); let t = `<div class="road"><span class="rtag" style="background:${r[2]}">${r[0]} road</span> ${r[1]}.</div>`;
+  for (const co of E.COMBOS) { if (co.lib && !CFG().lib && S) continue;
+    if (co.parts.includes(me)) t += `<div class="combo"><b>COMBO</b> &middot; three in a line: ${co.parts.map(x => (x === me ? '<u>' : '') + esc(C[x].name) + (x === me ? '</u>' : '')).join(' + ')} &rarr; <b>${esc(C[co.makes].name)}</b>. Lay them in one LANE (a column) and the lane stays blocked.</div>`;
+    if (co.makes === me) t += `<div class="combo"><b>MADE BY A COMBO</b> &middot; ${co.parts.map(x => esc(C[x].name)).join(' + ')} in a line.</div>`; }
+  if (C[id].tags.includes('part') || C[id].tags.includes('core')) t += `<div class="combo"><b>THE GREAT MACHINE</b> &middot; the Core in your middle square and a Part on each of the other eight wins the game. A piece may be built OVER one of your own cards.</div>`;
+  return t; }
+const RINGTIP = ['ECONOMY: your income cards pay, and you may buy the win, only while this is lit.', 'Industry.', 'SCIENCE: science cards grow, and the great machine can be finished, only while this is lit.', 'FOOD: every turn one of your rings grows back while this is lit is one harvest. Put it out and the harvest stops.', 'POPULATION: a crowd of nine units on your grid wins only while this is lit. Rivals cannot reach it through a full grid: past-the-grid moves can.', 'RELIGION: yours lit and every rival\'s dark, for two of your turns, converts the table.', 'POLITICS: your treaties win only while this is lit. A rival that puts it out stops the treaty win.'];
+function ringInfo(p, k) { return `<b>${cap(RINGS[k])} ring</b> &middot; ${esc(p.name)} &middot; ${p.rings[k] ? 'lit' : 'DARK'}<br>${RINGTIP[k]}<br>Every lit ring is one card and one ECON a turn. All seven dark and the planet is out.${S && S.cfg.ringCap ? ` A planet can lose only ${S.cfg.ringCap} before its next turn.` : ''}`; }
+function extra(id) {
+  const c = C[id], b = BG.budget(id); let t = roadLines(id) + `<div class="tipsrc">From ${SRC[c.src] || c.src}${c.lib ? ' &middot; library card' : ''}.`;
+  if (c.inv && c.inv.length) t += ` Claude's on it: ${c.inv.map(esc).join(' &middot; ')}.`;
+  if (b) t += `<br>Price check: costs ${c.econ}, the line says ${b.fair} &rarr; ${b.verdict === 'fair' ? 'fair' : b.verdict === 'cheap' ? 'CHEAP for what it does' : 'DEAR for what it does'}.`;
+  if (c.bal) t += `<br>Rebalanced 11-22: ${esc(c.bal)}.`;
+  return t + '</div>';
+}
+const typeOf = id => C[id].type;
+let tipTimer = null, tipStep = 0;
+function showTip(el, type, html) {
+  const tip = $('tip'); clearInterval(tipTimer); tipStep = 0;
+  tip.innerHTML = `${type ? `<div class="tipg" id="tipg">${bigGlyph(type, 0)}</div>` : ''}<div class="tipt">${html}</div>`; tip.style.display = 'flex';
+  const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = r.right + 10, y = r.top; if (x + w > innerWidth - 8) x = r.left - w - 10; if (x < 8) x = 8; if (y + h > innerHeight - 8) y = innerHeight - h - 8; if (y < 8) y = 8;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  if (type && FAM[type][1].length > 1) tipTimer = setInterval(() => { const g = $('tipg'); if (g) g.innerHTML = bigGlyph(type, ++tipStep); }, 700);   // the node ADVANCEs through its loop
+}
+function hideTip() { clearInterval(tipTimer); const t = $('tip'); if (t) t.style.display = 'none'; }
+function tipFor(el) {
+  const a = el.dataset.a, pid = +el.dataset.pid;
+  if (a === 'libcard') { const id = el.dataset.id; return [typeOf(id), `<b>${esc(C[id].name)}</b>${C[id].econ !== undefined ? ` &middot; costs ${C[id].econ} ECON` : ''}<br>${cardText(id)}${extra(id)}`]; }
+  if (!S) return null;
+  if (a === 'hand') { const id = S.players[human].hand[+el.dataset.i]; return id ? [typeOf(id), handInfo(id) + extra(id)] : null; }
+  if (a === 'cell') { const p = S.players[pid], c = p.grid[+el.dataset.sq]; if (!c) return null; if (c.down && pid !== human) return ['trap', cellInfo(p, c)]; return [typeOf(c.card), cellInfo(p, c) + extra(c.card)]; }
+  if (a === 'cmd') return ['commander', cmdInfo(S.players[pid]) + extra(S.players[pid].cmd.id)];
+  if (a === 'ring') return [null, ringInfo(S.players[pid], +el.dataset.k)];
+  if (a === 'way') return [null, WAYTIP[el.dataset.k]];
+  return null;
+}
+let tipEl = null;
+document.addEventListener('mouseover', ev => { const el = ev.target.closest && ev.target.closest('[data-a=hand],[data-a=cell],[data-a=cmd],[data-a=libcard],[data-a=ring],[data-a=way]'); if (el === tipEl) return; tipEl = el; if (!el) return hideTip(); const t = tipFor(el); if (t) showTip(el, t[0], t[1]); else hideTip(); });
+
+// ----- the card library: every card, by deck, with its price check, and the last balance report
+function libCard(id, k) { const c = C[id], b = BG.budget(id);
+  return `<div class="hc lc ${c.type}" data-a="libcard" data-id="${id}">${c.econ !== undefined ? `<div class="cost">${c.econ}</div>` : ''}<div class="nm">${glyph(c.type)} ${esc(c.name)}</div><div class="ty">${c.type === 'trap' ? 'TRAP' : c.type === 'action' ? 'ACTION' : `A ${c.A} &middot; D ${c.D}${c.type === 'commander' ? '' : `<br>DEV ${c.dev}`}`}${k ? ` &middot; &times;${k}` : ''}${b && b.verdict !== 'fair' ? ` <span class="err">${b.verdict}</span>` : ''}${c.lib ? ' <span class="new">new</span>' : ''}</div></div>`; }
+function libraryScreen() {
+  const R = window.__report, deck = k => { const d = DECKS[k], cnt = {}; d.cards.forEach(id => { id = REBAL[id] || id; cnt[id] = (cnt[id] || 0) + 1; }); (E.LIB[k] || []).forEach(id => cnt[id] = cnt[id] || 0);
+    const t = R && R.table[k]; return `<h2>${esc(d.who)}${d.test ? ' &middot; test player' : ''}${t ? ` <span class="${t.pass ? 'ok' : 'err'}">&middot; table check ${t.pass ? 'PASS' : 'FAIL'} (${t.delta >= 0 ? '+' : ''}${t.delta} points, out first ${t.outFirst} %)</span>` : ''}</h2><div class="hand libr">${libCard(d.commander)}${Object.keys(cnt).map(id => libCard(id, cnt[id])).join('')}</div>`; };
+  $('app').innerHTML = `<div class="start" style="max-width:1100px"><button data-a="back">&larr; Back</button><h1 style="margin-top:14px">CARD LIBRARY</h1>
+  <p class="sub">Hover a card to read it. &times;N = copies in the 20-card list (decks are scaled to 40). "new" = added 11-22. "cheap" / "dear" = its cost is more than 1 ECON off the price line.</p>
+  <p class="small">Price line, fitted to the first six decks: fair cost = ${BG.fit.a.toFixed(2)} &times; A + ${BG.fit.d.toFixed(2)} &times; D + ${BG.fit.e.toFixed(2)} &times; DEV ${BG.fit.k < 0 ? '&minus;' : '+'} ${Math.abs(BG.fit.k).toFixed(2)}, plus a price for each keyword.${R ? ` Table check: ${R.games} bot games a row, ${R.date}; first six decks Poptarts ${R.baseWin.P} % &middot; Smite ${R.baseWin.S} %.` : ''}</p>
+  ${Object.keys(DECKS).map(deck).join('')}
+  <h2>Combos &middot; three in a line fuse into one</h2>${E.COMBOS.map(co => `<div class="hand libr" style="align-items:center;margin-bottom:14px">${co.parts.map(id => libCard(id)).join('<b>+</b>')}<b style="font-size:24px">&rarr;</b>${libCard(co.makes)}</div>`).join('')}
+  <h2>In every deck</h2><div class="hand libr">${['burrow', 'brumation', 'pasttrap', 'siege'].map(id => libCard(id, 2)).join('')}</div>
+  <h2>Nobody's deck (the library's cards, and Rose's machine)</h2><div class="hand libr">${['lucy', 'ikaros', 'gw150914', 'gravdrive', 'part', 'core'].map(id => libCard(id)).join('')}</div></div>`;
+}
+
+// ----- drawing
+function cell(p, sq) {
+  const c = p.grid[sq], key = 'c:' + p.id + ':' + sq, cls = ['cell']; let inner = '';
+  if (curT[key]) cls.push('target'); if (fl[key]) cls.push('fl-' + fl[key]); if (!c && curT['o:' + p.id + ':' + (sq % 3)]) cls.push('open');
+  if (c && c.down) { cls.push('down'); inner = `<div class="nm">${glyph('trap')} ${p.id === human ? esc(C[c.card].name) : ''}</div><div class="st">face down</div>`; }
+  else if (c) {
+    const cd = C[c.card], isFront = E.front(p, sq % 3).sq === sq; cls.push(cd.type, isFront ? 'front' : 'covered'); if (c.isCmd) cls.push('iscmd');
+    if (p.id === human && isFront && canAtk.has(sq % 3)) cls.push('ready');
+    if (p.id === human && curL.some(m => m.t === 'smite' && m.sq === sq)) cls.push('ready');
+    if (sel && p.id === human && ((sel.k === 'atk' && isFront && sel.lanes.includes(sq % 3)) || (sel.k === 'smite' && sel.sq === sq))) cls.push('sel');
+    const st = [c.frozen ? 'frozen' : '', c.dmg ? 'hurt' : '', c.up ? 'grown +' + c.up : '', cd.move === 'smite' ? ((c.charge || 0) >= 2 ? 'SMITE ready' : 'charging') : ''].filter(Boolean).join(' &middot; ');
+    inner = `<div class="nm">${glyph(c.isCmd ? 'commander' : cd.type)} ${esc(cd.name)}</div>${st ? `<div class="st">${st}</div>` : ''}<div class="ad"><span>A ${E.atk(S, p, c)}</span><span>D ${E.Dof(c)}</span></div>`;
+  }
+  return `<div class="${cls.join(' ')}" data-a="cell" data-pid="${p.id}" data-sq="${sq}">${inner}</div>`;
+}
+// the four ways to win, as a tracker for the player (and a warning when a rival is close)
+const WAYTIP = { table: '<b>TABLE</b><br>Knock every rival planet out: all seven rings dark, or its commander lost. The last one lit wins.',
+  econ: '<b>BUY THE WIN</b><br>Bank ECON (it stays between turns) and pay the price in one go. Income cards and combos (Rum Distillery, Port Royal, Arch\'s city) get you there faster.<br>Your ECONOMY ring must be lit: a rival who puts it out stops your income and the purchase.<br>In a free for all the price DOUBLES while no card on your grid pays you ECON: build a market first.',
+  food: '<b>THE HARVEST</b><br>Every turn one of your rings grows back (growth, Spring, Lichen, SNOOZE) while your FOOD ring is lit, that is one harvest. Reach the number and you win at the start of your next turn, if Food is still lit.<br>Being hit is not all bad: a ring that is put out can grow back. Rivals answer by putting out your Food ring.',
+  pop: '<b>THE CROWD</b><br>Fill all nine of your squares with UNITS (people: not walls, machines or face-down cards; not your commander). Still full at the start of your next turn, with your POPULATION ring lit: you win.<br>In a free for all it must stand two of your turns.<br>Rivals answer by knocking one unit out. A full grid has no empty lane, so only past-the-grid moves reach the Population ring.',
+  politics: '<b>THE TREATY</b><br>Play an ENVOY on a rival: you hold a treaty with them. Hold enough treaties at once (two; one in a 1 on 1) at the start of your turn, with your POLITICS ring lit: you win. No envoys in the peace round.<br>A treaty is torn up when that rival HURTS you: puts out one of your rings or knocks out one of your cards. A bounce off a wall is not enough.',
+  science: '<b>THE GREAT MACHINE</b><br>The Machine Core in your middle square and a Machine Part on each of the other eight. A piece may be built over one of your own cards.<br>Your SCIENCE ring must be lit when the last piece goes down.',
+  religion: '<b>CONVERT THE TABLE</b><br>Your Religion ring lit and every living rival\'s dark, at the start of two of your turns in a row. Empty-lane hits, The Sigil, The Pollen and the Papal Smite pick the ring.<br>Rivals answer by putting out yours, or by growth: it relights Religion first.' };
+const machineCount = p => p.grid.filter((c, i) => c && !c.down && C[c.card].tags.includes(i === 4 ? 'core' : 'part')).length;
+function ways() {
+  const me = S.players[human], riv = S.players.filter(q => !q.out && q.team !== me.team), cfg = S.cfg, row = (k, label, val, frac, note, warn) => `<div class="way ${warn ? 'warn' : ''}" data-a="way" data-k="${k}"><span class="rtag" style="background:${ROADS[k][2]}">${label}</span><span class="wbar"><i style="width:${Math.round(Math.max(0, Math.min(1, frac)) * 100)}%;background:${ROADS[k][2]}"></i></span><span class="wval">${val}</span>${note ? `<span class="wnote">${note}</span>` : ''}</div>`;
+  const all = S.players.filter(q => q.team !== me.team).length, relDark = riv.filter(q => !q.rings[5]).length;
+  let h = '<b>Seven ways to win</b>' + row('table', 'TABLE', `${all - riv.length} of ${all} rivals out`, (all - riv.length) / all);
+  const price = q => E.winPrice(S, q), noMkt = q => cfg.noMarket > 1 && !E.market(S, q);
+  if (cfg.econWin) h += row('econ', 'ECON', `${me.econ} of ${price(me)}`, me.econ / price(me), !me.rings[0] ? 'your Economy ring is DARK' : noMkt(me) ? `no card pays you ECON: the price is ${cfg.noMarket}×` : '', !me.rings[0]);
+  if (cfg.techWin) h += row('science', 'MACHINE', `${machineCount(me)} of 9`, machineCount(me) / 9, me.rings[2] ? '' : 'your Science ring is DARK', !me.rings[2]);
+  if (cfg.harvestWin) h += row('food', 'HARVEST', `${me.harvest || 0} of ${cfg.harvestWin}`, (me.harvest || 0) / cfg.harvestWin, !me.rings[3] ? 'your Food ring is DARK' : (me.harvest || 0) >= cfg.harvestWin ? 'HOLD Food to your next turn' : '', !me.rings[3]);
+  if (cfg.crowdWin) { const n = E.crowd(me), hold = cfg.crowdHold || 1; h += row('pop', 'CROWD', `${n} of ${cfg.crowdWin} units`, n / cfg.crowdWin, !me.rings[4] ? 'your Population ring is DARK' : n >= cfg.crowdWin ? (hold > 1 && (me.crowdCount || 0) < hold - 1 ? `HOLD IT ${hold} of your turns` : 'HOLD IT to your next turn') : '', !me.rings[4]); }
+  if (cfg.polWin) { const need = Math.min(riv.length, cfg.polWin), t = E.treaties(S, me); h += row('politics', 'TREATY', `${t} of ${need} treaties`, need ? t / need : 0, !me.rings[6] ? 'your Politics ring is DARK' : t >= need ? 'HOLD THEM to your next turn' : '', !me.rings[6]); }
+  if (cfg.relWin) h += row('religion', 'CONVERT', `${relDark} of ${riv.length} Religion rings dark`, riv.length ? relDark / riv.length : 0, !me.rings[5] ? 'your Religion ring is DARK' : (me.relCount || 0) > 0 ? 'HOLD IT one more turn' : '', !me.rings[5]);
+  const threats = [];
+  for (const q of riv) { if (cfg.econWin && q.econ >= price(q) * 0.7 && q.rings[0]) threats.push(`${esc(q.name)} has ${q.econ} of ${price(q)} ECON: put out their Economy ring${cfg.noMarket > 1 && !noMkt(q) ? ', or break the card that pays them (the price doubles)' : ''}`);
+    if (cfg.techWin && machineCount(q) >= 6) threats.push(`${esc(q.name)}'s machine is ${machineCount(q)} of 9: break a piece, or put out their Science ring`);
+    if (cfg.harvestWin && (q.harvest || 0) >= cfg.harvestWin - 1 && q.rings[3]) threats.push(`${esc(q.name)} has ${q.harvest} of ${cfg.harvestWin} harvests: put out their Food ring`);
+    if (cfg.crowdWin && E.crowd(q) >= cfg.crowdWin && q.rings[4]) threats.push(`${esc(q.name)}'s CROWD fills the grid: knock one of them out (or a past-the-grid move on Population)`);
+    if (cfg.polWin && E.sealedAll(S, q) && q.rings[6]) threats.push(`${esc(q.name)} HOLDS ENOUGH TREATIES` + ((q.seals || []).includes(human) ? ': hurt them (a ring out, a card knocked out) to tear yours up' : ': a rival with a treaty must hurt them, or put out their Politics ring'));
+    if ((q.relCount || 0) > 0) threats.push(`${esc(q.name)} is CONVERTING: put out their Religion ring or relight yours`); }
+  return `<div class="ways">${h}${threats.map(t => `<div class="threat">&#9888; ${t}</div>`).join('')}</div>`;
+}
+// the planet and its halo: seven rings, lit or dark (ring 1 is the inner one)
+function halo(p, rel) {
+  const col = rel === 'me' ? '#f6c744' : rel === 'ally' ? '#26c6da' : '#ef5350';
+  return `<svg class="halo" viewBox="-30 -30 60 60" width="52" height="52"><circle r="7" fill="${p.out ? '#3a4254' : col}"/>${p.rings.map((on, k) => `<ellipse rx="${10 + k * 2.8}" ry="${(10 + k * 2.8) * 0.42}" fill="none" stroke="${on ? col : '#3a4254'}" stroke-width="${on ? 1.5 : 0.8}" ${on ? '' : 'stroke-dasharray="2 2"'} ${fl['r:' + p.id + ':' + k] ? 'class="hfl"' : ''}/>`).join('')}</svg>`;
+}
+function planet(p) {
+  const meT = S.players[human].team, rel = p.id === human ? 'me' : p.team === meT ? 'ally' : 'enemy', cmd = C[p.cmd.id];
+  const badges = [p.out ? 'OUT' : '', p.canopy ? 'CANOPY' : '', p.pink ? 'MOOD: PINK' : '', p.league ? 'HOLY LEAGUE' : '', p.parlay !== null && p.parlay !== undefined ? 'PARLAY vs ' + S.players[p.parlay].name : '', !p.out && E.capped(S, p) ? 'HALO HOLDS' : '', !p.out && (p.relCount || 0) > 0 ? 'CONVERTING' : ''].filter(Boolean).map(b => `<span class="badge ${b === 'CONVERTING' ? 'warn' : ''}">${b}</span>`).join('');
+  const rings = p.rings.map((on, k) => `<span class="ring ${on ? 'on' : 'off'} ${curT['r:' + p.id + ':' + k] ? 'target' : ''} ${fl['r:' + p.id + ':' + k] ? 'fl-ring' : ''}" data-a="ring" data-pid="${p.id}" data-k="${k}" title="${RINGS[k]}">${RSHORT[k]}</span>`).join('');
+  let g = ''; for (const r of (p.id === human ? [0, 1, 2] : [2, 1, 0])) { g += `<div class="rl">${['FRONT', 'mid', 'back'][r]}</div>`; for (let l = 0; l < 3; l++) g += cell(p, r * 3 + l); }
+  const lanes = '<div class="rl"></div>' + [1, 2, 3].map(n => `<div class="ln l${n}">lane ${n}</div>`).join('');
+  const usable = p.id === human && myTurn() && curL.some(m => m.t === 'deploy');
+  return `<div class="planet ${rel} ${!S.result && S.cur === p.id ? 'turn' : ''} ${p.out ? 'out' : ''} ${curT['p:' + p.id] ? 'target' : ''}" data-a="planet" data-pid="${p.id}">
+    <div class="ph">${halo(p, rel)}<div><b>${esc(p.name)}</b> <span class="tag">${rel === 'me' ? 'YOU' : rel === 'ally' ? 'your team' : 'RIVAL'}</span><br>${badges}<span class="meta">ECON ${p.econ} &middot; hand ${p.hand.length} &middot; deck ${p.deck.length}${p.id !== human && S.cfg.ringsMatter && (B.ROAD[p.deckKey] || DECKS[p.deckKey].botRoad) ? ` &middot; plays for: ${p.deckKey === 'bronconius' && S.players.length > 4 ? 'table' : B.ROAD[p.deckKey] || DECKS[p.deckKey].botRoad}` : ''}${S.cfg.harvestWin && p.harvest ? ` &middot; harvest ${p.harvest} of ${S.cfg.harvestWin}` : ''}${p.id === human && S.cfg.dev === 'relight' ? ` &middot; growth ${p.devPool} of ${S.cfg.devStep}` : ''}</span></div></div>
+    <div class="rings">${rings}</div>
+    <div class="cmd ${usable ? 'usable' : ''} ${sel && sel.k === 'cmd' && p.id === human ? 'sel' : ''}" data-a="cmd" data-pid="${p.id}">${glyph('commander')} ${esc(cmd.name)} &middot; A ${cmd.A} D ${cmd.D} &middot; ${p.cmd.where === 'shoulder' ? 'at the shoulder' : p.cmd.where === 'grid' ? 'on the grid' : 'OUT'} &middot; ${cmd.big === 'none' ? 'no big move' : cmd.big.toUpperCase() + (p.cmd.used ? ' used' : ' ready')}</div>
+    ${p.out ? '' : `<div class="grid">${p.id === human ? lanes + g : g + lanes}</div>`}</div>`;
+}
+const blank = () => `<div class="planet nihil"><svg class="halo" viewBox="-30 -30 60 60" width="52" height="52"><circle r="7" fill="#2c3547"/>${[0, 1, 2, 3, 4, 5, 6].map(k => `<ellipse rx="${10 + k * 2.8}" ry="${(10 + k * 2.8) * 0.42}" fill="none" stroke="#2c3547" stroke-width=".8" stroke-dasharray="1 3"/>`).join('')}</svg><div><b>blank planet</b><br><span class="meta">nobody plays this one</span></div></div>`;
+function resultText() {
+  const r = S.result, mt = S.players[human].team, teams = new Set(S.players.map(p => p.team)).size < S.players.length;
+  if (r.type === 'win') { const mine = r.team === mt, who = teams ? 'Team ' + teamName(r.team) : teamName(r.team);
+    return [mine ? (teams ? 'YOUR TEAM WINS' : 'YOU WIN') : (teams ? 'YOUR TEAM LOSES' : who.toUpperCase() + ' WINS'), `${who} wins` + ({ religion: ' by converting the table.', tech: ' by finishing the great machine.', econ: ' by buying the win.', food: ' by bringing in the harvest.', pop: ' by filling the planet with a crowd.', politics: ' by holding its treaties: peace on its terms.' }[r.how] || ': the last one with a lit planet.')]; }
+  return { stalemate: ['STALEMATE', 'A peaceful draw: a full round where nobody did anything.'], amiable: ['HANDSHAKE', 'An amiable draw.'], bothLose: ['BOTH LOSE', 'You blew each other up.'], limit: ['TURN LIMIT', 'The game ran too long.'] }[r.type];
+}
+// seven planets round a sun. You are at the bottom; the others go clockwise from your left. Empty seats are blank planets.
+const SLOTS = { 1: [3], 2: [2, 5], 3: [1, 3, 6], 4: [1, 2, 5, 6], 5: [1, 2, 3, 5, 6], 6: [1, 2, 3, 4, 5, 6] };
+function render() {
+  hideTip(); tipEl = null;
+  const me = S.players[human], N = S.players.length, mine = myTurn();
+  curL = !S.result && E.toMove(S) === human ? E.legal(S) : [];
+  canAtk = new Set(); if (mine) for (const m of curL) { if (m.t === 'attack') canAtk.add(m.lane); if (m.t === 'gang') for (const ch of m.lanes) canAtk.add(+ch); }
+  curT = mine ? targetsFor(curL) : {};
+  const slot = {}; for (let k = 1; k < N; k++) slot[SLOTS[N - 1][k - 1]] = planet(S.players[(human + k) % N]);
+  const at = i => slot[i] || blank();
+  const peace = S.turnNo <= S.cfg.peace * N, cur = S.players[S.cur], teams = new Set(S.players.map(p => p.team)).size < N;
+  const who = S.result ? 'GAME OVER' : mine ? 'YOUR TURN' : me.out ? `You are OUT${teams ? '. Your team plays on' : ''} &middot; ${esc(cur.name)} is playing&hellip;` : `${esc(cur.name)} is playing&hellip;`;
+  const hand = me.hand.map((id, i) => { const cd = C[id], can = mine && curL.some(m => m.t === 'play' && m.card === id);
+    return `<div class="hc ${cd.type} ${can ? 'can' : 'cant'} ${sel && sel.k === 'hand' && sel.i === i ? 'sel' : ''}" data-a="hand" data-i="${i}"><div class="cost">${E.costOf(S, id)}</div><div class="nm">${glyph(cd.type)} ${esc(cd.name)}</div><div class="ty">${cd.type === 'trap' ? 'TRAP' : cd.type === 'action' ? 'ACTION' : `A ${cd.A} &middot; D ${cd.D}<br>DEV ${cd.dev}`}</div></div>`; }).join('');
+  const bigOK = mine && curL.some(m => m.t === 'big'), buyOK = mine && curL.some(m => m.t === 'buywin');
+  const nowBtn = curT.now ? `<br><button class="primary" data-a="now" style="margin-top:8px">${sel.k === 'big' ? 'USE IT' : 'PLAY IT'}</button>` : '';
+  const how = `<b>How a turn goes</b><ul class="how" style="margin:6px 0 0;padding-left:18px"><li>Gold edge = you can use it. Click it.</li><li>Green glow = where it can go. Click that.</li><li>Play cards onto your 9 squares.</li><li>Your FRONT card in each lane attacks straight up that lane: your A against their D.</li><li>Their lane empty? You put out one of their rings.</li><li>A planet can lose only ${S.cfg.ringCap || 'any number of'} rings before its next turn.</li><li>Press END TURN when you are done.</li></ul><div class="small" style="margin-top:6px">Geo nodes: ${glyph('unit')} unit &middot; ${glyph('structure')} structure &middot; ${glyph('action')} action &middot; ${glyph('trap')} trap &middot; ${glyph('commander')} commander</div>`;
+  let ov = '';
+  if (S.pending && S.pending.responder === human) ov = `<div class="ov"><div class="ovb"><h1>ANSWER?</h1><p>${esc((news[news.length - 1] || '').replace(/^t\d+ /, ''))}</p>${curL.map((m, i) => `<button class="mv" data-a="mv" data-i="${i}">${esc(E.describe(S, m))}</button>`).join('')}</div></div>`;
+  else if (S.result && !hideResult) { const [h, s] = resultText(); ov = `<div class="ov"><div class="ovb"><h1>${h}</h1><p>${esc(s)}</p><p class="small">${Math.ceil(S.turnNo / N)} rounds &middot; seed ${match.seed}</p><div class="btns"><button class="primary" data-a="new">NEW GAME</button><button data-a="look">Look at the table</button><button data-a="save">Save this match</button></div></div></div>`; }
+  $('app').innerHTML = `<div class="ring7">
+    <div class="s2">${at(2)}</div>
+    <div class="topc">${at(3)}<div class="sun" title="the sun"></div>${at(4)}</div>
+    <div class="s5">${at(5)}</div>
+    <div class="s1">${at(1)}${ways()}<div class="info">${info || how}${nowBtn}</div></div>
+    <div class="midc">
+      <div class="bar"><div class="who ${mine ? 'mine' : ''}">${who}</div>${mine ? `<div class="econ">ECON ${me.econ}${S.cfg.econWin ? `<span class="small"> of ${E.winPrice(S, me)} buys the win</span>` : ''}</div>` : ''}${peace && !S.result ? '<div class="peace">PEACE ROUND &middot; nobody may attack yet</div>' : ''}
+        <div class="news">${err ? `<div class="err">${esc(err)}</div>` : ''}${mine && sel ? `<div class="hint">${hint()}</div>` : ''}${news.slice(-3).map(l => `<div>${esc(l.replace(/^t\d+ /, ''))}</div>`).join('')}</div></div>
+      <div class="mine">${planet(me)}<div class="handw">
+        <div class="btns"><button class="primary" data-a="end" ${mine ? '' : 'disabled'}>END TURN</button><button data-a="big" ${bigOK ? '' : 'disabled'}>BIG MOVE: ${bigName(me.cmd.id)}</button>${buyOK ? `<button class="primary" data-a="buy">BUY THE WIN (${E.winPrice(S, me)} ECON)</button>` : ''}</div>
+        <div class="handt">YOUR HAND (${me.hand.length} of ${S.cfg.handCap || 'any'})</div><div class="hand">${hand || '<span class="small">(empty)</span>'}</div></div></div>
+    </div>
+    <div class="s6">${at(6)}<div class="side">
+      <div class="btns"><button data-a="skip" ${!S.result && !mine && !(S.pending && S.pending.responder === human) ? '' : 'disabled'}>Skip to my turn</button><button data-a="speed">Bots: ${speed >= 1200 ? 'slow' : speed >= 600 ? 'normal' : 'fast'}</button><button data-a="mute">Sound: ${muted ? 'off' : 'on'}</button><button data-a="save">Save</button><button data-a="new">New game</button>${S.result ? '<button data-a="unlook">Result</button>' : ''}</div>
+      ${mine ? `<details ${showAll ? 'open' : ''} data-a="all"><summary>Every move I can make (${curL.length})</summary>${showAll ? curL.map((m, i) => `<button class="mv" data-a="mv" data-i="${i}">${esc(E.describe(S, m))}</button>`).join('') : ''}</details>` : ''}
+      <details open><summary>What has happened</summary><div class="log">${S.log.slice(-80).reverse().map(l => `<div>${esc(l)}</div>`).join('')}</div></details></div></div>
+  </div>
+  <div class="foot">HALO ALIQUID NIHIL &middot; ${TABLES[table][0].replace('·', '&middot;')} &middot; seed ${match.seed} &middot; lane colours are your digit key (1 red &middot; 2 blue &middot; 3 yellow)</div>${ov}`;
+}
+
+// ----- clicks
+function planetClick(pid) { if (curT['p:' + pid]) { act(curT['p:' + pid]); return true; } return false; }
+function clickCell(pid, sq) {
+  if (curT['c:' + pid + ':' + sq]) return act(curT['c:' + pid + ':' + sq]);
+  const p = S.players[pid], c = p.grid[sq];
+  if (pid === human && myTurn() && c && !c.down) {
+    if (curL.some(m => m.t === 'smite' && m.sq === sq)) { sel = { k: 'smite', sq }; info = cellInfo(p, c); return render(); }
+    const lane = sq % 3;
+    if (E.front(p, lane).sq === sq && canAtk.has(lane)) {
+      if (sel && sel.k === 'atk') { let ls = sel.lanes.includes(lane) ? sel.lanes.filter(x => x !== lane) : sel.lanes.concat(lane).sort();
+        if (ls.length > 1 && !curL.some(m => m.t === 'gang' && m.lanes === ls.join(''))) ls = [lane];
+        sel = ls.length ? { k: 'atk', lanes: ls } : null; }
+      else sel = { k: 'atk', lanes: [lane] };
+      info = cellInfo(p, c); return render();
+    }
+  }
+  if (planetClick(pid)) return;
+  if (c) info = cellInfo(p, c); else if (curT['o:' + pid + ':' + (sq % 3)]) info = `<b>Empty lane</b><br>Nothing blocks you. Click one of the glowing rings of ${esc(p.name)} to put it out.`; else sel = null;
+  render();
+}
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-a]');
+  if (!el) { if (S && sel) { sel = null; render(); } return; }
+  const a = el.dataset.a, pid = +el.dataset.pid;
+  if (a === 'deck') { const i = +el.dataset.i, keys = Object.keys(DECKS); let k = keys.indexOf(lineup[i]); do { k = (k + 1) % keys.length; } while (lineup.includes(keys[k])); lineup[i] = keys[k]; return startScreen(); }
+  if (a === 'first6' || a === 'test3') { lineup = (a === 'first6' ? FIRST6 : TEST3).slice(); return startScreen(); }
+  if (a === 'lib') { hideTip(); return libraryScreen(); }
+  if (a === 'back') { hideTip(); return startScreen(); }
+  if (a === 'libcard') return;
+  if (a === 'seat') { human = +el.dataset.i; return startScreen(); }
+  if (a === 'feed' || a === 'life') { opt.life = a === 'life'; return startScreen(); }
+  if (a === 'winson' || a === 'winsoff') { opt.wins = a === 'winson'; return startScreen(); }
+  if (a === 'table') { table = el.dataset.k; lineup = TABLES[table][2].slice(); human = 0; return startScreen(); }
+  if (a === 'mute') { muted = !muted; return S ? render() : null; }
+  if (a === 'go') return newGame();
+  if (!S) return;
+  if (a === 'new') return startScreen();
+  if (a === 'look' || a === 'unlook') { hideResult = a === 'look'; return render(); }
+  if (a === 'save') { const blob = new Blob([JSON.stringify(Object.assign({}, match, { human, result: S.result }), null, 1)], { type: 'application/json' }), l = document.createElement('a'); l.href = URL.createObjectURL(blob); l.download = `halo-match-${match.seed}.json`; l.click(); return; }
+  if (a === 'speed') { speed = speed >= 1200 ? 250 : speed >= 600 ? 1400 : 700; return render(); }
+  if (a === 'skip') return skip();
+  if (a === 'all') { if (ev.target.tagName === 'SUMMARY') { ev.preventDefault(); showAll = !showAll; render(); } return; }
+  if (a === 'mv') return act(curL[+el.dataset.i]);
+  if (a === 'cell') return clickCell(pid, +el.dataset.sq);
+  if (a === 'ring') { const m = curT['r:' + pid + ':' + el.dataset.k]; if (m) return act(m); if (planetClick(pid)) return; info = ringInfo(S.players[pid], +el.dataset.k); return render(); }
+  if (a === 'way') { info = WAYTIP[el.dataset.k]; return render(); }
+  if (a === 'planet') { planetClick(pid); return; }
+  if (a === 'cmd') { if (planetClick(pid)) return; info = cmdInfo(S.players[pid]); sel = pid === human && myTurn() && curL.some(m => m.t === 'deploy') ? { k: 'cmd' } : null; return render(); }
+  if (!myTurn()) { if (a === 'hand') { info = handInfo(S.players[human].hand[+el.dataset.i]); render(); } return; }
+  if (a === 'hand') { const i = +el.dataset.i, id = S.players[human].hand[i]; info = handInfo(id); sel = curL.some(m => m.t === 'play' && m.card === id) ? (sel && sel.k === 'hand' && sel.i === i ? null : { k: 'hand', i, card: id }) : null; return render(); }
+  if (a === 'end') return act({ t: 'end' });
+  if (a === 'buy') return act({ t: 'buywin' });
+  if (a === 'big') { sel = { k: 'big' }; info = cmdInfo(S.players[human]); return render(); }
+  if (a === 'now' && curT.now) return act(curT.now);
+});
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && S && sel) { sel = null; render(); } });
+window.__halo = { E, B, state: () => S, legal: () => curL, act, targets: () => curT, click: (a, d) => { const e = document.querySelector(`[data-a="${a}"]` + Object.keys(d || {}).map(k => `[data-${k}="${d[k]}"]`).join('')); if (e) e.click(); return !!e; } };
+startScreen();
+</script>
+</body>
+</html>

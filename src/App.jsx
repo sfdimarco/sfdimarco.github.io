@@ -8,6 +8,7 @@ import BreakdownPost from "./pages/BreakdownPost";
 import About from "./pages/About";
 import FaultyTolerance from "./pages/FaultyTolerance";
 import FirstRoad from "./pages/FirstRoad";
+import Halo from "./pages/Halo";
 import { CHANNEL_URL } from "./content/show";
 
 function Site() {
@@ -27,6 +28,7 @@ function Site() {
           <Route path="/breakdowns" element={<Breakdowns />} />
           <Route path="/breakdowns/:slug" element={<BreakdownPost />} />
           <Route path="/first-road" element={<FirstRoad />} />
+          <Route path="/halo" element={<Halo />} />
           <Route path="/about" element={<About />} />
           <Route path="/faulty-tolerance" element={<FaultyTolerance />} />
           <Route path="/faulty-tolerance/how" element={<FaultyTolerance view="how" />} />

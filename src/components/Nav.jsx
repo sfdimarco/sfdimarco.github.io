@@ -15,6 +15,7 @@ export default function Nav() {
           <a className="nav-studio" href={GEOV_URL}>GeoV Studio</a>
           <NavLink to="/faulty-tolerance">Faulty Tolerance</NavLink>
           <NavLink to="/first-road" className="first-road-nav">First Road <span className="first-road-nav-status">IN DEV</span></NavLink>
+          <NavLink to="/halo" className="halo-nav">HALO <span className="halo-nav-status">PLAYTEST</span></NavLink>
         </nav>
       </div>
     </header>
