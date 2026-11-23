@@ -29,6 +29,9 @@ function Site() {
           <Route path="/breakdowns/:slug" element={<BreakdownPost />} />
           <Route path="/first-road" element={<FirstRoad />} />
           <Route path="/halo" element={<Halo />} />
+          <Route path="/halo/packs" element={<Halo view="packs" />} />
+          <Route path="/halo/binder" element={<Halo view="binder" />} />
+          <Route path="/halo/deck" element={<Halo view="deck" />} />
           <Route path="/about" element={<About />} />
           <Route path="/faulty-tolerance" element={<FaultyTolerance />} />
           <Route path="/faulty-tolerance/how" element={<FaultyTolerance view="how" />} />
