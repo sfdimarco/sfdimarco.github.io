@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import HaloCard, { CardBack } from "../components/HaloCard.jsx";
 import { HALO_CARDS, HALO_BASICS, HALO_BOSSES } from "../content/haloCards.js";
@@ -6,6 +6,7 @@ import {
   BY_ID, SET_SIZE, DECK_SIZE, STARTER_PACKS, loadBinder, saveBinder, openPack, newNight, bestFinish,
   deckProblems, fillWithBasics, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE,
 } from "../lib/haloBinder.js";
+import { useHaloArt, mountCard, loadHaloArt } from "../lib/haloArt.js";
 import "./Halo.css";
 
 // The game itself is one self-contained file: public/halo/play/index.html.
@@ -259,10 +260,23 @@ function CardModal({ card, onClose }) {
     window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
   }, [onClose]);
   const c = BY_ID[card.id];
+  // the live illustrated card: tilts toward the cursor, PLAY = it lifts and stands up as a hologram
+  const art = useHaloArt(), live = useRef(null), ctl = useRef(null), [isLive, setLive] = useState(false);
+  useEffect(() => {
+    if (!art) return undefined;
+    const w = Math.min(260, Math.round(window.innerWidth * 0.66));
+    ctl.current = mountCard(live.current, card.id, card.finish, w);
+    setLive(!!ctl.current);
+    return () => { ctl.current?.destroy(); ctl.current = null; };
+  }, [art, card.id, card.finish]);
   return (
     <div className="halo-modal" role="dialog" aria-modal="true" aria-label={c.name} onClick={onClose}>
       <div className="halo-modal-card" onClick={(e) => e.stopPropagation()}>
-        <HaloCard id={card.id} finish={card.finish} className="hc-big" />
+        <div className="halo-live">
+          <div ref={live} />
+          {!isLive && <HaloCard id={card.id} finish={card.finish} className="hc-big" />}
+          {isLive && <button className="halo-link" onClick={() => ctl.current?.play()}>Play it ▸</button>}
+        </div>
         <div className="halo-modal-words">
           <h2>{c.name}</h2>
           <p>{c.text || "A plain card: it fights with its A and blocks with its D."}</p>
@@ -430,6 +444,7 @@ export default function Halo({ view = "learn" }) {
   const [init] = useState(() => claimResults(loadBinder()));
   const [binder, setB] = useState(init[0]);
   const news = init[1];
+  useEffect(() => { loadHaloArt(); }, []);
   const setBinder = (b) => { setB(b); saveBinder(b); };
   useEffect(() => { if (init[1].length) saveBinder(init[0]); }, [init]);
   useEffect(() => {
