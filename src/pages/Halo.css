@@ -23,6 +23,26 @@
 .halo-ring { flex:none; width:1.6rem; height:.6rem; border-radius:50%; margin-top:.45rem; }
 .halo-road-list h3 { font-size:1rem; margin-bottom:.25rem; }
 .halo-road-list p { max-width:32ch; color:#d6d3c6; }
+/* ───── the Bazaar and the bounty board */
+.halo-news { list-style:none; padding:0; margin:0 0 1.2rem; display:grid; gap:.4rem; }
+.halo-news li { background:#22263a; border:1px solid #3a3f52; border-left:6px solid #e53935; padding:.55rem .8rem; border-radius:0; }
+.halo-news li.won { border-left-color:#f6c744; font-weight:700; }
+.halo-shop { display:flex; flex-wrap:wrap; gap:1.2rem 2rem; align-items:center; background:#22263a; border:1px solid #3a3f52; padding:1rem 1.2rem; }
+.halo-purse { display:flex; flex-direction:column; align-items:center; min-width:7rem; }
+.halo-purse small { color:#b9b6a8; }
+.halo-purse b { font:400 3.4rem/1 Georgia,serif; color:#f6c744; }
+.halo-shop-item { display:flex; gap:1rem; align-items:center; }
+.halo-shop-item h2 { font:400 1.4rem Georgia,serif; }
+.halo-shop-item p { margin:.3rem 0 .6rem; }
+.halo-shop-pack { --w:5.2rem; }
+.halo-bounties { display:grid; grid-template-columns:repeat(auto-fill,minmax(14rem,1fr)); gap:1rem; }
+.halo-bounty { display:flex; gap:.8rem; align-items:center; background:#22263a; border:1px solid #3a3f52; padding:.7rem; }
+.halo-bounty .hc { --w:5.6rem; }
+.halo-bounty.is-beaten { border-color:#2e7d32; }
+.halo-bounty h3 { font:400 1.25rem Georgia,serif; }
+.halo-bounty-words { display:flex; flex-direction:column; gap:.35rem; align-items:flex-start; }
+.halo-bounty .halo-button { padding:.45rem .8rem; }
+
 @media (max-width:760px) {
   .halo-hero { grid-template-columns:1fr; }
   .halo-plate { width:100%; max-width:33rem; }

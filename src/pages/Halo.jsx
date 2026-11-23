@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import HaloCard, { CardBack } from "../components/HaloCard.jsx";
-import { HALO_CARDS, HALO_BASICS } from "../content/haloCards.js";
+import { HALO_CARDS, HALO_BASICS, HALO_BOSSES } from "../content/haloCards.js";
 import {
   BY_ID, SET_SIZE, DECK_SIZE, STARTER_PACKS, loadBinder, saveBinder, openPack, newNight, bestFinish,
-  deckProblems, fillWithBasics, playLink,
+  deckProblems, fillWithBasics, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE,
 } from "../lib/haloBinder.js";
 import "./Halo.css";
 
@@ -106,6 +106,7 @@ function SubNav({ binder }) {
       <NavLink to="/halo/packs">Poptarts{binder.packsLeft > 0 && <span className="halo-pip">{binder.packsLeft}</span>}</NavLink>
       <NavLink to="/halo/binder">Binder <small>{found}/{SET_SIZE}</small></NavLink>
       <NavLink to="/halo/deck">Draft Night</NavLink>
+      <NavLink to="/halo/bazaar">Bazaar <small>{binder.points || 0} pts</small></NavLink>
       <a className="halo-sub-play" href={playRoot}>Play ▸</a>
     </nav>
   );
@@ -357,6 +358,7 @@ function DraftNight({ binder, setBinder }) {
           </div>
           {problems.length ? <p className="halo-dim">{problems[0]}</p> : null}
           <a className={`halo-button ${problems.length ? "is-off" : ""}`} aria-disabled={problems.length > 0} href={problems.length ? undefined : playLink(playRoot, deck, "Your Draft deck")}>Play this deck ▸</a>
+          {!problems.length && <p className="halo-dim" style={{ marginTop: ".6rem" }}>Or <Link to="/halo/bazaar">hunt a bounty</Link>: beat the cast for points to spend on packs.</p>}
         </aside>
       </div>
       <div className="halo-deck-bar" aria-hidden="true">
@@ -368,12 +370,71 @@ function DraftNight({ binder, setBinder }) {
   );
 }
 
+// ----- the bounty board and Tortimer's Card Bazaar: beat the cast to earn points, spend them on Poptarts
+function Bazaar({ binder, setBinder, news }) {
+  const deck = binder.deck || { cmd: null, cards: [] };
+  const ready = deckProblems(binder, deck).length === 0;
+  const points = binder.points || 0;
+  const whoOf = (k) => HALO_BOSSES.find((b) => b.key === k)?.who || k;
+  return (
+    <section aria-labelledby="halo-bazaar-title">
+      <header className="halo-page-head">
+        <h1 id="halo-bazaar-title">Tortimer's Card Bazaar</h1>
+        <p>Like the bounty hunters on Halomint Madness: take your Draft Night deck against the cast, one on one. Every win pays {WIN_POINTS} points. Your first win over each of them pays a {BOUNTY}-point bounty too. Spend points here on more Poptarts.</p>
+      </header>
+
+      {news.length > 0 && (
+        <ul className="halo-news" aria-live="polite">
+          {news.map((n, i) => <li key={i} className={n.won ? "won" : ""}>{n.won ? `You beat ${whoOf(n.boss)}: +${n.got} points${n.first ? " (bounty!)" : ""}` : `${whoOf(n.boss)} beat you. No points this time.`}</li>)}
+        </ul>
+      )}
+
+      <div className="halo-shop">
+        <div className="halo-purse"><small>Your points</small><b>{points}</b></div>
+        <div className="halo-shop-item">
+          <div className="hc halo-shop-pack"><CardBack /></div>
+          <div>
+            <h2>A Poptart</h2>
+            <p className="halo-dim">8 cards, same as a starter. {PACK_PRICE} points.</p>
+            <button className={`halo-button ${points < PACK_PRICE ? "is-off" : ""}`} aria-disabled={points < PACK_PRICE} onClick={() => points >= PACK_PRICE && setBinder(buyPack(binder))}>Buy for {PACK_PRICE} points</button>
+            {binder.packsLeft > 0 && <p><Link to="/halo/packs">Open your {binder.packsLeft} {binder.packsLeft === 1 ? "pack" : "packs"} ▸</Link></p>}
+          </div>
+        </div>
+      </div>
+
+      <h2 className="halo-h3">Bounty board</h2>
+      {!ready && <p className="halo-empty">First build a 20-card deck on <Link to="/halo/deck">Draft Night</Link>, then come back to hunt.</p>}
+      <div className="halo-bounties">
+        {HALO_BOSSES.map((b) => {
+          const wins = (binder.beaten || {})[b.key] || 0;
+          return (
+            <div key={b.key} className={`halo-bounty ${wins ? "is-beaten" : ""}`}>
+              <HaloCard id={b.cmd} finish={wins ? "laminate" : "lenticular"} />
+              <div className="halo-bounty-words">
+                <h3>{b.who}</h3>
+                <p className="halo-dim">{wins ? `Beaten ${wins}×. A win pays ${WIN_POINTS}.` : `Bounty: ${WIN_POINTS + BOUNTY} points`}</p>
+                {ready
+                  ? <a className="halo-button" href={playLink(playRoot, deck, "Your Draft deck", b.key)}>Hunt ▸</a>
+                  : <span className="halo-dim">Needs a deck</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function Halo({ view = "learn" }) {
-  const [binder, setB] = useState(loadBinder);
+  // wins written by the game are paid out when the page loads (pure here; saved in the effect below)
+  const [init] = useState(() => claimResults(loadBinder()));
+  const [binder, setB] = useState(init[0]);
+  const news = init[1];
   const setBinder = (b) => { setB(b); saveBinder(b); };
+  useEffect(() => { if (init[1].length) saveBinder(init[0]); }, [init]);
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = { learn: "HALO · Playtest", packs: "HALO · Poptarts", binder: "HALO · Binder", deck: "HALO · Draft Night" }[view];
+    document.title = { learn: "HALO · Playtest", packs: "HALO · Poptarts", binder: "HALO · Binder", deck: "HALO · Draft Night", bazaar: "HALO · Card Bazaar" }[view];
     return () => { document.title = previousTitle; };
   }, [view]);
 
@@ -385,6 +446,7 @@ export default function Halo({ view = "learn" }) {
         {view === "packs" && <Packs binder={binder} setBinder={setBinder} />}
         {view === "binder" && <Binder binder={binder} />}
         {view === "deck" && <DraftNight binder={binder} setBinder={setBinder} />}
+        {view === "bazaar" && <Bazaar binder={binder} setBinder={setBinder} news={news} />}
         <p className="halo-starter-note">{STARTER_PACKS} starter packs per Draft Night · finishes are looks only: a First Edition plays the same as a laminate.</p>
       </div>
     </article>

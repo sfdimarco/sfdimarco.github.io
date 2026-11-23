@@ -32,6 +32,7 @@ function Site() {
           <Route path="/halo/packs" element={<Halo view="packs" />} />
           <Route path="/halo/binder" element={<Halo view="binder" />} />
           <Route path="/halo/deck" element={<Halo view="deck" />} />
+          <Route path="/halo/bazaar" element={<Halo view="bazaar" />} />
           <Route path="/about" element={<About />} />
           <Route path="/faulty-tolerance" element={<FaultyTolerance />} />
           <Route path="/faulty-tolerance/how" element={<FaultyTolerance view="how" />} />

@@ -1417,7 +1417,7 @@ const TABLES = { team: ['3 ON 3', 'Two teams of three. Seats alternate round the
 function startScreen() {
   clearTimeout(timer); S = null; const R = window.__modes && window.__modes[table];
   $('app').innerHTML = `<div class="start"><h1>HALO ALIQUID NIHIL</h1><p class="sub">Playtest table &middot; seven planets round a sun &middot; you play one, bots play the rest</p>
-  ${DRAFT ? `<p class="sub" style="color:var(--gold)">Your Draft Night deck is in seat 1: <b>${esc(DRAFT.who)}</b>, led by ${esc(C[DRAFT.commander].name)}. Pick a table and press PLAY.</p>` : ''}
+  ${DRAFT ? `<p class="sub" style="color:var(--gold)">Your Draft Night deck is in seat 1: <b>${esc(DRAFT.who)}</b>, led by ${esc(C[DRAFT.commander].name)}.${BOSS ? ` BOUNTY: beat ${esc(DECKS[BOSS].who)} 1 on 1 to earn points.` : ' Pick a table and press PLAY.'}</p>` : ''}
   <h2>1 &middot; The table</h2><div class="row">${Object.keys(TABLES).map(k => `<button class="pick ${k === table ? 'on' : ''}" data-a="table" data-k="${k}"><b>${TABLES[k][0].replace('·', '&middot;')}</b><span>${TABLES[k][1]}</span></button>`).join('')}</div>
   ${R ? `<p class="small">Bot test of this table: about ${R.rounds} rounds &middot; no winner ${R.none} % &middot; win by seat ${R.seat.join(' / ')} %.</p>` : ''}
   <h2>2 &middot; Pick your seat</h2><div class="seats">${seatsNow().map((s, i) => `<div class="seat ${table === 'team' ? 't' + s.team : ''} ${i === human ? 'on' : ''}" data-a="seat" data-i="${i}"><b>${esc(s.name)}${i === human ? ' &middot; YOU' : ''}</b><span>${glyph('commander')} ${esc(C[DECKS[s.deck].commander].name)}</span><i>seat ${i + 1}${table === 'team' ? ' &middot; team ' + TEAM[s.team] : ''}${DECKS[s.deck].test ? ' &middot; test player' : ''}</i><span class="chg" data-a="deck" data-i="${i}">change player</span></div>`).join('')}</div>
@@ -1473,7 +1473,7 @@ function moments(lines, quiet) {
     else if (/attack|knocks out|breaks/.test(l)) snd = snd || 'hit';
     else if (/plays|sets a card|puts/.test(l)) snd = snd || 'play';
   }
-  if (S.result) { const mine = S.result.type === 'win' && S.result.team === S.players[human].team; SFX[mine ? 'win' : 'lose'](); return; }
+  if (S.result) { const mine = S.result.type === 'win' && S.result.team === S.players[human].team; SFX[mine ? 'win' : 'lose'](); reportResult(); return; }
   if (snd && !quiet) SFX[snd]();
   if (big) banner(big[0], big[1]);
 }
@@ -1734,7 +1734,7 @@ function render() {
   const how = `<b>How a turn goes</b><ul class="how" style="margin:6px 0 0;padding-left:18px"><li>Gold edge = you can use it. Click it.</li><li>Green glow = where it can go. Click that.</li><li>Play cards onto your 9 squares.</li><li>Your FRONT card in each lane attacks straight up that lane: your A against their D.</li><li>Their lane empty? You put out one of their rings.</li><li>A planet can lose only ${S.cfg.ringCap || 'any number of'} rings before its next turn.</li><li>Press END TURN when you are done.</li></ul><div class="small" style="margin-top:6px">Geo nodes: ${glyph('unit')} unit &middot; ${glyph('structure')} structure &middot; ${glyph('action')} action &middot; ${glyph('trap')} trap &middot; ${glyph('commander')} commander</div>`;
   let ov = '';
   if (S.pending && S.pending.responder === human) ov = `<div class="ov"><div class="ovb"><h1>ANSWER?</h1><p>${esc((news[news.length - 1] || '').replace(/^t\d+ /, ''))}</p>${curL.map((m, i) => `<button class="mv" data-a="mv" data-i="${i}">${esc(E.describe(S, m))}</button>`).join('')}</div></div>`;
-  else if (S.result && !hideResult) { const [h, s] = resultText(); ov = `<div class="ov"><div class="ovb"><h1>${h}</h1><p>${esc(s)}</p><p class="small">${Math.ceil(S.turnNo / N)} rounds &middot; seed ${match.seed}</p><div class="btns"><button class="primary" data-a="new">NEW GAME</button><button data-a="look">Look at the table</button><button data-a="save">Save this match</button></div></div></div>`; }
+  else if (S.result && !hideResult) { const [h, s] = resultText(); ov = `<div class="ov"><div class="ovb"><h1>${h}</h1><p>${esc(s)}</p><p class="small">${Math.ceil(S.turnNo / N)} rounds &middot; seed ${match.seed}</p><div class="btns"><button class="primary" data-a="new">NEW GAME</button><button data-a="look">Look at the table</button><button data-a="save">Save this match</button>${BOSS ? '<button class="primary" data-a="bazaar">Back to the bounty board</button>' : ''}</div></div></div>`; }
   $('app').innerHTML = `<div class="ring7">
     <div class="s2">${at(2)}</div>
     <div class="topc">${at(3)}<div class="sun" title="the sun"></div>${at(4)}</div>
@@ -1790,6 +1790,7 @@ document.addEventListener('click', ev => {
   if (a === 'table') { table = el.dataset.k; lineup = TABLES[table][2].slice(); human = 0; seatDraft(); return startScreen(); }
   if (a === 'mute') { muted = !muted; return S ? render() : null; }
   if (a === 'go') return newGame();
+  if (a === 'bazaar') { location.href = '../../#/halo/bazaar'; return; }
   if (!S) return;
   if (a === 'new') return startScreen();
   if (a === 'look' || a === 'unlook') { hideResult = a === 'look'; return render(); }
@@ -1814,7 +1815,19 @@ document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && S && sel
 // ----- Draft Night: a deck built on sfdimarco.github.io/#/halo/deck arrives in the link (#draft=...) and takes seat 1.
 // Format: base64url of {"v":1,"who":"name","cmd":"<commander id>","cards":[20 card ids]}. Only cards.js / kits.js ids pass.
 // The deck is added to DECKS at run time (cards.js is not changed), so buildDeck scales it to the table's deck size like any deck.
-let DRAFT = null;
+let DRAFT = null, BOSS = null;
+// a Draft Night deck that beats its boss 1 on 1 is written to localStorage 'halo-results-v1'; the site turns it into points
+function reportResult() {
+  try {
+    if (!BOSS || !S || !S.result || S.players.length !== 2) return;
+    const me = S.players[human], them = S.players[1 - human];
+    if (me.deckKey !== 'draft' || them.deckKey !== BOSS) return;
+    const key = 'halo-results-v1', list = JSON.parse(localStorage.getItem(key) || '[]');
+    if (list.some(r => r.seed === match.seed)) return;
+    list.push({ seed: match.seed, boss: BOSS, won: S.result.type === 'win' && S.result.team === me.team, how: S.result.how || 'table', at: Date.now() });
+    localStorage.setItem(key, JSON.stringify(list.slice(-50)));
+  } catch (e) { /* storage blocked: the win is not counted */ }
+}
 (function readDraft() {
   try {
     const m = /[#&]draft=([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return;
@@ -1823,6 +1836,8 @@ let DRAFT = null;
     if (!d || !C[d.cmd] || C[d.cmd].type !== 'commander' || !Array.isArray(d.cards) || d.cards.length !== 20 || !d.cards.every(okCard)) throw new Error('not a 20-card draft deck');
     DECKS.draft = { who: String(d.who || 'Your Draft deck').slice(0, 28), commander: d.cmd, cards: d.cards.slice(), draft: true };
     DRAFT = DECKS.draft; table = 'duel'; lineup = ['draft', ['bronconius', 'mush', 'mook'].find(k => DECKS[k].commander !== d.cmd)]; human = 0;
+    const bm = /[#&]boss=([A-Za-z0-9]+)/.exec(location.hash);
+    if (bm && DECKS[bm[1]] && !DECKS[bm[1]].kit && !DECKS[bm[1]].draft) { BOSS = bm[1]; lineup = ['draft', BOSS]; }
   } catch (e) { console.warn('HALO: draft deck in the link was not read:', e.message); }
 })();
 function seatDraft() { if (DRAFT && !lineup.includes('draft')) { lineup[0] = 'draft'; human = 0; } }

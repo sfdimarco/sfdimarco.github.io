@@ -35,7 +35,31 @@ export function makePack(rnd = Math.random, commanderHit = false) {
   return cards;
 }
 
-const fresh = () => ({ v: 1, owned: {}, finishes: {}, packsLeft: STARTER_PACKS, packsOpened: 0, nights: 1, deck: null });
+const fresh = () => ({ v: 1, owned: {}, finishes: {}, packsLeft: STARTER_PACKS, packsOpened: 0, nights: 1, deck: null, points: 0, beaten: {}, claimed: [] });
+
+// 🆕 bounties (Claude's, for Mook's tick): beat a cast deck 1 on 1 with your Draft Night deck to earn points,
+// spend them at Tortimer's Card Bazaar. Every win pays WIN_POINTS; the first win over a boss also pays its BOUNTY.
+export const WIN_POINTS = 2, BOUNTY = 3, PACK_PRICE = 3;
+
+// read the wins the game wrote (public/halo/play, reportResult) and pay the ones not paid yet: returns [binder, news]
+export function claimResults(b) {
+  let list = [];
+  try { list = JSON.parse(window.localStorage.getItem("halo-results-v1") || "[]"); } catch { return [b, []]; }
+  const claimed = new Set(b.claimed || []), beaten = { ...(b.beaten || {}) }, news = [];
+  let points = b.points || 0;
+  for (const r of Array.isArray(list) ? list : []) {
+    if (!r || claimed.has(r.seed)) continue;
+    claimed.add(r.seed);
+    if (!r.won) { news.push({ boss: r.boss, won: false, got: 0 }); continue; }
+    const first = !beaten[r.boss], got = WIN_POINTS + (first ? BOUNTY : 0);
+    beaten[r.boss] = (beaten[r.boss] || 0) + 1; points += got;
+    news.push({ boss: r.boss, won: true, got, first });
+  }
+  if (!news.length) return [b, []];
+  return [{ ...b, points, beaten, claimed: [...claimed].slice(-200) }, news];
+}
+
+export const buyPack = (b) => ((b.points || 0) < PACK_PRICE ? b : { ...b, points: b.points - PACK_PRICE, packsLeft: b.packsLeft + 1 });
 
 let memory = null; // used when storage is blocked
 export function loadBinder() {
@@ -95,8 +119,8 @@ export function fillWithBasics(cards) {
 }
 
 // the link the game reads (public/halo/play/index.html, readDraft): #draft=<base64url JSON>
-export function playLink(root, deck, who) {
+export function playLink(root, deck, who, boss) {
   const json = JSON.stringify({ v: 1, who: who || "Your Draft deck", cmd: deck.cmd, cards: deck.cards });
   const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  return `${root}#draft=${b64}`;
+  return `${root}#draft=${b64}${boss ? `&boss=${boss}` : ""}`;
 }
