@@ -166,7 +166,7 @@
   .hand.fan .hc:hover { transform:translateY(-14px) scale(1.06); z-index:3; } .hand.fan .hc.sel { transform:translateY(-18px) scale(1.08); z-index:4; }
   .handw .btns { justify-content:center; align-items:center; } .handt { color:var(--dim); font-size:13px; }
   .side2 .sidec { display:flex; flex-direction:column; gap:8px; }
-  @media (max-width:1180px) { .table2 { grid-template-columns:minmax(0,1fr); grid-template-areas:"bar" "coach" "arena" "hand" "ways" "info" "sidec"; }
+  @media (max-width:1180px) { .table2 { grid-template-columns:minmax(0,1fr); grid-template-areas:"bar" "coach" "arena" "hand" "info" "ways" "sidec"; }
     .side2 { display:contents; } .side2 > .coach { grid-area:coach; margin:0; } .side2 > .ways { grid-area:ways; } .side2 > .info { grid-area:info; } .side2 > .sidec { grid-area:sidec; } }
   @media (max-width:760px) {
     .table2 { padding:6px; gap:8px; } .arena { grid-template-columns:minmax(0,1fr); }
@@ -11451,6 +11451,7 @@ let tipTimer = null, tipStep = 0, touchy = false;   // touchy: the last press wa
 document.addEventListener('pointerdown', ev => { touchy = ev.pointerType === 'touch'; }, true);
 function showTip(el, type, html) {
   const tip = $('tip'); clearInterval(tipTimer); tipStep = 0;
+  if (touchy && el.dataset.a === 'hand') return hideTip();   // on a phone a hand card's words go in the box right under the hand (Mook 11-24), not a floating sheet
   tip.innerHTML = `${type ? `<div class="tipg" id="tipg">${bigGlyph(type, 0)}</div>` : ''}<div class="tipt">${html}</div>`; tip.style.display = 'flex';
   const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
   if (touchy) { const low = r.top + r.height / 2 > innerHeight / 2; tip.classList.add('sheet'); tip.style.top = low ? '8px' : 'auto'; tip.style.bottom = low ? 'auto' : '8px'; }
@@ -11760,8 +11761,8 @@ document.addEventListener('click', ev => {
   if (a === 'planet') { planetClick(pid); return; }
   if (a === 'orb') { if (planetClick(pid)) return; focus = pid; return render(); }
   if (a === 'cmd') { if (planetClick(pid)) return; info = cmdInfo(S.players[pid]); sel = pid === human && myTurn() && curL.some(m => m.t === 'deploy') ? { k: 'cmd' } : null; return render(); }
-  if (!myTurn()) { if (a === 'hand') { info = handInfo(S.players[human].hand[+el.dataset.i]); render(); } return; }
-  if (a === 'hand') { const i = +el.dataset.i, id = S.players[human].hand[i]; info = handInfo(id); sel = curL.some(m => m.t === 'play' && m.card === id) ? (sel && sel.k === 'hand' && sel.i === i ? null : { k: 'hand', i, card: id }) : null; return render(); }
+  if (!myTurn()) { if (a === 'hand') { const id = S.players[human].hand[+el.dataset.i]; info = handInfo(id) + (touchy ? extra(id) : ''); render(); } return; }
+  if (a === 'hand') { const i = +el.dataset.i, id = S.players[human].hand[i]; info = handInfo(id) + (touchy ? extra(id) : ''); sel = curL.some(m => m.t === 'play' && m.card === id) ? (sel && sel.k === 'hand' && sel.i === i ? null : { k: 'hand', i, card: id }) : null; return render(); }
   if (a === 'end') return act({ t: 'end' });
   if (a === 'buy') return act({ t: 'buywin' });
   if (a === 'tear') { const m = curL.find(x => x.t === 'tear' && x.tp === pid); if (m) return act(m); return; }
