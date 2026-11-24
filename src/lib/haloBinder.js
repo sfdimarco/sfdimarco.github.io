@@ -24,13 +24,15 @@ const pick = (list, rnd, avoid) => {
 };
 
 // one 8-card pack, hit last. `commanderHit` makes the hit a commander (the first starter pack: everyone can lead a deck).
-export function makePack(rnd = Math.random, commanderHit = false) {
-  const seen = new Set();
+// 11-23 playtest: the hit never repeats a commander or a fused card you already own (a second commander, or a card that can't go in a deck, was a dud)
+export function makePack(rnd = Math.random, commanderHit = false, owned = {}) {
+  const seen = new Set(Object.keys(owned).filter((id) => BY_ID[id] && (BY_ID[id].type === "commander" || BY_ID[id].fused)));
   const cards = [
     ...Array.from({ length: PACK.common }, () => ({ id: pick(COMMONS, rnd, seen).id, finish: "laminate" })),
     ...Array.from({ length: PACK.uncommon }, () => ({ id: pick(UNCOMMONS, rnd, seen).id, finish: "laminate" })),
   ];
-  const hit = pick(commanderHit ? COMMANDERS : HITS, rnd, seen);
+  const pool = (commanderHit ? COMMANDERS : HITS).filter((c) => !seen.has(c.id) || (c.type !== "commander" && !c.fused));
+  const hit = pick(pool.length ? pool : HITS, rnd, seen);
   cards.push({ id: hit.id, finish: rnd() < PACK.firstEditionOdds ? "first" : "lenticular", hit: true });
   return cards;
 }
@@ -99,7 +101,7 @@ export function starterPack(road, rnd = Math.random) {
 // open the next pack: returns [newBinder, cards]. The first pack is your road's starter, if you chose one.
 export function openPack(b) {
   if (b.packsLeft <= 0) return [b, null];
-  const cards = b.road && HALO_STARTERS[b.road] && b.packsOpened === 0 ? starterPack(b.road) : makePack(Math.random, b.packsOpened === 0);
+  const cards = b.road && HALO_STARTERS[b.road] && b.packsOpened === 0 ? starterPack(b.road) : makePack(Math.random, b.packsOpened === 0, b.owned);
   const owned = { ...b.owned }, finishes = { ...b.finishes };
   for (const c of cards) {
     owned[c.id] = (owned[c.id] || 0) + 1;

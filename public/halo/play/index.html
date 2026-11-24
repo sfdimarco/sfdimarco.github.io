@@ -8604,6 +8604,9 @@ function replay(match) { const S = start(match); for (const m of match.moves) ap
 
 // ───────── the referee view: what the player to move can see (never another hand, never a score)
 function describe(S, a) {
+  const pact = S.cfg.treatyV3 && a.tp !== undefined && (S.players[S.cur].seals || []).includes(a.tp) && hostile(a) ? ' ⚠ breaks YOUR treaty' : '';
+  return describe0(S, a) + pact; }
+function describe0(S, a) {
   const P = i => S.players[i].name, sq = n => `${['FRONT', 'mid', 'back'][Math.floor(n / 3)]} row, lane ${n % 3 + 1}`;
   if (a.t === 'gang') return `attack TOGETHER with lanes ${a.lanes.split('').map(l => +l + 1).join(' + ')} → ${P(a.tp)} lane ${a.at + 1} (A added up)`;
   if (a.t === 'buywin') return `BUY THE WIN: pay ${winPrice(S, S.players[S.cur])} ECON`;
@@ -8617,7 +8620,7 @@ function describe(S, a) {
   return { offer: 'offer a handshake (an amiable draw)', accept: 'shake hands (accept the draw)', end: 'end your turn', pass: 'do not answer' }[a.t];
 }
 const TRIG = { attacked: 'flips when it is attacked: what attacked falls in', ringdark: 'flips when one of your rings would go dark: the ring stays lit and the attacker\'s front cards freeze for a turn', pastgrid: 'flips when a move goes past your grid (AUDIT, BROADSIDE, The Pollen, Hostile Takeover, PAPAL SMITE): the move is stopped' };
-const FX = { seed: 'your FOOD ring relights (only Food: a harvest card, not a heal)', sprout: 'one of your own dark rings relights (Food first, on a Food planet)', siege: 'knock out one enemy front card with D 6 or more', barrage: 'knock out one enemy front card with low D', takeover: "put out one enemy's ECONOMY ring, past the grid", pollen: 'put out one enemy ring, past the grid', relight: "relight one dark ring, yours or a team-mate's", gain3: '+3 ECON this turn', gain2: '+2 ECON this turn', absorb: 'your rings cannot go dark until your next turn', snooze: 'up to five of your own dark rings relight', spring: 'up to two of your own dark rings relight', smash: 'two rings of one enemy go dark, past the grid', sigil: "put out one enemy's RELIGION ring, past the grid", envoy: 'seal a treaty with one rival (it lasts until that rival aims a move at you)', supply: 'you or a team-mate gains 3 ECON', testudo: "you or a team-mate: rings cannot go dark until that planet's next turn", convert: "CONVERT: an enemy front unit with low D leaves their grid and joins yours" };
+const FX = { seed: 'your FOOD ring relights (only Food: a harvest card, not a heal)', sprout: 'one of your own dark rings relights (Food first, on a Food planet)', siege: 'knock out one enemy front card with D 6 or more', barrage: 'knock out one enemy front card with low D', takeover: "put out one enemy's ECONOMY ring, past the grid", pollen: 'put out one enemy ring, past the grid', relight: "relight one dark ring, yours or a team-mate's", gain3: '+3 ECON this turn', gain2: '+2 ECON this turn', absorb: 'your rings cannot go dark until your next turn', snooze: 'up to five of your own dark rings relight', spring: 'up to two of your own dark rings relight', smash: 'two rings of one enemy go dark, past the grid', sigil: "put out one enemy's RELIGION ring, past the grid", envoy: 'seal a treaty with one rival: a PEACE PACT, they cannot attack your cards (they can pay to tear it up, or hurt you past the grid)', supply: 'you or a team-mate gains 3 ECON', testudo: "you or a team-mate: rings cannot go dark until that planet's next turn", convert: "CONVERT: an enemy front unit with low D leaves their grid and joins yours" };
 const BIG = { broadside: 'BROADSIDE: needs a ship on your grid; one enemy ring goes dark, past the grid', audit: 'AUDIT: one enemy ring per Army of Auditors on your grid (max 3), past the grid', canopy: 'CANOPY: your rings cannot go dark until your next turn', holyleague: 'HOLY LEAGUE: your attackers get +2 A this turn', moodpink: 'MOOD: PINK: your cards cannot be attacked until your next turn', parlay: 'PARLAY: one enemy cannot attack you until your next turn', multiply: 'MULTIPLY: one of your cards becomes one in every empty square of its row (the copies cannot attack this turn)', none: 'no big move' };
 function view(S, pid) {
   const me = S.players[pid], out = [];
@@ -9636,15 +9639,24 @@ function pickFocus() {
 }
 
 // ----- Mush, the coach: ONE short line for the player's turn, the most useful thing first. He is mostly quiet (the bible), so: short.
+const enemiesOf = p => S.players.filter(q => !q.out && q.team !== p.team);
 function coach() {
   if (!coachOn || !S || S.result || !myTurn()) return '';
   const me = S.players[human], N = S.players.length, peace = S.turnNo <= S.cfg.peace * N, say = (t, sub) => `<div class="coach"><b class="mush">🍄 Mush:</b> ${t}${sub ? `<div class="small">${sub}</div>` : ''}</div>`;
   const nm = x => /^kInd_/.test(x) ? `a ${cap(x.slice(5))} (${C[x].name})` : C[x].name;
   // a combo within reach: two of its three pieces in your hand or on your grid (Armillaria fills one gap)
-  const have = new Set([...me.hand, ...me.grid.filter(c => c && !c.down).map(c => E.baseId(c.card))].map(x => E.baseId(x))), wild = S.cfg.mix && have.has('mycelium');
+  // pieces on the grid count only while their lane still has room for the rest (a piece walled in on its own can't join a line)
+  const roomy = sq => [0, 1, 2].some(r => !me.grid[r * 3 + sq % 3]);
+  const have = new Set([...me.hand, ...me.grid.map((c, sq) => c && !c.down && roomy(sq) ? c.card : null).filter(Boolean)].map(x => E.baseId(x))), wild = S.cfg.mix && have.has('mycelium');
   for (const co of E.COMBOS) { if ((co.lib && !S.cfg.lib) || (co.mix && !S.cfg.mix)) continue; const got = co.parts.filter(x => have.has(x)), miss = co.parts.filter(x => !have.has(x));
     if (got.length === 3 || (got.length === 2 && wild)) return say(`You've got the pieces for <b>${esc(C[co.makes].name)}</b>. Stack them in ONE lane, front to back: ${co.parts.map(x => esc(nm(x))).join(' + ')}${got.length === 2 ? ' (Armillaria stands in for ' + esc(nm(miss[0])) + ')' : ''}.`, 'Three in a line fuse into one big card.');
     if (got.length === 2 && miss[0].startsWith('kInd_')) return say(`${got.map(x => esc(nm(x))).join(' and ')}. Nice. Draw ${esc(nm(miss[0]))} and you can fuse <b>${esc(C[co.makes].name)}</b>.`, 'Keep the two in the same lane.'); }
+  // the politician: keep your own treaties, and guard them
+  const sealed = enemiesOf(me).filter(q => (me.seals || []).includes(q.id));
+  if (sealed.length && !peace) { const boom = curL.find(m => m.t === 'play' && C[m.card].trig === 'pastgrid');
+    if (boom && !me.grid.some(c => c && c.down && C[c.card].trig === 'pastgrid')) return say(`Treaty with ${sealed.map(q => esc(q.name)).join(' and ')}. Guard it: set a Harbour Boom.`, 'It stops a move past your grid, the only way they can hurt you without paying to tear it up.');
+    { const hitsAlly = curL.some(m => (m.t === 'attack' || m.t === 'gang') && sealed.some(q => q.id === m.tp));
+      if (hitsAlly && !curL.some(m => (m.t === 'attack' || m.t === 'gang') && !sealed.some(q => q.id === m.tp))) return say(`Don't hit ${sealed.map(q => esc(q.name)).join(' or ')}. That tears YOUR treaty.`, 'Build behind your front row and wait for your turn to come round.'); } }
   if (peace) return say('Peace round. Nobody hits yet.', 'Put cards in your FRONT row. An empty lane lets them walk in and put out your rings.');
   // v3 (11-23 night): a rival about to win by a quiet road. Short and dry.
   for (const q of S.players.filter(x => !x.out && x.team !== me.team)) {
@@ -9654,7 +9666,7 @@ function coach() {
   }
   // a team-mate in trouble, and you hold the help
   for (const q of S.players.filter(x => x.id !== human && !x.out && x.team === me.team)) {
-    const lit = q.rings.filter(Boolean).length; if (lit > 3) continue;
+    const lit = q.rings.filter(Boolean).length; if (lit > 4) continue;
     const by = fx => curL.find(m => m.t === 'play' && m.tp === q.id && C[m.card].fx === fx), allyU = curL.find(m => m.t === 'play' && m.tp === q.id && m.sq !== undefined);
     const ring = `${esc(q.name)}'s down to ${lit} ring${lit === 1 ? '' : 's'}.`;
     if (by('testudo')) return say(`${ring} Throw them a Testudo.`, 'Pick Testudo, then click their planet.');
@@ -9665,7 +9677,7 @@ function coach() {
   if (conv) { const f = E.front(S.players[conv.tp], conv.lane); return say(`Their ${esc(C[f.cell.card].name)} looks lost. Road to Damascus.`, `Faith ${E.faithOf(me)}: any front unit with D up to that can be yours. Hold ${S.cfg.relConv} with Religion lit and you win.`); }
   const open = [0, 1, 2].filter(l => !E.front(me, l)), canPlay = curL.some(m => m.t === 'play' && m.sq !== undefined && Math.floor(m.sq / 3) === 0);
   if (open.length && canPlay) return say(open.length === 1 ? `Lane ${open[0] + 1} is open. Fill it.` : `Lanes ${open.map(l => l + 1).join(open.length === 2 ? ' and ' : ', ').replace(/, (\d)$/, ' and $1')} are open. Fill them.`, 'Empty lane = a free hit on your rings.');
-  if (canAtk.size || canVol.size) return say('Gold edge = ready. Click your front card, then theirs.', 'Your A against their D. Higher stays. A tie, both go.' + (canVol.size ? ' A VOLLEY card fires from behind: click it too.' : ''));
+  if (canAtk.size || canVol.size) return say('Gold edge = ready. Click your front card, then theirs.', 'Your A against their D. Higher stays. A tie, both go.' + (canVol.size ? ' A VOLLEY card fires from behind: click it too.' : '') + (sealed.length ? ` Not ${sealed.map(q => esc(q.name)).join(' or ')}: that tears your treaty.` : ''));
   const tear = curL.find(m => m.t === 'tear');
   if (tear) return say(`${esc(S.players[tear.tp].name)}'s treaty keeps your cards off theirs. ${S.cfg.tearCost} ECON tears it up.`, 'The tear button is by END TURN. Or hurt them past the grid.');
   if (S.cfg.econWin && me.econ >= E.winPrice(S, me) * 0.6) return say(`${me.econ} ECON banked. At ${E.winPrice(S, me)} you just... buy the win.`, 'Keep your Economy ring lit.');
