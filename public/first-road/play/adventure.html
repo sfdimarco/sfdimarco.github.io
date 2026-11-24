@@ -334,6 +334,7 @@ body.playing #hud .brand,body.playing #hud .controls{display:none}
 .playing:has(#adventure #game-modal[hidden]) #toast.show{transform:translateY(0)}
 .playing:has(#adventure:not(.field-active):not(.orders-open) #game-modal[hidden]) #toast{bottom:24px}
 .playing:has(#game-modal[data-page=camera]:not([hidden])) #toast{opacity:0}
+.playing:has(#game-modal[data-page=table-game]:not([hidden])) #toast{visibility:hidden}
 
 #adventure .story-paper{
  --story-text:14px;
