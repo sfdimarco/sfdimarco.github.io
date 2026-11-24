@@ -53,7 +53,7 @@ export default function FirstRoad() {
             <p className="first-road-deck">Set out with a familiar and get to know the towns that keep the road alive.</p>
             <p className="first-road-summary">Explore Brindlewick, take on a job with your familiar, or stay awhile and play something the neighbors made.</p>
             <div className="first-road-actions">
-              <a className="first-road-button" href={playRoot}>Play First Road</a>
+              <a className="first-road-button" href={`${playRoot}adventure.html`}>Play First Road</a>
               <a className="first-road-secondary" href={`${playRoot}paper-harbor.html`}>Try Paper Harbor</a>
             </div>
             <p className="first-road-note">The 3D adventure needs WebGL 2 and saves in this browser. Paper Harbor runs without WebGL and doesn’t touch your save.</p>
@@ -64,7 +64,8 @@ export default function FirstRoad() {
           </figure>
         </section>
         <section className="first-road-fieldnotes" aria-labelledby="first-road-fieldnotes-title">
-          <h2 id="first-road-fieldnotes-title">Along the road</h2>
+          <h2 id="first-road-fieldnotes-title">Upper Steps demo</h2>
+          <p><a className="first-road-secondary" href={playRoot}>Play the earlier demo</a></p>
           <div className="first-road-guides">
             <div><h3>Brindlewick’s paper theatre</h3><p>June puts the town onstage. Guide a paper captain home through three tiny route puzzles.</p></div>
             <div><h3>The waterworks</h3><p>Work alongside your familiar and follow a missing shift note from the orchard to the Rain Engine Junction.</p></div>
