@@ -1,6 +1,6 @@
 // HALO Poptarts: booster packs, the binder and the Draft Night deck, kept in this browser.
 // Storage is wrapped: if localStorage is blocked (private window, cleared data) the page still works, it just forgets on reload.
-import { HALO_CARDS, HALO_BASICS, HALO_COMBOS } from "../content/haloCards.js";
+import { HALO_CARDS, HALO_BASICS, HALO_COMBOS, HALO_STARTERS } from "../content/haloCards.js";
 
 export const BY_ID = Object.fromEntries([...HALO_CARDS, ...HALO_BASICS].map((c) => [c.id, c]));
 export const SET_SIZE = HALO_CARDS.length;
@@ -35,7 +35,23 @@ export function makePack(rnd = Math.random, commanderHit = false) {
   return cards;
 }
 
-const fresh = () => ({ v: 1, owned: {}, finishes: {}, packsLeft: STARTER_PACKS, packsOpened: 0, nights: 1, deck: null, points: 0, beaten: {}, claimed: [], learned: false });
+// the seven roads, one per ring. `key` matches HALO_STARTERS and each card's `road`; colours are the game table's road tags.
+// The copy follows the 11-23 rules: Religion converts, Politics seals peace pacts, the crowd is built.
+export const ROADS = [
+  { key: "industry", ring: "Industry", road: "The last planet lit", how: "Knock every rival planet dark.", color: "#ef5350" },
+  { key: "economy", ring: "Economy", road: "Buy the win", how: "Bank ECON and pay the price in one go.", color: "#f6c744" },
+  { key: "science", ring: "Science", road: "The great machine", how: "A Core in the middle, Parts on the other eight squares. It must still stand on your next turn.", color: "#26c6da" },
+  { key: "food", ring: "Food", road: "The harvest", how: "Relight your rings, again and again, with Food lit. The harvest comes in.", color: "#8bc34a" },
+  { key: "pop", ring: "Population", road: "The crowd", how: "Burgages grow a Cottar each turn. Fill all nine squares and hold a round.", color: "#ff9800" },
+  { key: "religion", ring: "Religion", road: "Convert them", how: "Take their units onto your grid. Hold 2 converts at the start of your turn (3 in a free-for-all).", color: "#c58af9" },
+  { key: "politics", ring: "Politics", road: "The peace pact", how: "A sealed rival cannot attack your cards; tearing it costs them 5 ECON. Hold 2 treaties (1 in a 1 on 1).", color: "#90a4ae" },
+];
+export const ROAD_BY = Object.fromEntries(ROADS.map((r) => [r.key, r]));
+// how the game says a win happened (engine finish(..., { how })) → the road it walked
+export const HOW_ROAD = { table: "industry", econ: "economy", tech: "science", food: "food", pop: "pop", religion: "religion", politics: "politics" };
+
+// v 1 throughout: fields added later (road, roadWins, cheered) default here, so old saved binders keep working
+const fresh = () => ({ v: 1, owned: {}, finishes: {}, packsLeft: STARTER_PACKS, packsOpened: 0, nights: 1, deck: null, points: 0, beaten: {}, claimed: [], learned: false, road: null, roadWins: {}, cheered: null });
 
 // 🆕 bounties (Claude's, for Mook's tick): beat a cast deck 1 on 1 with your Draft Night deck to earn points,
 // spend them at Tortimer's Card Bazaar. Every win pays WIN_POINTS; the first win over a boss also pays its BOUNTY.
@@ -45,18 +61,18 @@ export const WIN_POINTS = 2, BOUNTY = 3, PACK_PRICE = 3;
 export function claimResults(b) {
   let list = [];
   try { list = JSON.parse(window.localStorage.getItem("halo-results-v1") || "[]"); } catch { return [b, []]; }
-  const claimed = new Set(b.claimed || []), beaten = { ...(b.beaten || {}) }, news = [];
+  const claimed = new Set(b.claimed || []), beaten = { ...(b.beaten || {}) }, roadWins = { ...(b.roadWins || {}) }, news = [];
   let points = b.points || 0;
   for (const r of Array.isArray(list) ? list : []) {
     if (!r || claimed.has(r.seed)) continue;
     claimed.add(r.seed);
     if (!r.won) { news.push({ boss: r.boss, won: false, got: 0 }); continue; }
-    const first = !beaten[r.boss], got = WIN_POINTS + (first ? BOUNTY : 0);
-    beaten[r.boss] = (beaten[r.boss] || 0) + 1; points += got;
-    news.push({ boss: r.boss, won: true, got, first });
+    const first = !beaten[r.boss], got = WIN_POINTS + (first ? BOUNTY : 0), road = HOW_ROAD[r.how] || "industry";
+    beaten[r.boss] = (beaten[r.boss] || 0) + 1; points += got; roadWins[road] = (roadWins[road] || 0) + 1;
+    news.push({ boss: r.boss, won: true, got, first, road });
   }
   if (!news.length) return [b, []];
-  return [{ ...b, points, beaten, claimed: [...claimed].slice(-200) }, news];
+  return [{ ...b, points, beaten, roadWins, claimed: [...claimed].slice(-200) }, news];
 }
 
 export const buyPack = (b) => ((b.points || 0) < PACK_PRICE ? b : { ...b, points: b.points - PACK_PRICE, packsLeft: b.packsLeft + 1 });
@@ -74,10 +90,16 @@ export function saveBinder(b) {
   try { window.localStorage.setItem(KEY, JSON.stringify(b)); return true; } catch { return false; }
 }
 
-// open the next pack: returns [newBinder, cards]
+// a road's starter Poptart: its seven cards, then its commander as the lenticular hit
+export function starterPack(road, rnd = Math.random) {
+  const s = HALO_STARTERS[road];
+  return [...s.cards.map((id) => ({ id, finish: "laminate" })), { id: s.cmd, finish: rnd() < PACK.firstEditionOdds ? "first" : "lenticular", hit: true }];
+}
+
+// open the next pack: returns [newBinder, cards]. The first pack is your road's starter, if you chose one.
 export function openPack(b) {
   if (b.packsLeft <= 0) return [b, null];
-  const cards = makePack(Math.random, b.packsOpened === 0);
+  const cards = b.road && HALO_STARTERS[b.road] && b.packsOpened === 0 ? starterPack(b.road) : makePack(Math.random, b.packsOpened === 0);
   const owned = { ...b.owned }, finishes = { ...b.finishes };
   for (const c of cards) {
     owned[c.id] = (owned[c.id] || 0) + 1;
@@ -133,8 +155,9 @@ export function fillWithBasics(cards) {
 }
 
 // the link the game reads (public/halo/play/index.html, readDraft): #draft=<base64url JSON>
-export function playLink(root, deck, who, boss) {
-  const json = JSON.stringify({ v: 1, who: who || "Your Draft deck", cmd: deck.cmd, cards: deck.cards });
+// `road` (your road, from the binder) gives the deck its road perks at the table
+export function playLink(root, deck, who, boss, road) {
+  const json = JSON.stringify({ v: 1, who: who || "Your Draft deck", cmd: deck.cmd, cards: deck.cards, road: road || null });
   const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   return `${root}#draft=${b64}${boss ? `&boss=${boss}` : ""}`;
 }

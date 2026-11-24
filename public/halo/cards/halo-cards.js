@@ -1812,6 +1812,819 @@ ART.leoB = a => {                                                        // PFEI
   }, 1.0));
   if (a.alt) a.layer(0.8, () => { a.at(64, -44, 0, () => { a.rect(-18, -10, 18, 10, 2, CREAM, 660, 1.4); a.line([[-12, -2], [12, -2]], 661, 0.8); a.line([[-12, 3], [6, 3]], 662, 0.8); }); a.line([[40, -36], [30, -22]], 663, 1.2); });   // a note: proof
 };
+
+// ── art/v3-build.js
+// v3-build: the structures that BUILD (11-23, Mook: "DEV and ECO cards need to build, not just be sitting defense blocks").
+// 🆕 every picture is Claude's, for Mook's tick (v3-build.ticks.md). Second picture (a.alt) = the moment it builds.
+const VB_WOOD = '#b5814f', VB_WOOD2 = '#8a5a3a', VB_BRICK = '#d98f6a', VB_ROOF = '#a8442a', VB_SEA = '#4f86b8', VB_GOLD = '#f9c74f';
+function vbLabel(a, x, y, txt, size) { a.g.save(); a.g.fillStyle = ST.holo ? HOLO : INK; a.g.font = 'bold ' + (size || 13) + 'px ' + NUMFONT; a.g.textAlign = 'center'; a.g.textBaseline = 'middle'; a.g.fillText(txt, x, y); a.g.restore(); }
+function vbCoin(a, x, y, txt, seed, r) { a.circ(x, y, r || 14, r || 14, VB_GOLD, seed); if (txt) vbLabel(a, x, y + 1, txt, 13); }
+function vbGalley(a, l, built, seed) {                                    // a Venetian galley side-on: long, low, a ram at the bow (built = whole ship, else ribs on the keel)
+  const h = l * 0.22;
+  if (built) {
+    for (let i = 0; i < 7; i++) { const x = -l * 0.7 + i * l * 0.24; a.line([[x, h * 0.4], [x - 14, h * 2.1]], seed + 10 + i, 1.6); }        // the oars
+    a.poly([[-l * 1.05, -h * 0.5], [l * 0.95, -2], [l * 0.8, h], [-l * 0.85, h]], '#a8442a', seed);
+    a.line([[-l * 0.95, h * 0.15], [l * 0.88, h * 0.15]], seed + 1, 1.2);
+    a.poly([[l * 0.92, h * 0.3], [l * 1.3, h * 0.55], [l * 0.86, h * 0.8]], '#c0c6cf', seed + 2, 1.4);                                 // the ram
+    a.line([[0, -2], [0, -l * 0.9]], seed + 3, 2.2);                                                                                     // mast + lateen sail
+    a.blob([[-l * 0.55, -l * 0.2], [l * 0.5, -l * 1.0], [l * 0.2, -l * 0.25]], '#f3eadb', seed + 4);
+    a.line([[-l * 0.6, -l * 0.16], [l * 0.56, -l * 1.04]], seed + 5, 1.8);
+    a.poly([[-l * 1.0, -h * 0.5], [-l * 0.92, -h * 1.6], [-l * 0.7, -h * 0.4]], '#f9c74f', seed + 6, 1.4);                               // the gilded stern lantern
+  } else {
+    a.line([[-l * 0.9, h], [l * 0.85, h]], seed, 3);                                                                                    // keel
+    a.curve([[l * 0.85, h], [l * 0.98, -h * 0.4], [l * 1.04, -h * 1.7]], seed + 1, 2.8);                                                       // stem
+    a.curve([[-l * 0.9, h], [-l * 1.02, -h * 0.4], [-l * 1.1, -h * 1.8]], seed + 2, 2.8);                                                     // sternpost
+    for (let i = 0; i < 9; i++) { const x = -l * 0.78 + i * l * 0.2; a.curve([[x, h], [x - 5, -h * 0.3], [x - 2, -h * 1.5]], seed + 3 + i, 2); }   // ribs
+    a.poly([[-l * 0.98, -h * 0.1], [-l * 0.1, -h * 0.1], [-l * 0.1, h * 0.25], [-l * 0.9, h * 0.75]], rgba(VB_WOOD, 0.95), seed + 20, 1.6);   // first planks on
+    a.line([[-l * 0.98, h * 0.35], [-l * 0.1, h * 0.35]], seed + 21, 1);
+    for (const x of [-l * 0.6, 0, l * 0.6]) a.poly([[x - 6, h], [x + 6, h], [x + 8, h + 14], [x - 8, h + 14]], VB_WOOD2, seed + 30 + x, 1.4);   // the stocks
+  }
+}
+function vbWorker(a, o) {                                                 // an Arsenalotto: red Venetian cap, leather apron, mallet in the right hand
+  kaPerson(a, { body: '#5d7fa8', skin: '#e2a87c', arm: o.arm, head: () => {
+    a.blob([[-13, -78], [-10, -92], [8, -94], [16, -84], [12, -78]], '#d0402f', 5101, 1.8);                                         // the beretta
+    a.curve([[-6, -66], [0, -63], [6, -66]], 5102, 1.4);                                                                              // a grin
+    a.blob([[-9, -64], [-6, -58], [0, -56], [6, -58], [9, -64], [0, -61]], '#6b4a32', 5103, 1.2);                                    // a beard
+  } });
+  a.poly([[-12, -50], [12, -50], [15, -16], [-15, -16]], '#9a6a3e', 5104, 1.6);                                                     // the leather apron
+  a.line([[-12, -50], [-8, -60]], 5105, 1.2); a.line([[12, -50], [8, -60]], 5106, 1.2);
+}
+function vbMallet(a, x, y, rot, s) { a.at(x, y, rot, () => { a.line([[0, 4], [0, -30]], 5110, 2.6); a.rect(-11, -42, 11, -28, 3, VB_WOOD2, 5111, 1.8); }, s); }
+
+// ── Arsenale: the Venetian state shipyard, a galley a day. The towered gate, the long sheds, a galley on the stocks
+ART.arsenale = a => {
+  a.layer(-1, () => a.nim('#f6cfa0'));
+  a.layer(-0.6, () => {                                                                                    // the long covered slipways (the tese)
+    for (let i = 0; i < 4; i++) { const x = -60 + i * 46; a.rect(x, -40, x + 44, 14, 1, VB_BRICK, 5001 + i, 1.6); a.poly([[x - 3, -40], [x + 22, -58], [x + 47, -40]], VB_ROOF, 5010 + i, 1.6); a.rect(x + 10, -24, x + 34, 14, 10, '#3a2618', 5020 + i, 1.2); }
+  });
+  a.layer(-0.3, () => {                                                                                    // the land gate: two crenellated towers, a winged lion in gold
+    for (const x of [-118, -80]) { a.rect(x, -76, x + 26, 30, 1, '#e6d6b8', 5030 + x, 1.8); for (let k = 0; k < 3; k++) a.rect(x + 1 + k * 9, -84, x + 7 + k * 9, -76, 0, '#e6d6b8', 5040 + x + k, 1.2); a.rect(x + 8, -60, x + 18, -44, 5, '#3a3440', 5050 + x, 1.2); }
+    a.rect(-92, -36, -80, 30, 1, '#e6d6b8', 5060, 1.6); a.rect(-110, -20, -80, 30, 14, '#3a2618', 5061, 1.6);
+    a.at(-95, -46, 0, () => { a.blob([[-9, 4], [-8, -6], [0, -10], [8, -6], [9, 4]], '#f6c744', 5062, 1.4); a.poly([[2, -6], [12, -16], [8, -2]], '#f6c744', 5063, 1.2); });
+  });
+  a.layer(0.1, () => { a.fillRect(-130, 50, 130, 110, rgba(VB_SEA, 0.6)); waves(a, 64, 7, 42, 5070); a.poly([[-60, 34], [130, 34], [130, 50], [-70, 50]], '#cdb592', 5071, 1.6); });   // the slip, then the lagoon
+  if (!a.alt) {
+    a.layer(0.3, () => a.at(28, 14, 0, () => { vbGalley(a, 74, false, 5200); a.line([[-76, -24], [80, -26]], 5240, 1.4); }));
+    a.layer(0.5, () => {                                                                                   // the crane, lifting a plank
+      a.line([[112, 34], [112, -86]], 5080, 3); a.line([[112, -86], [62, -80]], 5081, 2.4); a.line([[112, -54], [92, -82]], 5082, 1.6);
+      a.line([[66, -80], [66, -48]], 5083, 1); a.rect(40, -48, 92, -40, 1, VB_WOOD, 5084, 1.6);
+    });
+    a.layer(0.7, () => a.at(-72, 62, 0, () => { vbWorker(a, { arm: [0.4, -2.6] }); vbMallet(a, 23, -80, 0.2); }, 0.7));
+  } else {
+    a.layer(0.3, () => a.at(52, 46, -0.12, () => vbGalley(a, 56, true, 5300)));                            // a finished galley slides into the lagoon
+    a.layer(0.5, () => { for (let i = 0; i < 3; i++) a.line([[-20 - i * 6, 10 + i * 10], [8 - i * 6, 16 + i * 10]], 5320 + i, 1.2); a.puff(110, 62, 8, 5325, '#e6f2fb'); a.puff(-4, 62, 6, 5326, '#e6f2fb'); });
+    a.layer(0.8, () => {                                                                                   // and a new Arsenalotto marches out of the gate
+      a.star(-62, -2, 18, '#ffe08a', 5330);
+      a.at(-62, 64, 0.05, () => { vbWorker(a, { arm: [0.6, -2.6] }); vbMallet(a, 23, -80, 0.2); }, 0.6);
+    });
+  }
+};
+
+// ── Arsenalotto: a shipwright of the Arsenale (the token), mallet up, standing in front of a galley's ribs
+ART.arsenalotto = a => {
+  a.layer(-1, () => a.nim('#f2d9b0'));
+  a.layer(-0.6, () => { for (const x of [-110, 84]) { a.rect(x, -70, x + 24, 20, 1, '#e6d6b8', 5400 + x, 1.6); for (let k = 0; k < 3; k++) a.rect(x + 1 + k * 8, -78, x + 7 + k * 8, -70, 0, '#e6d6b8', 5410 + x + k, 1); } });
+  a.layer(-0.3, () => {                                                                                    // the ribs of a galley behind him
+    a.line([[-120, 40], [120, 40]], 5420, 3);
+    for (let i = 0; i < 9; i++) { const x = -104 + i * 26; a.curve([[x, 40], [x - 8, -6], [x - 4, -46]], 5421 + i, 2); }
+    a.line([[-120, -34], [120, -40]], 5440, 1.6);
+  });
+  a.layer(0, () => { a.fillRect(-130, 40, 130, 110, rgba('#cdb592', 0.9)); for (let i = 0; i < 9; i++) a.curve([[-110 + i * 27, 66 + (i % 3) * 8], [-104 + i * 27, 62 + (i % 3) * 8], [-98 + i * 27, 67 + (i % 3) * 8]], 5450 + i, 1.2); });   // the shavings on the floor
+  if (!a.alt) {
+    a.layer(0.5, () => a.at(-4, 86, 0, () => {
+      vbWorker(a, { arm: [0.5, -2.6] }); vbMallet(a, 23, -80, 0.2);
+      a.at(-22, -30, 0.5, () => { a.line([[0, 0], [0, 22]], 5460, 2.4); a.poly([[-2, 20], [12, 20], [14, 28], [-2, 26]], '#c0c6cf', 5461, 1.4); });   // the adze, hanging from his belt
+    }, 1.42));
+  } else {
+    a.layer(0.4, () => { a.rect(86, -22, 130, -8, 1, VB_WOOD, 5470, 1.8); a.dot(98, -15, 2.4, INK); a.dot(112, -15, 2.4, INK); });         // a new plank, pinned to the ribs
+    a.layer(0.5, () => a.at(-24, 86, 0, () => {
+      vbWorker(a, { arm: [0.5, -2.0] }); vbMallet(a, 35, -70, 1.57);
+    }, 1.42));
+    a.layer(0.8, () => { a.star(88, -40, 14, '#ffe08a', 5480); for (let i = 0; i < 4; i++) a.rect(96 + i * 7, -50 - i * 9, 102 + i * 7, -46 - i * 9, 1, '#e8c890', 5481 + i, 1); });   // BONK, chips fly
+  }
+};
+
+// ── Palaestra: the Greek wrestling school. A colonnade round a sand court, two wrestlers at grips, the trainer with his forked rod
+ART.palaestra = a => {
+  a.layer(-1, () => a.nim('#f6e3a8'));
+  a.layer(-0.6, () => {
+    a.rect(-130, -62, 130, -50, 1, '#efe6d2', 5500, 1.8); a.rect(-130, -50, 130, -44, 0, '#d9c9a8', 5501, 1.2);
+    for (let i = 0; i < 9; i++) { const x = -118 + i * 30; a.rect(x, -44, x + 10, 14, 1, '#f3ead8', 5510 + i, 1.6); a.rect(x - 2, -48, x + 12, -44, 0, '#e6d6b8', 5520 + i, 1); }
+    a.fillRect(-130, -44, 130, 14, rgba('#c9b088', 0.25));
+  });
+  a.layer(-0.2, () => { a.fillRect(-130, 14, 130, 110, rgba('#e8cf98', 0.95)); a.curve([[-130, 14], [0, 10], [130, 15]], 5530, 1.4); });   // the sand
+  const SK = '#d99a6a', LOIN = '#f3eadb';
+  if (!a.alt) {
+    a.layer(0.4, () => {                                                                                   // two wrestlers locked at the shoulders
+      a.at(-30, 78, 0.32, () => { kaPerson(a, { body: SK, skin: SK, arm: [0.4, -1.6] }); a.rect(-16, -30, 16, -22, 2, LOIN, 5540, 1.4); }, 0.95);
+      a.at(30, 78, -0.32, () => { kaPerson(a, { body: '#c98a5a', skin: '#c98a5a', arm: [1.6, -0.4], head: () => a.blob([[-12, -80], [-8, -88], [8, -88], [12, -80], [0, -84]], '#3a2618', 5541, 1.4) }); a.rect(-16, -30, 16, -22, 2, LOIN, 5542, 1.4); }, 0.95);
+      for (let i = 0; i < 3; i++) a.puff(-40 + i * 40, 76, 6 + (i % 2) * 3, 5545 + i, '#f0dcae');
+    });
+    a.layer(0.7, () => a.at(98, 80, 0, () => {                                                             // the trainer (paidotribes): beard, cloak, forked rod
+      kaPerson(a, { body: '#7f5ea8', skin: '#e9b48e', arm: [0.3, -0.3], head: () => a.blob([[-10, -68], [-6, -56], [0, -52], [6, -56], [10, -68], [0, -64]], '#f3f0e8', 5550, 1.2) });
+      a.line([[18, -26], [12, -104]], 5551, 2); a.line([[12, -104], [6, -116]], 5552, 1.6); a.line([[12, -104], [18, -116]], 5553, 1.6);
+    }, 0.62));
+  } else {
+    a.layer(0.4, () => a.at(-8, 80, 0, () => {                                                             // the winner flexes: +1 attack, +1 defence
+      kaPerson(a, { body: SK, skin: SK, arm: [2.6, -2.6], head: () => { a.curve([[-12, -80], [0, -90], [12, -80]], 5560, 2.2); for (let k = 0; k < 4; k++) a.blob([[-12 + k * 7, -82 - (k % 2) * 4], [-8 + k * 7, -88 - (k % 2) * 4], [-6 + k * 7, -82 - (k % 2) * 4]], '#7fb069', 5561 + k, 1); } });   // an olive wreath
+      a.rect(-16, -30, 16, -22, 2, LOIN, 5565, 1.4);
+      for (const s of [-1, 1]) a.circ(s * 20, -76, 6, 5, SK, 5566 + s, 1.6);                              // the biceps
+    }, 1.0));
+    a.layer(0.6, () => a.at(86, 74, 0, () => { a.blob([[-22, 0], [-18, -20], [18, -20], [22, 0]], '#c98a5a', 5570); a.circ(0, -30, 12, 12, '#c98a5a', 5571); a.dot(-4, -32, 1.4); a.dot(4, -32, 1.4); for (let i = 0; i < 3; i++) a.star(-12 + i * 12, -50 - (i % 2) * 6, 4, '#ffe08a', 5572 + i); }, 0.9));   // the other one, sitting in the sand, seeing stars
+    a.layer(0.9, () => { vbCoin(a, -62, -62, '+1', 5580); vbCoin(a, 46, -62, '+1', 5581); });
+  }
+};
+
+// ── Fondaco: the German merchants' warehouse on the Grand Canal (Fondaco dei Tedeschi). Arcade at the water, goods piling up
+ART.fondaco = a => {
+  a.layer(-1, () => a.nim('#f8d8b0'));
+  a.layer(-0.4, () => {
+    a.rect(-96, -62, 96, 40, 1, '#e8b494', 5600);
+    for (let k = 0; k < 12; k++) a.rect(-94 + k * 16, -72, -86 + k * 16, -62, 0, '#e8b494', 5601 + k, 1.2);                  // the merlons on the roofline
+    for (let r = 0; r < 2; r++) for (let k = 0; k < 7; k++) a.rect(-82 + k * 25, -52 + r * 24, -72 + k * 25, -36 + r * 24, 5, '#3a3440', 5620 + r * 10 + k, 1.2);
+    for (let k = 0; k < 5; k++) a.rect(-84 + k * 36, 10, -60 + k * 36, 40, 12, '#3a2618', 5640 + k, 1.4);                     // the arcade at the water
+  });
+  a.layer(-0.1, () => { a.line([[96, -40], [118, -40]], 5650, 2.2); a.line([[114, -40], [114, -8]], 5651, 1); a.rect(104, -8, 124, 8, 2, '#c9a46a', 5652, 1.4); a.line([[104, 0], [124, 0]], 5653, 1); });   // a bale on the hoist
+  a.layer(0.2, () => { a.fillRect(-130, 40, 130, 110, rgba(VB_SEA, 0.65)); waves(a, 58, 7, 42, 5660); waves(a, 84, 6, 50, 5661); });
+  const pile = () => {                                                                                     // the goods piling up on the quay and the barge
+    a.at(18, 60, 0, () => {
+      a.blob([[-66, -8], [66, -8], [56, 10], [-56, 10]], VB_WOOD2, 5670);                                  // the barge
+      a.rect(-50, -28, -24, -8, 2, '#c9a46a', 5671, 1.6); a.line([[-50, -18], [-24, -18]], 5672, 1);
+      a.circ(-8, -18, 10, 10, '#b5814f', 5673, 1.6); a.line([[-16, -18], [0, -18]], 5674, 1);
+      a.blob([[8, -8], [10, -26], [26, -28], [30, -8]], '#e6d6b8', 5675, 1.6); a.blob([[30, -8], [34, -22], [48, -22], [50, -8]], '#d9c6a0', 5676, 1.6);
+      a.rect(-40, -44, -16, -28, 2, '#e0503a', 5677, 1.4);                                                 // a crate of red dye on top
+    });
+  };
+  a.layer(0.35, () => {                                                                                    // and on the quay, stacked to the arches
+    a.rect(-130, 36, 130, 44, 0, '#d9c9a8', 5695, 1.4);
+    for (let k = 0; k < 3; k++) a.rect(-118 + k * 16, 20 - (k % 2) * 4, -104 + k * 16, 36, 1, '#c9a46a', 5696 + k, 1.4);
+    a.rect(-112, 4, -92, 20, 1, '#e0503a', 5699, 1.4);
+    for (let k = 0; k < 3; k++) a.circ(92 + k * 13, 28, 7, 8, '#b5814f', 5700 + k, 1.4); a.circ(98, 13, 7, 8, '#b5814f', 5703, 1.4); a.circ(111, 13, 7, 8, '#b5814f', 5704, 1.4);
+  });
+  a.layer(0.5, pile);
+  if (a.alt) a.layer(0.9, () => {                                                                          // the income grows each turn: +1, +2, +3
+    [[-66, 1], [0, 2], [66, 3]].forEach(([x, n]) => {
+      for (let k = 0; k < n * 2; k++) a.rect(x - 14, -2 - k * 7, x + 14, 5 - k * 7, 3, '#f6c744', 5680 + x + k, 1.4);
+      vbCoin(a, x, -24 - n * 14, '+' + n, 5690 + n);
+    });
+  });
+};
+
+// ── Kontor: a Hanseatic trading post (Bergen's Bryggen). Gabled wooden houses on the quay, a cog moored, a counting table
+ART.kontor = a => {
+  a.layer(-1, () => a.nim('#cfe0f0'));
+  a.layer(-0.7, () => { a.blob([[-130, -20], [-90, -66], [-50, -40], [-10, -76], [40, -36], [90, -70], [130, -30]], '#9fb8a0', 5700, 1.6); });   // the fjord hills
+  a.layer(-0.3, () => {                                                                                    // the row of gables
+    const C = ['#b8432f', '#d9a441', '#efe2c4', '#b8432f'];
+    C.forEach((c, i) => { const x = -122 + i * 36; a.rect(x, -34, x + 34, 34, 1, c, 5710 + i, 1.8); a.poly([[x - 2, -34], [x + 17, -64], [x + 36, -34]], c, 5720 + i, 1.8); a.poly([[x + 6, -40], [x + 17, -58], [x + 28, -40]], null, 5730 + i, 1);
+      a.rect(x + 11, -24, x + 23, -10, 1, '#3a3440', 5740 + i, 1.2); a.rect(x + 10, 10, x + 24, 34, 1, '#3a2618', 5750 + i, 1.2); });
+  });
+  a.layer(0, () => { a.fillRect(-130, 34, 130, 110, rgba('#3f6e98', 0.7)); a.rect(-130, 34, 60, 44, 0, VB_WOOD, 5760, 1.6); for (let i = 0; i < 6; i++) a.line([[-110 + i * 32, 44], [-110 + i * 32, 66]], 5761 + i, 2); waves(a, 80, 7, 42, 5770); });   // the quay on its piles
+  a.layer(0.3, () => a.at(76, 42, 0.03, () => {                                                            // the cog: round hull, one square sail, a castle at the stern
+    a.blob([[-44, -14], [-30, -4], [30, -4], [44, -18], [32, 14], [-32, 14]], VB_WOOD2, 5780); a.line([[-36, 2], [36, 2]], 5788, 1);
+    a.rect(-36, -22, -18, -8, 1, VB_WOOD, 5781, 1.4);
+    a.line([[2, -8], [2, -96]], 5782, 2.4); a.line([[-22, -88], [26, -88]], 5783, 2);
+    a.blob([[-20, -88], [24, -88], [28, -64], [24, -40], [-20, -40], [-16, -64]], '#efe2c4', 5784, 1.8); a.line([[-20, -72], [24, -72]], 5785, 1.2); a.line([[-20, -56], [24, -56]], 5786, 1.2);
+    a.poly([[2, -96], [18, -92], [2, -88]], '#e53935', 5787, 1);
+  }, 0.9));
+  a.layer(0.6, () => a.at(-24, 40, 0, () => {                                                              // the counting table and the merchant in his fur hat
+    kaPerson(a, { body: '#2f4f6f', skin: '#e9b48e', arm: [0.9, -0.9], head: () => a.blob([[-14, -80], [-12, -94], [12, -94], [14, -80]], '#6b4a32', 5790, 1.6) });
+    a.rect(-40, -34, 40, -26, 1, VB_WOOD2, 5791, 1.6); a.line([[-34, -26], [-34, 0]], 5792, 2); a.line([[34, -26], [34, 0]], 5793, 2);
+    for (let k = 0; k < 3; k++) a.circ(-28 + k * 6, -38 - k * 3, 5, 2, VB_GOLD, 5794 + k, 1);
+    a.line([[20, -54], [20, -36]], 5797, 1.2); a.line([[10, -54], [30, -54]], 5798, 1.2); a.curve([[8, -54], [10, -46], [14, -54]], 5799, 1); a.curve([[26, -54], [30, -46], [32, -54]], 5800, 1);   // the scales
+  }, 0.62));
+  if (a.alt) a.layer(0.9, () => {                                                                          // the price tag gets knocked down by 1
+    a.at(-62, -44, -0.35, () => {
+      a.poly([[-28, -16], [22, -16], [34, 0], [22, 16], [-28, 16]], PAPER, 5810, 1.8); a.circ(22, 0, 3, 3, null, 5811, 1.2);
+      vbLabel(a, -4, 1, '−1', 18);
+    });
+    a.curve([[-30, -42], [-10, -60], [20, -66]], 5812, 1.2);
+    for (let i = 0; i < 3; i++) a.line([[-96 + i * 10, -14], [-90 + i * 10, -2]], 5813 + i, 1.2);
+    a.poly([[-70, 0], [-56, 0], [-63, 12]], '#e53935', 5816, 1.4);                                         // down it goes
+    vbMallet(a, -4, -60, -1.3, 0.9);
+  });
+};
+
+// ── art/v3-reach.js
+// v3-reach: the reach keywords (11-23). FLANK, VOLLEY, PIERCE, BANNER, ALLY. 🆕 every picture is Claude's, for Mook's tick (v3-reach.ticks.md).
+// Each picture draws the Wikipedia article its name comes from. Second picture (a.alt) = the keyword's moment.
+
+// ── shared pieces
+function vrWheel(a, x, y, r, fill, seed) {                                // a spoked cart wheel
+  a.circ(x, y, r, r, fill || '#a8744f', seed, 2);
+  for (let i = 0; i < 4; i++) { const an = i * Math.PI / 4 + 0.2; a.line([[x - Math.cos(an) * r * 0.85, y - Math.sin(an) * r * 0.85], [x + Math.cos(an) * r * 0.85, y + Math.sin(an) * r * 0.85]], seed + 1 + i, 1.2); }
+  a.circ(x, y, r * 0.22, r * 0.22, '#5a3a24', seed + 6, 1.2);
+}
+function vrHorse(a, col, run, seed) {                                     // a cartoon horse facing right, hooves on y = 0
+  a.curve([[-28, -36], [-44, -26], [-42, -10]], seed + 1, 2.2);                                                   // tail
+  for (const [x, k] of [[-20, 0], [-10, 1], [12, 2], [22, 3]]) { const sw = run ? (k % 2 ? 7 : -7) : 0; a.line([[x, -22], [x + sw, 0]], seed + 2 + k, 2.8); }
+  a.blob([[-30, -26], [-26, -46], [20, -48], [30, -30], [22, -20], [-24, -20]], col, seed + 6);                // body
+  a.blob([[16, -42], [26, -66], [34, -72], [48, -62], [46, -54], [36, -56], [30, -36]], col, seed + 7);        // neck and head
+  a.curve([[24, -64], [18, -54], [16, -44]], seed + 8, 2.6);                                                     // mane
+  a.dot(38, -64, 1.8); a.dot(46, -58, 1.2);
+}
+function vrReiter(a, fire, seed) {                                        // a pistol horseman in black armour, morion on his head, pistol forward
+  a.blob([[-10, 0], [-12, -26], [10, -28], [12, 0]], '#3c414c', seed);                                          // the blackened cuirass
+  a.poly([[-11, -14], [11, -19], [11, -14], [-11, -9]], '#d23b3b', seed + 1, 1.2);                               // red sash
+  a.circ(0, -36, 9, 9, '#f0c8a0', seed + 2); a.dot(4, -37, 1.5);
+  a.blob([[-12, -38], [-8, -46], [0, -50], [8, -46], [12, -38], [0, -42]], '#c4cad3', seed + 3, 1.8);           // the morion
+  a.blob([[-3, -48], [0, -56], [4, -48]], '#c4cad3', seed + 4, 1.4);                                              // its comb
+  a.line([[6, -20], [22, fire ? -26 : -18]], seed + 5, 2.6);                                                     // the arm
+  a.at(22, fire ? -26 : -18, fire ? -0.25 : 0, () => { a.rect(0, -3, 12, 1, 1, '#5a3a24', seed + 6, 1.2); a.line([[2, 0], [0, 6]], seed + 7, 2); });   // a wheel-lock pistol
+}
+function vrRider(a, x, y, s, col, fire, run, seed) { a.at(x, y, 0, () => { vrHorse(a, col, run, seed); a.at(-2, -40, 0, () => vrReiter(a, fire, seed + 20)); a.line([[0, -38], [-4, -24]], seed + 30, 2.6); }, s); }
+function vrBang(a, x, y, s, seed) { a.at(x, y, 0, () => { a.puff(0, 0, 8, seed); a.puff(10, -4, 6, seed + 1); a.puff(6, 6, 5, seed + 2); a.star(-4, 0, 6, '#ffb347', seed + 3); }, s); }
+
+// ── Caracole: pistol cavalry riding in a wheel. Each rank rides up, fires, and peels away round the back to reload
+ART.caracole = a => {
+  a.layer(-1, () => a.nim('#f2d9a0'));
+  a.layer(-0.5, () => { a.blob([[-130, -10], [-80, -30], [-30, -18], [20, -34], [80, -20], [130, -32], [130, 0], [-130, 0]], '#b9c99a', 3001, 1.4); });   // far hills
+  a.layer(-0.3, () => { a.fillRect(-130, -4, 130, 110, rgba('#c9b27a', 0.55)); a.curve([[-130, -4], [-40, -8], [40, -2], [130, -6]], 3002, 1.4); });
+  if (!a.alt) {
+    a.layer(0, () => {                                                                                    // the wheel: a dashed loop on the ground
+      a.g.save(); if (!ST.holo) a.g.setLineDash([6, 6]); a.curve([[60, 40], [20, 64], [-50, 60], [-86, 30], [-60, 6], [0, 6], [40, 18]], 3010, 1.6); a.g.restore();
+      a.poly([[40, 18], [30, 10], [30, 24]], INK, 3011, 1.2);
+    });
+    a.layer(0.1, () => vrRider(a, -64, 18, 0.62, '#8a6a4a', false, true, 3020));                       // the back rank, reloading round the loop
+    a.layer(0.3, () => vrRider(a, -14, 44, 0.78, '#d8c8a8', false, true, 3060));
+    a.layer(0.6, () => vrRider(a, 46, 74, 0.95, '#5a4a40', true, true, 3100));                         // the front rank fires
+    a.layer(0.8, () => { vrBang(a, 92, 34, 1, 3140); a.curve([[100, 30], [112, 24], [120, 20]], 3145, 1.4); });
+  } else {                                                                                                // FLANK: the wheel swings out and fires into the NEXT lane
+    a.layer(0, () => { a.g.save(); if (!ST.holo) a.g.setLineDash([7, 6]); a.line([[48, -96], [48, 96]], 3150, 2); a.g.restore(); });   // the lane line
+    a.layer(0.2, () => { a.at(96, 40, 0, () => { a.rect(-14, -40, 14, 0, 2, '#e8d6a8', 3160); a.circ(0, -22, 9, 9, '#e53935', 3161, 1.4); a.circ(0, -22, 4, 4, CREAM, 3162, 1); a.line([[-6, 0], [-10, 14]], 3163, 2); a.line([[6, 0], [10, 14]], 3164, 2); }); });   // a target in the next lane over
+    a.layer(0.4, () => { a.g.save(); if (!ST.holo) a.g.setLineDash([5, 5]); a.curve([[-90, 70], [-40, 86], [10, 70], [30, 40]], 3170, 1.8); a.g.restore(); a.poly([[30, 36], [20, 44], [34, 48]], INK, 3171, 1.2); });   // the wheel, turning out
+    [[-70, 26, 0.6, '#8a6a4a', 3180], [-40, 58, 0.72, '#d8c8a8', 3220], [-6, 92, 0.86, '#5a4a40', 3260]].forEach(([x, y, s, c, sd], i) => a.layer(0.3 + i * 0.2, () => {
+      vrRider(a, x, y, s, c, true, false, sd); vrBang(a, x + 48 * s, y - 62 * s, 0.7, sd + 40);
+    }));
+    a.layer(0.9, () => { for (let i = 0; i < 3; i++) { const y = -24 + i * 22; a.dot(56 + i * 8, y + 2, 2.6); a.line([[30 + i * 8, y + 6], [50 + i * 8, y + 3]], 3300 + i, 1); } });   // three balls cross the line
+  }
+};
+
+// ── Hwacha: the Joseon rocket cart. A honeycomb of a hundred fire-arrows, one fuse
+function vrHwacha(a, fired, seed) {                                       // the cart, wheels on y = 0, launcher tilted up to the right
+  a.poly([[-50, -24], [40, -24], [36, -16], [-46, -16]], '#a8744f', seed, 2);                                  // the bed
+  a.line([[-46, -22], [-74, -6]], seed + 1, 2.6); a.line([[-74, -6], [-80, -8]], seed + 2, 2.6);                // the handles
+  vrWheel(a, -26, -10, 14, '#b88a5a', seed + 10); vrWheel(a, 22, -10, 14, '#b88a5a', seed + 20);
+  a.at(-6, -26, -0.42, () => {                                                                           // the launcher box
+    a.rect(-40, -44, 40, 0, 3, '#c99b6c', seed + 30, 2.2);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 7; c++) {
+      const x = -32 + c * 10.5, y = -36 + r * 10;
+      if (fired) a.circ(x, y, 3, 3, '#3a2618', seed + 40 + r * 7 + c, 0.8);
+      else { a.line([[x, y], [x + 18, y]], seed + 40 + r * 7 + c, 1); a.rect(x + 8, y - 2, x + 15, y + 2, 1, '#e8d6a8', seed + 80 + r * 7 + c, 0.8); }   // arrow, with its powder tube
+    }
+    if (!fired) for (let r = 0; r < 4; r++) a.poly([[48 + 2, -36 + r * 10], [44, -39 + r * 10], [44, -33 + r * 10]], '#c0c6cf', seed + 120 + r, 0.8);
+  });
+}
+function vrGat(a, x, y, s, torch, seed) {                                // a Joseon gunner in a black gat (the wide horsehair hat)
+  a.at(x, y, 0, () => {
+    a.line([[-6, 0], [-6, -20]], seed, 3); a.line([[6, 0], [6, -20]], seed + 1, 3);
+    a.blob([[-14, -16], [-12, -46], [12, -46], [14, -16]], '#e8ecf0', seed + 2);                              // white robe
+    a.line([[-12, -30], [12, -30]], seed + 3, 2);
+    a.circ(0, -56, 10, 10, '#f0c8a0', seed + 4); a.dot(-3, -57, 1.4); a.dot(3, -57, 1.4); a.curve([[-3, -51], [0, -50], [3, -51]], seed + 5, 1);
+    a.circ(0, -64, 20, 3.5, '#2a2630', seed + 6, 1.4); a.rect(-7, -78, 7, -64, 3, '#2a2630', seed + 7, 1.4);   // the gat
+    a.line([[10, -40], [28, torch ? -50 : -38]], seed + 8, 2.6);
+    if (torch) { a.line([[28, -50], [34, -64]], seed + 9, 2.4); a.blob([[30, -64], [34, -76], [40, -66], [36, -60]], '#ffb347', seed + 10, 1.4); }
+    else { a.curve([[-10, -40], [-20, -30], [-16, -22]], seed + 11, 2.6); }
+  }, s);
+}
+ART.hwacha = a => {
+  a.layer(-1, () => a.nim('#f6c9a0'));
+  a.layer(-0.6, () => { a.blob([[-130, 10], [-96, -40], [-70, -14], [-40, -56], [-6, -10], [30, -30], [60, 0], [130, 0], [130, 20], [-130, 20]], '#a8b8c8', 3401, 1.4); });   // the mountains
+  a.layer(-0.3, () => { a.fillRect(-130, 30, 130, 110, rgba('#b5a080', 0.6)); a.curve([[-130, 32], [-30, 26], [50, 34], [130, 28]], 3402, 1.4); });
+  const kick = a.alt ? -8 : 0;
+  a.layer(0.3, () => a.at(-8 + kick, 78, a.alt ? 0.04 : 0, () => vrHwacha(a, a.alt, 3410), 1.05));
+  if (!a.alt) {
+    a.layer(0.6, () => vrGat(a, -74, 58, 0.72, true, 3600));
+    a.layer(0.7, () => { a.curve([[-50, 18], [-44, 10], [-36, 16]], 3620, 1.2); a.star(-34, 14, 5, '#ffd34d', 3621); });   // the fuse fizzing
+  } else {                                                                                                  // VOLLEY: the fan of fire-arrows
+    a.layer(0.5, () => { a.puff(24, 22, 9, 3630); a.puff(34, 6, 8, 3631); a.puff(14, 34, 7, 3632); });
+    a.layer(0.8, () => {
+      for (let i = 0; i < 7; i++) {
+        const an = -1.05 + i * 0.14, x0 = 34, y0 = 16, r0 = 40 + (i % 2) * 16, r1 = r0 + 30;
+        const p0 = [x0 + Math.cos(an) * r0 * 1.1, y0 + Math.sin(an) * r0], p1 = [x0 + Math.cos(an) * r1 * 1.1, y0 + Math.sin(an) * r1];
+        a.g.save(); if (!ST.holo) a.g.globalAlpha = 0.85; a.curve([[x0 + Math.cos(an) * 16, y0 + Math.sin(an) * 14], p0], 3640 + i, 3.4); a.g.restore();
+        a.at(p0[0], p0[1], an, () => { a.blob([[-14, -3], [-4, -4], [0, 0], [-4, 4], [-14, 3], [-10, 0]], '#ffb347', 3660 + i, 1); });   // the flame
+        a.line([p0, p1], 3680 + i, 1.4); a.at(p1[0], p1[1], an, () => a.poly([[6, 0], [-2, -3], [-2, 3]], '#c0c6cf', 3700 + i, 0.8));
+      }
+    });
+    a.layer(0.6, () => vrGat(a, -74, 58, 0.72, false, 3600));                                                 // fingers in his ears
+  }
+};
+
+// ── Corvus: the Roman boarding bridge, a plank on a pole with an iron spike like a raven's beak. Rowed through space
+function vrGalley(a, seed) {                                              // a Roman galley facing right, deck on y = 0
+  a.poly([[-80, 0], [56, 0], [70, -4], [62, 12], [42, 22], [-66, 22], [-80, 10]], '#a0623a', seed, 2.2);        // hull
+  a.curve([[-80, 4], [-92, -12], [-86, -30], [-76, -26]], seed + 1, 3);                                            // the curled stern
+  a.poly([[62, 12], [84, 14], [62, 20]], '#c9a24a', seed + 2, 1.6);                                                // bronze ram
+  a.circ(48, 8, 5, 4, CREAM, seed + 3, 1.2); a.dot(49, 8, 1.8);                                                    // the painted eye
+  a.rect(-74, 4, 46, 9, 1, '#e0b84a', seed + 4, 1);
+  for (let i = 0; i < 6; i++) { const x = -60 + i * 18; a.line([[x, 16], [x - 10 - (i % 2) * 4, 36]], seed + 10 + i, 1.6); }   // oars, rowing nothing
+  a.line([[-30, 0], [-30, -62]], seed + 20, 2.4); a.rect(-56, -58, -4, -18, 2, '#c62828', seed + 21, 1.8);         // mast and red sail
+  a.line([[-30, -58], [-30, -18]], seed + 22, 1);
+}
+function vrLegion(a, x, y, s, seed) {                                     // a tiny legionary: red crest, big red shield
+  a.at(x, y, 0, () => { a.line([[-3, 0], [-4, -8]], seed, 2); a.line([[3, 0], [4, -8]], seed + 1, 2); a.circ(0, -18, 6, 6, '#f0c8a0', seed + 2, 1.4); a.blob([[-6, -20], [0, -27], [6, -20]], '#c0c6cf', seed + 3, 1.2); a.blob([[-5, -26], [0, -33], [5, -26]], '#c62828', seed + 4, 1); a.rect(2, -16, 12, 2, 2, '#c62828', seed + 5, 1.4); a.dot(7, -7, 1.4, '#e0b84a'); }, s);
+}
+function vrCorvus(a, ang, seed) {                                         // the bridge from its pivot at (0, 0), length 78; ang = its angle
+  a.at(0, 0, ang, () => {
+    a.rect(0, -5, 78, 3, 1, '#c99b6c', seed, 2); for (let i = 1; i < 6; i++) a.line([[i * 13, -5], [i * 13, 3]], seed + i, 0.8);
+    a.line([[4, -5], [4, -13]], seed + 7, 1); a.line([[4, -13], [74, -13]], seed + 8, 1); a.line([[74, -13], [74, -5]], seed + 9, 1);   // its railing
+    a.blob([[70, -8], [84, -12], [90, -2], [84, 4], [72, 4]], '#3a3440', seed + 10, 1.8);                     // the raven's head
+    a.poly([[84, 2], [94, 26], [80, 4]], '#9aa3ad', seed + 11, 1.6);                                          // the iron beak (the spike)
+    a.dot(82, -4, 2, CREAM); a.dot(82.6, -4, 1);
+  });
+}
+ART.corvus = a => {
+  a.layer(-1, () => a.nim('#c9c0ee'));
+  a.layer(-0.7, () => { planet(a, 96, -70, 18, '#e8a070', 3801); for (let i = 0; i < 8; i++) a.star(-120 + H2(i, 31) * 200, -94 + H2(i, 33) * 50, 2 + H2(i, 35) * 3, '#ffe08a', 3802 + i); });
+  if (!a.alt) {
+    a.layer(0.1, () => a.at(84, 44, 0.05, () => { a.g.scale(-1, 1); ship(a, { len: 40, ports: 2, flagCol: '#2a2630' }); }, 0.85));   // the pirates, not worried yet
+    a.layer(0.4, () => a.at(-36, 40, 0, () => {
+      vrGalley(a, 3820);
+      a.line([[34, 0], [34, -78]], 3850, 2.6); a.line([[34, -78], [52, -52]], 3851, 1); a.line([[34, -78], [60, -56]], 3852, 1);   // the pole and its ropes
+      a.at(30, -4, 0, () => vrCorvus(a, -1.0, 3860));                                                          // the corvus, raised
+      vrLegion(a, -6, 0, 0.9, 3880); vrLegion(a, 10, 0, 0.9, 3890);
+    }, 0.92));
+  } else {                                                                                                    // PIERCE: down it comes, through the front ship and into the one behind
+    a.layer(0.0, () => a.at(94, -8, -0.1, () => { a.g.scale(-1, 1); ship(a, { len: 30, ports: 2, flagCol: '#2a2630' }); }, 0.7));   // the ship BEHIND
+    a.layer(0.2, () => a.at(82, 60, 0.14, () => { a.g.scale(-1, 1); ship(a, { len: 40, ports: 2, flagCol: '#2a2630' }); }, 0.8));
+    a.layer(0.4, () => a.at(-44, 44, 0.04, () => {
+      vrGalley(a, 3820);
+      a.line([[34, 0], [34, -78]], 3850, 2.6); a.line([[34, -78], [80, 6]], 3851, 1);
+      a.at(30, -4, 0, () => vrCorvus(a, 0.22, 3860));                                                          // slammed down
+      vrLegion(a, 46, -2, 0.85, 3880); vrLegion(a, 66, 2, 0.85, 3890);                                       // over they go
+    }, 0.92));
+    a.layer(0.7, () => { a.star(64, 52, 15, '#ffd34d', 3900); a.g.save(); if (!ST.holo) a.g.setLineDash([4, 4]); a.line([[70, 44], [92, 6]], 3901, 1.6); a.g.restore(); a.star(94, 0, 11, '#ffb347', 3905); });   // CLANG, and through
+  }
+};
+
+// ── Carroccio: the city's war-wagon. A red cart pulled by white oxen, carrying the banner, an altar and the bell
+function vrOx(a, x, y, s, seed) {                                         // a white ox facing left, hooves on y = 0
+  a.at(x, y, 0, () => {
+    for (const [lx, k] of [[-18, 0], [-8, 1], [14, 2], [22, 3]]) a.line([[lx, -18], [lx, 0]], seed + k, 3);
+    a.blob([[-26, -20], [-24, -44], [24, -44], [30, -22], [24, -16], [-22, -16]], '#f3eadb', seed + 5);
+    a.curve([[28, -36], [38, -26], [36, -12]], seed + 6, 2);
+    a.blob([[-22, -42], [-38, -46], [-46, -34], [-44, -24], [-30, -22], [-24, -30]], '#f3eadb', seed + 7);       // head
+    a.blob([[-48, -32], [-46, -24], [-38, -22], [-38, -30]], '#e8b0a0', seed + 8, 1.4);                            // snout
+    a.curve([[-30, -46], [-34, -56], [-26, -60]], seed + 9, 2.2); a.curve([[-38, -46], [-46, -54], [-52, -52]], seed + 10, 2.2);   // horns
+    a.dot(-36, -38, 1.8); a.dot(-44, -28, 1.1);
+  }, s);
+}
+ART.carroccio = a => {
+  a.layer(-1, () => a.nim(a.alt ? '#ffe08a' : '#f0d8b0'));
+  a.layer(-0.5, () => { for (let i = 0; i < 4; i++) { const x = -120 + i * 34; a.rect(x, -30 - (i % 2) * 16, x + 26, 20, 1, '#e6d6b8', 4001 + i, 1.4); a.poly([[x - 2, -30 - (i % 2) * 16], [x + 13, -44 - (i % 2) * 16], [x + 28, -30 - (i % 2) * 16]], '#b5603a', 4010 + i, 1.2); } });   // the city behind
+  a.layer(-0.3, () => { a.fillRect(-130, 24, 130, 110, rgba('#9fbf72', 0.6)); a.curve([[-130, 26], [-30, 20], [60, 28], [130, 22]], 4020, 1.4); });
+  a.layer(0.2, () => {                                                                                        // the oxen, facing right, and the pole
+    a.line([[-14, 58], [50, 50]], 4071, 2.6);
+    for (const [x, y, s, sd] of [[38, 76, 0.84, 4030], [62, 88, 0.88, 4050]]) a.at(x, y, 0, () => { a.g.scale(-1, 1); vrOx(a, 0, 0, 1, sd); }, s);
+    a.line([[60, 36], [92, 46]], 4070, 3);                                                                    // the yoke
+  });
+  a.layer(0.4, () => a.at(-40, 78, 0, () => {
+    a.rect(-50, -40, 50, -16, 2, '#c62828', 4100, 2.2); for (let i = 0; i < 4; i++) a.line([[-30 + i * 20, -40], [-30 + i * 20, -16]], 4101 + i, 1);   // the red wagon
+    vrWheel(a, -30, -12, 14, '#a8744f', 4110); vrWheel(a, 30, -12, 14, '#a8744f', 4120);
+    a.rect(-44, -58, -14, -40, 2, '#f3eadb', 4130, 1.6); a.line([[-29, -70], [-29, -58]], 4131, 1.6); a.line([[-35, -66], [-23, -66]], 4132, 1.6);   // the altar and its cross
+    a.line([[10, -40], [10, -164]], 4140, 3);                                                                // the mast
+    a.line([[10, -60], [40, -60]], 4141, 1.8); a.blob([[30, -60], [26, -48], [40, -46], [36, -60]], '#e0b84a', 4142, 1.4); a.dot(33, -45, 1.6);   // the Martinella, the bell
+    const wave = a.alt ? 6 : 0;
+    a.blob([[10, -164], [80 + wave, -160], [74, -140 - wave], [84 + wave, -120], [10, -116]], CREAM, 4150);  // the city's banner: red cross on white
+    a.rect(10, -144, 78, -136, 1, '#d23b3b', 4151, 1.2); a.rect(36, -162, 44, -118, 1, '#d23b3b', 4152, 1.2);
+  }, 0.95));
+  if (a.alt) a.layer(0.8, () => {                                                                             // BANNER: +1 A down the whole lane
+    for (let i = 0; i < 9; i++) { const an = -Math.PI + i * 0.39, cx = 0, cy = -54; a.line([[cx + Math.cos(an) * 52, cy + Math.sin(an) * 40], [cx + Math.cos(an) * 66, cy + Math.sin(an) * 52]], 4160 + i, 1.4); }
+    [[-96, -30], [70, 8], [104, -34]].forEach(([x, y], i) => a.at(x, y, 0, () => { a.circ(0, 0, 13, 13, CREAM, 4170 + i, 1.8); a.g.save(); a.g.fillStyle = ST.holo ? HOLO : '#e53935'; a.g.font = 'bold 13px ' + NUMFONT; a.g.textAlign = 'center'; a.g.textBaseline = 'middle'; a.g.fillText('+1', 0, 1); a.g.restore(); }));
+  });
+};
+
+// ── Varangian Guard: the emperor's Norse axemen. A hulking guard at somebody else's golden palace
+function vrViking(a, axeUp, seed) {                                       // the guard, feet on y = 0
+  a.line([[-14, 0], [-12, -30]], seed, 5); a.line([[14, 0], [12, -30]], seed + 1, 5);
+  a.blob([[-20, -2], [-28, 4], [-6, 4], [-8, -2]], '#5a3a24', seed + 2, 1.6); a.blob([[8, -2], [6, 4], [28, 4], [20, -2]], '#5a3a24', seed + 3, 1.6);   // boots
+  a.blob([[-36, -24], [-40, -92], [40, -92], [36, -24]], '#b23a3a', seed + 4);                                  // red cloak over mail
+  a.blob([[-28, -28], [-30, -86], [30, -86], [28, -28]], '#9aa3ad', seed + 5);                                  // the mail shirt
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) a.dot(-20 + c * 8, -78 + r * 10, 1.1, '#6d747e');
+  a.rect(-30, -40, 30, -32, 2, '#6b4a32', seed + 6, 1.6); a.rect(-5, -42, 5, -30, 1, '#e0b84a', seed + 7, 1.2);   // belt and buckle
+  a.circ(0, -102, 16, 16, '#f0c8a0', seed + 8);
+  a.blob([[-16, -100], [-18, -80], [-8, -64], [0, -58], [8, -64], [18, -80], [16, -100], [6, -92], [-6, -92]], '#e8b84a', seed + 9);   // the big blond beard
+  a.curve([[-8, -70], [-10, -60]], seed + 10, 1.4); a.curve([[8, -70], [10, -60]], seed + 11, 1.4);
+  a.dot(-6, -104, 2); a.dot(6, -104, 2); a.line([[-12, -110], [-2, -108]], seed + 12, 2); a.line([[12, -110], [2, -108]], seed + 13, 2);   // stern eyebrows
+  a.blob([[-17, -106], [-14, -122], [0, -132], [14, -122], [17, -106]], '#c4cad3', seed + 14, 2);              // conical helmet
+  a.rect(-2, -110, 2, -96, 1, '#c4cad3', seed + 15, 1.2);                                                       // nasal
+  a.at(32, -70, axeUp ? -0.35 : 0.4, () => {                                                                    // the Dane axe
+    a.line([[0, 50], [0, -70]], seed + 16, 3.4);
+    a.blob([[0, -70], [22, -82], [28, -58], [0, -52]], '#d6dbe2', seed + 17, 2);
+  });
+  a.circ(-34, -56, 20, 20, '#2f5f8a', seed + 18, 2.2); a.circ(-34, -56, 6, 6, '#c4cad3', seed + 19, 1.4);      // round shield
+  a.line([[-34, -76], [-34, -36]], seed + 20, 1); a.line([[-54, -56], [-14, -56]], seed + 21, 1);
+}
+ART.varangian = a => {
+  if (!a.alt) {
+    a.layer(-1, () => a.nim('#f2dc9a'));
+    a.layer(-0.5, () => {                                                                                    // the emperor's golden palace
+      a.rect(-120, -20, 120, 60, 2, '#ecdcb8', 4401);
+      for (let i = 0; i < 7; i++) a.rect(-108 + i * 34, -10, -98 + i * 34, 50, 2, '#d9c6a0', 4402 + i, 1.2);
+      a.blob([[-60, -20], [-52, -56], [0, -72], [52, -56], [60, -20]], '#e8b84a', 4410);                       // the big gold dome
+      a.blob([[-118, -20], [-112, -42], [-90, -48], [-68, -42], [-62, -20]], '#e8b84a', 4411); a.blob([[62, -20], [68, -42], [90, -48], [112, -42], [118, -20]], '#e8b84a', 4412);
+      a.line([[0, -72], [0, -90]], 4413, 2); a.line([[-6, -84], [6, -84]], 4414, 2);
+    });
+    a.layer(-0.2, () => { a.fillRect(-130, 56, 130, 110, rgba('#c9b28a', 0.6)); for (let i = 0; i < 7; i++) a.line([[-130 + i * 40, 56], [-150 + i * 40, 110]], 4420 + i, 1); });
+    a.layer(0.3, () => a.at(78, 92, 0, () => {                                                              // the little emperor, peeking out from behind his guard
+      a.blob([[-12, 0], [-10, -34], [10, -34], [12, 0]], '#6a1b9a', 4430); a.circ(0, -42, 9, 9, '#f0c8a0', 4431); a.dot(-3, -43, 1.4); a.dot(3, -43, 1.4);
+      a.poly([[-9, -50], [-8, -60], [-3, -54], [0, -62], [3, -54], [8, -60], [9, -50]], '#e8b84a', 4432, 1.4);
+    }, 0.8));
+    a.layer(0.6, () => a.at(-10, 96, 0, () => vrViking(a, false, 4440), 0.74));
+  } else {                                                                                                    // ALLY: he plants himself on a team-mate's planet
+    a.layer(-1, () => a.nim('#b8e0c8'));
+    a.layer(-0.7, () => { for (let i = 0; i < 8; i++) a.star(-120 + H2(i, 41) * 240, -94 + H2(i, 43) * 60, 2 + H2(i, 45) * 3, '#ffe08a', 4500 + i); planet(a, -96, -66, 16, '#e8b84a', 4510); });   // home, a gold planet, far off
+    a.layer(-0.4, () => { a.g.save(); if (!ST.holo) a.g.setLineDash([5, 6]); a.curve([[-82, -56], [-40, -80], [10, -70], [34, -40]], 4520, 1.6); a.g.restore(); });   // the way he came
+    a.layer(-0.1, () => {                                                                                    // the team-mate's planet and its grid
+      if (!ST.holo) { a.g.fillStyle = rgba('#7fbf8a', 0.9); a.g.beginPath(); a.g.ellipse(0, 150, 190, 90, 0, 0, Math.PI * 2); a.g.fill(); }
+      a.curve([[-130, 74], [-60, 62], [0, 60], [60, 62], [130, 74]], 4530, 1.6);
+      a.g.save(); if (!ST.holo) a.g.setLineDash([4, 4]); for (let i = 0; i < 4; i++) a.rect(-104 + i * 56, 70, -64 + i * 56, 92, 3, null, 4531 + i, 1.2); a.g.restore();
+    });
+    a.layer(0.2, () => a.at(96, 72, 0, () => {                                                              // the team-mate, grateful, behind him
+      a.blob([[-10, 0], [-12, -22], [0, -30], [12, -22], [10, 0]], '#ec6fae', 4540); a.dot(-4, -20, 1.6); a.dot(4, -20, 1.6); a.curve([[-4, -14], [0, -11], [4, -14]], 4541, 1.2);
+      a.line([[10, -16], [20, -30]], 4542, 2); a.circ(21, -32, 3, 3, '#ec6fae', 4543, 1);
+    }, 0.9));
+    a.layer(0.5, () => { a.at(14, 80, 0, () => vrViking(a, true, 4440), 0.68); for (let i = 0; i < 3; i++) a.curve([[-30 + i * 10, 82], [-36 + i * 10, 74]], 4560 + i, 1.4); });   // THUD
+    a.layer(0.8, () => { a.puff(-22, 86, 6, 4570, '#d8c8a0'); a.puff(-32, 84, 4, 4572, '#d8c8a0'); a.puff(44, 86, 5, 4571, '#d8c8a0'); });
+  }
+};
+
+// ── art/v3-roads.js
+// v3-roads · the reworked Crowd and Religion roads, and the team-support actions (11-23). 🆕 every picture is Claude's, for Mook's tick (v3-roads.ticks.md).
+// Each picture follows the Wikipedia article its card is named after. Second picture (a.alt) = the card's moment. Helpers start vro.
+const VRO_GOLD = '#e0b84a', VRO_SKIN = '#f0c8a8';
+function vroGlow(a, x, y, r, col, al) { if (ST.holo) return; const gl = a.g.createRadialGradient(x, y, 2, x, y, r); gl.addColorStop(0, rgba(col, al || 0.9)); gl.addColorStop(1, rgba(col, 0)); a.g.fillStyle = gl; a.g.fillRect(x - r, y - r, r * 2, r * 2); }
+function vroFlip(a, x, y, s, fn) { a.g.save(); a.g.translate(x, y); a.g.scale(-s, s); fn(); a.g.restore(); }   // mirror a figure that faces right
+// a Scottish cottar: blue bonnet with a red toorie, rosy cheeks, a spade. Stands on y = 0. dig: the spade goes in
+function vroCottar(a, dig) {
+  kbFig(a, { robe: '#7a8a4a', raise: dig ? 18 : 0 });
+  a.blob([[-18, -40], [18, -40], [16, -32], [-16, -32]], '#3a6a8a', 4001, 1.4);                         // a plaid sash
+  a.line([[-8, -40], [-6, -32]], 4002, 1); a.line([[6, -40], [8, -32]], 4003, 1);
+  a.dot(-8, -69, 2.6, '#f2a7b9'); a.dot(8, -69, 2.6, '#f2a7b9');                                       // rosy cheeks
+  a.blob([[-15, -80], [-12, -88], [0, -92], [14, -88], [16, -80], [0, -82]], '#2f4f8f', 4004, 1.8);   // the bonnet
+  a.circ(0, -93, 3.4, 3.4, '#d33440', 4005, 1.2);                                                      // its toorie
+  const hx = 24, hy = -36 - (dig ? 18 : 0);
+  a.at(hx, hy, dig ? 0.5 : 0.05, () => { a.line([[0, -10], [0, 50]], 4006, 2.4); a.line([[-5, -10], [5, -10]], 4007, 2.4);
+    a.poly([[-7, 48], [7, 48], [8, 64], [0, 70], [-8, 64]], '#aab2bc', 4008, 1.6); });                   // the spade
+}
+// a pilgrim, kneeling, facing right: broad hat with a scallop shell. up: looking up, hands raised
+function vroPilgrim(a, robe, up) {
+  a.blob([[-18, 0], [-18, -9], [6, -9], [8, 0]], robe, 4010);                                         // knees on the floor
+  a.blob([[-18, -4], [-16, -40], [0, -46], [8, -32], [4, -6]], robe, 4011);
+  a.circ(4, -54, 10, 10, VRO_SKIN, 4012); a.dot(9, up ? -57 : -54, 1.6);
+  if (up) { a.blob([[0, -40], [14, -60], [19, -58], [6, -36]], robe, 4013); a.circ(17, -62, 3.6, 3.6, VRO_SKIN, 4014, 1.2); }
+  else { a.blob([[0, -40], [16, -36], [16, -30], [2, -32]], robe, 4013); a.circ(18, -38, 3.6, 4.4, VRO_SKIN, 4014, 1.2); }   // hands together
+  a.at(3, up ? -62 : -61, up ? -0.35 : 0, () => { a.circ(0, 0, 17, 4.5, '#8a6a4a', 4015, 1.6); a.blob([[-8, -2], [-6, -10], [6, -10], [8, -2]], '#8a6a4a', 4016, 1.6);
+    a.circ(2, -6, 3.2, 3.2, CREAM, 4017, 1); });                                                        // the hat, the shell
+}
+// a cargo ship of the airlift: a fat fuselage, straight wings, four engines, flying right
+function vroCargo(a) {
+  a.blob([[-46, 4], [-40, -6], [30, -8], [44, -2], [40, 6], [-30, 8]], '#d8dde6', 4020);
+  a.poly([[-42, -4], [-54, -20], [-46, -20], [-32, -6]], '#c6ccd8', 4021, 1.6);                         // tail fin
+  a.poly([[-6, 0], [-20, 26], [-8, 26], [10, 2]], '#c6ccd8', 4022, 1.6);                                // wing
+  for (const [x, y] of [[-12, 16], [-4, 8]]) a.rect(x - 4, y - 3, x + 6, y + 3, 2, '#8a92a0', 4023, 1.2);
+  for (let i = 0; i < 4; i++) a.circ(-20 + i * 11, -2, 2.4, 2.4, '#bfe6f6', 4025 + i, 1);              // windows
+  a.circ(38, -3, 3, 3, '#bfe6f6', 4030, 1);
+}
+// a crate on a little parachute (s = 0: landed, canopy slumped behind)
+function vroCrate(a, x, y, s, landed, plus) {
+  a.at(x, y, 0, () => {
+    if (landed) a.blob([[-22, 2], [-26, -6], [-10, -10], [-4, 2]], '#f3eadb', 4040, 1.4);
+    else { a.blob([[-20, -30], [-14, -44], [0, -48], [14, -44], [20, -30], [10, -33], [0, -30], [-10, -33]], '#f3eadb', 4040, 1.6);
+      for (const sx of [-20, 0, 20]) a.line([[sx, -30], [sx * 0.4, -10]], 4041, 0.9); }
+    a.rect(-12, -12, 12, 10, 1, '#c9975a', 4042, 1.8); a.line([[-12, -1], [12, -1]], 4043, 1); a.line([[0, -12], [0, 10]], 4044, 1);
+    if (plus) { a.circ(0, -1, 9, 8, INK, 4045, 1.2); a.g.save(); a.g.font = 'bold 11px ' + NUMFONT; a.g.textAlign = 'center'; a.g.textBaseline = 'middle';
+      a.g.fillStyle = ST.holo ? HOLO : CREAM; a.g.fillText('+', -3.5, 0); a.g.fillStyle = ST.holo ? HOLO : '#f9a825'; a.g.fillText('3', 3.5, 0); a.g.restore(); }   // +3, the 3 in his yellow
+  }, s);
+}
+// a tiny handkerchief parachute carrying a sweet (the candy bomber)
+function vroCandy(a, x, y, col) {
+  a.at(x, y, 0, () => { a.blob([[-8, -14], [0, -18], [8, -14], [0, -12]], CREAM, 4050, 1.2); a.line([[-8, -14], [0, -4]], 4051, 0.7); a.line([[8, -14], [0, -4]], 4052, 0.7);
+    a.circ(0, -1, 3.4, 2.6, col, 4053, 1); a.poly([[-3, -1], [-7, -4], [-7, 2]], col, 4054, 0.8); a.poly([[3, -1], [7, -4], [7, 2]], col, 4055, 0.8); });
+}
+// a Roman scutum: tall curved red shield, gold rim and boss, gold wings
+function vroScutum(a, seed) {
+  a.rect(-12, -17, 12, 17, 4, '#b3262e', seed, 2);
+  a.rect(-9, -14, 9, 14, 3, null, seed + 1, 0.9);
+  a.circ(0, 0, 4.6, 4.6, VRO_GOLD, seed + 2, 1.2);
+  a.curve([[-3, -5], [-6, -10], [-4, -13]], seed + 3, 1); a.curve([[3, -5], [6, -10], [4, -13]], seed + 4, 1);
+}
+// a legionary's helmet with its crest, for the soldiers holding up the ends
+function vroGalea(a) { a.blob([[-14, -72], [-12, -84], [0, -90], [12, -84], [14, -72], [8, -78], [-8, -78]], '#aab2bc', 4060, 1.8); a.blob([[-10, -90], [0, -100], [10, -90], [0, -86]], '#c62828', 4061, 1.4); }
+
+// a cartoon horse facing right, hind feet on y = 0 (rear: front legs tucked up)
+function vroHorse(a, col, rear) {
+  a.curve([[-34, -44], [-52, -34], [-50, -12]], 4080, 4.4);                                              // tail
+  for (const x of [-26, -14]) { a.line([[x, -28], [x - 1, -2]], 4081 + x, 4.2); a.rect(x - 4, -4, x + 3, 1, 1, '#5a4a40', 4083 + x, 1); }
+  if (rear) for (const x of [16, 26]) a.line([[x, -30], [x + 14, -24], [x + 12, -10]], 4085 + x, 4.2);
+  else for (const x of [16, 26]) a.line([[x, -28], [x, -2]], 4085 + x, 4.2);
+  a.blob([[-36, -32], [-32, -54], [20, -56], [36, -42], [30, -26], [-28, -24]], col, 4087);
+  a.blob([[16, -50], [30, -84], [44, -80], [36, -40]], col, 4088);                                        // neck
+  a.blob([[30, -84], [40, -94], [62, -84], [66, -74], [56, -70], [40, -72]], col, 4089);                  // head
+  a.poly([[36, -90], [36, -104], [44, -94]], col, 4090, 1.6);
+  a.blob([[14, -50], [26, -88], [32, -86], [22, -50]], '#8a6a4a', 4091, 1.4);                            // mane
+  a.circ(46, -84, 3.4, 3.4, CREAM, 4092, 1.2); a.dot(47, -84, 1.5); a.dot(61, -77, 1.3);
+  a.blob([[-12, -56], [-10, -64], [12, -64], [14, -56]], '#b3262e', 4093, 1.6);                          // saddle cloth
+}
+
+// ── 👥 Burgage: a long narrow town plot on the high street. A family moves into the middle one; the garden strips run back behind
+ART.burgage = a => {
+  a.layer(-1, () => a.nim('#f0d8a8'));
+  a.layer(-0.6, () => {                                                                                 // the garden strips, running back to the horizon
+    a.fillRect(-130, -62, 130, 30, rgba('#8fbf6a', 0.6)); a.curve([[-130, -62], [-40, -64], [40, -60], [130, -63]], 4101, 1.4);
+    const vp = [0, -130], tx = (x0, y) => vp[0] + (x0 - vp[0]) * (y - vp[1]) / (30 - vp[1]);
+    for (const x0 of [-150, -90, -30, 30, 90, 150]) a.line([[tx(x0, -62), -62], [x0, 30]], 4102 + x0, 1.2);   // the hedges between plots
+    for (let r = 0; r < 4; r++) { const y = -54 + r * 13; for (let k = -1; k <= 1; k++) a.circ(tx(k * 9, y), y, 2.6 + r * 0.7, 2 + r * 0.5, '#4fae6a', 4110 + r * 3 + k, 1); }   // cabbages in the middle plot
+    for (const x0 of [-120, -60, 60, 120]) for (let r = 0; r < 4; r++) { const y = -54 + r * 13; a.line([[tx(x0 - 10, y), y], [tx(x0 + 10, y), y]], 4130 + r, 0.8); }   // rows in the others
+  });
+  a.layer(-0.1, () => {                                                                                 // the high street of narrow houses, gable end on
+    const H = [[-120, 2, '#e6c79a'], [-60, -8, '#c9d8e0'], [0, -14, '#f3e6c8'], [60, -4, '#e8b0a0'], [120, 6, '#d9c9e8']];
+    H.forEach(([x, top, col], i) => {
+      a.rect(x - 26, top, x + 26, 58, 1, col, 4140 + i);
+      a.poly([[x - 30, top], [x, top - 30], [x + 30, top]], '#8a5a3a', 4146 + i, 1.8);
+      a.line([[x - 26, top + 22], [x + 26, top + 22]], 4152 + i, 1.2); a.line([[x - 26, top], [x - 8, top + 22]], 4158 + i, 1); a.line([[x + 26, top], [x + 8, top + 22]], 4164 + i, 1);   // timber frame
+      a.rect(x - 6, top + 6, x + 6, top + 16, 1, '#bfe6f6', 4170 + i, 1.2);
+      if (i !== 2) a.rect(x - 8, 36, x + 8, 58, 6, '#5a3a24', 4176 + i, 1.4);
+    });
+    a.rect(-9, 30, 9, 58, 8, a.alt ? '#ffe08a' : '#3a2618', 4182, 1.6);                              // the new family's door, open
+    a.rect(-22, -40, -13, -24, 1, '#b9b0a0', 4183, 1.4); a.puff(-14, -50, 5, 4184); a.puff(-6, -60, 6, 4185);                     // a chimney, smoking: home
+  });
+  a.layer(0.1, () => { a.fillRect(-130, 58, 130, 110, rgba('#c9b89a', 0.75)); a.line([[-130, 58], [130, 58]], 4190, 1.6); for (let i = 0; i < 8; i++) a.circ(-110 + i * 32, 74 + (i % 2) * 10, 4, 2.4, null, 4191 + i, 0.9); });   // the cobbled street
+  a.layer(0.5, () => {                                                                                  // moving in: a handcart, Dad with a chest, a kid with a cat
+    a.at(66, 92, 0, () => { a.rect(-26, -22, 22, -8, 1, '#a8744f', 4200); a.circ(-14, -4, 8, 8, '#8a5a3a', 4201, 1.8); a.circ(12, -4, 8, 8, '#8a5a3a', 4202, 1.8); a.line([[22, -16], [40, -10]], 4203, 2);
+      a.rect(-22, -40, -4, -22, 1, '#d98f6a', 4204, 1.6); a.blob([[0, -22], [2, -36], [18, -36], [20, -22]], '#7a9ac8', 4205, 1.6); a.line([[-18, -40], [-18, -50]], 4206, 1.6); a.line([[-8, -40], [-8, -50]], 4207, 1.6); });   // the cart: a chair, a bundle
+    a.at(-34, 96, 0, () => { kbFig(a, { robe: '#5a7a9a' }); a.rect(-24, -52, 24, -28, 2, '#a8744f', 4210, 1.8); a.line([[-24, -40], [24, -40]], 4211, 1); a.circ(-24, -40, 3.4, 3.4, VRO_SKIN, 4214, 1.2); a.circ(24, -40, 3.4, 3.4, VRO_SKIN, 4215, 1.2); }, 0.62);   // Dad, with a chest
+    a.at(22, 96, 0, () => { kbFig(a, { robe: '#d9a25a', raise: a.alt ? 40 : 0 }); a.circ(-20, -42, 7, 6, '#f0a060', 4212, 1.4); a.poly([[-25, -47], [-23, -53], [-20, -48]], '#f0a060', 4213, 1); a.dot(-21, -43, 1); }, 0.48);   // the kid, and the cat
+  });
+  if (a.alt) a.layer(0.8, () => {                                                                       // a Cottar pops out of the door
+    a.star(0, 34, 22, '#ffe08a', 4220);
+    a.at(0, 60, 0, () => vroCottar(a, false), 0.5);
+    for (let i = 0; i < 5; i++) { const an = -Math.PI * (0.1 + 0.2 * i); a.line([[Math.cos(an) * 30, 30 + Math.sin(an) * 30], [Math.cos(an) * 40, 30 + Math.sin(an) * 40]], 4225 + i, 1.4); }
+  });
+};
+
+// ── 👥 Cottar: a Scottish cottar, cheerful, with a spade and a cottage the size of a shed
+ART.cottar = a => {
+  a.layer(-1, () => a.nim('#cfe6b8'));
+  a.layer(-0.6, () => { a.blob([[-130, 10], [-80, -30], [-30, -10], [20, -40], [80, -14], [130, -30], [130, 40], [-130, 40]], '#a9c98a', 4301); a.puff(-90, -70, 10, 4302); a.puff(-74, -74, 8, 4303); });   // the hills, a cloud
+  a.layer(-0.3, () => a.fillRect(-130, 40, 130, 110, rgba('#7fae6a', 0.6)));
+  a.layer(0, () => {                                                                                    // the tiny cottage
+    a.rect(26, 2, 104, 50, 3, '#efeadf', 4310);
+    for (let i = 0; i < 5; i++) a.circ(34 + i * 16, 12 + (i % 2) * 22, 4, 3, null, 4311 + i, 0.9);        // stones
+    a.blob([[18, 6], [30, -26], [64, -38], [98, -26], [112, 6], [64, 2]], '#c9a85a', 4320);                // thatch
+    for (let i = 0; i < 6; i++) a.line([[30 + i * 14, -16 + Math.abs(i - 2.5) * 3], [26 + i * 14, 2]], 4321 + i, 0.8);
+    a.rect(44, 20, 58, 50, 6, '#5a3a24', 4330, 1.6); a.rect(72, 18, 88, 32, 1, '#bfe6f6', 4331, 1.4);
+    a.rect(90, -42, 100, -24, 1, '#b9b0a0', 4332, 1.6); a.puff(98, -54, 6, 4333); a.puff(106, -66, 8, 4334);
+  });
+  a.layer(0.4, () => a.at(-40, 92, 0, () => vroCottar(a, a.alt), 1.15));
+  a.layer(0.6, () => { for (let i = 0; i < 3; i++) a.blob([[-110 + i * 70, 82], [-100 + i * 70, 70], [-92 + i * 70, 82]], '#5f9a4a', 4340 + i, 1.2); });   // grass tufts
+  if (a.alt) a.layer(0.85, () => {                                                                      // a turnip comes up
+    a.at(30, -44, 0.3, () => { a.circ(0, 0, 13, 12, '#efe0f0', 4350); a.blob([[-12, -3], [0, -12], [12, -3], [0, -6]], '#9a5aa8', 4351, 1.4); a.line([[0, 12], [0, 20]], 4352, 1);
+      for (let k = 0; k < 3; k++) a.blob([[-2 + k * 2, -11], [-10 + k * 10, -28], [-4 + k * 8, -30], [0 + k * 2, -12]], '#4fae6a', 4353 + k, 1.2); });
+    for (let i = 0; i < 3; i++) a.curve([[0 + i * 8, 4], [6 + i * 8, -12], [18 + i * 6, -22]], 4360 + i, 1.2);
+    for (let i = 0; i < 4; i++) a.circ(-6 + i * 10, 52 - (i % 2) * 10, 3, 3, '#7a5a3a', 4365 + i, 1);
+  });
+};
+
+// ── ⛪ Road to Damascus: a traveller on the road, a light from above, down off his horse. Flip: a soldier crosses over to your colours
+ART.damascus = a => {
+  a.layer(-1, () => a.nim('#ffe9b0'));
+  a.layer(-0.6, () => {
+    a.fillRect(-130, -20, 130, 110, rgba('#d9c48a', 0.55)); a.curve([[-130, -20], [-60, -26], [20, -18], [130, -24]], 4401, 1.4);
+    a.at(-84, -20, 0, () => { a.rect(-30, -14, 30, 0, 1, '#e6d6b8', 4402, 1.4); a.blob([[-12, -14], [-10, -26], [0, -30], [10, -26], [12, -14]], '#e6d6b8', 4403, 1.4); a.rect(18, -26, 24, -14, 1, '#e6d6b8', 4404, 1.2); a.rect(-26, -22, -20, -14, 1, '#e6d6b8', 4405, 1.2); });   // Damascus, far off
+  });
+  if (!a.alt) {
+    a.layer(-0.4, () => { a.poly([[-40, -20], [-24, -20], [60, 110], [-30, 110]], '#e8d6a8', 4410, 1.4); });   // the road
+    a.layer(-0.2, () => { if (!ST.holo) { a.g.save(); a.g.fillStyle = rgba('#fff8d0', 0.75); a.g.beginPath(); a.g.moveTo(70, -110); a.g.lineTo(120, -110); a.g.lineTo(60, 100); a.g.lineTo(-50, 100); a.g.closePath(); a.g.fill(); a.g.restore(); } });   // the light
+    a.layer(0.4, () => {
+      a.at(30, 92, -0.42, () => vroHorse(a, '#e8e0cc', true), 1.0);                                   // the horse, up on its back legs
+      a.at(-8, 44, -0.95, () => {                                                                      // the traveller, tumbling off backwards
+        a.line([[-6, -2], [-26, 10]], 4420, 3.2); a.line([[6, -2], [-10, 18]], 4421, 3.2);                //   legs in the air
+        a.blob([[-18, -22], [-14, -60], [14, -60], [18, -22]], '#5a6f9a', 4422);
+        a.blob([[14, -56], [30, -84], [36, -80], [22, -50]], '#5a6f9a', 4423); a.circ(34, -86, 3.6, 3.6, VRO_SKIN, 4424, 1.2);   //   one arm flung up
+        a.circ(0, -72, 12, 12, VRO_SKIN, 4425); a.blob([[-9, -66], [0, -58], [9, -66], [0, -63]], '#7a5a3a', 4426, 1.4);         //   head, a beard
+        a.curve([[-6, -73], [-3, -71], [0, -73]], 4427, 1.2); a.curve([[2, -73], [5, -71], [8, -73]], 4428, 1.2);                 //   eyes squeezed shut
+        a.blob([[-14, -56], [-4, -84], [4, -82], [-6, -52]], '#5a6f9a', 4429); a.circ(0, -84, 3.6, 3.6, VRO_SKIN, 4430, 1.2);      //   a hand shading his eyes
+        a.blob([[-16, -58], [-40, -40], [-34, -28], [-14, -40]], '#b3262e', 4431, 1.8);                                           //   his cloak, flapping
+      });
+      a.at(-90, -64, 0.6, () => { a.circ(0, 0, 11, 4, '#a8744f', 4432, 1.4); a.blob([[-6, -2], [-4, -9], [4, -9], [6, -2]], '#a8744f', 4433, 1.2); });   // his hat, flying off
+    });
+    a.layer(0.7, () => { vroGlow(a, 96, -84, 50, '#ffffff', 1); a.star(96, -84, 22, '#fff6c8', 4434);
+      for (let i = 0; i < 7; i++) { const an = 1.6 + i * 0.35; a.line([[96 + Math.cos(an) * 30, -84 + Math.sin(an) * 30], [96 + Math.cos(an) * 46, -84 + Math.sin(an) * 46]], 4435 + i, 1.4); } });
+  } else {
+    a.layer(-0.4, () => { a.fillRect(-130, -20, 0, 110, rgba('#c0504d', 0.22)); a.fillRect(0, -20, 130, 110, rgba('#3f7fbf', 0.22));
+      for (let i = 0; i < 9; i++) a.line([[0, -14 + i * 13], [0, -8 + i * 13]], 4440 + i, 1.6); });       // the line between the sides
+    a.layer(-0.1, () => { vroGlow(a, 12, -30, 80, '#fff6c8', 0.9); for (let i = 0; i < 5; i++) a.line([[-40 + i * 24, -110], [-10 + i * 10, -70]], 4450 + i, 1.2); });
+    a.layer(0.3, () => a.at(-60, 80, 0.5, () => { a.line([[0, 0], [30, -40]], 4460, 2.2); a.blob([[30, -40], [60, -34], [52, -24], [58, -14], [26, -22]], '#c0504d', 4461, 1.8); }));   // the old banner, dropped
+    a.layer(0.4, () => { for (let i = 0; i < 3; i++) { a.circ(-96 + i * 26, 86 - i * 4, 4, 2.4, rgba('#c0504d', 0.7), 4465 + i, 1); } a.circ(-14, 82, 4, 2.4, rgba('#c0504d', 0.7), 4469, 1); });   // red footprints, then none
+    a.layer(0.55, () => a.at(18, 92, 0.08, () => {                                                     // the soldier, mid-step, over the line
+      a.line([[-8, -2], [-22, -22]], 4470, 3.2);
+      kbFig(a, { robe: '#3f7fbf', raise: 46, hat: 'cap' });
+      a.blob([[-12, -78], [0, -90], [12, -78]], '#3f7fbf', 4471, 1.8);
+      a.line([[24, -82], [28, -150]], 4472, 2.4); a.blob([[28, -150], [64, -144], [56, -132], [64, -118], [28, -124]], '#3f7fbf', 4473, 1.8);   // the new banner, up
+      a.star(42, -134, 6, '#ffe08a', 4474);
+    }, 0.95));
+  }
+};
+
+// ── ⛪ Reliquary: a gold-and-enamel casket like a little house, glowing on the altar, pilgrims kneeling either side
+ART.reliquary = a => {
+  a.layer(-1, () => a.nim('#f6dc9a'));
+  a.layer(-0.5, () => { for (const x of [-60, 60]) a.poly([[x - 34, 40], [x - 34, -50], [x, -86], [x + 34, -50], [x + 34, 40]], '#e6d9bf', 4501 + x, 1.6); a.fillRect(-130, 40, 130, 110, rgba('#b5a080', 0.45)); });   // two arches, the floor
+  a.layer(-0.2, () => { vroGlow(a, 0, -16, a.alt ? 110 : 70, '#fff2b0', 1);
+    if (a.alt) for (let i = 0; i < 9; i++) { const an = -Math.PI * (0.08 + 0.84 * i / 8); a.line([[Math.cos(an) * 58, -16 + Math.sin(an) * 58], [Math.cos(an) * 84, -16 + Math.sin(an) * 84]], 4505 + i, 1.4); } });
+  a.layer(0.1, () => {
+    a.rect(-58, 18, 58, 58, 2, '#f3eadb', 4510); a.rect(-58, 18, 58, 32, 1, '#b3262e', 4511, 1.6);        // the altar, a red cloth
+    a.at(0, 18, 0, () => {                                                                               // the reliquary
+      for (const x of [-30, 30]) a.circ(x, 0, 5, 3, VRO_GOLD, 4512 + x, 1.4);                            //   little feet
+      a.rect(-38, -34, 38, -2, 2, VRO_GOLD, 4515);
+      for (let i = 0; i < 3; i++) { const x = -24 + i * 24; a.poly([[x - 8, -6], [x - 8, -22], [x, -30], [x + 8, -22], [x + 8, -6]], '#2f5fa8', 4516 + i, 1.4); a.circ(x, -16, 3, 3, '#ffe08a', 4519 + i, 1); }   // enamel arches
+      a.poly([[-42, -34], [-30, -58], [30, -58], [42, -34]], '#d6a83a', 4522);                            //   the roof
+      for (let i = 0; i < 4; i++) a.circ(-21 + i * 14, -46, 3, 3, ['#c62828', '#2e9a5a', '#c62828', '#2e9a5a'][i], 4523 + i, 1);   // gems
+      a.line([[-30, -60], [30, -60]], 4527, 2.4); for (let i = 0; i < 5; i++) a.circ(-28 + i * 14, -64, 3.2, 3.2, VRO_GOLD, 4528 + i, 1.2);   // the cresting
+      a.line([[0, -66], [0, -80]], 4533, 2); a.line([[-6, -74], [6, -74]], 4534, 2);
+    });
+  });
+  a.layer(0.5, () => {                                                                                   // the pilgrims
+    a.at(-96, 58, 0, () => vroPilgrim(a, '#7a6a9a', a.alt), 0.85);
+    a.at(-66, 72, 0, () => vroPilgrim(a, '#6a8f4e', a.alt), 0.75);
+    vroFlip(a, 92, 64, 0.85, () => vroPilgrim(a, '#a8744f', a.alt));
+  });
+  if (a.alt) a.layer(0.85, () => { for (let i = 0; i < 9; i++) { const x = -60 + H2(i, 4540) * 120, y = -100 + H2(i, 4541) * 70; a.star(x, y, 3 + H2(i, 4542) * 4, '#fff1a8', 4543 + i); } });   // the light rises
+};
+
+// ── 💰 Operation Vittles: the airlift. Cargo ships drop crates (and sweets, on handkerchiefs) to a friendly planet
+ART.vittles = a => {
+  a.layer(-1, () => { a.nim('#c8d4f4'); for (let i = 0; i < 14; i++) a.dot(-120 + H2(i, 4601) * 240, -100 + H2(i, 4602) * 120, 1 + H2(i, 4603) * 1.4, '#ffffff'); });
+  a.layer(-0.4, () => { planet(a, 0, 230, 160, '#8fc07a', 4610);                                         // the friendly planet
+    for (const [x, c] of [[-90, '#f0dca0'], [-40, '#e8b0a0'], [56, '#c9d8e0'], [100, '#f0dca0']]) { const y = 72 + Math.abs(x) * 0.12 + Math.pow(x / 100, 2) * 16; a.blob([[x - 12, y + 6], [x - 12, y - 6], [x, y - 14], [x + 12, y - 6], [x + 12, y + 6]], c, 4611 + x, 1.4); } });   // little domes
+  if (!a.alt) {
+    a.layer(0.1, () => { a.at(-56, -74, -0.08, () => vroCargo(a), 0.95); a.at(54, -48, -0.05, () => vroCargo(a), 0.7); });
+    a.layer(0.45, () => { vroCrate(a, -30, -6, 0.9); vroCrate(a, 40, 20, 0.8); vroCrate(a, -80, 30, 0.75);
+      vroCandy(a, 2, -30, '#e8506a'); vroCandy(a, 86, -10, '#ffd34d'); vroCandy(a, -6, 44, '#4fae6a'); });
+    a.layer(0.8, () => { a.at(16, 96, 0, () => kbFig(a, { robe: '#d9a25a', raise: 40 }), 0.4); a.at(-8, 96, 0, () => kbFig(a, { robe: '#5a7a9a', raise: 40 }), 0.36); });   // two kids looking up
+  } else {
+    a.layer(0.1, () => { a.at(70, -78, -0.08, () => vroCargo(a), 0.75); for (let i = 0; i < 3; i++) a.line([[20 - i * 14, -80 + i * 4], [0 - i * 14, -80 + i * 4]], 4620 + i, 1); });   // the ship heads home
+    a.layer(0.45, () => { vroCrate(a, -42, 68, 1.05, true); vroCrate(a, 74, 68, 0.95, true); vroCrate(a, 16, 76, 1.4, true, true); vroCrate(a, -56, -12, 0.85); for (const x of [-42, 74, 16]) { a.puff(x - 18, 80, 4, 4625 + x); a.puff(x + 18, 80, 4, 4626 + x); }
+      vroCandy(a, -14, -20, '#e8506a'); vroCandy(a, 40, -40, '#ffd34d'); });
+    a.layer(0.8, () => { a.at(-74, 100, 0, () => kbFig(a, { robe: '#d9a25a', raise: 46 }), 0.5); a.at(108, 100, 0, () => kbFig(a, { robe: '#5a7a9a', raise: 46 }), 0.48); });   // cheers
+  }
+};
+
+// ── 🌾 Testudo: the tortoise. Shields lock over a team-mate's planet so its rings can't go dark
+ART.testudo = a => {
+  a.layer(-1, () => { a.nim('#e8d8b0'); for (let i = 0; i < 10; i++) a.dot(-120 + H2(i, 4701) * 240, -100 + H2(i, 4702) * 60, 1 + H2(i, 4703), '#ffffff'); });
+  a.layer(-0.3, () => {
+    btRinged(a, 0, 46, 34, '#7fb3e0', true, 4710);
+    if (a.alt && !ST.holo) { a.g.save(); a.g.strokeStyle = rgba('#ffd34d', 0.75); a.g.lineWidth = 7; a.g.beginPath(); a.g.ellipse(0, 46, 34 * 1.75, 34 * 0.34, 0, 0, Math.PI); a.g.stroke(); a.g.restore(); }   // the front ring, staying lit
+    a.line([[10, 13], [12, -6]], 4720, 1.6); a.poly([[12, -6], [28, -2], [12, 3]], '#4fae6a', 4721, 1.2);   // the team-mate's flag
+    a.at(-12, 18, 0, () => { a.circ(0, -6, 6, 6, '#d9c9e8', 4722, 1.2); a.dot(-2, -7, 1); a.dot(2, -7, 1); a.line([[5, -8], [10, -16]], 4723, 1.2); });   // somebody waving
+  });
+  const R = 66, n = 7;
+  a.layer(0.3, () => { for (let i = 0; i < n; i++) {                                                     // the shields: swinging in, then locked into a dome
+    const t = i / (n - 1), off = a.alt ? 0 : (t - 0.5) * 2, an = Math.PI * (1.04 + 0.92 * t) + off * 0.22, r = R + Math.abs(off) * 22;
+    a.at(Math.cos(an) * r, 46 + Math.sin(an) * r, an + Math.PI / 2 + off * 0.7, () => vroScutum(a, 4730 + i * 5), a.alt ? 1.3 : 1.15);
+  } });
+  a.layer(0.5, () => { for (const [x, f] of [[-62, -1], [100, 1]]) a.at(x, 100, 0, () => { a.g.scale(f, 1);   // two legionaries, waving the shields in
+    kbFig(a, { robe: '#b3262e', raise: 44 }); vroGalea(a); a.line([[24, -86], [30, -100]], 4790, 1.6); }, 0.7); });
+  if (a.alt) a.layer(0.85, () => {
+    a.at(-86, -70, 0.7, () => { a.rect(-12, -3, 12, 3, 2, '#c62828', 4780, 1.4); });                    // a shot, bouncing off
+    a.star(-58, -42, 12, '#ffd34d', 4781); a.curve([[-66, -50], [-96, -40], [-116, -60]], 4782, 1);
+    uText(a.g, 'CLANG!', 30, -76, 13, { t: a.t, seed: 4783 });
+  });
+};
+
+// ── art/v3-sci.js
+// v3-sci: the Science road's machine that builds (11-23). 🆕 every picture is Claude's, for Mook's tick (v3-sci.ticks.md).
+// Second picture (a.alt) = the moment it builds: a new Cog clanks into place.
+const VS_BRASS = '#d9a441', VS_BRASS2 = '#b07a2a', VS_BRASS3 = '#f2cf7a', VS_TEAL = '#2f9e9a', VS_TEAL2 = '#1f6f6c', VS_TEAL3 = '#7fd1c8', VS_STEEL = '#9aa3ad', VS_DARK = '#3a3440';
+
+// a cog-wheel: square-ish teeth round a rim, a sunk inner ring, rivets, a hub (o = { built: 0..1 of the teeth on, face, wink, rivets, hub })
+function vsGear(a, x, y, r, n, rot, fill, seed, o) {
+  o = o || {};
+  const s = Math.PI * 2 / n, ri = r * 0.8, on = Math.round(n * (o.built === undefined ? 1 : o.built)), P = [];
+  for (let i = 0; i < n; i++) {
+    const b = rot + i * s;
+    if (i < on) P.push([x + Math.cos(b) * ri, y + Math.sin(b) * ri], [x + Math.cos(b + s * 0.2) * r, y + Math.sin(b + s * 0.2) * r], [x + Math.cos(b + s * 0.5) * r, y + Math.sin(b + s * 0.5) * r], [x + Math.cos(b + s * 0.7) * ri, y + Math.sin(b + s * 0.7) * ri]);
+    else for (let k = 0; k < 3; k++) P.push([x + Math.cos(b + s * k / 3) * ri, y + Math.sin(b + s * k / 3) * ri]);
+  }
+  a.poly(P, fill, seed, r > 30 ? 2.2 : 1.8);
+  a.circ(x, y, r * 0.64, r * 0.64, o.inner || VS_BRASS3, seed + 1, 1.4);                                   // the sunk face of the wheel
+  if (o.rivets !== false) for (let i = 0; i < 8; i++) { const an = rot + i / 8 * Math.PI * 2; a.circ(x + Math.cos(an) * r * 0.72, y + Math.sin(an) * r * 0.72, Math.max(1.4, r * 0.045), Math.max(1.4, r * 0.045), o.rivet || VS_BRASS2, seed + 2 + i, 1); }
+  if (o.face) vsFace(a, x, y, r * 0.6, seed + 20, o.wink);
+  else if (o.hub !== false) { a.circ(x, y, r * 0.2, r * 0.2, VS_DARK, seed + 12, 1.2); a.dot(x, y, Math.max(1.2, r * 0.06), VS_STEEL); }
+}
+// a cheerful face on a round thing of radius rr: big eyes, a grin, rosy cheeks (wink = the left eye shut)
+function vsFace(a, x, y, rr, seed, wink) {
+  const ex = rr * 0.38, ey = -rr * 0.22, er = rr * 0.2;
+  for (const s of [-1, 1]) {
+    if (wink && s < 0) a.curve([[x - ex - er, y + ey + 1], [x - ex, y + ey - er * 0.7], [x - ex + er, y + ey + 1]], seed + 1, 1.8);
+    else { a.circ(x + s * ex, y + ey, er, er * 1.1, CREAM, seed + 2 + s, 1.4); a.dot(x + s * ex + er * 0.25, y + ey + er * 0.1, er * 0.45); a.dot(x + s * ex + er * 0.05, y + ey - er * 0.3, er * 0.14, '#ffffff'); }
+    a.circ(x + s * rr * 0.62, y + rr * 0.16, rr * 0.12, rr * 0.09, '#f08a7a', seed + 5 + s, 0.8);           // rosy brass cheeks
+  }
+  a.blob([[x - rr * 0.36, y + rr * 0.18], [x, y + rr * 0.56], [x + rr * 0.36, y + rr * 0.18], [x, y + rr * 0.3]], '#7a2e22', seed + 8, 1.4);   // the grin
+}
+// one arm segment: a fat steel bar from p to q (w wide)
+function vsBar(a, p, q, w, fill, seed) {
+  const dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy) || 1, nx = -dy / l * w / 2, ny = dx / l * w / 2;
+  a.poly([[p[0] + nx, p[1] + ny], [q[0] + nx, q[1] + ny], [q[0] - nx, q[1] - ny], [p[0] - nx, p[1] - ny]], fill, seed, 1.8);
+}
+function vsJoint(a, x, y, r, seed) { a.circ(x, y, r, r, VS_BRASS, seed, 1.6); a.dot(x, y, r * 0.35, VS_DARK); }
+// the replicator itself: a chubby teal boiler-box on brass feet, porthole eyes, a big gear turning in its belly, a chimney
+function vsMachine(a, o) {
+  const spin = a.t * 0.6 + (a.alt ? 0.4 : 0);
+  a.rect(-118, 56, -18, 66, 2, VS_DARK, 7001, 1.8);                                                         // the base plate
+  for (const x of [-108, -68, -30]) a.rect(x - 6, 50, x + 6, 58, 1, VS_BRASS2, 7002 + x, 1.2);             // stubby brass feet
+  a.rect(-100, -82, -84, -56, 1, VS_STEEL, 7010, 1.8); a.rect(-104, -86, -80, -80, 1, VS_DARK, 7011, 1.4);   // the chimney
+  a.rect(-114, -58, -22, 52, 8, VS_TEAL, 7012, 2.4);                                                         // the boiler-box body
+  a.rect(-118, -62, -18, -50, 3, VS_BRASS, 7013, 1.8); a.rect(-118, 40, -18, 50, 3, VS_BRASS, 7014, 1.8);  // brass bands
+  for (let i = 0; i < 8; i++) { a.dot(-112 + i * 13, -56, 1.5, VS_BRASS2); a.dot(-112 + i * 13, 45, 1.5, VS_BRASS2); }
+  for (const s of [-1, 1]) {                                                                                 // porthole eyes, looking at the work
+    const ex = -68 + s * 22, look = a.alt ? 3 : 4;
+    a.circ(ex, -30, 12, 12, VS_BRASS, 7020 + s, 1.8);
+    if (a.alt) a.curve([[ex - 7, -28], [ex, -36], [ex + 7, -28]], 7022 + s, 2.2);                           // happy shut eyes: it worked
+    else { a.circ(ex, -30, 8.5, 8.5, CREAM, 7024 + s, 1.4); a.dot(ex + look, -29, 3.6); a.dot(ex + look - 1, -31, 1, '#ffffff'); }
+  }
+  a.circ(-68, 14, 27, 27, VS_TEAL2, 7030, 1.6);                                                              // the belly window
+  vsGear(a, -68, 14, 23, 10, spin, VS_BRASS, 7031, { rivets: false });                                       // the big gear turning inside
+  vsGear(a, -36, 32, 11, 8, -spin * 2.1, VS_BRASS3, 7050, { rivets: false });
+  a.rect(-110, -10, -96, 30, 2, VS_TEAL2, 7060, 1.2); for (let i = 0; i < 3; i++) a.line([[-108, -2 + i * 10], [-98, -2 + i * 10]], 7061 + i, 1);   // a vent
+  a.circ(-28, -36, 5, 5, a.alt ? '#7fe07a' : '#f9c74f', 7065, 1.2);                                          // the status lamp
+}
+function vsBelt(a) {                                                                                         // the conveyor out to the right
+  a.rect(-22, 40, 120, 52, 6, VS_DARK, 7100, 2);
+  for (let i = 0; i < 9; i++) a.line([[-10 + i * 15, 41], [-14 + i * 15, 51]], 7101 + i, 1);
+  for (const x of [-12, 46, 110]) { a.circ(x, 58, 7, 7, VS_STEEL, 7120 + x, 1.6); a.dot(x, 58, 1.8); }
+  a.line([[46, 58], [46, 70]], 7130, 2.4); a.line([[110, 58], [110, 70]], 7131, 2.4);
+}
+
+// ── Clanking Replicator: the self-building factory machine (Wikipedia: Clanking replicator). It builds a Cog beside itself
+ART.replicator = a => {
+  a.layer(-1, () => a.nim('#bfe9e2'));
+  a.layer(-0.6, () => {                                                                                      // the workshop: a pipe on the back wall, a blueprint pinned up
+    a.fillRect(-130, 66, 130, 110, rgba('#c8b48a', 0.85)); a.line([[-130, 66], [130, 66]], 7200, 1.4);
+    a.rect(-130, -78, 130, -70, 3, rgba(VS_STEEL, 0.7), 7201, 1.2); a.rect(70, -78, 78, -40, 2, rgba(VS_STEEL, 0.7), 7202, 1.2);
+    a.rect(10, -66, 60, -30, 1, '#cfe0f6', 7203, 1.4); vsGear(a, 35, -48, 12, 8, 0.2, null, 7204, { rivets: false, hub: false }); a.dot(14, -63, 1.6, '#e53935'); a.dot(56, -63, 1.6, '#e53935');
+  });
+  a.layer(0.2, () => vsBelt(a));
+  a.layer(0.35, () => vsMachine(a));
+  if (!a.alt) {
+    a.layer(0.45, () => {                                                                                    // the copy, half built on the belt, loose teeth beside it
+      vsGear(a, 64, 18, 21, 10, 0.6, VS_BRASS, 7300, { built: 0.55, rivets: false });
+      a.rect(90, 34, 97, 40, 1, VS_BRASS, 7320, 1.2); a.rect(100, 34, 107, 40, 1, VS_BRASS, 7321, 1.2); a.rect(95, 28, 102, 34, 1, VS_BRASS, 7322, 1.2);
+      a.circ(30, 37, 2.6, 2.6, VS_BRASS2, 7323, 1); a.circ(36, 37, 2.6, 2.6, VS_BRASS2, 7324, 1);
+    });
+    a.layer(0.6, () => {                                                                                     // the arm, bent over the work, a little welder at the tip
+      vsBar(a, [-26, -44], [22, -70], 10, VS_STEEL, 7400); vsBar(a, [22, -70], [74, -24], 9, VS_STEEL, 7401);
+      vsJoint(a, -26, -44, 8, 7402); vsJoint(a, 22, -70, 7, 7403);
+      a.at(74, -24, 0.75, () => { a.rect(-5, -4, 5, 12, 2, VS_BRASS, 7404, 1.4); a.poly([[-2, 12], [2, 12], [0, 18]], VS_DARK, 7405, 1); });
+      a.star(76, 2, 9, '#ffe08a', 7406); for (let i = 0; i < 4; i++) a.dot(88 + i * 5, -6 + (i % 2) * 8, 1.6, '#ffb02a');   // sparks
+    });
+    a.layer(0.8, () => { a.puff(-78, -86, 6, 7500); a.puff(-64, -90, 8, 7501); });                         // a puff from the chimney
+  } else {
+    a.layer(0.45, () => {                                                                                    // the neighbouring gear it clicks into
+      vsGear(a, 108, -22, 30, 12, 0.13, VS_TEAL3, 7600, { inner: '#bfe9e2', rivet: VS_TEAL2 });
+      a.curve([[132, -64], [140, -48], [140, -30]], 7620, 1.4); a.curve([[118, -66], [130, -62]], 7621, 1.2);   // it turns
+    });
+    a.layer(0.6, () => {                                                                                     // the arm, stretched down and out, setting the new Cog in place
+      vsBar(a, [-26, -44], [12, -76], 10, VS_STEEL, 7700); vsBar(a, [12, -76], [46, -40], 9, VS_STEEL, 7701);
+      vsJoint(a, -26, -44, 8, 7702); vsJoint(a, 12, -76, 7, 7703);
+      vsGear(a, 64, 4, 22, 10, -0.05, VS_BRASS, 7710, { face: true });                                       // the brand-new Cog, beaming
+      a.poly([[42, -44], [50, -36], [44, -24], [40, -32]], VS_STEEL, 7704, 1.4); a.poly([[48, -46], [58, -42], [60, -30], [52, -34]], VS_STEEL, 7705, 1.4);   // the claws letting go
+      vsJoint(a, 46, -40, 5, 7706);
+    });
+    a.layer(0.85, () => {                                                                                    // CLANK
+      a.star(86, -16, 16, '#ffe08a', 7800);
+      for (let i = 0; i < 4; i++) { const an = -1.9 + i * 0.5; a.line([[86 + Math.cos(an) * 20, -16 + Math.sin(an) * 20], [86 + Math.cos(an) * 30, -16 + Math.sin(an) * 30]], 7801 + i, 1.4); }
+      uText(a.g, 'CLANK', 74, -66, 14, { align: 'center', t: a.t, seed: 7810 });
+      a.puff(-78, -86, 7, 7820); a.puff(-62, -90, 9, 7821); a.puff(-46, -88, 6, 7822);
+    });
+  }
+};
+
+// ── Cog: one big brass cog-wheel, fresh off the belt (a token Part, made by the Clanking Replicator)
+ART.cog = a => {
+  a.layer(-1, () => a.nim('#f6dca0'));
+  a.layer(-0.6, () => { for (let i = 0; i < 6; i++) a.line([[-130, -80 + i * 32], [130, -80 + i * 32]], 7900 + i, 0.6); for (let i = 0; i < 8; i++) a.line([[-112 + i * 32, -100], [-112 + i * 32, 100]], 7910 + i, 0.6); });   // blueprint squares
+  a.layer(-0.2, () => { a.fillRect(-130, 70, 130, 110, rgba('#c8b48a', 0.8)); a.line([[-130, 70], [130, 70]], 7920, 1.4); a.blob([[-56, 76], [56, 76], [48, 84], [-48, 84]], rgba('#3a3440', 0.25), 7921, 0); });   // the bench, a shadow
+  if (!a.alt) {
+    a.layer(0.4, () => a.at(0, 0, 0, () => vsGear(a, 0, 0, 68, 12, 0.1 + Math.sin(a.t * 2) * 0.02, VS_BRASS, 7930, { face: true }), 1));
+    a.layer(0.8, () => {                                                                                     // fresh: gleams and a curl of warm steam
+      a.star(-70, -62, 10, '#fff2b0', 7960); a.star(76, -50, 7, '#fff2b0', 7961); a.star(64, 58, 6, '#fff2b0', 7962);
+      a.curve([[-86, 20], [-96, 6], [-86, -8], [-96, -22]], 7963, 1.4); a.curve([[90, 24], [100, 10], [90, -4]], 7964, 1.4);
+    });
+  } else {
+    a.layer(0.2, () => vsGear(a, -98, 62, 46, 12, 0.24, VS_TEAL3, 8000, { inner: '#bfe9e2', rivet: VS_TEAL2 }));   // the neighbour gear it clicks into
+    a.layer(0.4, () => vsGear(a, 14, -6, 62, 12, 0.36, VS_BRASS, 8030, { face: true, wink: true }));
+    a.layer(0.8, () => {
+      a.star(-48, 30, 13, '#ffe08a', 8060);                                                                  // click!
+      for (let i = 0; i < 3; i++) { const an = 2.6 + i * 0.5; a.line([[-48 + Math.cos(an) * 17, 30 + Math.sin(an) * 17], [-48 + Math.cos(an) * 26, 30 + Math.sin(an) * 26]], 8061 + i, 1.4); }
+      a.curve([[86, -64], [96, -48], [96, -28]], 8070, 1.4); a.curve([[-130, 6], [-112, 2]], 8071, 1.2);   // both turning
+      uText(a.g, 'CLICK', 86, 70, 14, { align: 'center', t: a.t, seed: 8080 });
+    });
+  }
+};
 // @@ART-END
 
 // a card not drawn yet: its silhouette in the art window, so the face is whole (the art is the next pass)

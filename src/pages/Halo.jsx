@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import HaloCard, { CardBack } from "../components/HaloCard.jsx";
-import { MushTalk, HaloPath, MushFace } from "../components/HaloMush.jsx";
-import { HALO_CARDS, HALO_BASICS, HALO_BOSSES } from "../content/haloCards.js";
+import { MushTalk, HaloPath, MushFace, HaloCheer, pathSteps } from "../components/HaloMush.jsx";
+import { HALO_CARDS, HALO_BASICS, HALO_BOSSES, HALO_STARTERS } from "../content/haloCards.js";
 import {
   BY_ID, SET_SIZE, DECK_SIZE, STARTER_PACKS, loadBinder, saveBinder, openPack, bestFinish,
-  deckProblems, fillWithBasics, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE, comboStatus,
+  deckProblems, fillWithBasics, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE, comboStatus, ROADS, ROAD_BY,
 } from "../lib/haloBinder.js";
 import { useHaloArt, mountCard, loadHaloArt } from "../lib/haloArt.js";
 import "./Halo.css";
@@ -14,16 +14,7 @@ import "./Halo.css";
 // It is built from the rules engine in .geo/halo (node build-playtest.js → HALO-PLAYTEST.html) and copied here.
 const playRoot = `${import.meta.env.BASE_URL}halo/play/`;
 
-// the seven ways to win: each hangs on one of a planet's seven rings. Colours are the game table's road tags.
-const ROADS = [
-  { ring: "Economy", road: "Buy the win", how: "Bank ECON and pay the price in one go.", color: "#f6c744" },
-  { ring: "Industry", road: "The last planet lit", how: "Knock every rival planet dark.", color: "#ef5350" },
-  { ring: "Science", road: "The great machine", how: "A Core in the middle, eight Parts around it.", color: "#26c6da" },
-  { ring: "Food", road: "The harvest", how: "Grow your rings back, turn after turn.", color: "#8bc34a" },
-  { ring: "Population", road: "The crowd", how: "Fill all nine squares with your people.", color: "#ff9800" },
-  { ring: "Religion", road: "Convert the table", how: "Yours lit, every rival's dark.", color: "#c58af9" },
-  { ring: "Politics", road: "The treaty", how: "Send envoys; hold your treaties.", color: "#90a4ae" },
-];
+// the seven ways to win (ROADS, in haloBinder.js): each hangs on one of a planet's seven rings.
 
 function SevenPlanets() {
   const cx = 310, cy = 224, R = 158;
@@ -122,9 +113,11 @@ function Learn({ binder, setBinder }) {
           <p className="halo-kicker"><span className="halo-badge">PLAYTEST</span> The card game from Mook &amp; Mush</p>
           <h1 id="halo-title">HALO</h1>
           <p className="halo-deck">Seven planets round a sun. Seven rings on each. Seven ways to win.</p>
-          <p className="halo-summary">Learn it in a minute below, open your three starter Poptarts, build a deck from what you pull, and take it to the table against bots.</p>
+          <p className="halo-summary">Learn it with Mush below, pick your road, open three Poptarts, build a deck from what you pull, then hunt the cast one by one.</p>
           <div className="halo-actions">
-            <Link className="halo-button" to="/halo/packs">{binder.packsOpened ? "Your Poptarts" : "Open your starter Poptarts"}</Link>
+            {binder.learned || binder.packsOpened
+              ? <Link className="halo-button" to={binder.packsLeft ? "/halo/packs" : "/halo/deck"}>{binder.packsLeft ? (binder.road || binder.packsOpened ? "Your Poptarts" : "Pick your road") : "Your Draft Night deck"}</Link>
+              : <a className="halo-button" href="#mush" onClick={(e) => { e.preventDefault(); document.getElementById("mush")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }}>Learn with Mush</a>}
             <a href={playRoot}>or play a show deck now</a>
           </div>
           <p className="halo-note">Runs in this browser, nothing to install. Balanced by bots so far, not by people: tell me what feels off.</p>
@@ -168,6 +161,11 @@ function Learn({ binder, setBinder }) {
             </li>
           ))}
         </ul>
+        <h3 className="halo-h3">5 · Alone, or on a team</h3>
+        <div className="halo-modes">
+          <div><b>1 on 1</b><p>Just you and one rival: one treaty is enough for Politics, two converts for Religion. Cut the ring their road hangs on.</p></div>
+          <div><b>3 on 3</b><p>Your team wins when any of you wins, so team-mates' roads count too. Support cards (ALLY, +ECON, shields, BANNER) work on a team-mate's planet: back the one closest to winning.</p></div>
+        </div>
       </section>
     </>
   );
@@ -179,6 +177,44 @@ function RoadsMini() {
     <ul className="halo-road-list halo-road-mini">
       {ROADS.map((r) => <li key={r.ring}><span className="halo-ring" style={{ background: r.color }} aria-hidden="true" /><div><h3>{r.road}</h3><p><strong>{r.ring}.</strong> {r.how}</p></div></li>)}
     </ul>
+  );
+}
+
+// ----- before the first Poptart: which road calls you? Pick one, and the first pack is its starter.
+function RoadPick({ setRoad }) {
+  const [sel, setSel] = useState(null), r = sel && ROAD_BY[sel], st = sel && HALO_STARTERS[sel];
+  return (
+    <div className="halo-roadpick">
+      <div className="halo-roadpick-head">
+        <MushFace size={72} talking />
+        <div className="halo-mush-bubble"><p>Which road calls you?</p><p className="halo-mush-act">Your first Poptart is its starter. You can still play the other six.</p></div>
+      </div>
+      <ul className="halo-roadpick-list" role="list">
+        {ROADS.map((x) => {
+          const s = HALO_STARTERS[x.key];
+          return (
+            <li key={x.key}>
+              <button className={`halo-roadpick-item ${sel === x.key ? "on" : ""}`} style={{ "--ring": x.color }} aria-pressed={sel === x.key} onClick={() => setSel(x.key)}>
+                <HaloCard id={s.cmd} finish="lenticular" />
+                <span className="halo-roadpick-words">
+                  <span className="halo-roadpick-name"><i className="halo-ring" style={{ background: x.color }} aria-hidden="true" />{s.label}</span>
+                  <span className="halo-roadpick-win">{s.win}</span>
+                  <small>{BY_ID[s.cmd].name}</small>
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="halo-roadpick-go" aria-live="polite">
+        {r ? (
+          <>
+            <p><b style={{ color: r.color }}>{st.label}.</b> {r.how} <span className="halo-dim">Starter: {BY_ID[st.cmd].name} + {st.cards.map((id) => BY_ID[id].name).filter((v, i, a) => a.indexOf(v) === i).join(", ")}.</span></p>
+            <button className="halo-button" onClick={() => setRoad(sel)}>Walk the {st.label} road ▸</button>
+          </>
+        ) : <p className="halo-dim">Tap a road to see its starter.</p>}
+      </div>
+    </div>
   );
 }
 
@@ -199,6 +235,7 @@ function Packs({ binder, setBinder }) {
   useEffect(() => { if (phase === "torn" && shown === cards.length && cards.length) setPhase("done"); }, [shown, cards.length, phase]);
   const next = () => { setPhase("sealed"); setCards([]); setShown(0); };
   const opened = binder.packsOpened, hit = cards[cards.length - 1];
+  const starterRoad = opened === 0 && binder.road ? ROAD_BY[binder.road] : null;
 
   return (
     <section className="halo-packs" aria-labelledby="halo-packs-title">
@@ -207,15 +244,19 @@ function Packs({ binder, setBinder }) {
         <p>Eight cards a pack: five common, two uncommon, and one hit (a rare or a commander) that comes last, in a lenticular finish. Now and then the hit is a <b>First Edition</b>: metal, with an onyx gem.</p>
       </header>
 
-      {phase === "sealed" && binder.packsLeft > 0 && (
+      {phase === "sealed" && binder.packsLeft > 0 && opened === 0 && !binder.road && <RoadPick setRoad={(k) => setBinder({ ...binder, road: k })} />}
+
+      {phase === "sealed" && binder.packsLeft > 0 && (opened > 0 || binder.road) && (
         <div className="halo-pack-stage">
           <button className="halo-wrapper" onClick={tear} aria-label={`Tear open pack ${opened + 1}`}>
             <span className="halo-wrapper-crimp" aria-hidden="true" />
             <CardBack />
-            <span className="halo-wrapper-label">STARTER POPTART · 8 CARDS</span>
+            <span className="halo-wrapper-label">{starterRoad ? `${starterRoad.ring.toUpperCase()} STARTER` : "STARTER POPTART"} · 8 CARDS</span>
             <span className="halo-wrapper-tear">TEAR HERE ✂</span>
+            {starterRoad && <span className="halo-wrapper-ring" style={{ background: starterRoad.color }} aria-hidden="true" />}
           </button>
           <p className="halo-pack-left">{binder.packsLeft} {binder.packsLeft === 1 ? "pack" : "packs"} to open · tap the pack to tear it</p>
+          {starterRoad && <p className="halo-dim">Your {starterRoad.ring} starter: {BY_ID[HALO_STARTERS[binder.road].cmd].name} and seven {starterRoad.ring} cards. <button className="halo-link" onClick={() => setBinder({ ...binder, road: null })}>Pick another road</button></p>}
         </div>
       )}
 
@@ -336,9 +377,16 @@ function Binder({ binder }) {
 function DraftNight({ binder, setBinder }) {
   const deck = binder.deck || { cmd: null, cards: [] };
   const setDeck = (d) => setBinder({ ...binder, deck: d });
-  const commanders = HALO_CARDS.filter((c) => c.type === "commander" && binder.owned[c.id]);
+  // your road's commander first
+  const roadCmd = binder.road && HALO_STARTERS[binder.road]?.cmd;
+  const commanders = HALO_CARDS.filter((c) => c.type === "commander" && binder.owned[c.id]).sort((a, b) => (b.id === roadCmd) - (a.id === roadCmd));
   const used = useMemo(() => deck.cards.reduce((m, id) => ((m[id] = (m[id] || 0) + 1), m), {}), [deck.cards]);
-  const mine = HALO_CARDS.filter((c) => c.deckable && binder.owned[c.id]);
+  const [roadShow, setRoadShow] = useState("all");
+  const myRoad = binder.road && ROAD_BY[binder.road];
+  const allMine = HALO_CARDS.filter((c) => c.deckable && binder.owned[c.id]);
+  const want = roadShow === "mine" ? binder.road : roadShow;
+  const mine = allMine.filter((c) => want === "all" || c.road === want);
+  const link = (boss) => playLink(playRoot, deck, "Your Draft deck", boss, binder.road);
   const problems = deckProblems(binder, deck);
   const full = deck.cards.length >= DECK_SIZE;
   const add = (id) => { if (!full && (BY_ID[id].rarity === "basic" || (used[id] || 0) < binder.owned[id])) setDeck({ ...deck, cards: [...deck.cards, id] }); };
@@ -354,6 +402,15 @@ function DraftNight({ binder, setBinder }) {
         <h1 id="halo-deck-title">Draft Night</h1>
         <p>Three packs each, no trades. Pick a commander you pulled, then twenty cards: any you own, and as many basics as you like. The table doubles the list to forty.</p>
       </header>
+      <div className="halo-myroad" style={myRoad ? { "--ring": myRoad.color } : undefined}>
+        {myRoad ? (
+          <p><i className="halo-ring" style={{ background: myRoad.color }} aria-hidden="true" />Your road: <b>{myRoad.ring}</b> <span className="halo-dim">· {HALO_STARTERS[binder.road].win} The table gives your deck its road perks.</span></p>
+        ) : (
+          <p><i className="halo-ring" style={{ background: "#3a3f52" }} aria-hidden="true" />No road yet. <span className="halo-dim">Pick one: the table gives your deck its perks.</span>
+            {ROADS.map((r) => <button key={r.key} className="halo-chip" onClick={() => setBinder({ ...binder, road: r.key })}><i style={{ background: r.color }} />{r.ring}</button>)}
+          </p>
+        )}
+      </div>
       <div className="halo-builder">
         <div className="halo-builder-pool">
           <h2>1 · Your commander</h2>
@@ -364,11 +421,23 @@ function DraftNight({ binder, setBinder }) {
             {!commanders.length && <p>No commander pulled yet.</p>}
           </div>
           <h2>2 · Your cards <small>tap to add</small></h2>
+          <div className="halo-filter halo-roadfilter" role="group" aria-label="Show cards from">
+            {[["all", "All", null], ...(myRoad ? [["mine", "My road", myRoad.color]] : []), ...ROADS.map((r) => [r.key, r.ring, r.color])].map(([k, l, c]) => {
+              const n = k === "all" ? allMine.length : allMine.filter((x) => x.road === (k === "mine" ? binder.road : k)).length;
+              return <button key={k} className={roadShow === k ? "on" : ""} aria-pressed={roadShow === k} onClick={() => setRoadShow(k)}>{c && <i style={{ background: c }} aria-hidden="true" />}{l} <small>{n}</small></button>;
+            })}
+          </div>
           <div className="halo-row">
             {mine.map((c) => {
-              const left = binder.owned[c.id] - (used[c.id] || 0);
-              return <HaloCard key={c.id} id={c.id} finish={bestFinish(binder, c.id)} count={left} className={left <= 0 || full ? "hc-spent" : ""} onClick={() => add(c.id)} />;
+              const left = binder.owned[c.id] - (used[c.id] || 0), r = c.road && ROAD_BY[c.road];
+              return (
+                <span key={c.id} className="halo-rcard">
+                  <HaloCard id={c.id} finish={bestFinish(binder, c.id)} count={left} className={left <= 0 || full ? "hc-spent" : ""} onClick={() => add(c.id)} />
+                  {r && <span className={`halo-rtag ${c.road === binder.road ? "is-mine" : ""}`} style={{ "--ring": r.color }} title={`${r.ring} road`}>{r.ring}</span>}
+                </span>
+              );
             })}
+            {!mine.length && <p className="halo-dim">None of yours on this road yet. The Bazaar sells more Poptarts.</p>}
           </div>
           <h2>3 · Basics <small>every planet has them, as many as you like</small></h2>
           <div className="halo-row">
@@ -389,14 +458,14 @@ function DraftNight({ binder, setBinder }) {
             <button className="halo-link" disabled={!deck.cards.length} onClick={() => setDeck({ ...deck, cards: [] })}>Clear</button>
           </div>
           {problems.length ? <p className="halo-dim">{problems[0]}</p> : null}
-          <a className={`halo-button ${problems.length ? "is-off" : ""}`} aria-disabled={problems.length > 0} href={problems.length ? undefined : playLink(playRoot, deck, "Your Draft deck")}>Play this deck ▸</a>
+          <a className={`halo-button ${problems.length ? "is-off" : ""}`} aria-disabled={problems.length > 0} href={problems.length ? undefined : link()}>Play this deck ▸</a>
           {!problems.length && <p className="halo-dim" style={{ marginTop: ".6rem" }}>Or <Link to="/halo/bazaar">hunt a bounty</Link>: beat the cast for points to spend on packs.</p>}
         </aside>
       </div>
       <div className="halo-deck-bar" aria-hidden="true">
         <span className={deck.cards.length === DECK_SIZE ? "ok" : ""}>{deck.cards.length}/{DECK_SIZE}</span>
         <span>{deck.cmd ? BY_ID[deck.cmd].name : "pick a commander"}</span>
-        {problems.length ? null : <a className="halo-button" tabIndex={-1} href={playLink(playRoot, deck, "Your Draft deck")}>Play ▸</a>}
+        {problems.length ? null : <a className="halo-button" tabIndex={-1} href={link()}>Play ▸</a>}
       </div>
     </section>
   );
@@ -429,6 +498,19 @@ function Combos({ deck, binder }) {
   );
 }
 
+// which road each of the cast walks (the bots' goals, .geo/halo/bots.js ROAD) and how to beat them
+const BOSS_ROAD = {
+  leo: ["industry", "Big swings, then he naps: Snooze lights his rings again. Keep all three lanes blocked and hit him twice in a row."],
+  fhat: ["industry", "His rabbits run at empty lanes. Fill all three. That face-down card is a Burrow: don't swing into it."],
+  gil: ["pop", "The rats fill his grid. Knock out his front row before all nine squares are his: a full grid still has to hold a round."],
+  mook: ["industry", "Ships and broadsides. Broadside needs a ship on his grid, so sink the ships first."],
+  mush: ["food", "His rings grow back. Put out his Food ring and the harvest stops."],
+  bronconius: ["religion", "He converts your front units. Keep a high-D card up front, and put out his Religion ring."],
+  finley: ["politics", "She'll offer treaties. Tear them up (5 ECON) or hit her past the grid."],
+  tortimer: ["food", "He sleeps, then wakes with his rings lit. Hit hard and early, and cut his Food ring."],
+  rose: ["science", "The great machine. Break a Part before the ninth square fills, or cut her Science ring."],
+};
+
 // ----- the bounty board and Tortimer's Card Bazaar: beat the cast to earn points, spend them on Poptarts
 function Bazaar({ binder, setBinder, news }) {
   const deck = binder.deck || { cmd: null, cards: [] };
@@ -444,7 +526,7 @@ function Bazaar({ binder, setBinder, news }) {
 
       {news.length > 0 && (
         <ul className="halo-news" aria-live="polite">
-          {news.map((n, i) => <li key={i} className={n.won ? "won" : ""}>{n.won ? `You beat ${whoOf(n.boss)}: +${n.got} points${n.first ? " (bounty!)" : ""}` : `${whoOf(n.boss)} beat you. No points this time.`}</li>)}
+          {news.map((n, i) => <li key={i} className={n.won ? "won" : ""}>{n.won ? `You beat ${whoOf(n.boss)}${n.road && ROAD_BY[n.road] ? ` by ${ROAD_BY[n.road].ring}` : ""}: +${n.got} points${n.first ? " (bounty!)" : ""}` : `${whoOf(n.boss)} beat you. No points this time.`}</li>)}
         </ul>
       )}
 
@@ -468,15 +550,18 @@ function Bazaar({ binder, setBinder, news }) {
       <div className="halo-bounties">
         {HALO_BOSSES.map((b) => {
           const wins = (binder.beaten || {})[b.key] || 0, next = HALO_BOSSES.find((x) => !(binder.beaten || {})[x.key])?.key === b.key;
+          const [rk, tip] = BOSS_ROAD[b.key] || [null, ""], r = rk && ROAD_BY[rk];
           return (
             <div key={b.key} className={`halo-bounty ${wins ? "is-beaten" : ""} ${next ? "is-next" : ""}`}>
               <HaloCard id={b.cmd} finish={wins ? "laminate" : "lenticular"} />
               <div className="halo-bounty-words">
                 <h3>{b.who}</h3>
                 <span className={`halo-tier t${b.tier}`}>{["", "Easy", "Medium", "Hard"][b.tier]}{next ? " · start here" : ""}</span>
+                {r && <p className="halo-bounty-road"><i className="halo-ring" style={{ background: r.color }} aria-hidden="true" /><b>{r.ring}</b>{rk === binder.road && <span className="halo-same"> · your road</span>}</p>}
+                {tip && <p className="halo-bounty-tip">{tip}</p>}
                 <p className="halo-dim">{wins ? `Beaten ${wins}×. A win pays ${WIN_POINTS}.` : `Bounty: ${WIN_POINTS + BOUNTY} points`}</p>
                 {ready
-                  ? <a className="halo-button" href={playLink(playRoot, deck, "Your Draft deck", b.key)}>Hunt ▸</a>
+                  ? <a className="halo-button" href={playLink(playRoot, deck, "Your Draft deck", b.key, binder.road)}>Hunt ▸</a>
                   : <span className="halo-dim">Needs a deck</span>}
               </div>
             </div>
@@ -495,6 +580,18 @@ export default function Halo({ view = "learn" }) {
   useEffect(() => { loadHaloArt(); }, []);
   const setBinder = (b) => { setB(b); saveBinder(b); };
   useEffect(() => { if (init[1].length) saveBinder(init[0]); }, [init]);
+  // celebrate a path step the moment it comes true (an old binder learns what's already done quietly, the first time)
+  const [cheer, setCheer] = useState(null);
+  const closeCheer = useCallback(() => setCheer(null), []);
+  useEffect(() => {
+    const steps = pathSteps(binder), done = steps.filter((s) => s.done).map((s) => s.key);
+    if (!Array.isArray(binder.cheered)) { setBinder({ ...binder, cheered: done }); return; }
+    const fresh = done.filter((k) => !binder.cheered.includes(k));
+    if (!fresh.length) return;
+    const k = steps.findIndex((s) => s.key === fresh[fresh.length - 1]);
+    setCheer({ step: steps[k], next: steps.find((s) => !s.done) || null });
+    setBinder({ ...binder, cheered: [...binder.cheered, ...fresh] });
+  }, [binder]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const previousTitle = document.title;
     document.title = { learn: "HALO · Playtest", packs: "HALO · Poptarts", binder: "HALO · Binder", deck: "HALO · Draft Night", bazaar: "HALO · Card Bazaar" }[view];
@@ -510,6 +607,7 @@ export default function Halo({ view = "learn" }) {
         {view === "binder" && <Binder binder={binder} />}
         {view === "deck" && <DraftNight binder={binder} setBinder={setBinder} />}
         {view === "bazaar" && <Bazaar binder={binder} setBinder={setBinder} news={news} />}
+        {cheer && <HaloCheer step={cheer.step} next={cheer.next} onClose={closeCheer} />}
         <p className="halo-starter-note">One Draft Night per visitor: {STARTER_PACKS} starter packs · finishes are looks only: a First Edition plays the same as a laminate.</p>
       </div>
     </article>
