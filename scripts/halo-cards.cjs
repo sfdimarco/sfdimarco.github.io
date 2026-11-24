@@ -24,7 +24,7 @@ for (const [k, d] of Object.entries(DECKS)) {
 }
 for (const co of [["gravdrive", "Rose"], ["portroyal", "Mook"], ["archcity", "Finley"], ["lab", "Rose"],
   // 11-23: the mixed-deck combos (two decks each) and Mush's wild fungus
-  ["mycelium", "Mush"], ["misadventure", "Mook & Mush"], ["libertalia", "Mook & Gil"], ["dilmun", "Mush & Tortimer"], ["uraniborg", "Rose & Leo"], ["palais", "Bronconius & Finley"], ["hamelin", "The Fhat & Gil"]]) owner[co[0]] = owner[co[0]] || co[1];
+  ["mycelium", "Mush"], ["misadventure", "Mook & Mush"], ["libertalia", "Mook & Gil"], ["dilmun", "Mush & Tortimer"], ["uraniborg", "Rose & Leo"], ["palais", "Bronconius & Finley"], ["hamelin", "The Fhat & Gil"], ["ft_hingeMis", "Kip"]]) owner[co[0]] = owner[co[0]] || co[1];
 
 function words(c) {
   if (c.type === "trap") return `Set face down on a square. It ${E.TRIG[c.trig]}.`;
@@ -66,6 +66,7 @@ function rarity(c) {
   if (c.type === "commander") return "commander";
   if (c.tags.includes("token")) return "token";   // made on the table: never in a pack
   if (c.tags.includes("fused")) return "rare";
+  if (c.variant) return "rare";   // 11-24: a print variant (Faulty Tolerance: the Hinge Section misprint)
   if ((c.econ || 0) >= 5 || (c.A || 0) + (c.D || 0) >= 11 || (c.A || 0) >= 7 || c.move === "smite" || c.tags.includes("core")) return "rare";
   if (c.type === "action" || c.type === "trap" || c.income || c.pay || c.tags.some((t) => ["grav", "runner", "anylane", "part", "science", "wild"].includes(t)) || (c.econ || 0) >= 3) return "uncommon";
   return "common";
@@ -77,7 +78,9 @@ const KIT_ROLES = { kInd: ["brute", "runner", "barrage"], kEco: ["market", "bank
 const ROAD_OF_KIT = Object.fromEntries(Object.entries(ROAD_KIT).map(([r, k]) => [k, r]));
 const ROAD_WHO = { industry: "the Industry road", economy: "the Economy road", science: "the Science road", food: "the Food road", pop: "the Population road", politics: "the Politics road", religion: "the Religion road" };
 const roadCards = Object.entries(KIT_ROLES).flatMap(([k, roles]) => roles.map((r) => `${k}_${r}`));
-const real = [...Object.keys(C).filter((id) => !id.endsWith("_b") && !C[id].kit), ...roadCards];
+// 11-24: the Faulty Tolerance cards go LAST, so no older card's number moves
+const own = Object.keys(C).filter((id) => !id.endsWith("_b") && !C[id].kit);
+const real = [...own.filter((id) => C[id].src !== "ft"), ...roadCards, ...own.filter((id) => C[id].src === "ft")];
 const cards = real.map((id, i) => {
   const c = plays(id);
   return {
@@ -101,10 +104,14 @@ let bosses = Object.entries(DECKS).filter(([, d]) => !d.kit).map(([key, d]) => (
 // 11-23: the mixed-deck combos (cards.js MIX_COMBOS), for Draft Night's "combos you can make"
 const combos = E.COMBOS.filter((co) => co.mix).map((co) => ({ makes: co.makes, parts: co.parts }));
 // 11-23: how hard each boss is for a Draft Night deck (_scratch/mixed.js, 2 160 games, bots on both sides). Easy first.
-const TIER = { fhat: 1, gil: 1, leo: 1, mook: 2, mush: 2, bronconius: 2, finley: 3, tortimer: 3, rose: 3 };
+const TIER = { fhat: 1, gil: 1, leo: 1, mook: 2, mush: 2, bronconius: 2, finley: 3, tortimer: 3, rose: 3,
+  // 11-24 FAULTY TOLERANCE (his other show). Tier from _scratch/ft-check.js: win % against the nine show decks (Pell 48, Lo 52, Sill 57, Venn 58, Kip 64)
+  ftPell: 2, ftLo: 2, ftVenn: 2, ftSill: 3, ftKip: 3 };
 bosses.forEach((b) => (b.tier = TIER[b.key] || 2));
-const ORDER = ["leo", "fhat", "gil", "mook", "mush", "bronconius", "finley", "tortimer", "rose"];   // Leo first: half asleep
-bosses.sort((a, b) => a.tier - b.tier || ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
+const ORDER = ["leo", "fhat", "gil", "mook", "mush", "bronconius", "finley", "tortimer", "rose", "ftPell", "ftLo", "ftVenn", "ftSill", "ftKip"];   // Leo first: half asleep
+bosses.forEach((b) => { if (DECKS[b.key].ft) b.show = "Faulty Tolerance"; });
+// the cast first (easy to hard), then the visitors from Faulty Tolerance (easy to hard): a new player still starts on Leo
+bosses.sort((a, b) => !!a.show - !!b.show || a.tier - b.tier || ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
 
 // 11-23 night 🆕: ROAD STARTERS. Mush asks which road calls you; your FIRST Poptart is that road's commander + seven cards that walk it.
 const STARTERS = {

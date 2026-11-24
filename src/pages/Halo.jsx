@@ -514,6 +514,12 @@ const BOSS_ROAD = {
   finley: ["politics", "She'll offer treaties. Tear them up (5 ECON) or hit her past the grid."],
   tortimer: ["food", "He sleeps, then wakes with his rings lit. Hit hard and early, and cut his Food ring."],
   rose: ["science", "The great machine. Break a Part before the ninth square fills, or cut her Science ring."],
+  // 11-24: the five players from Faulty Tolerance (his other show). The tips are Claude's, from the sims.
+  ftPell: ["food", "Wet Beds grows slowly and fights with many hands. Trade evenly and cut the Food ring when his harvest count climbs."],
+  ftLo: ["politics", "Waymarks walls up and sends envoys. Tear the treaty up (5 ECON) and do not let the game run long: Lo banks."],
+  ftVenn: ["pop", "House Lights is all cheap units: nine on the grid and the house is full. Knock one out every turn."],
+  ftSill: ["economy", "Secondhand Row saves up behind its Stalls and buys the win. Break the Stalls or drain the bank."],
+  ftKip: ["science", "Bench Light builds the great machine round the Lantern Core. Break a Section before the ninth square fills."],
 };
 
 // ----- the bounty board and Tortimer's Card Bazaar: beat the cast to earn points, spend them on Poptarts

@@ -891,6 +891,378 @@ ART.siege = a => {                                                         // WA
   if (a.alt) a.layer(0.7, () => { a.circ(62, -58, 8, 8, '#8f8577', 661); a.curve([[-20, -80], [20, -96], [56, -64]], 662, 1); a.star(82, -40, 14, '#ffd34d', 663); });
 };
 
+// ── art/ft.js
+// ft: FAULTY TOLERANCE (11-24). The pictures are ChatGPT's, from Mook's other show: copied as they are from
+// D:\Mook\Documents\ChatGPT\kipandlo\Faulty-Tolerance-Halo-Binder.html (ftPaintFilm = the 12 Opening Night cards,
+// ftPaintDraft = its review drawings for the other 19 + the misprint). That file was drawn with this renderer's own ink,
+// so the code runs here unchanged. Claude's only edits: the names (ft prefix), the line boils with the card, and the paper
+// washes and grain are skipped on a hologram. No second lenticular picture yet (both sides show the same one).
+function ftPaintFilm(g,kind,side,kit){
+   const accent=side==='K'?'#d9b36c':'#80aaa6',shade=side==='K'?'#a57251':'#508584';
+   const wash=g.createLinearGradient(-122,-97,110,103);
+   wash.addColorStop(0,side==='K'?'#eddbc7':'#dce8e4');wash.addColorStop(.45,'#fcf7e8');wash.addColorStop(1,side==='K'?'#f4e6b5':'#d5d6ec');
+   if(!ST.holo){g.fillStyle=wash;g.fillRect(-124,-99,248,198);}
+   const line=(pts,w=3,c='#2d2a32')=>kit.ink(g,pts,{lw:w,ink:c,amp:.55,seed:4,closed:false,poly:true});
+   const inked=(pts,fill,w=2.5)=>kit.ink(g,pts,{fill,lw:w,amp:.75,seed:5,poly:true});
+   const box=(x,y,w,h,r,fill)=>inked(kit.rectPts(x,y,x+w,y+h,r,5),fill);
+   const oval=(x,y,rx,ry,fill,w=3)=>kit.ink(g,kit.circlePts(x,y,rx,ry,22,0,.015,7),{fill,lw:w,amp:.6,seed:6,poly:false});
+   line([[-111,64],[-54,66],[-2,64],[55,64],[115,66]],1.6,'#8b887d');
+   if(kind==='lamp'){
+     oval(0,-4,57,57,'#f3dd94',1.4);oval(0,-4,40,40,'#f8e6aa',1.5);
+     inked([[-33,44],[-37,-44],[34,-44],[37,44]],'#f4ce76');box(-46,43,91,12,4,shade);box(-47,-53,93,11,4,shade);
+     line([[-19,40],[-24,-43],[24,-43],[18,39]],3);line([[-7,-19],[-4,22],[11,22],[8,-18]],2.2);
+     line([[-109,63],[108,65]],4,shade);
+   }else if(kind==='drum'){
+     box(-102,41,193,18,4,shade);line([[-98,59],[-105,69],[94,70]],2.6);
+     inked([[-70,-44],[67,-48],[86,-28],[88,20],[67,37],[-70,41]],'#b77f50');
+     oval(-68,-2,29,44,'#dab17b');oval(-69,-2,17,27,'#c19766',2);
+     line([[-42,-33],[-5,-39],[43,-36],[71,-20]],2.2,'#664f44');line([[-40,30],[1,27],[30,26],[69,19]],2,'#664f44');
+     for(const [a,b] of [[-28,-16],[-8,-17],[31,-15],[52,-13],[-33,5],[-13,5],[25,6],[45,7],[-29,23],[-10,24],[32,24],[55,22]]){
+       oval(a,b,4.8,4.4,'#f7d580',1.5);line([[a-1,b-3],[a+1,b-5]],1.2,'#fef0b3');
+     }
+     line([[84,-5],[98,-5],[99,12],[109,12]],4);oval(109,12,4.5,5.3,'#d99264',1.5);
+   }else if(kind==='walker'){
+     inked([[-125,29],[-85,24],[-46,39],[-19,37],[32,52],[125,56],[128,104],[-130,104]],'#8dad86',1.4);
+     inked([[-126,36],[-75,44],[-40,49],[-9,49],[-29,101],[-128,104]],'#a0c9ca',1.4);
+     inked([[-105,51],[-60,55],[-74,65],[-94,62]],'#b29d78',2);
+     line([[-116,68],[-87,70]],1.4,'#547f85');line([[-108,76],[-70,79]],1.7,'#547f85');
+     box(-50,-6,30,38,5,'#919498');oval(-30,-17,17,18,accent);
+     oval(-25,-17,5.4,4,'#eef4e4',1.5);line([[-23,9],[-9,0],[9,4]],3.1);
+     line([[-37,28],[-48,49],[-56,51]],3.2);line([[-27,30],[-13,44],[-1,44]],3.2);
+     line([[22,-21],[8,36],[37,46]],3.2);line([[22,-21],[34,19],[17,42]],2.7);box(13,-28,22,9,2,'#d5b66f');
+     g.save();g.translate(70,-34);g.rotate(.075);box(-29,-28,58,58,4,'#f5e7c3');
+     line([[-18,-14],[17,-12]],2);line([[-18,-3],[14,-1]],1.8);line([[-16,8],[18,12]],1.8);
+     line([[-21,-8],[21,-1]],2,'#b65f57');line([[-12,18],[13,18]],1.9,'#465657');g.restore();
+   }else if(kind==='wall'){
+     inked([[-90,63],[-92,30],[-45,31],[-46,4],[3,5],[4,-22],[46,-23],[46,-51],[91,-51],[91,62]],accent);
+     for(let y=-19;y<62;y+=19)line([[y<=0?6:y>=32?-81:-40,y],[87,y]],2.2,'#49666a');
+   }else if(kind==='hinge'){
+     box(-91,-34,82,72,6,accent);box(9,-34,82,72,6,accent);line([[0,-48],[0,48]],14,shade);
+     for(const a of [-69,-35,37,69])for(const b of [-16,18])oval(a,b,6,6,'#b2a18a',1.6);
+   }else if(kind==='brace'){
+     inked([[-81,45],[52,45],[53,-56],[-81,45],[-55,45],[38,-25],[37,32],[-55,32]],accent);
+     oval(48,40,7,7,'#8e775d',1.5);oval(-64,40,7,7,'#8e775d',1.5);
+   }else if(kind==='weight'){
+     line([[-69,-43],[60,-42],[62,38]],6,shade);oval(61,40,24,23,accent);
+     box(-86,-17,44,60,5,'#b18a67');oval(-65,-41,18,18,accent);line([[-65,-24],[-65,-18]],3);
+   }else if(kind==='runner'||kind==='foreman'||kind==='keeper'){
+     box(-33,-4,67,61,9,accent);oval(0,-33,36,27,accent);box(-26,-43,53,19,7,'#333c44');
+     for(const x of [-13,12])oval(x,-34,4.8,6.4,'#f4eccd',0);
+     line([[-24,54],[-34,64],[-39,65]],4);line([[25,53],[33,66],[40,64]],4);
+     if(kind==='foreman'){
+       inked([[-25,8],[25,7],[26,48],[-27,48]],'#8d776c');for(const y of [18,28,39])box(-17,y,32,7,1,'#c4a28a');
+     }else if(kind==='keeper'){
+       inked([[-47,5],[23,-5],[60,39],[-43,52]],'#e5d3a8');line([[-31,38],[-16,20],[-8,24],[10,14],[27,23]],2.1,'#72968f');
+     }else{
+       inked([[-60,23],[48,19],[51,34],[-57,37]],'#9b845d');
+       for(const x of [-42,-19,4,29])oval(x,27,5,4,'#e6c780',1.4);
+     }
+   }else if(kind==='ink'){
+     box(-84,-27,168,76,8,'#c4d5cd');inked([[-64,-6],[47,-20],[66,23],[-54,38]],'#f3dfac');
+     line([[-64,-6],[-3,18],[47,-20]],2.5);line([[-92,-37],[93,-38]],6,shade);oval(-4,18,6,6,'#bd6967',1.5);
+   }else{
+     inked([[-85,-33],[81,-36],[88,-8],[-81,-7]],'#c3945b');inked([[-84,6],[83,2],[89,30],[-86,33]],'#c39e67');
+     for(const x of [-66,-42,-29,4,25,60]){line([[x,-17],[x-2,-10]],2.7);line([[x,6],[x+2,15]],2.7);}
+   }
+ };
+
+function ftPaintDraft(g, kit, card) {
+  const ink = '#333039';
+  const palettes = {
+    bench: ['#ead6ac', '#b88156', '#704d46', '#859795'],
+    way: ['#d5e3d5', '#7ca6a1', '#496b70', '#e3c280'],
+    house: ['#efc6ac', '#ba656a', '#78445b', '#efbe76'],
+    secondhand: ['#e9d5ae', '#be925a', '#795e51', '#809583'],
+    wet: ['#dfe6cb', '#86a177', '#527b69', '#9dbebe'],
+  };
+  const [paper, mid, deep, accent] = palettes[card.deck.id];
+  const cream = '#f7e8c2';
+  const sceneWash = g.createLinearGradient(-122, -97, 122, 97);
+  sceneWash.addColorStop(0, paper);
+  sceneWash.addColorStop(.57, '#fcf1d9');
+  sceneWash.addColorStop(1, paper);
+  if (!ST.holo) { g.fillStyle = sceneWash; g.fillRect(-122, -97, 244, 194); }
+
+  let seed = 10;
+  const shape = (points, fill, width = 2.1) => kit.ink(g, points, { fill, lw: width, ink, amp: .53, seed: seed++, poly: true });
+  const line = (points, width = 2.2, color = ink) => kit.ink(g, points, { lw: width, ink: color, amp: .46, seed: seed++, poly: true, closed: false });
+  const box = (x, y, w, h, fill, r = 3, width = 2.1) => shape(kit.rectPts(x, y, x + w, y + h, r, 3), fill, width);
+  const oval = (x, y, rx, ry, fill, width = 2.1) => kit.ink(g, kit.circlePts(x, y, rx, ry, 21, 0, .025, seed), { fill, lw: width, ink, amp: .50, seed: seed++, poly: false });
+  function place(x, y, scale, draw) {
+    g.save();
+    g.translate(x, y);
+    g.scale(scale, scale);
+    draw();
+    g.restore();
+  }
+
+  function robot(x, y, s, shell, action = 'stand') {
+    place(x, y, s, () => {
+      oval(0, 49, 39, 8, '#403e4430', 0);
+      line([[-19, 21], [-31, 36], [-36, 46], [-46, 46]], 6);
+      line([[19, 21], [29, 35], [34, 47], [44, 47]], 6);
+      line([[-11, 24], [-15, 45], [-23, 48]], 5);
+      line([[12, 24], [14, 44], [24, 48]], 5);
+      box(-28, -20, 56, 49, shell, 8);
+      box(-20, 5, 40, 20, deep, 5, 1.6);
+      oval(0, -37, 28, 22, shell);
+      box(-21, -46, 42, 17, '#354449', 6, 1.5);
+      oval(-9, -37, 3.5, 5.2, cream, 0);
+      oval(9, -37, 3.5, 5.2, cream, 0);
+      const arms = {
+        stand: [[[-27, -9], [-38, 6], [-38, 19]], [[27, -9], [38, 6], [37, 18]]],
+        lift: [[[-27, -8], [-40, 2], [-43, -15]], [[27, -8], [41, 1], [44, -17]]],
+        reach: [[[-27, -8], [-39, 4], [-35, 17]], [[27, -8], [38, 3], [51, -5]]],
+        up: [[[-27, -8], [-43, -22], [-39, -41]], [[27, -8], [44, -24], [38, -46]]],
+        print: [[[-27, -8], [-42, 0], [-49, -8]], [[27, -8], [43, -30], [35, -66]]],
+      };
+      for (const arm of arms[action]) {
+        line(arm, 6);
+        line(arm, 2, '#9f9b82');
+        const [hx, hy] = arm[2];
+        oval(hx, hy, 5.5, 5, shell, 1.5);
+      }
+      oval(-13, 16, 2.5, 2.5, cream, 0);
+      oval(13, 16, 2.5, 2.5, cream, 0);
+    });
+  }
+
+  function outdoors(banked = false) {
+    shape([[-122, 26], [-89, 4], [-64, 10], [-36, -6], [2, 14], [33, -4], [67, 15], [94, 1], [122, 13], [122, 97], [-122, 97]], mid, 0);
+    shape([[-122, 32], [-67, 39], [-19, 28], [26, 55], [78, 42], [122, 29], [122, 97], [-122, 97]], accent, 1);
+    shape([[-122, 69], [-52, 56], [-17, 55], [36, 76], [87, 65], [122, 49], [122, 97], [-122, 97]], banked ? deep : '#b39368', 1);
+    for (const [x, y, w] of [[-111, 44, 21], [-95, 51, 31], [-43, 47, 19], [34, 65, 19], [70, 59, 27], [98, 55, 15]]) {
+      line([[x, y], [x + w * .4, y - 2], [x + w, y]], 1, '#f7e8c288');
+    }
+  }
+
+  function curtain() {
+    box(-121, -96, 242, 184, deep, 0, 0);
+    shape([[-110, 57], [-65, 43], [65, 43], [120, 59], [120, 97], [-122, 97]], '#ae876b', 0);
+    for (const y of [65, 78, 91]) line([[-120, y], [3, y - 4], [120, y]], 1, '#624553');
+    shape([[-122, -97], [-58, -97], [-69, -39], [-86, 14], [-105, 57], [-122, 73]], mid, 1.2);
+    shape([[122, -97], [60, -97], [71, -40], [87, 11], [103, 58], [122, 72]], mid, 1.2);
+    for (const x of [-109, -89, 89, 109]) line([[x, -96], [x + (x < 0 ? -8 : 8), 47]], 2, '#87495d');
+  }
+
+  function hooks() {
+    for (const y of [-59, -23, 13, 55]) line([[-122, y], [122, y - 3]], 1.2, '#a98263');
+    for (const x of [-95, -62, -30, 4, 36, 68, 100]) {
+      oval(x, -45, 3, 3, deep, 1);
+      line([[x, -44], [x - 2, -32], [x + 5, -28]], 2, deep);
+    }
+  }
+
+  function reeds(x, y, size) {
+    place(x, y, size, () => {
+      for (const [dx, h, sway] of [[-22, 45, -15], [-10, 61, -5], [0, 50, 8], [12, 66, 13], [21, 41, 17]]) {
+        line([[dx, 3], [dx + sway * .3, -h * .51], [dx + sway, -h]], 2.5, deep);
+        line([[dx, -12], [dx + sway + 12, -h * .65]], 2.2, mid);
+        oval(dx + sway, -h - 1, 3.5, 9, '#725b46', 1.1);
+      }
+    });
+  }
+
+  const drawings = {
+    'hinge-misprint'() {
+      for (const y of [-70, -38, 62, 81]) line([[-118, y], [117, y + 2]], 1, '#987c68');
+      box(-104, -13, 45, 77, mid, 4);
+      box(-57, -13, 47, 77, mid, 4);
+      line([[-58, -23], [-58, 70]], 9, deep);
+      for (const x of [-88, -72, -39, -23]) for (const y of [8, 43]) oval(x, y, 4, 4, cream, 1.3);
+      robot(37, 0, 1.18, mid, 'print');
+    },
+    'marker-crew'() {
+      outdoors();
+      box(15, -11, 14, 86, '#a48256', 1);
+      shape([[10, -43], [52, -44], [70, -27], [51, -12], [10, -13]], cream);
+      robot(-32, 9, 1.07, mid, 'reach');
+      line([[1, 64], [24, 65], [47, 63]], 3, deep);
+    },
+    'road-watch'() {
+      outdoors();
+      shape([[-122, 16], [-75, 11], [-24, 28], [43, 26], [88, 41], [122, 38], [122, 96], [-122, 96]], '#788b80', 1);
+      for (const x of [-103, -69, 54, 90]) line([[x, 1], [x, 36]], 4, deep);
+      line([[-118, 5], [-65, 5], [73, 9], [120, 8]], 5, deep);
+      robot(9, -8, 1.17, accent, 'reach');
+      oval(64, -13, 13, 7, '#b4905f');
+      line([[52, -15], [38, -23]], 5, deep);
+    },
+    'stage-caller'() {
+      curtain();
+      shape([[-14, -79], [72, -81], [87, 61], [9, 73]], '#eec080', 0);
+      robot(-17, 5, 1.31, mid, 'reach');
+      oval(48, 0, 18, 18, cream);
+      line([[48, -11], [48, 1], [57, 7]], 2.4, deep);
+    },
+    'balcony-chorus'() {
+      curtain();
+      robot(-54, -9, .76, accent, 'lift');
+      robot(0, -25, 1, mid, 'lift');
+      robot(55, -8, .76, accent, 'stand');
+      box(-120, 19, 241, 15, '#d2a17c', 1);
+      for (const x of [-100, -63, -26, 12, 49, 86]) line([[x, 33], [x, 63]], 3, '#72556a');
+      box(-121, 61, 242, 22, mid, 1);
+    },
+    'footlight-crew'() {
+      curtain();
+      robot(1, -3, 1.14, mid, 'lift');
+      oval(-50, -14, 16, 14, accent);
+      oval(51, -15, 16, 14, accent);
+      for (const x of [-85, -44, 0, 44, 85]) {
+        oval(x, 67, 16, 16, '#eeb16b', 0);
+        box(x - 13, 67, 26, 15, cream, 3);
+      }
+    },
+    'quiet-usher'() {
+      curtain();
+      for (const x of [-100, -67, 58, 90]) {
+        box(x - 14, 43, 25, 27, '#9d5964', 4, 1.4);
+        box(x - 16, 66, 32, 10, '#c78b79', 2);
+      }
+      oval(50, -8, 40, 37, '#d395765f', 0);
+      robot(-6, -4, 1.17, mid, 'reach');
+      box(44, -21, 23, 36, cream, 4);
+      line([[47, -21], [48, -31], [62, -32], [64, -22]], 2.7);
+    },
+    'ladder-hands'() {
+      curtain();
+      robot(-50, 26, .81, accent, 'up');
+      robot(56, 25, .80, mid, 'up');
+      line([[-25, 83], [5, -82]], 7, '#bd9275');
+      line([[25, 85], [48, -81]], 7, '#bd9275');
+      for (const y of [-64, -38, -12, 14, 40, 66]) {
+        const a = -25 + (83 - y) * .18;
+        line([[a, y], [a + 46, y + 1]], 4, accent);
+      }
+      line([[4, -83], [55, -90], [95, -85]], 4, accent);
+    },
+    'storekeeper'() {
+      hooks();
+      robot(-19, 13, 1.12, mid, 'reach');
+      box(31, 7, 36, 50, cream, 2);
+      for (const y of [18, 27, 37, 46]) line([[38, y], [58, y - 1]], 1.3, deep);
+    },
+    'secondhand-stall'() {
+      hooks();
+      shape([[-102, -52], [-73, -78], [74, -78], [107, -51]], deep);
+      for (const x of [-78, -47, -16, 16, 47, 78]) line([[x * .83, -75], [x, -53]], 6, mid);
+      line([[-97, -51], [-97, 70]], 5, deep);
+      line([[96, -51], [96, 70]], 5, deep);
+      box(-92, 25, 184, 45, '#aa7c58', 1);
+      box(-82, 49, 162, 11, mid, 1);
+      for (const [x, r] of [[-64, 10], [-42, 14], [-15, 8], [16, 13], [54, 15]]) {
+        oval(x, 15, r, r * .63, accent, 1.7);
+        oval(x, 15, r * .33, r * .22, cream, 1.1);
+      }
+    },
+    'yard-cart'() {
+      hooks();
+      robot(-53, -1, 1, mid, 'reach');
+      shape([[-19, 20], [88, 17], [70, 50], [-7, 56]], deep);
+      for (const [x, y] of [[3, 17], [26, 21], [52, 12], [68, 18]]) box(x - 6, y - 11, 19, 12, accent, 2);
+      line([[-39, 12], [-10, 24]], 5, ink);
+      oval(11, 57, 11, 12, mid);
+      oval(58, 55, 11, 12, mid);
+    },
+    'ledger-hands'() {
+      hooks();
+      robot(-47, -7, .94, mid, 'reach');
+      robot(52, -5, .94, accent, 'reach');
+      box(-98, 31, 195, 29, deep, 2);
+      shape([[-32, 32], [11, 25], [35, 42], [-10, 51]], cream);
+      for (const y of [33, 37, 41, 45]) line([[-16, y + 2], [15, y - 3]], 1.2, deep);
+      for (const x of [55, 66, 77]) oval(x, 28, 5, 3, mid, 1.4);
+    },
+    'stockroom-wall'() {
+      hooks();
+      box(-92, -70, 156, 134, '#b99068', 3);
+      box(-79, -59, 130, 54, deep, 2);
+      box(-71, -44, 28, 32, mid, 2);
+      box(-22, -47, 41, 35, accent, 2);
+      shape([[-80, -7], [49, -7], [93, 35], [-52, 43]], '#ca9f72');
+      line([[-56, 41], [-74, 14], [-73, -8]], 4, deep);
+      line([[88, 37], [46, 10], [46, -9]], 4, deep);
+      line([[-53, 48], [90, 42]], 2.5, '#8d684d');
+    },
+    'end-of-shift-crew'() {
+      hooks();
+      robot(-51, 7, .91, accent, 'reach');
+      robot(58, 8, .91, mid, 'reach');
+      box(-42, 27, 84, 44, '#ba9369', 2);
+      line([[-41, 39], [41, 40]], 2.5, deep);
+      box(-12, 30, 24, 17, cream, 2, 1.7);
+      shape([[-47, 23], [-32, 3], [46, 3], [42, 23]], deep);
+    },
+    'bedkeeper'() {
+      outdoors(true);
+      shape([[-122, 71], [-31, 49], [56, 62], [122, 52], [122, 97], [-122, 97]], '#7d9e9f', 0);
+      line([[-114, 71], [-25, 52], [53, 63], [101, 57]], 3, '#e9e7c2');
+      robot(-21, 1, 1.12, mid, 'reach');
+      reeds(78, 65, .75);
+    },
+    'reed-bed'() {
+      outdoors(true);
+      shape([[-107, 24], [-39, 17], [81, 18], [102, 39], [-96, 43]], '#917c5e');
+      for (const x of [-69, -21, 32, 72]) reeds(x, 31, .85);
+      for (const x of [-65, -29, 13, 48, 73]) {
+        line([[x, 38], [x + 2, 54], [x - 5, 69]], 1.7, '#af9e78');
+        line([[x + 2, 50], [x + 10, 60]], 1.3, '#af9e78');
+      }
+      for (const x of [-60, 13, 68]) {
+        line([[x - 4, 55], [x + 4, 63]], 1.4, cream);
+        line([[x + 4, 55], [x - 4, 63]], 1.4, cream);
+      }
+    },
+    'silt-seed'() {
+      outdoors(true);
+      shape([[-51, -59], [40, -62], [62, -37], [55, 65], [-45, 70]], '#c7d9bc', 3);
+      shape([[-43, -49], [30, -51], [48, -32], [46, 56], [-34, 60]], cream);
+      shape([[31, -51], [48, -32], [28, -30]], '#a7b391', 1.5);
+      for (const [x, y, a] of [[-16, 4, 8], [2, 22, 10], [19, -4, 8], [-8, 39, 7], [23, 39, 6]]) {
+        oval(x, y, a, 5, '#9b7d58', 1.5);
+        line([[x - 2, y + 1], [x + 2, y - 2]], 1, cream);
+      }
+    },
+    'mudbank-crew'() {
+      outdoors(true);
+      robot(-57, 5, .83, mid, 'reach');
+      robot(54, 7, .82, '#c0aa79', 'reach');
+      shape([[-45, 27], [74, 22], [94, 44], [-28, 53]], '#b99870');
+      line([[-24, 46], [75, 37]], 1.2, '#765d50');
+      reeds(95, 56, .53);
+    },
+    'shade-stakes'() {
+      outdoors(true);
+      for (const [x, y] of [[-82, -38], [75, -45], [-46, -18], [98, -26]]) line([[x, y], [x - 2, 73]], 3.5, '#735e49');
+      shape([[-89, -40], [66, -56], [104, -27], [-44, -12]], '#8da479');
+      line([[-74, -39], [-38, -15], [99, -29]], 1.8, cream);
+      for (const x of [-66, -23, 22, 65]) reeds(x, 70, .47);
+    },
+    'bank-walkers'() {
+      outdoors(true);
+      shape([[-121, 75], [-43, 48], [37, 48], [120, 22], [122, 37], [28, 69], [-37, 69], [-122, 96]], '#c0a47f');
+      robot(-39, 3, .86, mid, 'stand');
+      robot(49, -16, .70, '#c0aa79', 'reach');
+      reeds(76, 88, .44);
+    },
+  };
+
+  drawings[card.id]();
+  if (!ST.holo) for (let i = 0; i < 495; i++) {
+    const x = kit.hash(i * 394 + 2) * 244 - 122;
+    const y = kit.hash(i * 913 + 79) * 194 - 97;
+    const r = .18 + kit.hash(i * 137 + 11) * .52;
+    kit.dot(g, x, y, r, i % 3 ? '#49333b24' : '#fff5d982');
+  }
+}
+
+const FT_FILM = {"ft_core": ["lamp", "K"], "ft_hinge": ["hinge", "K"], "ft_brace": ["brace", "K"], "ft_weight": ["weight", "K"], "ft_drum": ["drum", "K"], "ft_runner": ["runner", "K"], "ft_foreman": ["foreman", "K"], "ft_keeper": ["keeper", "L"], "ft_walker": ["walker", "L"], "ft_wall": ["wall", "L"], "ft_ink": ["ink", "L"], "ft_tally": ["tally", "L"]};
+const FT_DRAFT = {"ft_hingeMis": ["hinge-misprint", "bench"], "ft_marker": ["marker-crew", "way"], "ft_watch": ["road-watch", "way"], "ft_caller": ["stage-caller", "house"], "ft_chorus": ["balcony-chorus", "house"], "ft_foot": ["footlight-crew", "house"], "ft_usher": ["quiet-usher", "house"], "ft_ladder": ["ladder-hands", "house"], "ft_keep": ["storekeeper", "secondhand"], "ft_stall": ["secondhand-stall", "secondhand"], "ft_cart": ["yard-cart", "secondhand"], "ft_ledger": ["ledger-hands", "secondhand"], "ft_stock": ["stockroom-wall", "secondhand"], "ft_shift": ["end-of-shift-crew", "secondhand"], "ft_bed": ["bedkeeper", "wet"], "ft_reed": ["reed-bed", "wet"], "ft_silt": ["silt-seed", "wet"], "ft_mud": ["mudbank-crew", "wet"], "ft_shade": ["shade-stakes", "wet"], "ft_bank": ["bank-walkers", "wet"]};
+function ftKit(a) { const bk = boil(a.t); return { ink: (g, P, o) => ink(g, P, Object.assign({ bk }, o)), circlePts, rectPts, dot, hash }; }
+for (const id in FT_FILM) ART[id] = a => ftPaintFilm(a.g, FT_FILM[id][0], FT_FILM[id][1], ftKit(a));
+for (const id in FT_DRAFT) ART[id] = a => ftPaintDraft(a.g, ftKit(a), { id: FT_DRAFT[id][0], deck: { id: FT_DRAFT[id][1] } });
+
 // ── art/kits-a.js
 // kits-a: the kit roles on the core, industry, economy and science roads. Each picture draws the Wikipedia article its name comes from.
 // a cartoon person: o = { body, skin, head, legs, arm: [angleL, angleR] }  (stands with feet at y = 0)
