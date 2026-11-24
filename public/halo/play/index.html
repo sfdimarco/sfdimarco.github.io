@@ -82,6 +82,9 @@
   .bar { background:#0b0e14; border:2px solid var(--line); border-radius:10px; margin-bottom:8px; padding:8px 14px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; min-height:64px; }
   .who { font-size:20px; font-weight:bold; } .who.mine { color:var(--gold); }
   .econ { font-size:20px; font-weight:bold; background:#243044; border-radius:8px; padding:4px 12px; }
+  .mode { font-size:12px; font-weight:bold; letter-spacing:1px; padding:4px 10px; border-radius:8px; border:2px solid #5a6680; color:#cfd6e4; white-space:nowrap; } .mode.bounty { border-color:var(--gold); color:#1b1e29; background:var(--gold); }
+  .modebox { border:2px solid #5a6680; border-radius:12px; padding:10px 16px 12px; margin:10px auto; max-width:620px; text-align:center; } .modebox.bounty { border-color:var(--gold); background:#2a2418; } .modebox h2 { margin:0 0 4px; } .modebox.bounty h2 { color:var(--gold); } .modebox p { margin:4px 0 8px; } button.big { font-size:20px; padding:12px 28px; }
+  .danger { background:#b71c1c; color:#fff; padding:4px 10px; border-radius:8px; font-size:14px; font-weight:bold; } .paid { color:var(--gold); font-weight:bold; }
   .peace { background:#1b5e20; padding:3px 10px; border-radius:8px; font-size:13px; }
   .news { flex:1; min-width:300px; font-size:14px; } .news div { padding:1px 0; }
   .hint { color:#7CFC8A; font-weight:bold; }
@@ -116,8 +119,9 @@
   .geo { vertical-align:-2px; fill:currentColor; }
   .seat { background:#243044; border:2px solid #3a4a66; border-radius:8px; cursor:pointer; } .seat:hover { border-color:var(--gold); } .seat span { display:block; }
   .chg { margin-top:6px; font-size:12px; text-decoration:underline; color:var(--gold); }
-  #tip { position:fixed; display:none; gap:12px; z-index:20; max-width:440px; background:#1d2535; color:var(--ink); border:3px solid var(--gold); border-radius:10px; padding:10px 12px; font-size:14px; box-shadow:0 8px 30px rgba(0,0,0,.7); pointer-events:none; }
-  #tip b { font-size:17px; } .tipg { text-align:center; } .tipfam { font-size:10px; margin-top:2px; white-space:nowrap; color:var(--dim); } .tipsrc { margin-top:6px; padding-top:6px; border-top:1px solid #3a4a66; font-size:12px; color:#aab3c5; }
+  #tip { position:fixed; display:none; gap:12px; z-index:20; max-width:460px; line-height:1.4; background:#1d2535; color:var(--ink); border:3px solid var(--gold); border-radius:10px; padding:10px 12px; font-size:15px; box-shadow:0 8px 30px rgba(0,0,0,.7); pointer-events:none; }
+  #tip.sheet { left:8px !important; right:8px; max-width:none; max-height:46vh; overflow:hidden; } #tip.sheet .tipg { display:none; }
+  #tip b { font-size:17px; } .tipg { text-align:center; } .tipfam { font-size:10px; margin-top:2px; white-space:nowrap; color:var(--dim); } .tipsrc { margin-top:6px; padding-top:6px; border-top:1px solid #3a4a66; font-size:13px; color:#c9d0de; }
   .libr { width:auto; max-width:none; } .lc { cursor:default; } .new { color:#7CFC8A; } .ok { color:#7CFC8A; font-size:13px; } h2 .err { font-size:13px; }
   .rtag { display:inline-block; font-size:10px; font-weight:bold; color:#111; padding:1px 7px; border-radius:9px; white-space:nowrap; }
   .road { margin-top:6px; font-size:13px; } .combo { margin-top:5px; font-size:13px; padding:5px 7px; border-left:3px solid var(--gold); background:rgba(246,199,68,.1); }
@@ -162,7 +166,8 @@
   .hand.fan .hc:hover { transform:translateY(-14px) scale(1.06); z-index:3; } .hand.fan .hc.sel { transform:translateY(-18px) scale(1.08); z-index:4; }
   .handw .btns { justify-content:center; align-items:center; } .handt { color:var(--dim); font-size:13px; }
   .side2 .sidec { display:flex; flex-direction:column; gap:8px; }
-  @media (max-width:1180px) { .table2 { grid-template-columns:minmax(0,1fr); grid-template-areas:"bar" "arena" "hand" "side"; } }
+  @media (max-width:1180px) { .table2 { grid-template-columns:minmax(0,1fr); grid-template-areas:"bar" "coach" "arena" "hand" "ways" "info" "sidec"; }
+    .side2 { display:contents; } .side2 > .coach { grid-area:coach; margin:0; } .side2 > .ways { grid-area:ways; } .side2 > .info { grid-area:info; } .side2 > .sidec { grid-area:sidec; } }
   @media (max-width:760px) {
     .table2 { padding:6px; gap:8px; } .arena { grid-template-columns:minmax(0,1fr); }
     .moon { max-width:360px; margin:0 auto; } .orb .on { font-size:10px; } .orb .ol { font-size:9px; }
@@ -11207,7 +11212,7 @@ const TABLES = { team: ['3 ON 3', 'Two teams of three. Seats alternate round the
 function startScreen() {
   clearTimeout(timer); S = null; const R = window.__modes && window.__modes[table];
   $('app').innerHTML = `<div class="start"><h1>HALO ALIQUID NIHIL</h1><p class="sub">Playtest table &middot; seven planets round a sun &middot; you play one, bots play the rest</p>
-  ${DRAFT ? `<p class="sub" style="color:var(--gold)">Your Draft Night deck is in seat 1: <b>${esc(DRAFT.who)}</b>, led by ${esc(C[DRAFT.commander].name)}.${BOSS ? ` BOUNTY: beat ${esc(DECKS[BOSS].who)} 1 on 1 to earn points.` : ' Pick a table and press PLAY.'}</p>` : ''}
+  ${DRAFT ? `<div class="modebox ${bountyOn() ? 'bounty' : ''}">${bountyOn() ? `<h2>&#9733; BOUNTY: ${esc(DECKS[BOSS].who)}</h2><p>Beat ${esc(DECKS[BOSS].who)} 1 on 1 and the bounty board pays you.</p><button class="primary big" data-a="go">FIGHT ${esc(DECKS[BOSS].who).toUpperCase()} &#9656;</button>` : `<h2>SCRIMMAGE</h2><p>A practice table. It pays no points. ${BOSS ? `You changed the table, so this is no longer the bounty on ${esc(DECKS[BOSS].who)}.` : 'For points, pick a face on the bounty board.'}</p><button data-a="bazaar">To the bounty board</button>`}<p class="small">Your Draft Night deck is in seat 1: <b>${esc(DRAFT.who)}</b>, led by ${esc(C[DRAFT.commander].name)}.</p></div>` : ''}
   <h2>1 &middot; The table</h2><div class="row">${Object.keys(TABLES).map(k => `<button class="pick ${k === table ? 'on' : ''}" data-a="table" data-k="${k}"><b>${TABLES[k][0].replace('·', '&middot;')}</b><span>${TABLES[k][1]}</span></button>`).join('')}</div>
   ${R ? `<p class="small">Bot test of this table: about ${R.rounds} rounds &middot; no winner ${R.none} % &middot; win by seat ${R.seat.join(' / ')} %.</p>` : ''}
   <h2>2 &middot; Pick your seat</h2><div class="seats">${seatsNow().map((s, i) => `<div class="seat ${table === 'team' ? 't' + s.team : ''} ${i === human ? 'on' : ''}" data-a="seat" data-i="${i}"><b>${esc(s.name)}${i === human ? ' &middot; YOU' : ''}</b><span>${glyph('commander')} ${esc(C[DECKS[s.deck].commander].name)}</span><i>seat ${i + 1}${table === 'team' ? ' &middot; team ' + TEAM[s.team] : ''}${DECKS[s.deck].test ? ' &middot; test player' : ''}</i><span class="chg" data-a="deck" data-i="${i}">change player</span></div>`).join('')}</div>
@@ -11408,7 +11413,7 @@ function bigGlyph(type, step) {
 }
 
 // ----- hover descriptions: the same words as the info box, plus where the card comes from and the price check
-const SRC = { book: 'your book', show: 'the show', draft: 'your rulebook draft', mook: 'your own card (2020)', claude: "Claude's placeholder" };
+const SRC = { book: 'your book', show: 'the show', draft: 'your rulebook draft', mook: 'your own card (2020)', claude: "Claude's placeholder", kit: 'the basics', ft: 'Faulty Tolerance' };
 // which road to a win a card is for, and what it fuses with
 const ROADS = { table: ['TABLE', 'knock planets out: the last one lit wins', '#ef5350'], econ: ['ECON', 'bank ECON and buy the win; build income that grows (Fondaco) and cheap units (Kontor), and send ECON to team-mates (Vittles). Needs your ECONOMY ring lit', '#f6c744'], science: ['SCIENCE', 'build the great machine. Needs your SCIENCE ring lit', '#26c6da'], religion: ['RELIGION', 'CONVERSION: take enemy units onto your grid with Road to Damascus (faith = 3 + your faith cards, up to 6, is the biggest D you can take). Hold ' + PICKS.relConv + ' converts at the start of your turn, Religion lit: you win', '#c58af9'], food: ['FOOD', 'grow rings back and bring in the harvest. Needs your FOOD ring lit', '#8bc34a'], pop: ['CROWD', 'fill all nine squares with your crowd: units AND crowd structures (Burgage) count. A Burgage grows a Cottar a turn while Population is lit. Needs your POPULATION ring lit', '#ff9800'], politics: ['TREATY', `send envoys. A treaty is a PEACE PACT: the rival cannot attack your cards. They can pay ${PICKS.tearCost} ECON to tear it up, or hurt you past the grid. If YOU hurt them, it is torn. Hold ${PICKS.polWin} at the start of your turn (1 one on one), Politics lit: you win.`, '#90a4ae'] };
 function roadOf(id) { const c = C[id];
@@ -11433,27 +11438,32 @@ function roadLines(id) {
   return t; }
 const RINGTIP = ['ECONOMY: your income cards pay, and you may buy the win, only while this is lit.', 'Industry.', 'SCIENCE: science cards grow, and the great machine can be finished, only while this is lit.', 'FOOD: every turn one of your rings grows back while this is lit is one harvest. Put it out and the harvest stops.', 'POPULATION: a crowd on all nine squares wins only while this is lit. Units AND crowd structures (Burgage) count; a Burgage grows a Cottar a turn while this is lit. Rivals cannot reach it through a full grid: past-the-grid moves can.', `RELIGION = CONVERSION. Road to Damascus takes an enemy front unit onto YOUR grid if its D is no more than your faith (3 + your faith cards, up to 6). Hold ${PICKS.relConv} converts at the start of your turn with this lit and you win (3 in a free for all). The answer: knock out a convert, or put this ring out.`, `POLITICS: A treaty is a PEACE PACT: the rival cannot attack your cards. They can pay ${PICKS.tearCost} ECON to tear it up, or hurt you past the grid. If YOU hurt them, it is torn. Hold ${PICKS.polWin} at the start of your turn (1 one on one), Politics lit: you win. A rival that puts this ring out stops the treaty win.`];
 function ringInfo(p, k) { return `<b>${cap(RINGS[k])} ring</b> &middot; ${esc(p.name)} &middot; ${p.rings[k] ? 'lit' : 'DARK'}<br>${RINGTIP[k]}<br>Every lit ring is one card and one ECON a turn. All seven dark and the planet is out.${S && S.cfg.ringCap ? ` A planet can lose only ${S.cfg.ringCap} before its next turn.` : ''}`; }
-function extra(id) {
+function extra(id, full) {   // full (the card library): the price check and Claude's notes too. At the table: just where the card is from.
   const c = C[id], b = BG.budget(id); let t = roadLines(id) + `<div class="tipsrc">From ${SRC[c.src] || c.src}${c.lib ? ' &middot; library card' : ''}.`;
+  if (!full) return t + '</div>';
   if (c.inv && c.inv.length) t += ` Claude's on it: ${c.inv.map(esc).join(' &middot; ')}.`;
   if (b) t += `<br>Price check: costs ${c.econ}, the line says ${b.fair} &rarr; ${b.verdict === 'fair' ? 'fair' : b.verdict === 'cheap' ? 'CHEAP for what it does' : 'DEAR for what it does'}.`;
   if (c.bal) t += `<br>Rebalanced 11-22: ${esc(c.bal)}.`;
   return t + '</div>';
 }
 const typeOf = id => C[id].type;
-let tipTimer = null, tipStep = 0;
+let tipTimer = null, tipStep = 0, touchy = false;   // touchy: the last press was a finger, so the description opens as a sheet (11-24: tooltips on phones)
+document.addEventListener('pointerdown', ev => { touchy = ev.pointerType === 'touch'; }, true);
 function showTip(el, type, html) {
   const tip = $('tip'); clearInterval(tipTimer); tipStep = 0;
   tip.innerHTML = `${type ? `<div class="tipg" id="tipg">${bigGlyph(type, 0)}</div>` : ''}<div class="tipt">${html}</div>`; tip.style.display = 'flex';
   const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
-  let x = r.right + 10, y = r.top; if (x + w > innerWidth - 8) x = r.left - w - 10; if (x < 8) x = 8; if (y + h > innerHeight - 8) y = innerHeight - h - 8; if (y < 8) y = 8;
-  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  if (touchy) { const low = r.top + r.height / 2 > innerHeight / 2; tip.classList.add('sheet'); tip.style.top = low ? '8px' : 'auto'; tip.style.bottom = low ? 'auto' : '8px'; }
+  else { tip.classList.remove('sheet'); tip.style.bottom = 'auto';
+    let x = r.right + 10, y = r.top; if (x + w > innerWidth - 8) x = r.left - w - 10; if (x < 8) x = 8; if (y + h > innerHeight - 8) y = innerHeight - h - 8; if (y < 8) y = 8;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px'; }
   if (type && FAM[type][1].length > 1) tipTimer = setInterval(() => { const g = $('tipg'); if (g) g.innerHTML = bigGlyph(type, ++tipStep); }, 700);   // the node ADVANCEs through its loop
 }
 function hideTip() { clearInterval(tipTimer); const t = $('tip'); if (t) t.style.display = 'none'; }
 function tipFor(el) {
   const a = el.dataset.a, pid = +el.dataset.pid;
-  if (a === 'libcard') { const id = el.dataset.id; return [typeOf(id), `<b>${esc(C[id].name)}</b>${C[id].econ !== undefined ? ` &middot; costs ${C[id].econ} ECON` : ''}<br>${cardText(id)}${extra(id)}`]; }
+  if (el.dataset.tip) return [null, el.dataset.tip];
+  if (a === 'libcard') { const id = el.dataset.id; return [typeOf(id), `<b>${esc(C[id].name)}</b>${C[id].econ !== undefined ? ` &middot; costs ${C[id].econ} ECON` : ''}<br>${cardText(id)}${extra(id, true)}`]; }
   if (!S) return null;
   if (a === 'hand') { const id = S.players[human].hand[+el.dataset.i]; return id ? [typeOf(id), handInfo(id) + extra(id)] : null; }
   if (a === 'cell') { const p = S.players[pid], c = p.grid[+el.dataset.sq]; if (!c) return null; if (c.down && pid !== human) return ['trap', cellInfo(p, c)]; return [typeOf(c.card), cellInfo(p, c) + extra(c.card)]; }
@@ -11463,7 +11473,7 @@ function tipFor(el) {
   return null;
 }
 let tipEl = null;
-document.addEventListener('mouseover', ev => { const el = ev.target.closest && ev.target.closest('[data-a=hand],[data-a=cell],[data-a=cmd],[data-a=libcard],[data-a=ring],[data-a=way]'); if (el === tipEl) return; tipEl = el; if (!el) return hideTip(); const t = tipFor(el); if (t) showTip(el, t[0], t[1]); else hideTip(); });
+document.addEventListener('mouseover', ev => { const el = ev.target.closest && ev.target.closest('[data-a=hand],[data-a=cell],[data-a=cmd],[data-a=libcard],[data-a=ring],[data-a=way],[data-tip]'); if (el === tipEl) return; tipEl = el; if (!el) return hideTip(); const t = tipFor(el); if (t) showTip(el, t[0], t[1]); else hideTip(); });
 
 // ----- the card library: every card, by deck, with its price check, and the last balance report
 function libCard(id, k) { const c = C[id], b = BG.budget(id);
@@ -11534,9 +11544,9 @@ function halo(p, rel) {
 }
 function planet(p) {
   const meT = S.players[human].team, rel = p.id === human ? 'me' : p.team === meT ? 'ally' : 'enemy', cmd = C[p.cmd.id];
-  const pacts = treatyNames(p).map(n => `<span class="badge pact" title="A peace pact: neither side's cards can be attacked by the other. Tear it for ${S.cfg.tearCost} ECON, or hurt them past the grid.">&#129309; treaty with ${esc(n)}</span>`).join('') + (E.converts(p) ? `<span class="badge conv">&#10013; ${E.converts(p)} converted</span>` : '');
+  const pacts = treatyNames(p).map(n => `<span class="badge pact" data-tip="A peace pact: neither side's cards can be attacked by the other. Tear it for ${S.cfg.tearCost} ECON, or hurt them past the grid.">&#129309; treaty with ${esc(n)}</span>`).join('') + (E.converts(p) ? `<span class="badge conv">&#10013; ${E.converts(p)} converted</span>` : '');
   const badges = [p.out ? 'OUT' : '', p.canopy ? 'CANOPY' : '', p.pink ? 'MOOD: PINK' : '', p.league ? 'HOLY LEAGUE' : '', p.parlay !== null && p.parlay !== undefined ? 'PARLAY vs ' + S.players[p.parlay].name : '', !p.out && E.capped(S, p) ? 'HALO HOLDS' : '', !p.out && (p.relCount || 0) > 0 ? 'CONVERTING' : ''].filter(Boolean).map(b => `<span class="badge ${b === 'CONVERTING' ? 'warn' : ''}">${b}</span>`).join('') + pacts;
-  const rings = p.rings.map((on, k) => `<span class="ring ${on ? 'on' : 'off'} ${curT['r:' + p.id + ':' + k] ? 'target' : ''} ${fl['r:' + p.id + ':' + k] ? 'fl-ring' : ''}" data-a="ring" data-pid="${p.id}" data-k="${k}" title="${RINGS[k]}">${RSHORT[k]}</span>`).join('');
+  const rings = p.rings.map((on, k) => `<span class="ring ${on ? 'on' : 'off'} ${curT['r:' + p.id + ':' + k] ? 'target' : ''} ${fl['r:' + p.id + ':' + k] ? 'fl-ring' : ''}" data-a="ring" data-pid="${p.id}" data-k="${k}">${RSHORT[k]}</span>`).join('');
   let g = ''; for (const r of (p.id === human ? [0, 1, 2] : [2, 1, 0])) { g += `<div class="rl">${['FRONT', 'mid', 'back'][r]}</div>`; for (let l = 0; l < 3; l++) g += cell(p, r * 3 + l); }
   const lanes = '<div class="rl"></div>' + [1, 2, 3].map(n => `<div class="ln l${n}">lane ${n}</div>`).join('');
   const usable = p.id === human && myTurn() && curL.some(m => m.t === 'deploy');
@@ -11569,7 +11579,7 @@ function orb(p, slot) {
   if (!p) return `<div class="orb nihil" style="left:${x}%;top:${y}%"><svg viewBox="-30 -30 60 60"><circle r="8" fill="none" stroke="#7ff3ff" stroke-width=".8" stroke-dasharray="1.5 1.5"/>${[0, 1, 2, 3, 4, 5, 6].map(k => `<ellipse rx="${11 + k * 2.6}" ry="${(11 + k * 2.6) * 0.4}" fill="none" stroke="#7ff3ff" stroke-opacity=".35" stroke-width=".6" stroke-dasharray="1 3"/>`).join('')}</svg><span class="on">blank</span></div>`;
   const rel = relOf(p), col = colOf(p), lit = p.rings.filter(Boolean).length;
   const cls = ['orb', rel, p.out ? 'out' : '', !S.result && S.cur === p.id ? 'turn' : '', curT['p:' + p.id] ? 'target' : targetsOn(p.id) && p.id !== human ? 'hot' : '', p.id === focus ? 'focus' : ''].join(' ');
-  return `<button class="${cls}" style="left:${x}%;top:${y}%;--c:${col}" data-a="orb" data-pid="${p.id}" title="${esc(p.name)}: ${lit} of 7 rings lit${treatyNames(p).length ? ' · treaty with ' + esc(treatyNames(p).join(', ')) : ''}">
+  return `<button class="${cls}" style="left:${x}%;top:${y}%;--c:${col}" data-a="orb" data-pid="${p.id}" data-tip="${esc(p.name)}: ${lit} of 7 rings lit${treatyNames(p).length ? ' · treaty with ' + esc(treatyNames(p).join(', ')) : ''}">
     <svg viewBox="-30 -30 60 60"><circle r="8" fill="${p.out ? '#2a3140' : col}"/>${p.rings.map((on, k) => `<ellipse rx="${11 + k * 2.6}" ry="${(11 + k * 2.6) * 0.4}" fill="none" stroke="${on ? col : '#3a4254'}" stroke-width="${on ? 1.4 : 0.7}" ${on ? '' : 'stroke-dasharray="2 2"'} ${fl['r:' + p.id + ':' + k] ? 'class="hfl"' : ''}/>`).join('')}</svg>
     <span class="on">${esc(p.name)}</span><span class="ol">${rel === 'me' ? 'YOU' : rel === 'ally' ? 'team' : 'rival'} &middot; ${lit}/7${treatyNames(p).length ? ' &#129309;' : ''}${E.converts(p) ? ' &#10013;' + E.converts(p) : ''}</span></button>`;
 }
@@ -11587,9 +11597,9 @@ function moon(N) {
 // one side of the duel: name, rings and commander, then its grid (yours front-row-up, theirs front-row-down: the lanes meet in the middle)
 function sideHead(p) {
   const rel = relOf(p), cmd = C[p.cmd.id];
-  const pacts = treatyNames(p).map(n => `<span class="badge pact" title="A peace pact: neither side's cards can be attacked by the other. Tear it for ${S.cfg.tearCost} ECON, or hurt them past the grid.">&#129309; treaty with ${esc(n)}</span>`).join('') + (E.converts(p) ? `<span class="badge conv">&#10013; ${E.converts(p)} converted</span>` : '');
+  const pacts = treatyNames(p).map(n => `<span class="badge pact" data-tip="A peace pact: neither side's cards can be attacked by the other. Tear it for ${S.cfg.tearCost} ECON, or hurt them past the grid.">&#129309; treaty with ${esc(n)}</span>`).join('') + (E.converts(p) ? `<span class="badge conv">&#10013; ${E.converts(p)} converted</span>` : '');
   const badges = [p.out ? 'OUT' : '', p.canopy ? 'CANOPY' : '', p.pink ? 'MOOD: PINK' : '', p.league ? 'HOLY LEAGUE' : '', p.parlay !== null && p.parlay !== undefined ? 'PARLAY vs ' + S.players[p.parlay].name : '', !p.out && E.capped(S, p) ? 'HALO HOLDS' : '', !p.out && (p.relCount || 0) > 0 ? 'CONVERTING' : ''].filter(Boolean).map(b => `<span class="badge ${b === 'CONVERTING' ? 'warn' : ''}">${b}</span>`).join('') + pacts;
-  const rings = p.rings.map((on, k) => `<span class="ring ${on ? 'on' : 'off'} ${curT['r:' + p.id + ':' + k] ? 'target' : ''} ${fl['r:' + p.id + ':' + k] ? 'fl-ring' : ''}" data-a="ring" data-pid="${p.id}" data-k="${k}" title="${RINGS[k]}">${RSHORT[k]}</span>`).join('');
+  const rings = p.rings.map((on, k) => `<span class="ring ${on ? 'on' : 'off'} ${curT['r:' + p.id + ':' + k] ? 'target' : ''} ${fl['r:' + p.id + ':' + k] ? 'fl-ring' : ''}" data-a="ring" data-pid="${p.id}" data-k="${k}">${RSHORT[k]}</span>`).join('');
   const usable = p.id === human && myTurn() && curL.some(m => m.t === 'deploy');
   return `<div class="shead ${rel} ${!S.result && S.cur === p.id ? 'turn' : ''} ${p.out ? 'out' : ''} ${curT['p:' + p.id] ? 'target' : ''}" data-a="planet" data-pid="${p.id}" style="--c:${colOf(p)}">
     <div class="ph"><b>${esc(p.name)}</b> <span class="tag">${rel === 'me' ? 'YOU' : rel === 'ally' ? 'your team' : 'RIVAL'}</span> ${badges}
@@ -11615,6 +11625,13 @@ function pickFocus() {
 
 // ----- Mush, the coach: ONE short line for the player's turn, the most useful thing first. He is mostly quiet (the bible), so: short.
 const enemiesOf = p => S.players.filter(q => !q.out && q.team !== p.team);
+// an empty lane while you are down to your last rings: said in the bar, Mush on or off
+function danger() {
+  if (!S || S.result) return ''; const me = S.players[human]; if (me.out || S.turnNo <= S.cfg.peace * S.players.length) return '';
+  const lit = me.rings.filter(Boolean).length, open = [0, 1, 2].filter(l => !E.front(me, l) && enemiesOf(me).some(q => E.front(q, l)));
+  if (!open.length || lit > Math.max(2, open.length)) return '';
+  return `<div class="danger">&#9888; ${lit === 1 ? 'YOUR LAST RING' : 'ONLY ' + lit + ' RINGS LEFT'} &middot; lane ${open.map(l => l + 1).join(' and ')} ${open.length > 1 ? 'are' : 'is'} open. Put a card there.</div>`;
+}
 function coach() {
   if (!coachOn || !S || S.result || !myTurn()) return '';
   const me = S.players[human], N = S.players.length, peace = S.turnNo <= S.cfg.peace * N, say = (t, sub) => `<div class="coach"><b class="mush">🍄 Mush:</b> ${t}${sub ? `<div class="small">${sub}</div>` : ''}</div>`;
@@ -11675,12 +11692,12 @@ function render() {
   const how = `<b>How a turn goes</b><ul class="how" style="margin:6px 0 0;padding-left:18px"><li>Gold edge = you can use it. Click it.</li><li>Green glow = where it can go. Click that.</li><li>Play cards onto your 9 squares.</li><li>Your FRONT card in each lane attacks straight across that lane: your A against their D.</li><li>Their lane empty? You put out one of their rings.</li><li>Tap a planet on the board to face it. A planet glowing green has a target for you.</li><li>A planet can lose only ${S.cfg.ringCap || 'any number of'} rings before its next turn.</li><li>Press END TURN when you are done.</li></ul><div class="small" style="margin-top:6px">Geo nodes: ${glyph('unit')} unit &middot; ${glyph('structure')} structure &middot; ${glyph('action')} action &middot; ${glyph('trap')} trap &middot; ${glyph('commander')} commander</div>`;
   let ov = '';
   if (S.pending && S.pending.responder === human) ov = `<div class="ov"><div class="ovb"><h1>ANSWER?</h1><p>${esc((news[news.length - 1] || '').replace(/^t\d+ /, ''))}</p>${curL.map((m, i) => `<button class="mv" data-a="mv" data-i="${i}">${esc(E.describe(S, m))}</button>`).join('')}</div></div>`;
-  else if (S.result && !hideResult) { const [h, s] = resultText(); ov = `<div class="ov"><div class="ovb"><h1>${h}</h1><p>${esc(s)}</p><p class="small">${Math.ceil(S.turnNo / N)} rounds &middot; seed ${match.seed}</p><div class="btns"><button class="primary" data-a="new">NEW GAME</button><button data-a="look">Look at the table</button><button data-a="save">Save this match</button>${BOSS ? '<button class="primary" data-a="bazaar">Back to the bounty board</button>' : ''}</div></div></div>`; }
+  else if (S.result && !hideResult) { const [h, s] = resultText(); ov = `<div class="ov"><div class="ovb"><h1>${h}</h1><p>${esc(s)}</p>${DRAFT ? `<p class="paid">${bountyOn() ? (S.result.type === 'win' && S.result.team === S.players[human].team ? '&#9733; Bounty won. Your points are waiting on the bounty board.' : 'A bounty match. No points this time.') : 'A scrimmage: no points either way.'}</p>` : ''}<p class="small">${Math.ceil(S.turnNo / N)} rounds &middot; seed ${match.seed}</p><div class="btns"><button class="primary" data-a="new">NEW GAME</button><button data-a="look">Look at the table</button><button data-a="save">Save this match</button>${BOSS ? '<button class="primary" data-a="bazaar">Back to the bounty board</button>' : ''}</div></div></div>`; }
   $('app').innerHTML = `<div class="table2">
-    <div class="bar"><div class="who ${mine ? 'mine' : ''}">${who}</div>${mine ? `<div class="econ">ECON ${me.econ}${S.cfg.econWin ? `<span class="small"> of ${E.winPrice(S, me)} buys the win</span>` : ''}</div>` : ''}${peace && !S.result ? '<div class="peace">PEACE ROUND &middot; nobody may attack yet</div>' : ''}
-      <div class="news">${err ? `<div class="err">${esc(err)}</div>` : ''}${mine && sel ? `<div class="hint">${hint()}</div>` : ''}${news.slice(-3).map(l => `<div>${esc(l.replace(/^t\d+ /, ''))}</div>`).join('')}</div></div>
+    <div class="bar">${modeTag()}<div class="who ${mine ? 'mine' : ''}">${who}</div>${mine ? `<div class="econ">ECON ${me.econ}${S.cfg.econWin ? `<span class="small"> of ${E.winPrice(S, me)} buys the win</span>` : ''}</div>` : ''}${peace && !S.result ? '<div class="peace">PEACE ROUND &middot; nobody may attack yet</div>' : ''}${danger()}
+      <div class="news">${err ? `<div class="err">${esc(err)}</div>` : ''}${mine && sel ? `<div class="hint">${hint()}</div>` : ''}${news.filter(l => !/^(t\d+ )?RESULT/.test(l)).slice(-3).map(l => `<div>${esc(l.replace(/^t\d+ /, ''))}</div>`).join('')}</div></div>
     <div class="arena">${moon(N)}${duel(me, them)}</div>
-    <div class="handw"><div class="btns"><button class="primary" data-a="end" ${mine ? '' : 'disabled'}>END TURN</button><button data-a="big" ${bigOK ? '' : 'disabled'}>BIG MOVE: ${bigName(me.cmd.id)}</button>${buyOK ? `<button class="primary" data-a="buy">BUY THE WIN (${E.winPrice(S, me)} ECON)</button>` : ''}${mine ? curL.filter(m => m.t === 'tear').map(m => `<button data-a="tear" data-pid="${m.tp}" title="Their treaty with you stops your cards attacking theirs. Tear it and you can fight them again.">&#129309;&#10007; Tear up the treaty with ${esc(S.players[m.tp].name)} &middot; ${S.cfg.tearCost} ECON</button>`).join('') : ''}<span class="handt">YOUR HAND (${me.hand.length} of ${S.cfg.handCap || 'any'})</span></div>
+    <div class="handw"><div class="btns"><button class="primary" data-a="end" ${mine ? '' : 'disabled'}>END TURN</button><button data-a="big" ${bigOK ? '' : 'disabled'}>BIG MOVE: ${bigName(me.cmd.id)}</button>${buyOK ? `<button class="primary" data-a="buy">BUY THE WIN (${E.winPrice(S, me)} ECON)</button>` : ''}${mine ? curL.filter(m => m.t === 'tear').map(m => `<button data-a="tear" data-pid="${m.tp}" data-tip="Their treaty with you stops your cards attacking theirs. Tear it and you can fight them again.">&#129309;&#10007; Tear up the treaty with ${esc(S.players[m.tp].name)} &middot; ${S.cfg.tearCost} ECON</button>`).join('') : ''}<span class="handt">YOUR HAND (${me.hand.length} of ${S.cfg.handCap || 'any'})</span></div>
       <div class="hand fan">${hand || '<span class="small">(empty)</span>'}</div></div>
     <div class="side2">${ways()}${coach()}<div class="info">${info || how}${nowBtn}</div>
       <div class="sidec"><div class="btns"><button data-a="skip" ${!S.result && !mine && !(S.pending && S.pending.responder === human) ? '' : 'disabled'}>Skip to my turn</button><button data-a="speed">Bots: ${speed >= 1200 ? 'slow' : speed >= 600 ? 'normal' : 'fast'}</button><button data-a="mute">Sound: ${muted ? 'off' : 'on'}</button><button data-a="coach">Mush: ${coachOn ? 'on' : 'off'}</button><button data-a="save">Save</button><button data-a="new">New game</button>${S.result ? '<button data-a="unlook">Result</button>' : ''}</div>
@@ -11733,7 +11750,7 @@ document.addEventListener('click', ev => {
   if (a === 'new') return startScreen();
   if (a === 'look' || a === 'unlook') { hideResult = a === 'look'; return render(); }
   if (a === 'save') { const blob = new Blob([JSON.stringify(Object.assign({}, match, { human, result: S.result }), null, 1)], { type: 'application/json' }), l = document.createElement('a'); l.href = URL.createObjectURL(blob); l.download = `halo-match-${match.seed}.json`; l.click(); return; }
-  if (a === 'speed') { speed = speed >= 1200 ? 250 : speed >= 600 ? 1400 : 700; return render(); }
+  if (a === 'speed') { speed = speed >= 1200 ? 700 : speed >= 600 ? 250 : 1400; return render(); }
   if (a === 'skip') return skip();
   if (a === 'all') { if (ev.target.tagName === 'SUMMARY') { ev.preventDefault(); showAll = !showAll; render(); } return; }
   if (a === 'mv') return act(curL[+el.dataset.i]);
@@ -11756,6 +11773,9 @@ document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && S && sel
 // Format: base64url of {"v":1,"who":"name","cmd":"<commander id>","cards":[20 card ids]}. Only cards.js / kits.js ids pass.
 // The deck is added to DECKS at run time (cards.js is not changed), so buildDeck scales it to the table's deck size like any deck.
 let DRAFT = null, BOSS = null;
+// is THIS table the bounty? (your Draft deck, 1 on 1, against the boss in the link). Anything else from the site is a scrimmage: no points.
+function bountyOn() { if (!BOSS) return false; if (S) return S.players.length === 2 && S.players[human].deckKey === 'draft' && S.players[1 - human].deckKey === BOSS; return table === 'duel' && lineup.length === 2 && lineup[human] === 'draft' && lineup[1 - human] === BOSS; }
+function modeTag() { return !DRAFT ? '' : bountyOn() ? `<div class="mode bounty">&#9733; BOUNTY &middot; ${esc(DECKS[BOSS].who)}</div>` : '<div class="mode">SCRIMMAGE &middot; no points</div>'; }
 // a Draft Night deck that beats its boss 1 on 1 is written to localStorage 'halo-results-v1'; the site turns it into points
 function reportResult() {
   try {

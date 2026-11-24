@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import HaloCard, { SYN } from "./HaloCard.jsx";
 import { HALO_BOSSES, HALO_STARTERS } from "../content/haloCards.js";
-import { deckProblems, ROAD_BY, WIN_POINTS, BOUNTY, PACK_PRICE } from "../lib/haloBinder.js";
+import { deckProblems, playLink, ROAD_BY, WIN_POINTS, BOUNTY, PACK_PRICE } from "../lib/haloBinder.js";
 
 // 11-23 🆕 (Claude's, for Mook's tick): Mush shows a new player how to play, and the path from "never played" to "beat the cast".
 // Mush is mostly quiet in the show (SHOW-BIBLE 02-CHARACTERS), so his lines are short.
@@ -231,14 +231,16 @@ export function pathSteps(binder) {
   const deckOK = !!binder.deck && deckProblems(binder, binder.deck).length === 0;
   const first = HALO_BOSSES.find((b) => !beatenMap[b.key]);
   const road = binder.road && ROAD_BY[binder.road];
+  // with a deck ready, the bounty steps go STRAIGHT to the fight (11-24: "the first bounty button doesn't work to fight Leo")
+  const hunt = deckOK && first ? { href: playLink(`${import.meta.env.BASE_URL}halo/play/`, binder.deck, "Your Draft deck", first.key, binder.road), go: `Fight ${first.who} ▸` } : {};
   return [
     { key: "learn", t: "Learn with Mush", done: !!binder.learned, to: "/halo", reward: "Ten short steps. He keeps it quick." },
     { key: "road", t: road ? `Road: ${road.ring}` : "Choose your road", done: !!road, to: "/halo/packs", reward: "Your first Poptart becomes that road's starter: its commander and seven cards.", color: road?.color },
     { key: "packs", t: "Open 3 Poptarts", done: binder.packsOpened >= 3 || (binder.packsOpened > 0 && binder.packsLeft === 0), to: "/halo/packs", reward: "Twenty-four cards for your binder." },
     { key: "deck", t: "Build a deck", done: deckOK, to: "/halo/deck", reward: "A 20-card deck the table will play, road perks and all." },
-    { key: "bounty", t: `First bounty${first && !beaten ? `: ${first.who}` : ""}`, done: beaten > 0, to: "/halo/bazaar", reward: `+${WIN_POINTS + BOUNTY} points. ${PACK_PRICE} buy a Poptart.` },
-    { key: "roadwin", t: road ? `Win once by ${road.ring}` : "Win once by your road", done: !!(road && (binder.roadWins || {})[binder.road]), to: "/halo/bazaar", reward: road ? `${road.how.split(".")[0]}.` : "Pick a road first.", color: road?.color },
-    { key: "cast", t: `Beat the cast ${beaten}/${cast}`, done: beaten >= cast, to: "/halo/bazaar", reward: `+${WIN_POINTS + BOUNTY} points for every new face.` },
+    { key: "bounty", t: `First bounty${first && !beaten ? `: ${first.who}` : ""}`, done: beaten > 0, to: "/halo/bazaar", reward: `+${WIN_POINTS + BOUNTY} points. ${PACK_PRICE} buy a Poptart.`, ...hunt },
+    { key: "roadwin", t: road ? `Win once by ${road.ring}` : "Win once by your road", done: !!(road && (binder.roadWins || {})[binder.road]), to: "/halo/bazaar", reward: road ? `${road.how.split(".")[0]}.` : "Pick a road first.", color: road?.color, ...hunt },
+    { key: "cast", t: `Beat the cast ${beaten}/${cast}`, done: beaten >= cast, to: "/halo/bazaar", reward: `+${WIN_POINTS + BOUNTY} points for every new face.`, ...hunt },
   ];
 }
 
@@ -269,7 +271,7 @@ export function HaloPath({ binder, compact = false }) {
             <p><span className="halo-next-k">All done</span><b>The whole cast is beaten.</b><span className="halo-next-r">Mush nods. Once.</span></p>
           )}
           <span className="halo-next-pts"><b>{binder.points || 0}</b> pts</span>
-          {n && <Link className="halo-button" to={n.to}>Go ▸</Link>}
+          {n && (n.href ? <a className="halo-button" href={n.href}>{n.go}</a> : <Link className="halo-button" to={n.to}>Go ▸</Link>)}
         </div>
       )}
     </div>
