@@ -95,6 +95,13 @@ export function saveBinder(b) {
   memory = b;
   try { window.localStorage.setItem(KEY, JSON.stringify(b)); return true; } catch { return false; }
 }
+// Start over (Mook 11-24): a brand-new account in this browser. The game's win list goes too, or its wins would be
+// paid out again to the new binder (its `claimed` list starts empty). The coach on/off setting is kept.
+export function resetBinder() {
+  memory = null;
+  try { window.localStorage.removeItem(KEY); window.localStorage.removeItem("halo-results-v1"); } catch { /* storage blocked: memory is cleared */ }
+  return fresh();
+}
 
 // a road's starter Poptart: its seven cards, then its commander as the lenticular hit
 export function starterPack(road, rnd = Math.random) {

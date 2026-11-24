@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import HaloCard, { CardBack } from "../components/HaloCard.jsx";
 import { MushTalk, HaloPath, MushFace, HaloCheer, pathSteps } from "../components/HaloMush.jsx";
 import { HALO_CARDS, HALO_BASICS, HALO_BOSSES, HALO_STARTERS, HALO_BREAKERS } from "../content/haloCards.js";
 import {
   BY_ID, SET_SIZE, DECK_SIZE, STARTER_PACKS, loadBinder, saveBinder, openPack, bestFinish,
   deckProblems, fillWithBasics, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE, comboStatus, ROADS, ROAD_BY,
-  nextIsCounter, breakerFor,
+  nextIsCounter, breakerFor, resetBinder,
 } from "../lib/haloBinder.js";
 import { useHaloArt, mountCard, loadHaloArt } from "../lib/haloArt.js";
 import "./Halo.css";
@@ -578,7 +578,21 @@ function Bazaar({ binder, setBinder, news }) {
   );
 }
 
+// Start over: a brand-new account in this browser, asked twice (it can't be undone)
+function StartOver({ onReset }) {
+  const [asking, setAsking] = useState(false);
+  if (!asking) return <p className="halo-startover"><button type="button" className="halo-startover-link" onClick={() => setAsking(true)}>Start over with a new account</button></p>;
+  return (
+    <div className="halo-startover halo-startover-ask" role="alert">
+      <p>This deletes your binder, deck, points and wins in this browser. It can’t be undone.</p>
+      <button type="button" className="halo-button" onClick={() => { setAsking(false); onReset(); }}>Yes, start over</button>
+      <button type="button" className="halo-startover-link" onClick={() => setAsking(false)}>Keep my account</button>
+    </div>
+  );
+}
+
 export default function Halo({ view = "learn" }) {
+  const navigate = useNavigate();
   // wins written by the game are paid out when the page loads (pure here; saved in the effect below)
   const [init] = useState(() => claimResults(loadBinder()));
   const [binder, setB] = useState(init[0]);
@@ -615,6 +629,7 @@ export default function Halo({ view = "learn" }) {
         {view === "bazaar" && <Bazaar binder={binder} setBinder={setBinder} news={news} />}
         {cheer && <HaloCheer step={cheer.step} next={cheer.next} onClose={closeCheer} />}
         <p className="halo-starter-note">One Draft Night per visitor: {STARTER_PACKS} starter packs · finishes are looks only: a First Edition plays the same as a laminate.</p>
+        <StartOver onReset={() => { setB(resetBinder()); setCheer(null); navigate("/halo"); }} />
       </div>
     </article>
   );

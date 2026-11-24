@@ -65,6 +65,11 @@
 .halo button.halo-button { cursor:pointer; font:inherit; font-weight:700; }
 .halo .halo-button.is-off { background:#3a3f52; border-color:#3a3f52; color:#8a8778; pointer-events:none; }
 .halo-starter-note { color:#7d7a6e; font-size:.8rem; margin-top:3rem; }
+/* Start over: quiet until asked, then a plain warning with the two choices */
+.halo-startover { color:#7d7a6e; font-size:.8rem; margin:.5rem 0 0; }
+.halo button.halo-startover-link { background:none; border:0; padding:.6rem 0; min-height:44px; color:inherit; font:inherit; text-decoration:underline; cursor:pointer; }
+.halo-startover-ask { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem 1rem; border:1px solid #e53935; border-radius:3px; padding:.8rem 1rem; max-width:36rem; }
+.halo-startover-ask p { flex-basis:100%; margin:0; }
 .halo-empty { margin-top:1rem; }
 
 /* ───── learn */
