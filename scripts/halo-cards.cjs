@@ -28,11 +28,12 @@ for (const co of [["gravdrive", "Rose"], ["portroyal", "Mook"], ["archcity", "Fi
 
 function words(c) {
   if (c.type === "trap") return `Set face down on a square. It ${E.TRIG[c.trig]}.`;
-  if (c.type === "action") return c.fx === "barrage" ? `Knock out one enemy front card with D ${P.barrageD || 3} or less.` : c.fx === "siege" ? "Knock out one enemy front card with D 6 or more." : cap(E.FX[c.fx]) + ".";
+  if (c.type === "action") return c.fx === "barrage" ? `Knock out one enemy front card with D ${P.barrageD || 3} or less.` : c.fx === "siege" ? "Knock out one enemy front card with D 6 or more." : c.fx === "snuff" ? cap(c.what) + ", past the grid." : cap(E.FX[c.fx]) + ".";
   if (c.type === "commander") return `Lose them and you are out. Big move, once a game: ${E.BIG[c.big]}.`;
   const t = [c.type === "structure" ? "Blocks a lane; does not attack." : ""];
   if (c.move === "smite") t.push("Papal Smite: after a turn on the grid, put out any one enemy ring.");
   if (c.income) t.push(`Pays +${c.income} ECON at the start of your turn.`);
+  if (c.pay) t.push(cap(c.what.replace(/^\+1 ECON a turn/, "pays +1 ECON a turn")) + ".");   // 11-24 road income
   if (c.tags.includes("runner")) t.push("Runner: may attack any empty enemy lane.");
   if (c.tags.includes("anylane")) t.push("Reach: may attack any lane of any enemy.");
   if (c.tags.includes("grav")) t.push("LUCY + IKAROS + GW150914 in a line fuse into THE GRAV DRIVE.");
@@ -66,7 +67,7 @@ function rarity(c) {
   if (c.tags.includes("token")) return "token";   // made on the table: never in a pack
   if (c.tags.includes("fused")) return "rare";
   if ((c.econ || 0) >= 5 || (c.A || 0) + (c.D || 0) >= 11 || (c.A || 0) >= 7 || c.move === "smite" || c.tags.includes("core")) return "rare";
-  if (c.type === "action" || c.type === "trap" || c.income || c.tags.some((t) => ["grav", "runner", "anylane", "part", "science", "wild"].includes(t)) || (c.econ || 0) >= 3) return "uncommon";
+  if (c.type === "action" || c.type === "trap" || c.income || c.pay || c.tags.some((t) => ["grav", "runner", "anylane", "part", "science", "wild"].includes(t)) || (c.econ || 0) >= 3) return "uncommon";
   return "common";
 }
 
@@ -109,12 +110,15 @@ bosses.sort((a, b) => a.tier - b.tier || ORDER.indexOf(a.key) - ORDER.indexOf(b.
 const STARTERS = {
   industry: { label: "Industry", win: "Knock every rival planet dark.", cmd: "barbarossa", cards: ["kInd_brute", "kInd_brute", "caracole", "hwacha", "corvus", "carroccio", "arsenale"] },
   economy: { label: "Economy", win: "Bank ECON and buy the win.", cmd: "rabbit", cards: ["kEco_market", "kEco_banker", "kEco_banker", "fondaco", "kontor", "vittles", "kEco_takeover"] },
-  science: { label: "Science", win: "Build the great machine: a Core in the middle, Parts all round.", cmd: "titania", cards: ["kSci_core", "replicator", "replicator", "kSci_part", "kSci_part", "kSci_part", "kSci_scientist"] },
-  food: { label: "Food", win: "Grow your rings back, turn after turn: the harvest.", cmd: "bloom", cards: ["kFood_farm", "kFood_farm", "kFood_harvester", "kFood_seed", "kFood_seed", "testudo", "palaestra"] },
-  pop: { label: "Population", win: "Build villages that grow your crowd; fill all nine squares and hold.", cmd: "capone", cards: ["burgage", "burgage", "burgage", "kPop_villager", "kPop_villager", "kPop_guard", "arsenale"] },
+  science: { label: "Science", win: "Build the great machine: a Core in the middle, Parts all round.", cmd: "titania", cards: ["kSci_core", "replicator", "replicator", "kSci_part", "kSci_part", "kSci_part", "kSci_scientist", "patent", "patent"] },
+  food: { label: "Food", win: "Grow your rings back, turn after turn: the harvest.", cmd: "bloom", cards: ["kFood_farm", "kFood_farm", "kFood_harvester", "kFood_seed", "kFood_seed", "testudo", "palaestra", "granary", "granary"] },
+  pop: { label: "Population", win: "Build villages that grow your crowd; fill all nine squares and hold.", cmd: "capone", cards: ["burgage", "burgage", "burgage", "kPop_villager", "kPop_villager", "kPop_guard", "arsenale", "guildhall", "guildhall"] },
   religion: { label: "Religion", win: "Convert their units to your side; hold two and win.", cmd: "doria", cards: ["damascus", "damascus", "reliquary", "reliquary", "kRel_acolyte", "kRel_preacher", "kRel_sigil"] },
   politics: { label: "Politics", win: "Make peace pacts with your rivals; hold them and win.", cmd: "arch", cards: ["kPol_envoy", "kPol_envoy", "kPol_envoy", "kPol_diplomat", "kPol_diplomat", "varangian", "testudo"] },
 };
+// 11-24 (arena, Mook: "income for weak roads"): Food, Population and Science starters carry two of their road's bank (Granary, Guild Hall, Patent Office).
+// 11-24: the ring-breakers (counters.js). A new account's second Poptart holds one for every OTHER road; the bounty board says which one each boss needs.
+const { BREAKER } = require(path.join(HALO, "counters.js"));
 for (const st of Object.values(STARTERS)) for (const id of [st.cmd, ...st.cards]) if (!C[id]) throw new Error("starter card missing: " + id);
 
 const out = `// GENERATED by scripts/halo-cards.cjs from .geo/halo/cards.js on ${new Date().toISOString().slice(0, 10)}. Do not edit by hand: run the script.
@@ -124,6 +128,7 @@ export const HALO_BASICS = ${JSON.stringify(basics, null, 0).replace(/},{/g, "},
 export const HALO_BOSSES = ${JSON.stringify(bosses)};
 export const HALO_COMBOS = ${JSON.stringify(combos)};
 export const HALO_STARTERS = ${JSON.stringify(STARTERS)};
+export const HALO_BREAKERS = ${JSON.stringify(BREAKER)};
 `;
 fs.writeFileSync(path.join(__dirname, "..", "src", "content", "haloCards.js"), out);
 const by = {}; cards.forEach((c) => (by[c.rarity] = by[c.rarity] || []).push(c.id));

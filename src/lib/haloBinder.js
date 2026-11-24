@@ -1,6 +1,6 @@
 // HALO Poptarts: booster packs, the binder and the Draft Night deck, kept in this browser.
 // Storage is wrapped: if localStorage is blocked (private window, cleared data) the page still works, it just forgets on reload.
-import { HALO_CARDS, HALO_BASICS, HALO_COMBOS, HALO_STARTERS } from "../content/haloCards.js";
+import { HALO_CARDS, HALO_BASICS, HALO_COMBOS, HALO_STARTERS, HALO_BREAKERS } from "../content/haloCards.js";
 
 export const BY_ID = Object.fromEntries([...HALO_CARDS, ...HALO_BASICS].map((c) => [c.id, c]));
 export const SET_SIZE = HALO_CARDS.length;
@@ -10,7 +10,9 @@ const KEY = "halo-binder-v1";
 // 🆕 pack recipe (Claude's, for Mook's tick): 8 cards = 5 common · 2 uncommon · 1 hit (rare or commander).
 // The hit is lenticular; 1 in 10 hits is a First Edition. Finish is looks only: same numbers.
 export const PACK = { common: 5, uncommon: 2, hit: 1, firstEditionOdds: 0.1 };
-export const STARTER_PACKS = 3; // canon: Draft Night, three packs each, no trades
+// canon: Draft Night, three packs each, no trades. 11-24 (Mook: "more cards to start with", arena): a new account opens its road
+// starter, then a COUNTER Poptart (a ring-breaker for every other road), then the three Draft Night packs.
+export const STARTER_PACKS = 5;
 
 const pool = (r) => HALO_CARDS.filter((c) => c.rarity === r);
 const COMMONS = pool("common"), UNCOMMONS = pool("uncommon"), HITS = [...pool("rare"), ...pool("commander")], COMMANDERS = pool("commander");
@@ -53,7 +55,7 @@ export const ROAD_BY = Object.fromEntries(ROADS.map((r) => [r.key, r]));
 export const HOW_ROAD = { table: "industry", econ: "economy", tech: "science", food: "food", pop: "pop", religion: "religion", politics: "politics" };
 
 // v 1 throughout: fields added later (road, roadWins, cheered) default here, so old saved binders keep working
-const fresh = () => ({ v: 1, owned: {}, finishes: {}, packsLeft: STARTER_PACKS, packsOpened: 0, nights: 1, deck: null, points: 0, beaten: {}, claimed: [], learned: false, road: null, roadWins: {}, cheered: null });
+const fresh = () => ({ v: 1, start: 2, owned: {}, finishes: {}, packsLeft: STARTER_PACKS, packsOpened: 0, nights: 1, deck: null, points: 0, beaten: {}, claimed: [], learned: false, road: null, roadWins: {}, cheered: null });
 
 // 🆕 bounties (Claude's, for Mook's tick): beat a cast deck 1 on 1 with your Draft Night deck to earn points,
 // spend them at Tortimer's Card Bazaar. Every win pays WIN_POINTS; the first win over a boss also pays its BOUNTY.
@@ -80,10 +82,12 @@ export function claimResults(b) {
 export const buyPack = (b) => ((b.points || 0) < PACK_PRICE ? b : { ...b, points: b.points - PACK_PRICE, packsLeft: b.packsLeft + 1 });
 
 let memory = null; // used when storage is blocked
+// 11-24: a binder made before the counter Poptart gets it as a gift: one extra pack, opened next
+const giftCounter = (b) => (b.start === 1 && b.road && !b.gotCounter && !b.giftCounter && b.packsOpened >= 1 ? { ...b, giftCounter: true, packsLeft: b.packsLeft + 1 } : b);
 export function loadBinder() {
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (raw) { const b = JSON.parse(raw); if (b && b.v === 1 && b.owned) return { ...fresh(), ...b }; }
+    if (raw) { const b = JSON.parse(raw); if (b && b.v === 1 && b.owned) return giftCounter({ ...fresh(), start: 1, ...b }); }   // start 1 = made before the 11-24 new start
   } catch { /* storage blocked or bad data: start fresh */ }
   return memory ? { ...memory } : fresh();
 }
@@ -98,17 +102,27 @@ export function starterPack(road, rnd = Math.random) {
   return [...s.cards.map((id) => ({ id, finish: "laminate" })), { id: s.cmd, finish: rnd() < PACK.firstEditionOdds ? "first" : "lenticular", hit: true }];
 }
 
-// open the next pack: returns [newBinder, cards]. The first pack is your road's starter, if you chose one.
+// 11-24: the COUNTER Poptart: one ring-breaker for every road but yours (Industry, the knock-out road, has none of its own)
+export function counterPack(road) {
+  return Object.entries(HALO_BREAKERS).filter(([r]) => r !== road).map(([, id]) => ({ id, finish: "laminate" }));
+}
+// is the next pack the counter Poptart?
+export const nextIsCounter = (b) => !!b.road && !b.gotCounter && b.packsLeft > 0 && (b.start === 1 ? !!b.giftCounter : b.packsOpened === 1);
+// the breaker that answers a road (the bounty board names it), or null
+export const breakerFor = (road) => HALO_BREAKERS[road] || null;
+
+// open the next pack: returns [newBinder, cards]. The first pack is your road's starter (if you chose one), the second the counter Poptart.
 export function openPack(b) {
   if (b.packsLeft <= 0) return [b, null];
-  const cards = b.road && HALO_STARTERS[b.road] && b.packsOpened === 0 ? starterPack(b.road) : makePack(Math.random, b.packsOpened === 0, b.owned);
+  const starter = b.road && HALO_STARTERS[b.road] && b.packsOpened === 0, counter = !!b.road && !b.gotCounter && (b.start === 1 ? !!b.giftCounter : b.packsOpened === 1);
+  const cards = starter ? starterPack(b.road) : counter ? counterPack(b.road) : makePack(Math.random, b.packsOpened === 0, b.owned);
   const owned = { ...b.owned }, finishes = { ...b.finishes };
   for (const c of cards) {
     owned[c.id] = (owned[c.id] || 0) + 1;
     const f = finishes[c.id] || [];
     if (!f.includes(c.finish)) finishes[c.id] = [...f, c.finish];
   }
-  return [{ ...b, owned, finishes, packsLeft: b.packsLeft - 1, packsOpened: b.packsOpened + 1 }, cards];
+  return [{ ...b, owned, finishes, packsLeft: b.packsLeft - 1, packsOpened: b.packsOpened + 1, gotCounter: b.gotCounter || counter }, cards];
 }
 
 // 🗣 Mook 11-23: one Draft Night per visitor (three packs, one deck). More packs come only from the Bazaar (bounty points).

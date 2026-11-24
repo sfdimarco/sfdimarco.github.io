@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import HaloCard, { CardBack } from "../components/HaloCard.jsx";
 import { MushTalk, HaloPath, MushFace, HaloCheer, pathSteps } from "../components/HaloMush.jsx";
-import { HALO_CARDS, HALO_BASICS, HALO_BOSSES, HALO_STARTERS } from "../content/haloCards.js";
+import { HALO_CARDS, HALO_BASICS, HALO_BOSSES, HALO_STARTERS, HALO_BREAKERS } from "../content/haloCards.js";
 import {
   BY_ID, SET_SIZE, DECK_SIZE, STARTER_PACKS, loadBinder, saveBinder, openPack, bestFinish,
   deckProblems, fillWithBasics, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE, comboStatus, ROADS, ROAD_BY,
+  nextIsCounter, breakerFor,
 } from "../lib/haloBinder.js";
 import { useHaloArt, mountCard, loadHaloArt } from "../lib/haloArt.js";
 import "./Halo.css";
@@ -113,7 +114,7 @@ function Learn({ binder, setBinder }) {
           <p className="halo-kicker"><span className="halo-badge">PLAYTEST</span> The card game from Mook &amp; Mush</p>
           <h1 id="halo-title">HALO</h1>
           <p className="halo-deck">Seven planets round a sun. Seven rings on each. Seven ways to win.</p>
-          <p className="halo-summary">Learn it with Mush below, pick your road, open three Poptarts, build a deck from what you pull, then hunt the cast one by one.</p>
+          <p className="halo-summary">Learn it with Mush below, pick your road, open your Poptarts, build a deck from what you pull, then hunt the cast one by one.</p>
           <div className="halo-actions">
             {binder.learned || binder.packsOpened
               ? <Link className="halo-button" to={binder.packsLeft ? "/halo/packs" : "/halo/deck"}>{binder.packsLeft ? (binder.road || binder.packsOpened ? "Your Poptarts" : "Pick your road") : "Your Draft Night deck"}</Link>
@@ -236,6 +237,7 @@ function Packs({ binder, setBinder }) {
   const next = () => { setPhase("sealed"); setCards([]); setShown(0); };
   const opened = binder.packsOpened, hit = cards[cards.length - 1];
   const starterRoad = opened === 0 && binder.road ? ROAD_BY[binder.road] : null;
+  const counterNext = nextIsCounter(binder), wasCounter = cards.length > 0 && !cards.some((c) => c.hit);   // 11-24: the counter Poptart
 
   return (
     <section className="halo-packs" aria-labelledby="halo-packs-title">
@@ -251,12 +253,13 @@ function Packs({ binder, setBinder }) {
           <button className="halo-wrapper" onClick={tear} aria-label={`Tear open pack ${opened + 1}`}>
             <span className="halo-wrapper-crimp" aria-hidden="true" />
             <CardBack />
-            <span className="halo-wrapper-label">{starterRoad ? `${starterRoad.ring.toUpperCase()} STARTER` : "STARTER POPTART"} · 8 CARDS</span>
+            <span className="halo-wrapper-label">{starterRoad ? `${starterRoad.ring.toUpperCase()} STARTER · ${HALO_STARTERS[binder.road].cards.length + 1} CARDS` : counterNext ? `COUNTER POPTART · ${Object.keys(HALO_BREAKERS).filter((r) => r !== binder.road).length} CARDS` : "STARTER POPTART · 8 CARDS"}</span>
             <span className="halo-wrapper-tear">TEAR HERE ✂</span>
             {starterRoad && <span className="halo-wrapper-ring" style={{ background: starterRoad.color }} aria-hidden="true" />}
           </button>
+          {counterNext && <p className="halo-dim">A gift for every new player: one card that stops each of the other roads. Before a bounty, check which one that boss's road needs.</p>}
           <p className="halo-pack-left">{binder.packsLeft} {binder.packsLeft === 1 ? "pack" : "packs"} to open · tap the pack to tear it</p>
-          {starterRoad && <p className="halo-dim">Your {starterRoad.ring} starter: {BY_ID[HALO_STARTERS[binder.road].cmd].name} and seven {starterRoad.ring} cards. <button className="halo-link" onClick={() => setBinder({ ...binder, road: null })}>Pick another road</button></p>}
+          {starterRoad && <p className="halo-dim">Your {starterRoad.ring} starter: {BY_ID[HALO_STARTERS[binder.road].cmd].name} and {HALO_STARTERS[binder.road].cards.length} {starterRoad.ring} cards. <button className="halo-link" onClick={() => setBinder({ ...binder, road: null })}>Pick another road</button></p>}
         </div>
       )}
 
@@ -280,10 +283,12 @@ function Packs({ binder, setBinder }) {
             })}
           </div>
           <div className="halo-pack-actions">
-            {phase === "torn" && <><button className="halo-button" onClick={flipNext}>{shown === cards.length - 1 ? "Flip the hit" : "Flip the next card"}</button><button className="halo-link" onClick={() => { setBurst(shown); setShown(cards.length); }}>Flip them all</button></>}
+            {phase === "torn" && <><button className="halo-button" onClick={flipNext}>{shown === cards.length - 1 ? (wasCounter ? "Flip the last card" : "Flip the hit") : "Flip the next card"}</button><button className="halo-link" onClick={() => { setBurst(shown); setShown(cards.length); }}>Flip them all</button></>}
             {phase === "done" && (
               <>
-                <p className="halo-pack-say">You pulled <b>{BY_ID[hit.id].name}</b>{hit.finish === "first" ? ", a First Edition!" : "."}</p>
+                {wasCounter
+                  ? <p className="halo-pack-say">Your counters: one card to stop each road. The bounty board says which one each boss needs.</p>
+                  : <p className="halo-pack-say">You pulled <b>{BY_ID[hit.id].name}</b>{hit.finish === "first" ? ", a First Edition!" : "."}</p>}
                 {binder.packsLeft > 0
                   ? <button className="halo-button" onClick={next}>Next pack ({binder.packsLeft} left)</button>
                   : <Link className="halo-button" to="/halo/deck">Build your Draft Night deck</Link>}
@@ -559,6 +564,7 @@ function Bazaar({ binder, setBinder, news }) {
                 <span className={`halo-tier t${b.tier}`}>{["", "Easy", "Medium", "Hard"][b.tier]}{next ? " · start here" : ""}</span>
                 {r && <p className="halo-bounty-road"><i className="halo-ring" style={{ background: r.color }} aria-hidden="true" /><b>{r.ring}</b>{rk === binder.road && <span className="halo-same"> · your road</span>}</p>}
                 {tip && <p className="halo-bounty-tip">{tip}</p>}
+                {rk && breakerFor(rk) && <p className="halo-bounty-bring">Bring <b>{BY_ID[breakerFor(rk)].name}</b> in your deck: {rk === "economy" ? `it halves ${b.who}'s ECON.` : `it puts out ${b.who}'s ${r.ring} ring.`}{" "}{(binder.owned || {})[breakerFor(rk)] ? <span className="halo-same">You have it.</span> : <span className="halo-dim">Not in your binder yet.</span>}</p>}
                 <p className="halo-dim">{wins ? `Beaten ${wins}×. A win pays ${WIN_POINTS}.` : `Bounty: ${WIN_POINTS + BOUNTY} points`}</p>
                 {ready
                   ? <a className="halo-button" href={playLink(playRoot, deck, "Your Draft deck", b.key, binder.road)}>Hunt ▸</a>

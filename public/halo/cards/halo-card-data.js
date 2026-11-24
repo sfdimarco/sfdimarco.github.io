@@ -823,7 +823,7 @@ window.HALO_CARD_DATA = {
    "dev": null,
    "no": "II 2/25",
    "flavor": "Sign here, and here, and here.",
-   "rule": "Seal a treaty with one rival (it lasts until that rival aims a move at you).",
+   "rule": "Seal a treaty with one rival: a PEACE PACT, they cannot attack your cards (they can pay to tear it up, or hurt you past the grid).",
    "painted": true,
    "src": "claude",
    "faceInv": [
@@ -2552,6 +2552,222 @@ window.HALO_CARD_DATA = {
    "rebalanced": false
   },
   {
+   "id": "runBank",
+   "name": "Run on the Bank",
+   "type": "action",
+   "deck": "library",
+   "road": "table",
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Everybody Out"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": null,
+   "no": "IV 11/25",
+   "flavor": "The bank was fine until everyone asked for their money at once.",
+   "rule": "A rival loses half their ECON.",
+   "painted": true,
+   "src": "claude",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "brkSci",
+   "name": "Ned Ludd's Hammer",
+   "type": "action",
+   "deck": "library",
+   "road": "table",
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Smash the Frame"
+   },
+   "big": false,
+   "econ": 3,
+   "dev": null,
+   "no": "IV 12/25",
+   "flavor": "Ned Ludd never met a machine he couldn't fix with a hammer. Fix meaning flatten.",
+   "rule": "Puts out a rival's Science ring, past the grid.",
+   "painted": true,
+   "src": "claude",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "brkFood",
+   "name": "Locust Swarm",
+   "type": "action",
+   "deck": "library",
+   "road": "table",
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Eat Everything"
+   },
+   "big": false,
+   "econ": 3,
+   "dev": null,
+   "no": "IV 13/25",
+   "flavor": "They didn't come for the scarecrow. They ate his hat anyway.",
+   "rule": "Puts out a rival's Food ring, past the grid.",
+   "painted": true,
+   "src": "claude",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "brkPop",
+   "name": "The Pied Piper",
+   "type": "action",
+   "deck": "library",
+   "road": "table",
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "Follow the Tune"
+   },
+   "big": false,
+   "econ": 3,
+   "dev": null,
+   "no": "IV 14/25",
+   "flavor": "One little tune and the whole town forgot it lived there.",
+   "rule": "Puts out a rival's Population ring, past the grid.",
+   "painted": true,
+   "src": "claude",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "brkPol",
+   "name": "Gunpowder Plot",
+   "type": "action",
+   "deck": "library",
+   "road": "table",
+   "A": null,
+   "D": null,
+   "moves": {
+    "A": "—",
+    "D": "—",
+    "M": "FOOMP"
+   },
+   "big": false,
+   "econ": 3,
+   "dev": null,
+   "no": "IV 15/25",
+   "flavor": "Remember, remember: always check the cellar.",
+   "rule": "Puts out a rival's Politics ring, past the grid.",
+   "painted": true,
+   "src": "claude",
+   "faceInv": [
+    "M move name",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "granary",
+   "name": "Granary",
+   "type": "structure",
+   "deck": "library",
+   "road": "table",
+   "A": null,
+   "D": 3,
+   "moves": {
+    "A": "—",
+    "D": "Stone Stilts",
+    "M": "Bring It In"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "IV 16/25",
+   "flavor": "The rats can't climb the stilts. They've tried. They've written letters.",
+   "rule": "Pays +1 ECON a turn, +1 per 2 harvests reaped (max 3), while your Food ring is lit.",
+   "painted": true,
+   "src": "claude",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "guildhall",
+   "name": "Guild Hall",
+   "type": "structure",
+   "deck": "library",
+   "road": "pop",
+   "A": null,
+   "D": 3,
+   "moves": {
+    "A": "—",
+    "D": "Oak Beams",
+    "M": "Pay Your Dues"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "IV 17/25",
+   "flavor": "The bakers, the cobblers and the smiths all agree on one thing: the bakers are loud.",
+   "rule": "Pays +1 ECON a turn per 2 crowd on your grid (max 3), while your Population ring is lit. Counts in your crowd.",
+   "painted": true,
+   "src": "claude",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
+   "id": "patent",
+   "name": "Patent Office",
+   "type": "structure",
+   "deck": "library",
+   "road": "science",
+   "A": null,
+   "D": 3,
+   "moves": {
+    "A": "—",
+    "D": "Red Tape",
+    "M": "APPROVED"
+   },
+   "big": false,
+   "econ": 2,
+   "dev": 1,
+   "no": "IV 18/25",
+   "flavor": "Form 7-B, in triplicate, then the stamp. Then the money. Then lunch.",
+   "rule": "Pays +1 ECON a turn per 3 machine pieces on your grid (max 3), while your Science ring is lit. Science: +1 A and +1 D a turn (up to +3). Machine: the Core in the middle and eight Parts round it wins.",
+   "painted": true,
+   "src": "claude",
+   "faceInv": [
+    "move names",
+    "flavor"
+   ],
+   "rebalanced": false
+  },
+  {
    "id": "kInd_grunt",
    "name": "Kern",
    "type": "unit",
@@ -4229,7 +4445,7 @@ window.HALO_CARD_DATA = {
    "dev": null,
    "no": "K 24/25",
    "flavor": "Two of the king's envoys: one to talk, one to watch.",
-   "rule": "Seal a treaty with one rival (it lasts until that rival aims a move at you).",
+   "rule": "Seal a treaty with one rival: a PEACE PACT, they cannot attack your cards (they can pay to tear it up, or hurt you past the grid).",
    "painted": true,
    "src": "kit",
    "faceInv": [

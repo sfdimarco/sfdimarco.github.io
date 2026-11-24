@@ -345,6 +345,7 @@
 .halo-bounty-road .halo-ring { margin-top:0; width:1.2rem; height:.45rem; }
 .halo-same { color:#f6c744; font-weight:700; }
 .halo-bounty-tip { font-size:.85rem; line-height:1.35; color:#d6d3c6; }
+.halo-bounty-bring { font-size:.85rem; line-height:1.35; color:#d6d3c6; border-left:3px solid #f6c744; padding-left:.5rem; margin:.35rem 0; }   /* 11-24: pick your counter */
 
 /* the path: a progression, the next step gold, a reward line, points */
 .halo-progress { margin-top:1.2rem; }

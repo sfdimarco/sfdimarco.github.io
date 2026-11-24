@@ -2625,6 +2625,485 @@ ART.cog = a => {
     });
   }
 };
+
+// ── art/v4-counter.js
+// v4-counter · the ring-breakers (11-24): one action card per road that puts out a rival's ring, and Economy's Run on the Bank.
+// 🆕 every picture is Claude's, for Mook's tick (v4-counter.ticks.md). Second picture (a.alt) = the moment the card does its thing.
+// Helpers start vc. Rules live in counters.js.
+const VC_GOLD = '#e8b83a', VC_SKIN = '#f0c8a8';
+function vcGlow(a, x, y, r, col, al) { if (ST.holo) return; const gl = a.g.createRadialGradient(x, y, 2, x, y, r); gl.addColorStop(0, rgba(col, al || 0.9)); gl.addColorStop(1, rgba(col, 0)); a.g.fillStyle = gl; a.g.fillRect(x - r, y - r, r * 2, r * 2); }
+function vcSay(a, str, x, y, cap, col, seed, rot) { a.at(x, y, rot || 0, () => uText(a.g, str, 0, 0, cap, { align: 'center', t: a.t, seed, col: col || INK })); }
+// a brass gear: n teeth, a hub, spokes. cracked: a jagged split across it
+function vcGear(a, x, y, r, n, col, seed, cracked) {
+  a.at(x, y, 0, () => {
+    for (let i = 0; i < n; i++) a.at(0, 0, i / n * Math.PI * 2, () => a.rect(-r * 0.16, -r - r * 0.24, r * 0.16, -r + 2, 1, col, seed + i, 1.4));
+    a.circ(0, 0, r, r, col, seed + 40, 2);
+    a.circ(0, 0, r * 0.62, r * 0.62, null, seed + 41, 1);
+    for (let i = 0; i < 3; i++) { const an = i / 3 * Math.PI * 2 + 0.3; a.line([[Math.cos(an) * r * 0.25, Math.sin(an) * r * 0.25], [Math.cos(an) * r * 0.62, Math.sin(an) * r * 0.62]], seed + 42 + i, 1.4); }
+    a.circ(0, 0, r * 0.25, r * 0.25, '#b88a2a', seed + 46, 1.4);
+    if (cracked) a.line([[-r * 1.1, -r * 0.5], [-r * 0.4, -r * 0.1], [-r * 0.5, r * 0.25], [r * 0.2, r * 0.15], [r * 0.3, r * 0.6], [r * 1.05, r * 0.9]], seed + 47, 2.4);
+  });
+}
+// a sack of coins (or an empty one)
+function vcCoin(a, x, y, r, seed, rot) { a.at(x, y, rot || 0, () => { a.circ(0, 0, r, r * 0.92, '#f2c744', seed, 1.3); a.circ(0, 0, r * 0.6, r * 0.55, null, seed + 1, 0.8); }); }
+function vcSack(a, x, y, s, seed, empty) {
+  a.at(x, y, 0, () => {
+    a.blob(empty ? [[-12, 0], [-14, -10], [-6, -16], [6, -16], [14, -10], [12, 0]] : [[-16, 0], [-20, -16], [-10, -28], [10, -28], [20, -16], [16, 0]], '#c9a26a', seed, 1.6);
+    a.blob([[-6, empty ? -16 : -28], [-8, empty ? -22 : -36], [8, empty ? -22 : -36], [6, empty ? -16 : -28]], '#b38a52', seed + 1, 1.4);
+    a.line([[-7, empty ? -18 : -30], [7, empty ? -18 : -30]], seed + 2, 1.6);
+    if (!empty) a.circ(0, -13, 6, 6, '#f2c744', seed + 3, 1);
+  }, s);
+}
+// a cartoon locust facing right, centred on its body. fat: full of wheat
+function vcLocust(a, x, y, s, rot, fat, seed) {
+  a.at(x, y, rot, () => {
+    a.line([[-4, 2], [-14, -10], [-24, 8]], seed, 1.8);                                                  // the big back leg
+    a.line([[6, 4], [8, 12]], seed + 1, 1.2); a.line([[12, 4], [16, 11]], seed + 2, 1.2);
+    a.blob(fat ? [[-26, 0], [-20, -10], [4, -12], [16, -6], [16, 6], [2, 12], [-20, 8]] : [[-26, 0], [-20, -6], [4, -8], [16, -4], [16, 4], [2, 6], [-20, 4]], '#8ab83a', seed + 3, 1.6);
+    for (let k = 0; k < 3; k++) a.line([[-18 + k * 7, fat ? -9 : -5], [-18 + k * 7, fat ? 8 : 4]], seed + 4 + k, 0.8);   // its stripes
+    a.blob([[-18, -6], [-4, -18], [6, -14], [-6, -4]], rgba('#f4f8e0', 0.8), seed + 8, 1.1);            // a wing
+    a.circ(20, -3, 8, 8, '#9cc84a', seed + 9, 1.6);                                                       // the head
+    a.circ(22, -6, 3.6, 3.6, CREAM, seed + 10, 1); a.dot(23.5, -6, 1.4);
+    a.curve([[24, 1], [27, 3], [26, 5]], seed + 11, 1);                                                   // a grin
+    a.curve([[22, -10], [28, -22], [36, -24]], seed + 12, 0.9); a.curve([[18, -10], [20, -24], [28, -28]], seed + 13, 0.9);
+  }, s);
+}
+// a wheat stalk standing on (x, y). bare: just stubble
+function vcWheat(a, x, y, h, seed, bare) {
+  if (bare) { a.line([[x, y], [x + 1, y - 6]], seed, 1.2); return; }
+  a.curve([[x, y], [x + 1, y - h * 0.6], [x + 3, y - h]], seed, 1.2);
+  a.blob([[x + 3, y - h + 4], [x, y - h - 6], [x + 3, y - h - 16], [x + 6, y - h - 6]], '#f0c24a', seed + 1, 1.1);
+  a.line([[x + 3, y - h - 16], [x + 4, y - h - 22]], seed + 2, 0.7);
+}
+// a little townsperson, standing on y = 0, dancing when dance != 0 (arms up, a hop)
+function vcFolk(a, robe, dance, hat, seed) {
+  kbFig(a, { robe, raise: dance ? 36 : 0 });
+  if (dance) a.blob([[-14, -56], [-28, -76], [-24, -80], [-12, -60]], robe, seed, 1.6);                // the other arm up too
+  if (hat) a.blob([[-13, -80], [-10, -88], [10, -88], [13, -80]], hat, seed + 1, 1.6);
+}
+// the Pied Piper: tall, red-and-yellow halves, a feathered hat, a pipe to his lips, facing right; standing on y = 0
+function vcPiper(a, step) {
+  const R = '#d33440', Y = '#f2c744';
+  a.line([[-6, -2], [-8 - step * 6, -30]], 7001, 3.4); a.line([[8, -2 - step * 6], [6, -30]], 7002, 3.4);   // legs, one up in a skip
+  a.blob([[-14, -6], [-6, -4], [-8, 0], [-18, 0]], '#5a3a24', 7003, 1.4); a.blob([[6, -4 - step * 6], [18, -4 - step * 6], [16, 0 - step * 6], [6, 0 - step * 6]], '#5a3a24', 7004, 1.4);
+  a.blob([[-18, -28], [-14, -68], [0, -70], [0, -26]], R, 7005);                                       // the pied tunic: red half
+  a.blob([[0, -70], [14, -68], [18, -28], [0, -26]], Y, 7006);                                          //                  yellow half
+  a.line([[-18, -30], [18, -30]], 7007, 1.6);
+  a.circ(2, -82, 12, 12, VC_SKIN, 7008);                                                                // the head
+  a.dot(7, -84, 1.6); a.circ(11, -78, 3, 2.4, '#f2a7b9', 7009, 1);                                     // eye, puffed cheek
+  a.blob([[-12, -88], [-6, -102], [16, -96], [22, -86], [2, -90]], '#3a7a4a', 7010, 1.8);               // the hat
+  a.curve([[-8, -98], [-20, -116], [-30, -112]], 7011, 2.6); a.curve([[-8, -98], [-18, -110]], 7012, 1);   // its feather
+  a.at(12, -78, 0.35, () => { a.rect(0, -2.4, 42, 2.4, 1, '#c9975a', 7013, 1.4); for (let i = 0; i < 4; i++) a.dot(14 + i * 7, 0, 1.1); });   // the pipe
+  a.blob([[10, -62], [24, -66], [30, -62], [14, -56]], R, 7014, 1.4); a.circ(28, -64, 3.4, 3.4, VC_SKIN, 7015, 1.2);   // hands on the pipe
+  a.blob([[-4, -62], [16, -56], [40, -56], [18, -52]], Y, 7016, 1.4); a.circ(40, -57, 3.4, 3.4, VC_SKIN, 7017, 1.2);
+}
+// a music note at (x, y)
+function vcNote(a, x, y, s, seed, col) { a.at(x, y, -0.15, () => { a.circ(0, 0, 4.4, 3.4, col || INK, seed, 1); a.line([[4, -1], [4, -18]], seed + 1, 1.4); a.curve([[4, -18], [10, -14], [11, -8]], seed + 2, 1.4); }, s); }
+// a gunpowder barrel lying on its side (end showing)
+function vcBarrel(a, x, y, s, seed) {
+  a.at(x, y, 0, () => { a.circ(0, 0, 14, 15, '#b07a48', seed, 1.8); a.circ(0, 0, 10, 11, null, seed + 1, 1); a.circ(0, 0, 4, 4, '#5a3a24', seed + 2, 1);
+    a.line([[-9, -6], [9, -6]], seed + 3, 0.7); a.line([[-9, 6], [9, 6]], seed + 4, 0.7); }, s);
+}
+// Westminster, up top: a long gothic front with pointed windows and a tower
+function vcParliament(a, lift) {
+  a.rect(-122, -76 - lift, 122, -40, 1, '#e0cfa4', 7100, 1.8);
+  for (let i = 0; i < 9; i++) { const x = -108 + i * 27; a.poly([[x - 5, -46], [x - 5, -62 - lift * 0.5], [x, -70 - lift * 0.5], [x + 5, -62 - lift * 0.5], [x + 5, -46]], a.alt ? '#fff1a8' : '#6a7a9a', 7101 + i, 1.2); }
+  for (let i = 0; i < 12; i++) a.poly([[-122 + i * 22, -76 - lift], [-116 + i * 22, -84 - lift], [-110 + i * 22, -76 - lift]], '#d2bf92', 7110 + i, 1);   // the pinnacles
+  a.rect(62, -100 - lift, 92, -40, 1, '#d2bf92', 7125, 1.8); a.poly([[60, -100 - lift], [77, -118 - lift], [94, -100 - lift]], '#7a8a9a', 7126, 1.6);   // the tower
+  a.circ(77, -86 - lift, 7, 7, CREAM, 7127, 1.2); a.line([[77, -86 - lift], [77, -91 - lift]], 7128, 1); a.line([[77, -86 - lift], [81, -86 - lift]], 7129, 1);
+}
+// Guy Fawkes, cartoon: tall hat, cloak, curly moustache and beard; standing on y = 0 facing right. sooty: after the FOOMP
+function vcGuy(a, sooty) {
+  const face = VC_SKIN;
+  a.line([[-6, -2], [-12, -26]], 7201, 3.4); a.line([[10, -6], [6, -26]], 7202, 3.4);                    // legs, tiptoe
+  a.blob([[-16, -6], [-10, -4], [-12, 0], [-20, 0]], '#3a3440', 7203, 1.4); a.blob([[8, -8], [16, -8], [14, -4], [8, -4]], '#3a3440', 7204, 1.4);
+  a.blob([[-22, -24], [-14, -66], [12, -66], [18, -24], [0, -20]], '#4a3a5a', 7205);                    // the cloak
+  a.blob([[-12, -66], [12, -66], [8, -60], [-8, -60]], CREAM, 7206, 1.2);                               // a white collar
+  a.circ(0, -76, 11, 12, face, 7207);
+  a.circ(4, -79, 3.2, 3.6, CREAM, 7208, 1); a.dot(sooty ? 4 : 6, sooty ? -79 : -79.5, 1.4);              // a sneaky side-eye
+  a.curve([[-2, -70], [4, -72], [10, -68]], 7209, 1.8); a.curve([[-2, -70], [-6, -72], [-10, -68]], 7210, 1.8);   // the moustache
+  a.poly([[-2, -66], [6, -66], [2, -56]], '#7a4a2a', 7211, 1.2);                                         // the little pointed beard
+  if (sooty) { a.blob([[-10, -82], [-2, -86], [2, -80], [-6, -76]], rgba('#3a3440', 0.55), 7215, 0.6); a.blob([[6, -72], [10, -76], [11, -68]], rgba('#3a3440', 0.55), 7216, 0.6); a.blob([[-12, -90], [-4, -96], [4, -92], [10, -96], [12, -88], [0, -86]], '#3a3440', 7217, 1); }   // soot smudges, hair standing up
+  if (!sooty) { a.blob([[-16, -86], [16, -86], [14, -82], [-14, -82]], '#2a2430', 7212, 1.6); a.rect(-9, -108, 9, -86, 2, '#2a2430', 7213, 1.6); a.rect(-9, -92, 9, -88, 1, '#a8744f', 7214, 1); }
+}
+
+// ── 🔬 Ned Ludd's Hammer: a Luddite with a sledgehammer at a clanking machine (the 1811 frame-breakers). Flip: CRUNCH, the gear cracks
+ART.brkSci = a => {
+  a.layer(-1, () => a.nim(a.alt ? '#ffd08a' : '#f6d6a8'));
+  a.layer(-0.6, () => {                                                                                 // the mill: red brick, lit windows, a chimney
+    a.rect(-122, -70, 20, 40, 1, '#b5553a', 7301, 1.8);
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) a.rect(-112 + c * 26, -60 + r * 30, -98 + c * 26, -44 + r * 30, 1, '#ffe08a', 7302 + r * 5 + c, 1.1);
+    a.rect(-30, -96, -16, -70, 1, '#9a4a32', 7320, 1.6); a.puff(-20, -98, 6, 7321, '#d8d0c8');
+  });
+  a.layer(-0.2, () => { a.fillRect(-130, 40, 130, 110, rgba('#a08060', 0.5)); a.line([[-130, 40], [130, 40]], 7330, 1.4); });
+  a.layer(0.1, () => {                                                                                  // the machine: a stocking frame on a wooden stand
+    a.rect(14, -24, 112, 46, 2, '#a8744f', 7340, 2);
+    a.rect(20, -18, 106, 0, 1, '#c9975a', 7341, 1.2);
+    for (let i = 0; i < 9; i++) a.line([[26 + i * 10, 0], [26 + i * 10, 14]], 7342 + i, 1);              // its needles
+    a.line([[20, 46], [20, 60]], 7355, 2.4); a.line([[106, 46], [106, 60]], 7356, 2.4);
+    vcGear(a, 94, -34, 14, 9, '#d8a84a', 7360, false);
+    vcGear(a, 56, -40, 22, 12, VC_GOLD, 7410, a.alt);
+    if (!a.alt) { vcGlow(a, 56, -40, 40, '#7ff3ff', 0.45);
+      for (const [x, y, s] of [[30, -68, 1], [84, -66, -1], [92, -6, 1]]) a.line([[x, y], [x + 5 * s, y - 6], [x + 1 * s, y - 9], [x + 7 * s, y - 15]], 7460 + x, 1.3); }   // it clanks and fizzes
+  });
+  const arm = a.alt ? -1.95 : 2.62;
+  a.layer(0.45, () => a.at(-52, 94, 0, () => {                                                         // the Luddite: flat cap, rolled sleeves, apron
+    kaPerson(a, { body: '#6a7a8a', arm: [0.3, arm], head: () => { a.blob([[-13, -80], [-10, -90], [8, -90], [20, -82], [12, -80]], '#5a4a3a', 7470, 1.6); a.curve([[-4, -66], [0, -64], [4, -66]], 7471, 1.2); } });
+    a.blob([[-12, -50], [12, -50], [14, -24], [-14, -24]], '#e8dcc0', 7472, 1.4);                          // the apron
+    a.at(13, -56, arm, () => { a.line([[4, 24], [6, 74]], 7473, 3); a.at(6, 76, 0, () => { a.rect(-15, -8, 15, 8, 2, '#8a92a0', 7474, 2); a.line([[-15, -8], [-15, 8]], 7475, 1); }); });   // the sledgehammer
+  }, 1.1));
+  if (a.alt) a.layer(0.8, () => {                                                                       // CRUNCH: bits fly, a spring pops out
+    a.star(56, -40, 30, '#ffe08a', 7480);
+    vcSay(a, 'CRUNCH!', 56, -78, 15, '#c62828', 7481, -0.08);
+    for (const [x, y, r] of [[96, -70, 0.6], [104, -46, 1.4], [20, -70, -0.4], [110, -84, 2.2]]) a.at(x, y, r, () => a.rect(-4, -5, 4, 5, 1, VC_GOLD, 7482 + x, 1.2));
+    a.curve([[70, -56], [78, -64], [72, -70], [82, -76], [76, -82], [88, -88]], 7490, 1.6);
+    for (let i = 0; i < 3; i++) a.line([[112, -76 + i * 12], [120, -80 + i * 12]], 7491 + i, 1);
+  });
+};
+
+// ── 🌾 Locust Swarm: a dark swarm rolls in over a golden field, the scarecrow gulps. Flip: the field is stubble, the locusts waddle off fat
+ART.brkFood = a => {
+  a.layer(-1, () => a.nim(a.alt ? '#e8d8a8' : '#ffe08a'));
+  a.layer(-0.6, () => { a.blob([[-130, -10], [-70, -34], [-10, -20], [60, -40], [130, -24], [130, 10], [-130, 10]], '#b9cf8a', 7501); });
+  a.layer(-0.3, () => {                                                                                 // the field
+    a.fillRect(-130, 0, 130, 110, rgba(a.alt ? '#b89a6a' : '#f0c24a', 0.55)); a.curve([[-130, 2], [-40, -2], [40, 4], [130, 0]], 7502, 1.4);
+    for (let r = 0; r < 4; r++) for (let i = 0; i < 14; i++) { const x = -124 + i * 19 + (r % 2) * 9, y = 18 + r * 22; vcWheat(a, x, y, 14 + r * 5, 7510 + r * 20 + i, a.alt); }
+  });
+  a.layer(0.1, () => a.at(78, 70, 0, () => {                                                            // the scarecrow
+    a.line([[0, 0], [0, -76]], 7600, 3); a.line([[-30, -52], [30, -52]], 7601, 2.6);
+    a.blob([[-26, -56], [26, -56], [16, -24], [-16, -24]], a.alt ? '#d8c8a0' : '#5a8ac8', 7602, 1.6);
+    a.circ(0, -70, 11, 12, '#e8d6a0', 7603); a.dot(-4, -72, 1.6); a.dot(4, -72, 1.6); a.circ(0, -64, 3, a.alt ? 1 : 3.4, INK, 7604, 1);   // eyes; mouth: gulp, then flat
+    if (a.alt) a.blob([[-16, -80], [-10, -88], [2, -86], [6, -92], [14, -82], [16, -78]], '#c9a85a', 7605, 1.6);   // the hat, nibbled to a stub
+    else a.blob([[-18, -78], [-12, -96], [12, -96], [18, -78]], '#c9a85a', 7605, 1.8);
+  }));
+  if (!a.alt) {
+    a.layer(0.3, () => {                                                                                // the swarm rolls in from the left
+      vcGlow(a, -60, -50, 60, '#5a5a3a', 0.35);
+      for (let i = 0; i < 46; i++) { const x = -118 + H2(i, 7701) * 110, y = -86 + H2(i, 7702) * 60; a.at(x, y, -0.3 + H2(i, 7703) * 0.6, () => { a.circ(0, 0, 3.2, 1.6, '#6a7a2a', 7710 + i, 0.8); a.line([[-1, -1], [-3, -4]], 7760 + i, 0.6); }); }
+    });
+    a.layer(0.6, () => { vcLocust(a, -20, -28, 1.25, 0.25, false, 7800); vcLocust(a, 22, -58, 0.8, 0.15, false, 7830);
+      a.at(4, -20, 0.5, () => { a.line([[0, 0], [0, 16]], 7860, 1.4); a.line([[-3, 0], [-3, -6]], 7861, 1); a.line([[0, 0], [0, -6]], 7862, 1); a.line([[3, 0], [3, -6]], 7863, 1); });   // a fork, ready
+      a.blob([[-4, -14], [10, -14], [8, -4], [-2, -4]], CREAM, 7864, 1);                                // and a napkin
+    });
+  } else {
+    a.layer(0.6, () => {                                                                                // fat, flying off right, one burps
+      vcLocust(a, -34, -40, 1.25, -0.2, true, 7900); vcLocust(a, 34, -66, 0.9, -0.25, true, 7930); vcLocust(a, -90, -70, 0.7, -0.2, true, 7960);
+      for (let i = 0; i < 3; i++) a.line([[-80 - i * 6, -30 + i * 8], [-60 - i * 6, -36 + i * 8]], 7990 + i, 1);
+      vcSay(a, 'BURP', 0, -76, 12, '#6a7a2a', 7995, -0.1);
+      for (let i = 0; i < 6; i++) a.at(-120 + i * 36, 52 + (i % 2) * 18, i, () => a.blob([[-4, 0], [0, -3], [4, 0], [0, 2]], '#f0c24a', 7996 + i, 0.8));   // a few crumbs left
+    });
+  }
+};
+
+// ── 👥 The Pied Piper: he pipes on the cobbles of Hamelin and the townsfolk start to sway. Flip: they all dance off after him over the hill
+ART.brkPop = a => {
+  a.layer(-1, () => a.nim('#f2c8e8'));
+  a.layer(-0.6, () => {                                                                                 // Hamelin: timber-framed gables
+    const H = [[-104, '#f3e6c8'], [-62, '#e8b0a0'], [-20, '#c9d8e0'], [22, '#f0dca0']];
+    H.forEach(([x, col], i) => {
+      a.rect(x - 20, -40, x + 20, 30, 1, col, 8001 + i, 1.8); a.poly([[x - 23, -40], [x, -70], [x + 23, -40]], '#a85a3a', 8005 + i, 1.6);
+      a.line([[x - 20, -12], [x + 20, -12]], 8009 + i, 1); a.line([[x - 20, -40], [x - 6, -12]], 8013 + i, 0.9); a.line([[x + 20, -40], [x + 6, -12]], 8017 + i, 0.9);
+      a.rect(x - 8, 6, x + 8, 30, 7, a.alt ? '#ffe08a' : '#5a3a24', 8021 + i, 1.4);                      // doors (thrown open, empty, in the flip)
+      a.rect(x - 7, -34, x + 7, -22, 1, '#bfe6f6', 8025 + i, 1.1);
+    });
+  });
+  a.layer(-0.2, () => { a.fillRect(-130, 30, 130, 110, rgba('#c9b89a', 0.7)); a.line([[-130, 30], [130, 30]], 8030, 1.4);
+    if (a.alt) { a.blob([[30, 30], [70, 0], [110, -6], [130, 0], [130, 30]], '#9ccf7a', 8031, 1.6); }    // the green hill he leads them over
+  });
+  if (!a.alt) {
+    a.layer(0.2, () => {                                                                                // heads pop out of the windows, a kid sways in a doorway
+      for (const [x, col] of [[-104, '#d9a25a'], [-20, '#8a6a4a']]) { a.circ(x, -30, 6, 6, VC_SKIN, 8040 + x, 1.2); a.dot(x - 2, -31, 1); a.dot(x + 2, -31, 1); a.blob([[x - 6, -34], [x, -40], [x + 6, -34]], col, 8045 + x, 1.2); }
+      a.at(-62, 58, 0.12, () => vcFolk(a, '#7a9ac8', 1, null, 8050), 0.42);
+      a.at(-100, 64, -0.12, () => vcFolk(a, '#e8506a', 1, '#5a6a3a', 8055), 0.46);
+    });
+    a.layer(0.5, () => a.at(36, 96, 0, () => vcPiper(a, 0), 0.95));
+    a.layer(0.75, () => { for (let i = 0; i < 6; i++) vcNote(a, 86 - i * 30 + (i % 2) * 6, -68 + Math.sin(i * 1.3) * 16, 0.95, 8060 + i * 3, i % 2 ? '#6a1b9a' : INK); });
+  } else {
+    a.layer(0.4, () => {                                                                                // the conga line, dancing off right after him
+      const F = [['#7a9ac8', '#5a6a3a'], ['#e8506a', null], ['#5fae6a', '#8a5a3a'], ['#d9a25a', null], ['#c58af9', '#3a6a8a'], ['#f0a060', null]];
+      F.forEach(([col, hat], i) => { const x = -112 + i * 30, y = 92 - Math.max(0, x - 20) * 0.3; a.at(x, y - (i % 2) * 6, (i % 2 ? 0.14 : -0.14), () => vcFolk(a, col, 1, hat, 8100 + i * 4), 0.5); });
+      a.at(-118, 96, 0, () => { a.circ(0, -6, 7, 6, '#9a9aa0', 8130, 1.2); a.poly([[-5, -11], [-4, -17], [-1, -12]], '#9a9aa0', 8131, 1); a.dot(2, -7, 1); }, 1);   // the cat, left behind
+    });
+    a.layer(0.55, () => a.at(94, 42, -0.1, () => vcPiper(a, 1), 0.62));
+    a.layer(0.8, () => { for (let i = 0; i < 8; i++) vcNote(a, 112 - i * 26, -64 + Math.sin(i * 1.7) * 14, 0.8, 8140 + i * 3, i % 2 ? '#6a1b9a' : INK); });
+  }
+};
+
+// ── 🏛 Gunpowder Plot: in the cellar under Parliament, a cartoon Guy Fawkes tiptoes past the barrels with his lantern. Flip: FOOMP, a big soot puff
+ART.brkPol = a => {
+  a.layer(-1, () => a.nim(a.alt ? '#ffd8a0' : '#d8c8a8'));
+  a.layer(-0.6, () => vcParliament(a, a.alt ? 6 : 0));
+  a.layer(-0.3, () => {                                                                                 // the cellar: stone blocks, two dark arches
+    a.rect(-122, -40, 122, 97, 1, '#8a8478', 8201, 1.8);
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 7; c++) a.rect(-122 + c * 36 + (r % 2) * 18, -40 + r * 22, -86 + c * 36 + (r % 2) * 18, -18 + r * 22, 1, null, 8202 + r * 7 + c, 0.6);
+    for (const x of [-80, 80]) a.blob([[x - 22, 70], [x - 22, 0], [x, -20], [x + 22, 0], [x + 22, 70]], a.alt ? '#6a6070' : '#3a3440', 8240 + x, 1.6);
+    a.fillRect(-130, 70, 130, 110, rgba('#6a6258', 0.7)); a.line([[-130, 70], [130, 70]], 8250, 1.4);
+  });
+  if (!a.alt) {
+    a.layer(0.2, () => {                                                                                // the barrels, stacked, one short fuse
+      for (const [x, y] of [[-24, 56], [4, 56], [32, 56], [60, 56], [-10, 28], [18, 28], [46, 28], [4, 0], [32, 0]]) vcBarrel(a, x, y, 1, 8260 + x + y);
+      a.curve([[60, 70], [80, 78], [96, 74]], 8300, 1.4);
+    });
+    a.layer(0.55, () => a.at(-74, 94, 0, () => {                                                       // Guy, tiptoeing, lantern held out
+      vcGuy(a, false);
+      a.blob([[10, -58], [30, -52], [30, -46], [12, -48]], '#4a3a5a', 8310, 1.4); a.circ(32, -49, 3.4, 3.4, VC_SKIN, 8311, 1.2);
+      a.line([[32, -52], [32, -40]], 8312, 1); vcGlow(a, 32, -30, 34, '#ffd34d', 0.7);
+      a.rect(26, -40, 38, -22, 2, '#3a3440', 8313, 1.4); a.rect(28, -37, 36, -25, 1, '#ffe08a', 8314, 1);
+    }, 0.92));
+  } else {
+    a.layer(0.3, () => {                                                                                // FOOMP: a big soft cartoon puff
+      for (const [x, y, r] of [[10, 36, 34], [-24, 24, 26], [44, 22, 28], [0, -6, 26], [36, -12, 22], [-36, 52, 20], [62, 50, 22]]) a.puff(x, y, r, 8400 + x, '#cfc6b8');
+      a.star(10, 40, 20, '#ffd34d', 8420);
+      for (const [x, y, r] of [[-60, -10, 0.6], [80, -20, -0.8], [96, 40, 1.2]]) a.at(x, y, r, () => { a.rect(-12, -3, 12, 3, 2, '#b07a48', 8430 + x, 1.4); });   // barrel staves flying
+      vcSay(a, 'FOOMP!', 10, 10, 20, '#c62828', 8440, -0.08);
+    });
+    a.layer(0.55, () => a.at(-82, 94, 0.25, () => {                                                    // Guy, sat down, sooty, hat popped off, birdies
+      vcGuy(a, true);
+      a.circ(-4, -96, 4, 4, '#ffd34d', 8450, 1); a.circ(14, -100, 4, 4, '#ffd34d', 8451, 1); a.circ(-18, -92, 4, 4, '#ffd34d', 8452, 1);
+    }, 0.85));
+    a.layer(0.75, () => a.at(-40, -58, 0.5, () => { a.blob([[-16, 0], [16, 0], [14, 4], [-14, 4]], '#2a2430', 8460, 1.6); a.rect(-9, -22, 9, 0, 2, '#2a2430', 8461, 1.6); }));   // his hat, up in the air
+    a.layer(0.85, () => { for (let i = 0; i < 4; i++) a.line([[-40 + i * 6, -86], [-42 + i * 6, -96]], 8470 + i, 1); });
+  }
+};
+
+// ── 💰 Run on the Bank: a crowd shouts at the bank's doors, the banker peeks out sweating. Flip: the doors burst and the coins pour out down the steps
+ART.runBank = a => {
+  a.layer(-1, () => a.nim(a.alt ? '#ffe08a' : '#f6e0b0'));
+  a.layer(-0.5, () => {                                                                                 // the bank: pediment, four columns, steps
+    a.poly([[-96, -56], [0, -94], [96, -56]], '#efe6d2', 8501, 2);
+    a.rect(-90, -56, 90, -42, 1, '#e6dcc4', 8502, 1.8);
+    uText(a.g, 'BANK', 0, -44, 11, { align: 'center', t: a.t, seed: 8503, col: '#5a4a3a' });
+    for (const x of [-72, -40, 40, 72]) { a.rect(x - 8, -42, x + 8, 30, 1, '#f3eadb', 8504 + x, 1.8); a.line([[x - 3, -38], [x - 3, 26]], 8505 + x, 0.8); a.line([[x + 3, -38], [x + 3, 26]], 8506 + x, 0.8); }
+    a.rect(-24, -30, 24, 30, 2, '#3a2618', 8520, 2);                                                    // the doorway
+    if (!a.alt) { a.rect(-22, -28, 0, 30, 1, '#8a5a3a', 8521, 1.4); a.rect(0, -28, 22, 30, 1, '#8a5a3a', 8522, 1.4); }
+    for (let i = 0; i < 3; i++) a.rect(-100 + i * 8, 30 + i * 8, 100 - i * 8, 38 + i * 8, 1, '#ddd2bc', 8523 + i, 1.4);
+  });
+  if (!a.alt) {
+    a.layer(0.05, () => a.at(6, 32, 0, () => {                                                          // the banker peeks round the door, sweating
+      a.circ(0, -40, 10, 10, VC_SKIN, 8540, 1.6); a.dot(-3, -41, 1.4); a.dot(3, -41, 1.4); a.curve([[-4, -34], [0, -36], [4, -34]], 8541, 1);
+      a.rect(-8, -66, 8, -48, 2, '#2a2430', 8542, 1.6); a.blob([[-14, -50], [14, -50], [12, -46], [-12, -46]], '#2a2430', 8543, 1.4);
+      a.blob([[12, -44], [14, -38], [10, -38]], '#9fd8f6', 8544, 0.8); a.blob([[-14, -40], [-12, -34], [-16, -34]], '#9fd8f6', 8545, 0.8);
+    }));
+    a.layer(0.5, () => {                                                                                // the crowd at the steps, waving bankbooks
+      const P = [[-96, '#e8506a'], [-62, '#5a7a9a'], [-28, '#d9a25a'], [6, '#5fae6a'], [40, '#c58af9'], [74, '#f0a060'], [104, '#7a9ac8']];
+      P.forEach(([x, col], i) => a.at(x, 100 + (i % 2) * 4, (i % 2 ? 0.06 : -0.06), () => {
+        kbFig(a, { robe: col, raise: 36 }); if (i % 3 === 0) a.blob([[-13, -80], [-10, -88], [10, -88], [13, -80]], '#3a3440', 8550 + i, 1.6);
+        a.at(25, -80, 0.2, () => a.rect(-6, -8, 6, 8, 1, CREAM, 8580 + i, 1.4));                              // a bankbook, waved
+      }, 0.55));
+      vcSay(a, 'OUR MONEY!', -40, -70, 10, '#c62828', 8590, -0.06);
+    });
+  } else {
+    a.layer(0.3, () => {                                                                                // the river of coins down the steps
+      vcGlow(a, 0, 10, 60, '#ffe08a', 0.7);
+      a.blob([[-26, -28], [26, -28], [40, 30], [80, 64], [100, 97], [-100, 97], [-70, 60], [-40, 30]], '#f2c744', 8600, 1.8);
+      for (let i = 0; i < 34; i++) { const t = H2(i, 8601), y = -20 + t * 112, w = 18 + t * 80, x = (H2(i, 8602) - 0.5) * w * 2; vcCoin(a, x, y, 4 + t * 3, 8610 + i * 2, H2(i, 8603)); }
+      for (const [x, y] of [[-40, -40], [30, -50], [-6, -64], [52, -24], [-58, -12]]) vcCoin(a, x, y, 5, 8690 + x, 0.4);   // coins flying out
+    });
+    a.layer(0.55, () => {                                                                               // folk dash off with their sacks
+      a.at(-98, 86, -0.15, () => { vcFolk(a, '#e8506a', 0, null, 8700); vcSack(a, -22, -48, 0.9, 8705); }, 0.55);
+      a.at(100, 86, 0.15, () => { vcFolk(a, '#5fae6a', 0, '#3a3440', 8710); vcSack(a, 24, -48, 0.9, 8715); }, 0.55);
+      for (let i = 0; i < 3; i++) { a.line([[-120, 46 + i * 8], [-110, 46 + i * 8]], 8720 + i, 1); a.line([[110, 46 + i * 8], [120, 46 + i * 8]], 8724 + i, 1); }
+    });
+    a.layer(0.75, () => a.at(0, -36, 0, () => {                                                        // the banker in the doorway, holding up an empty sack, a moth flies out
+      vcSack(a, 0, 0, 1, 8730, true);
+      a.at(12, -30, 0, () => { a.blob([[0, 0], [-8, -6], [-6, 2]], '#e8e0cc', 8735, 1); a.blob([[0, 0], [8, -6], [6, 2]], '#e8e0cc', 8736, 1); a.dot(0, 0, 1.4); });
+    }));
+  }
+};
+
+// ── art/v4-income.js
+// v4-income: road income buildings (11-24). Siblings of Fondaco and Kontor (v3-build) for the Food, Crowd and Science roads.
+// 🆕 every picture is Claude's, for Mook's tick (v4-income.ticks.md). Second picture (a.alt) = the moment it pays. Helpers start vi.
+const VI_GRAIN = '#f2c14e', VI_TIMBER = '#a86a3c', VI_STONE = '#cbbfa8', VI_SACK = '#e6d3a3', VI_PRINT = '#2f6db5', VI_WOOD_CHUTE = '#b5814f';
+function viSack(a, x, y, s, seed) {                                       // a tied sack of grain, sitting on y = 0
+  a.at(x, y, 0, () => { a.blob([[-12, 0], [-15, -14], [-9, -26], [9, -26], [15, -14], [12, 0]], VI_SACK, seed, 1.6);
+    a.line([[-7, -22], [7, -22]], seed + 1, 1.2); a.blob([[-5, -25], [-4, -32], [4, -32], [5, -25]], VI_SACK, seed + 2, 1.2); }, s);
+}
+function viSheaf(a, x, y, rot, s, seed) {                                 // a sheaf of wheat: stalks fanning up, heads of grain, a red band round the middle
+  a.at(x, y, rot, () => {
+    a.blob([[-5, 16], [-16, -24], [0, -30], [16, -24], [5, 16]], '#e8c66a', seed, 1.4);
+    for (let i = 0; i < 7; i++) { const dx = -12 + i * 4; a.line([[dx * 0.3, 14], [dx, -24]], seed + 1 + i, 1); a.circ(dx * 1.05, -28, 2.6, 5.5, VI_GRAIN, seed + 10 + i, 1); }
+    a.rect(-7, -4, 7, 2, 1, '#c0392b', seed + 20, 1.2);
+  }, s);
+}
+function viStaddle(a, x, seed) { a.rect(x - 4, 36, x + 4, 58, 2, VI_STONE, seed, 1.6); a.circ(x, 34, 11, 4.5, VI_STONE, seed + 1, 1.6); }   // a staddle stone: the mushroom the granary stands on (rats can't climb it)
+function viCoinPop(a, x, y, seed) { a.circ(x, y, 5, 5, VB_GOLD, seed, 1.2); }
+// the hand's place at the end of a kaPerson arm (shoulder at ±13, -56; arm 28 long), in the person's own frame
+function viHand(side, ang) { return [side * 13 + 4 * side * Math.cos(ang) - 28 * Math.sin(ang), -56 + 4 * side * Math.sin(ang) + 28 * Math.cos(ang)]; }
+
+// ── Granary: a timber granary up on staddle stones, sacks of grain at the foot, a farmer hauling in a sheaf
+ART.granary = a => {
+  a.layer(-1, () => a.nim('#ffe0a0'));
+  a.layer(-0.7, () => {                                                                                    // the wheat fields rolling away
+    a.blob([[-130, 10], [-80, -34], [-20, -22], [40, -44], [100, -30], [130, -36], [130, 60], [-130, 60]], '#e9c46a', 7001, 1.6);
+    for (let i = 0; i < 12; i++) a.curve([[-120 + i * 22, -10 + (i % 3) * 4], [-112 + i * 22, 16], [-108 + i * 22, 40]], 7002 + i, 0.9);
+    a.circ(92, -66, 14, 14, '#fff2a8', 7020, 1.4);                                                          // the sun
+  });
+  a.layer(-0.2, () => {
+    a.fillRect(-130, 56, 130, 110, rgba('#b98a4a', 0.75)); a.curve([[-130, 58], [0, 54], [130, 58]], 7030, 1.4);   // the farmyard
+    for (const x of [-98, -58, -18]) viStaddle(a, x, 7040 + x);
+    a.rect(-112, -28, -4, 30, 1, VI_TIMBER, 7050, 2);                                                      // the timber body
+    for (let k = 1; k < 5; k++) a.line([[-112, -28 + k * 11.6], [-4, -28 + k * 11.6]], 7051 + k, 0.9);
+    a.poly([[-122, -26], [-58, -80], [6, -26]], '#b8432f', 7060, 2);                                       // the tiled roof
+    for (let k = 1; k < 4; k++) a.line([[-122 + k * 16, -26 - k * 13.5], [6 - k * 16, -26 - k * 13.5]], 7061 + k, 0.9);
+    a.circ(-58, -44, 7, 7, '#3a2618', 7065, 1.4);                                                          // the owl hole in the gable
+    a.rect(-72, -16, -44, 30, 1, '#5a3820', 7066, 1.6); a.line([[-58, -16], [-58, 30]], 7067, 1);          // the doors
+    a.line([[-70, 30], [-76, 58]], 7068, 1.8); a.line([[-54, 30], [-60, 58]], 7069, 1.8);                  // the steps up
+    for (let k = 1; k < 4; k++) a.line([[-70 - k * 1.5, 30 + k * 7], [-54 - k * 1.5, 30 + k * 7]], 7070 + k, 1.2);
+  });
+  if (!a.alt) {
+    a.layer(0.4, () => { viSack(a, -112, 88, 1, 7100); viSack(a, -86, 92, 1.1, 7104); viSack(a, -98, 68, 0.9, 7108); viSack(a, -30, 90, 0.95, 7112); });
+    a.layer(0.6, () => a.at(48, 86, 0.1, () => {                                                         // the farmer, leaning in, hauling a sheaf on his back
+      kaPerson(a, { body: '#4f7a3a', skin: '#e2a87c', arm: [0.5, -2.7], head: () => {
+        a.circ(0, -84, 22, 5, '#e8c66a', 7120, 1.6); a.blob([[-11, -84], [-9, -98], [9, -98], [11, -84]], '#e8c66a', 7121, 1.6);   // the straw hat
+        a.curve([[-5, -66], [0, -63], [5, -66]], 7122, 1.2); } });
+      viSheaf(a, 30, -84, 0.45, 1.45, 7130);
+    }, 0.78));
+    a.layer(0.85, () => { for (let i = 0; i < 5; i++) a.curve([[96 + i * 6, 104], [98 + i * 6, 80], [94 + i * 7, 64]], 7150 + i, 1.2); for (let i = 0; i < 5; i++) a.circ(94 + i * 7, 62, 2.4, 5, VI_GRAIN, 7160 + i, 1); });   // wheat at the edge
+  } else {
+    a.layer(0.3, () => {                                                                                   // the chute: grain pours out of the hatch
+      a.rect(-8, -6, 4, 12, 1, '#5a3820', 7200, 1.4);
+      a.poly([[-2, 2], [40, 30], [36, 38], [-4, 12]], VI_WOOD_CHUTE, 7201, 1.6);
+      a.blob([[36, 30], [48, 44], [52, 62], [44, 64], [38, 46], [32, 36]], VI_GRAIN, 7202, 1.4);           // the stream
+      a.blob([[10, 92], [26, 66], [50, 58], [74, 66], [92, 92]], VI_GRAIN, 7203, 1.8);                     // the pile
+      for (let i = 0; i < 10; i++) a.dot(20 + H2(i, 71) * 64, 72 + H2(i, 72) * 16, 1.3, '#b8862a');
+    });
+    a.layer(0.5, () => { viSack(a, -112, 88, 1, 7100); viSack(a, -86, 92, 1.1, 7104); });
+    a.layer(0.8, () => {                                                                                   // and the grain turns to coins on the way up
+      for (let i = 0; i < 5; i++) viCoinPop(a, 30 + i * 12, 56 - (i % 2) * 10 - i * 4, 7220 + i);
+      a.curve([[46, 52], [52, 20], [44, -10]], 7230, 1.2); a.curve([[66, 50], [80, 16], [96, -20]], 7231, 1.2);
+      vbCoin(a, 44, -28, '+1', 7232, 16); vbCoin(a, 98, -40, '+2', 7233, 16);
+      a.star(70, -62, 10, '#ffe08a', 7234);
+    });
+    a.layer(0.9, () => a.at(-26, 96, 0, () => kaPerson(a, { body: '#4f7a3a', skin: '#e2a87c', arm: [2.6, -2.6], head: () => {   // the farmer cheers
+      a.circ(0, -84, 22, 5, '#e8c66a', 7120, 1.6); a.blob([[-11, -84], [-9, -98], [9, -98], [11, -84]], '#e8c66a', 7121, 1.6);
+      a.blob([[-6, -67], [0, -61], [6, -67]], '#7a2a2a', 7240, 1.2); } }), 0.7));
+  }
+};
+
+// ── Guild Hall: a half-timbered hall with the trades' banners, townsfolk crowding in with their dues
+function viBanner(a, x, y, col, emblem, seed) {                           // a hanging banner with a swallowtail, and its trade's sign
+  a.line([[x - 14, y], [x + 14, y]], seed, 2);
+  a.poly([[x - 11, y], [x + 11, y], [x + 11, y + 34], [x, y + 27], [x - 11, y + 34]], col, seed + 1, 1.6);
+  a.at(x, y + 14, 0, () => {
+    if (emblem === 'boot') a.poly([[-4, -8], [2, -8], [2, 2], [8, 3], [8, 7], [-4, 7]], '#f3e6c8', seed + 2, 1.2);         // cobblers
+    else if (emblem === 'loaf') a.blob([[-7, 5], [-8, -1], [-3, -6], [3, -6], [8, -1], [7, 5]], '#e8b46a', seed + 2, 1.2);   // bakers
+    else { a.line([[-5, 7], [3, -3]], seed + 2, 2); a.rect(-1, -9, 9, -3, 1, '#c0c6cf', seed + 3, 1.2); }                // smiths
+  });
+}
+function viTownsfolk(a, x, y, s, body, hat, armR, seed) {                 // one of the crowd, with a coin purse in the raised hand
+  a.at(x, y, 0, () => {
+    kaPerson(a, { body, skin: '#e9b48e', arm: [0.3, armR], head: () => { if (hat) a.blob([[-13, -80], [-10, -92], [10, -92], [13, -80]], hat, seed, 1.6); } });
+    const [hx, hy] = viHand(1, armR); a.blob([[hx - 6, hy - 2], [hx - 4, hy - 12], [hx + 4, hy - 12], [hx + 6, hy - 2], [hx, hy + 4]], '#8a5a3a', seed + 1, 1.4);
+  }, s);
+}
+ART.guildhall = a => {
+  a.layer(-1, () => a.nim('#ffd0a0'));
+  a.layer(-0.7, () => {                                                                                    // the town behind
+    [[-130, -40, '#e8c8a8'], [-104, -56, '#d9b28c'], [86, -50, '#e8c8a8'], [108, -36, '#d9b28c']].forEach(([x, h, c], i) => { a.rect(x, h, x + 26, 60, 1, c, 7300 + i, 1.4); a.poly([[x - 2, h], [x + 13, h - 16], [x + 28, h]], '#b8735a', 7310 + i, 1.4); });
+  });
+  a.layer(-0.3, () => {
+    a.rect(-74, 8, 74, 62, 1, '#d8c9a8', 7320, 2);                                                         // the stone ground floor
+    a.rect(-84, -48, 84, 8, 1, '#f3e6c8', 7321, 2);                                                        // the jettied timber floor above
+    for (let k = 0; k < 8; k++) a.line([[-84 + k * 24, -48], [-84 + k * 24, 8]], 7322 + k, 2.2);
+    a.line([[-84, -20], [84, -20]], 7331, 2);
+    for (let k = 0; k < 7; k++) a.line([[-84 + k * 24, k % 2 ? -48 : 8], [-60 + k * 24, k % 2 ? 8 : -48]], 7340 + k, 1.4);   // the braces
+    a.poly([[-94, -46], [0, -94], [94, -46]], '#8a3a2a', 7350, 2);                                         // the steep roof
+    a.rect(-8, -78, 8, -62, 1, '#ffe08a', 7351, 1.4);
+    a.rect(-22, 14, 22, 62, 16, '#5a3820', 7352, 1.8); a.line([[0, 16], [0, 62]], 7353, 1);                // the great door
+    for (const x of [-60, 46]) { a.rect(x, 22, x + 14, 40, 6, '#ffe08a', 7354 + x, 1.4); }
+    viBanner(a, -48, -44, '#c0392b', 'boot', 7360); viBanner(a, 0, -44, '#2e6fb0', 'loaf', 7370); viBanner(a, 48, -44, '#2e7d4f', 'hammer', 7380);
+  });
+  a.layer(0, () => { a.fillRect(-130, 62, 130, 110, rgba('#b9a58a', 0.8)); for (let i = 0; i < 16; i++) a.curve([[-122 + i * 16, 74 + (i % 2) * 12], [-116 + i * 16, 70 + (i % 2) * 12], [-110 + i * 16, 74 + (i % 2) * 12]], 7390 + i, 0.9); });   // the cobbles
+  if (!a.alt) {
+    a.layer(0.5, () => {                                                                                   // the crowd pushing in at the door
+      viTownsfolk(a, -96, 102, 0.62, '#7f5ea8', '#3a6a8a', -2.4, 7400);
+      viTownsfolk(a, -58, 98, 0.58, '#c97a3a', null, -0.5, 7410);
+      viTownsfolk(a, 54, 98, 0.58, '#3f8a7a', '#c0392b', -2.5, 7420);
+      viTownsfolk(a, 94, 102, 0.62, '#b84a5a', '#6b4a32', -0.4, 7430);
+    });
+    a.layer(0.75, () => { viTownsfolk(a, -22, 112, 0.7, '#4f6fa8', '#e8c66a', -2.6, 7440); viTownsfolk(a, 22, 112, 0.7, '#a8743a', null, -2.2, 7450); });
+  } else {
+    a.layer(0.5, () => {                                                                                   // the guild chest at the door, lid up
+      a.poly([[-30, 66], [30, 66], [36, 50], [-36, 50]], '#6b4a32', 7500, 1.8);
+      a.rect(-30, 66, 30, 96, 2, '#8a5a3a', 7501, 2); a.rect(-30, 74, 30, 80, 0, VB_GOLD, 7502, 1.2); a.rect(-5, 80, 5, 90, 1, VB_GOLD, 7503, 1.2);
+      for (let i = 0; i < 5; i++) a.circ(-20 + i * 10, 66 - (i % 2) * 3, 6, 3, VB_GOLD, 7504 + i, 1);
+    });
+    a.layer(0.7, () => {                                                                                   // townsfolk tossing in their dues
+      viTownsfolk(a, -88, 104, 0.66, '#7f5ea8', '#3a6a8a', -2.3, 7400);
+      viTownsfolk(a, 88, 104, 0.66, '#3f8a7a', '#c0392b', -2.3, 7420);
+      for (const [x0, y0, x1, y1] of [[-66, 42, -10, 54], [66, 42, 10, 54]]) { a.curve([[x0, y0], [(x0 + x1) / 2, y0 - 30], [x1, y1]], 7520 + x0, 1); viCoinPop(a, x1, y1 - 4, 7530 + x0); viCoinPop(a, (x0 + x1) / 2, y0 - 22, 7540 + x0); }
+    });
+    a.layer(0.9, () => { vbCoin(a, -56, -66, '+1', 7550, 16); vbCoin(a, 58, -66, '+2', 7551, 16); a.star(0, 36, 12, '#ffe08a', 7552); });
+  }
+};
+
+// ── Patent Office: the clerk's desk, blueprints stacked high, gadget models, gears on the wall, the big rubber stamp
+function viStamp(a, x, y, s) {                                            // the rubber stamp, rubber face at y = 0
+  a.at(x, y, 0, () => { a.circ(0, -34, 9, 8, '#8a5a3a', 7600, 1.6); a.rect(-4, -28, 4, -8, 1, '#a8744f', 7601, 1.4); a.rect(-18, -10, 18, -2, 2, '#6b4a32', 7602, 1.6); a.rect(-16, -2, 16, 3, 1, '#e04848', 7603, 1.4); }, s);
+}
+function viBlueprint(a, x, y, w, h, rot, seed) {                          // a blueprint sheet: white lines, a little machine drawn on it
+  a.at(x, y, rot, () => { a.rect(-w / 2, -h / 2, w / 2, h / 2, 1, VI_PRINT, seed, 1.4);
+    a.g.save(); a.g.globalAlpha = 0.85; a.circ(-w * 0.18, 0, h * 0.24, h * 0.24, null, seed + 1, 0.9); a.line([[-w * 0.18, 0], [w * 0.3, -h * 0.2]], seed + 2, 0.9); a.line([[w * 0.1, h * 0.25], [w * 0.38, h * 0.25]], seed + 3, 0.9); a.g.restore();
+    if (!ST.holo) { a.g.save(); a.g.strokeStyle = 'rgba(255,255,255,0.75)'; a.g.lineWidth = 1; a.g.beginPath(); a.g.arc(-w * 0.18, 0, h * 0.24, 0, Math.PI * 2); a.g.moveTo(-w * 0.18, 0); a.g.lineTo(w * 0.3, -h * 0.2); a.g.moveTo(w * 0.1, h * 0.25); a.g.lineTo(w * 0.38, h * 0.25); a.g.stroke(); a.g.restore(); }
+  });
+}
+function viClerk(a, armR) {                                               // the patent clerk: green eyeshade, spectacles, sleeve garters
+  kaPerson(a, { body: '#f3ead8', skin: '#f0c8a8', arm: [0.5, armR], head: () => {
+    a.poly([[-15, -82], [15, -82], [22, -74], [-22, -74]], '#3f9a5a', 7610, 1.6);
+    for (const s of [-1, 1]) a.circ(s * 5, -73, 5, 5, null, 7612 + s, 1.2);
+    a.curve([[-5, -64], [0, -62], [5, -64]], 7615, 1.1); } });
+  a.line([[0, -62], [0, -40]], 7616, 1); a.poly([[-3, -62], [3, -62], [0, -42]], '#c0392b', 7617, 1);      // a red tie
+}
+ART.patent = a => {
+  a.layer(-1, () => a.nim('#f2d8a8'));
+  a.layer(-0.7, () => {
+    a.fillRect(-130, -100, 130, 30, rgba('#d9c4a0', 0.55));
+    a.at(-96, -62, a.alt ? 0.3 : 0, () => kaWheel(a, 22, 12, '#d9a441', 7620));                          // gears on the wall
+    a.at(-66, -80, a.alt ? -0.45 : 0, () => kaWheel(a, 14, 9, '#b8bec8', 7625));
+    a.at(-70, -42, a.alt ? -0.4 : 0, () => kaWheel(a, 12, 8, '#c97a3a', 7628));
+    viBlueprint(a, 86, -64, 54, 36, 0.06, 7630); a.dot(62, -82, 2.2, '#c0392b'); a.dot(110, -80, 2.2, '#c0392b');   // a blueprint pinned up
+  });
+  a.layer(-0.4, () => {                                                                                    // the shelf of gadget models
+    a.rect(-40, -36, 54, -30, 1, VI_TIMBER, 7640, 1.6);
+    a.at(-24, -36, 0, () => { a.blob([[-6, 0], [-6, -18], [0, -28], [6, -18], [6, 0]], '#e04848', 7641, 1.4); a.poly([[-6, 0], [-11, 4], [-6, -8]], '#f2c14e', 7642, 1); a.poly([[6, 0], [11, 4], [6, -8]], '#f2c14e', 7643, 1); a.circ(0, -16, 2.6, 2.6, '#bfe6f6', 7644, 1); });   // a little rocket
+    a.at(6, -36, 0, () => { a.rect(-10, -14, 10, 0, 2, '#9aa3ad', 7645, 1.4); a.line([[0, -14], [0, -22]], 7646, 1.2); a.poly([[-14, -24], [14, -20], [14, -24], [-14, -20]], '#c97a3a', 7647, 1); a.dot(-4, -7, 2, '#bfe6f6'); a.dot(4, -7, 2, '#bfe6f6'); });   // a propeller bot
+    a.at(36, -36, 0, () => { a.circ(0, -12, 8, 9, '#fff2a8', 7648, 1.4); a.rect(-4, -4, 4, 0, 1, '#9aa3ad', 7649, 1.2); });   // a light bulb
+  });
+  const armR = a.alt ? -1.1 : -2.1;
+  a.layer(0.1, () => a.at(-6, 48, 0, () => { viClerk(a, armR); }, 0.9));                                  // the clerk behind the desk
+  a.layer(0.3, () => {                                                                                     // the desk
+    a.rect(-118, 28, 118, 38, 1, '#8a5a3a', 7660, 2); a.rect(-110, 38, 110, 100, 1, '#a86a3c', 7661, 2);
+    for (const x of [-70, 70]) { a.rect(x - 26, 50, x + 26, 72, 2, '#b5814f', 7662 + x, 1.4); a.circ(x, 61, 3, 3, VB_GOLD, 7663 + x, 1); }
+    for (let i = 0; i < 6; i++) a.rect(-112 + (i % 2) * 3, 26 - i * 7, -58 + (i % 2) * 3, 32 - i * 7, 1, i % 2 ? '#4a85c8' : VI_PRINT, 7670 + i, 1.2);   // the stack of blueprints
+    for (let i = 0; i < 3; i++) { a.at(-48 + i * 5, 18 - i * 9, 0.1, () => { a.rect(-2, -5, 34, 5, 2, '#4a85c8', 7680 + i, 1.2); a.circ(-2, 0, 3, 5, '#2f6db5', 7684 + i, 1); }); }   // rolls
+    a.at(96, 28, 0, () => { a.rect(-10, -10, 10, 0, 1, '#8a5a3a', 7690, 1.2); a.circ(0, -18, 10, 10, null, 7691, 1); for (let k = 0; k < 4; k++) a.circ(-6 + k * 4, -14 - (k % 2) * 4, 4, 4, VB_GOLD, 7692 + k, 1); });   // the ink pad stand and the coin dish
+  });
+  if (!a.alt) {
+    a.layer(0.5, () => { viBlueprint(a, 40, 24, 62, 12, 0, 7700); });
+    a.layer(0.7, () => {                                                                                    // the stamp, raised high
+      const [hx, hy] = viHand(1, armR); viStamp(a, -6 + hx * 0.9 + 4, 48 + hy * 0.9 + 24, 1.35);
+      a.curve([[60, -40], [72, -24], [70, -4]], 7710, 1.2); a.curve([[66, -50], [82, -30], [80, -8]], 7711, 1.2);
+    });
+  } else {
+    a.layer(0.5, () => {
+      viBlueprint(a, 34, 22, 62, 12, 0, 7700);
+      a.at(-6, 64, -0.06, () => { a.rect(-46, -22, 46, 22, 1, VI_PRINT, 7715, 1.6); a.g.save(); a.g.globalAlpha = 0.5; a.circ(-24, 0, 12, 12, null, 7716, 1); a.line([[-24, 0], [30, -14]], 7717, 1); a.g.restore();   // a just-stamped blueprint over the desk edge
+        a.g.save(); a.g.globalAlpha = ST.holo ? 1 : 0.95; a.at(2, 2, -0.15, () => {                     // APPROVED, in red
+          a.g.fillStyle = ST.holo ? 'rgba(0,0,0,0)' : 'rgba(255,240,235,0.9)'; a.g.fillRect(-40, -12, 80, 24);
+          a.g.strokeStyle = ST.holo ? HOLO : '#d93030'; a.g.lineWidth = 3; a.g.strokeRect(-40, -12, 80, 24);
+          uText(a.g, 'APPROVED', 0, 6, 12, { align: 'center', col: '#d93030', t: a.t, seed: 7720, whim: 0.5 });
+        }); a.g.restore(); });
+    });
+    a.layer(0.7, () => { const [hx, hy] = viHand(1, armR); viStamp(a, -6 + hx * 0.9, 48 + hy * 0.9 + 20, 1.1);   // the stamp, just come down
+      for (let i = 0; i < 3; i++) a.line([[50 + i * 8, 20 - i * 6], [60 + i * 8, 14 - i * 6]], 7730 + i, 1.2); });
+    a.layer(0.9, () => {                                                                                    // coins pop out
+      for (let i = 0; i < 4; i++) viCoinPop(a, 80 + i * 9, -6 - i * 10, 7740 + i);
+      vbCoin(a, 98, -58, '+1', 7750, 16); vbCoin(a, -28, -66, '+2', 7751, 16);
+      a.star(70, -24, 10, '#ffe08a', 7752);
+    });
+  }
+};
 // @@ART-END
 
 // a card not drawn yet: its silhouette in the art window, so the face is whole (the art is the next pass)
