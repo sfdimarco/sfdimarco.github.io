@@ -3476,6 +3476,133 @@ ART.patent = a => {
     });
   }
 };
+
+// ── art/v5-answers.js
+// v5-answers · five answers a new player can find (11-25, answers.js): Pit Canary, Hard Frost, Billman, Beadle, Great Flywheel.
+// 🆕 every picture is Claude's, for Mook's tick (v5-answers.ticks.md). Second picture (a.alt) = the moment the card does its thing.
+// Helpers start va. Rules live in answers.js. Borrowed from the other groups: kbFig, vcGlow, vcSay, vcGear.
+function vaFlake(a, x, y, r, seed) { for (let i = 0; i < 3; i++) { const an = i / 3 * Math.PI; a.line([[x - Math.cos(an) * r, y - Math.sin(an) * r], [x + Math.cos(an) * r, y + Math.sin(an) * r]], seed + i, 1); } }
+// a little yellow bird facing right, centred on its body. sing: beak open, a note
+function vaBird(a, x, y, s, seed, sing) {
+  a.at(x, y, 0, () => {
+    a.blob([[-12, 2], [-8, -8], [4, -10], [12, -2], [8, 8], [-6, 8]], '#f6d23a', seed, 1.6);
+    a.blob([[-10, 2], [-22, -2], [-20, 8]], '#e2b21e', seed + 1, 1.3);                                    // tail
+    a.blob([[-4, 0], [4, -2], [2, 6], [-6, 5]], '#e2b21e', seed + 2, 1);                                  // wing
+    a.circ(11, -9, 7, 7, '#f6d23a', seed + 3, 1.6); a.dot(13, -11, 1.5);
+    if (sing) { a.blob([[17, -11], [26, -14], [18, -8]], '#f08a2a', seed + 4, 1); a.blob([[17, -7], [25, -4], [18, -8]], '#f08a2a', seed + 5, 1); }
+    else a.blob([[17, -10], [25, -8], [17, -6]], '#f08a2a', seed + 4, 1);
+    a.line([[-2, 8], [-3, 14]], seed + 6, 1.2); a.line([[4, 8], [5, 14]], seed + 7, 1.2);
+  }, s);
+}
+// a round wire cage with a ring on top, centred on (x, y)
+function vaCage(a, x, y, s, seed) {
+  a.at(x, y, 0, () => {
+    a.circ(0, -34, 5, 5, null, seed, 1.6);
+    a.curve([[-22, 24], [-24, -10], [0, -30], [24, -10], [22, 24]], seed + 1, 1.8);
+    for (const dx of [-12, 0, 12]) a.curve([[dx, 24], [dx * 1.1, -6], [0, -30]], seed + 2 + dx, 1);
+    a.rect(-24, 24, 24, 30, 2, '#8a6a4a', seed + 20, 1.6);
+  }, s);
+}
+// a face-down HALO card lying on the ground, seen at a slant
+function vaTrapCard(a, x, y, seed, up) {
+  a.at(x, y, 0, () => {
+    a.poly([[-26, 8], [-18, -8], [22, -8], [30, 8]], up ? CREAM : '#3a4a78', seed, 1.8);
+    if (!up) { a.circ(2, 0, 8, 4, null, seed + 1, 1); a.circ(2, 0, 3, 1.6, '#f2c744', seed + 2, 0.8); }
+    else { a.line([[-10, 2], [14, 2]], seed + 3, 1); a.line([[-8, -3], [12, -3]], seed + 4, 1); }
+  });
+}
+
+ART.canary = a => {
+  a.layer(-1, () => a.nim(a.alt ? '#f6e3a0' : '#4a4038'));
+  a.layer(-0.6, () => {                                                                                 // the mine: timber props, a rail of light from the lamp
+    a.blob([[-122, 97], [-122, -60], [-70, -90], [70, -90], [122, -60], [122, 97]], a.alt ? '#8a705a' : '#2c2622', 9001, 2);
+    for (const x of [-92, 92]) a.rect(x - 7, -70, x + 7, 97, 1, '#7a5a3a', 9002 + x, 1.8);
+    a.rect(-104, -80, 104, -66, 1, '#8a6a44', 9010, 1.8);
+    a.blob([[-122, 97], [-122, 62], [122, 62], [122, 97]], a.alt ? '#a88a6a' : '#3a322c', 9011, 1.6);
+    vcGlow(a, -30, -10, 78, '#ffd98a', a.alt ? 0.5 : 0.75);
+  });
+  a.layer(0.2, () => vaTrapCard(a, 44, 74, 9020, a.alt));                                               // the face-down card on the tunnel floor
+  a.layer(0.4, () => {                                                                                  // a long pole from the left holds the cage out ahead
+    a.line([[-122, 34], [-34, a.alt ? -2 : -18]], 9030, 3);
+    const cx = a.alt ? 40 : -22, cy = a.alt ? 34 : -2;
+    a.line([[-34, a.alt ? -2 : -18], [cx, cy - 34]], 9031, 1.6);
+    vaCage(a, cx, cy, 1, 9040); vaBird(a, cx - 2, cy + 8, 0.8, 9060, a.alt);
+  });
+  if (a.alt) a.layer(0.8, () => {                                                                       // SNAP: the trap goes off under the cage, the bird whistles on
+    vcSay(a, 'SNAP!', 62, 46, 15, '#c62828', 9070, 0.08);
+    for (let i = 0; i < 7; i++) { const an = -2.6 + i * 0.36; a.line([[44 + Math.cos(an) * 30, 70 + Math.sin(an) * 12], [44 + Math.cos(an) * 46, 70 + Math.sin(an) * 22]], 9071 + i, 1.6); }
+    vcNote(a, 74, -8, 1, 9080, '#3a2a1a'); vcNote(a, 92, -26, 0.8, 9084, '#3a2a1a');
+  });
+  else a.layer(0.8, () => vcSay(a, '?', 44, 50, 16, '#ffd98a', 9090, 0));
+};
+
+ART.frost = a => {
+  a.layer(-1, () => a.nim(a.alt ? '#bfe2f6' : '#22304e'));
+  a.layer(-0.6, () => { for (let i = 0; i < 26; i++) a.dot((H2(i, 9101) - 0.5) * 236, (H2(i, 9102) - 0.5) * 186, 0.7 + H2(i, 9103)); });   // stars
+  a.layer(0, () => a.at(0, 8, -0.28, () => {                                                            // a planet whose dark rings are rimed with ice
+    for (let k = 3; k >= 0; k--) a.circ(0, 0, 52 + k * 14, 15 + k * 4.4, null, 9110 + k, k < 2 ? 1 : 2.2);
+    a.circ(0, 0, 34, 34, a.alt ? '#dff2fb' : '#7fa6c8', 9120, 2.2);
+    a.curve([[-26, -10], [-6, -22], [18, -18]], 9121, 1.2); a.curve([[-22, 12], [0, 20], [24, 10]], 9122, 1.2);
+    for (let i = 0; i < 9; i++) { const an = 0.5 + i * 0.3, r = 80; a.blob([[Math.cos(an) * r - 3, Math.sin(an) * r * 0.31], [Math.cos(an) * r, Math.sin(an) * r * 0.31 + 12 + (i % 3) * 4], [Math.cos(an) * r + 3, Math.sin(an) * r * 0.31]], '#eaf7ff', 9130 + i, 1); }   // icicles off the outer ring
+  }));
+  a.layer(0.5, () => { for (let i = 0; i < 12; i++) vaFlake(a, (H2(i, 9150) - 0.5) * 220, (H2(i, 9151) - 0.5) * 170, 4 + H2(i, 9152) * 4, 9160 + i * 4); });
+  if (a.alt) a.layer(0.8, () => {                                                                       // a ring tries to relight: the spark is frozen in a block of ice
+    a.at(70, -44, 0.2, () => { a.poly([[-16, -14], [14, -18], [20, 10], [-12, 16]], rgba('#eaf7ff', 0.85), 9180, 1.8); a.poly([[-4, -6], [2, -2], [-2, 0], [5, 8], [-6, 2], [-1, 0]], '#f6c744', 9181, 1.2); });
+    vcSay(a, 'brrr', -70, 62, 13, '#2a5a8a', 9190, -0.08);
+  });
+  else a.layer(0.8, () => vcGlow(a, -64, -52, 44, '#bfe2f6', 0.5));
+};
+
+ART.billman = a => {
+  a.layer(-1, () => a.nim(a.alt ? '#f4c890' : '#cfe3c0'));
+  a.layer(-0.5, () => { a.blob([[-122, 97], [-122, 40], [-40, 28], [40, 34], [122, 26], [122, 97]], '#9cc07a', 9201, 1.8); a.blob([[-122, 40], [-80, 10], [-30, 28]], '#b7d49a', 9202, 1.4); });
+  const bill = (len) => { a.line([[0, 0], [0, -len]], 9210, 3); a.blob([[0, -len], [4, -len - 26], [14, -len - 10], [8, -len + 2]], '#c9d2da', 9211, 1.6); a.curve([[4, -len - 4], [20, -len + 2], [14, -len + 16]], 9212, 2.6); };   // the bill: a farm hook on a pole
+  if (!a.alt) {
+    a.layer(0.3, () => a.at(-36, 88, 0, () => { kbFig(a, { robe: '#8a6a3a', raise: 10 }); a.blob([[-13, -80], [-10, -90], [10, -90], [13, -80]], '#6a7078', 9220, 1.6); }, 0.95));
+    a.layer(0.4, () => a.at(-8, 60, 0.12, () => bill(120)));
+    a.layer(0.5, () => vcSay(a, 'A 4', 70, -40, 16, '#5a3a1a', 9230, 0.05));
+  } else {                                                                                              // hooked: the big shield comes down and so does he. A tie, both go
+    a.layer(0.3, () => a.at(-58, 84, -0.5, () => { kbFig(a, { robe: '#8a6a3a', raise: 30 }); a.blob([[-13, -80], [-10, -90], [10, -90], [13, -80]], '#6a7078', 9240, 1.6); }, 0.9));
+    a.layer(0.35, () => a.at(-26, 30, 1.0, () => bill(96)));
+    a.layer(0.4, () => a.at(58, 70, 0.6, () => { a.blob([[-30, -50], [0, -62], [30, -50], [26, 10], [0, 30], [-26, 10]], '#5a6a8a', 9250, 2.2); a.circ(0, -14, 9, 9, '#c9d2da', 9251, 1.6); a.line([[0, -56], [0, 24]], 9252, 1.2); }));
+    a.layer(0.8, () => { vcSay(a, 'TIE!', 6, -58, 17, '#c62828', 9260, -0.06); for (let i = 0; i < 6; i++) { const an = i / 6 * Math.PI * 2; a.line([[10 + Math.cos(an) * 18, 26 + Math.sin(an) * 14], [10 + Math.cos(an) * 30, 26 + Math.sin(an) * 24]], 9261 + i, 1.6); } });
+  }
+};
+
+ART.beadle = a => {
+  a.layer(-1, () => a.nim(a.alt ? '#f6d6a8' : '#e8dcc0'));
+  a.layer(-0.5, () => { for (let i = 0; i < 4; i++) { const x = -110 + i * 62; a.rect(x, -60 + (i % 2) * 8, x + 52, 40, 1, ['#d9b88a', '#c9a27a', '#e0c49a', '#cfae84'][i], 9301 + i, 1.8); a.poly([[x - 4, -60 + (i % 2) * 8], [x + 26, -88 + (i % 2) * 8], [x + 56, -60 + (i % 2) * 8]], '#a8553a', 9310 + i, 1.8); a.rect(x + 18, -30, x + 34, -12, 1, '#fff1a8', 9320 + i, 1.2); } });   // the market street
+  a.layer(0.2, () => { const C5 = ['#e8506a', '#5a7a9a', '#5fae6a', '#c58af9', '#f0a060', '#7a9ac8']; C5.forEach((col, i) => a.at(-104 + i * 22 + (a.alt ? 6 : 0), 92 + (i % 2) * 4, a.alt ? 0.12 : 0, () => kbFig(a, { robe: col, raise: a.alt ? 30 : 0 }), 0.5)); });   // the crowd behind him
+  a.layer(0.5, () => a.at(36, 92, 0, () => {                                                            // the Beadle: big coat, tricorn hat, a staff with a brass knob
+    kbFig(a, { robe: '#2f4a7a', raise: a.alt ? 34 : 0 });
+    a.blob([[-18, -80], [0, -96], [18, -80], [22, -78], [0, -84], [-22, -78]], '#1e2a44', 9340, 1.8);
+    a.line([[-18, -24], [18, -24]], 9341, 1.6); a.circ(0, -40, 3, 3, '#e8b83a', 9342, 1); a.circ(0, -52, 3, 3, '#e8b83a', 9343, 1);
+    a.at(a.alt ? 6 : 30, a.alt ? -76 : -4, a.alt ? 1.5708 : 0, () => { a.line([[0, 0], [0, -92]], 9350, 3.2); a.circ(0, -96, 6, 6, '#e8b83a', 9351, 1.6); });
+  }, 1.05));
+  if (a.alt) a.layer(0.8, () => { vcSay(a, 'ORDER!', 44, -62, 15, '#2f4a7a', 9360, 0.05); a.at(104, 30, 0, () => { a.poly([[14, -10], [-14, 0], [14, 10]], '#c62828', 9361, 1.8); a.line([[14, 0], [30, 0]], 9362, 3); }); a.line([[82, 14], [82, 46]], 9363, 2.4); });   // what attacks is stopped at the staff
+  else a.layer(0.8, () => vcSay(a, 'D 4', -70, -72, 15, '#2f4a7a', 9370, -0.05));
+};
+
+ART.flywheel = a => {
+  a.layer(-1, () => a.nim(a.alt ? '#ffe9a8' : '#d6e4ea'));
+  a.layer(-0.5, () => { a.rect(-122, 60, 122, 97, 1, '#b9a88a', 9401, 1.8); for (let i = 0; i < 6; i++) a.line([[-110 + i * 44, 60], [-118 + i * 44, 97]], 9402 + i, 0.9); });
+  a.layer(0, () => {                                                                                    // the frame: two A-shaped stands and an axle
+    for (const s of [-1, 1]) { a.line([[s * 14, -6], [s * 70, 62]], 9410 + s, 4); a.line([[s * 14, -6], [s * 30, 62]], 9412 + s, 3); }
+    a.rect(-78, 58, 78, 66, 1, '#7a5a3a', 9416, 1.8);
+  });
+  a.layer(0.3, () => a.at(0, -6, a.alt ? 0.5 : 0, () => {                                              // the great wheel: a heavy brass rim, six spokes, a hub
+    a.circ(0, 0, 66, 66, VC_GOLD, 9420, 2.6); a.circ(0, 0, 54, 54, a.alt ? '#ffe9a8' : '#d6e4ea', 9421, 1.6);
+    for (let i = 0; i < 6; i++) { const an = i / 6 * Math.PI * 2; a.line([[Math.cos(an) * 10, Math.sin(an) * 10], [Math.cos(an) * 54, Math.sin(an) * 54]], 9422 + i, 3); }
+    a.circ(0, 0, 12, 12, '#b88a2a', 9430, 2); a.circ(0, 0, 4, 4, '#5a3a24', 9431, 1);
+    a.blob([[-10, 56], [10, 56], [14, 68], [-14, 68]], '#8a6a2a', 9432, 1.6);                            // the counterweight on the rim
+  }));
+  if (a.alt) a.layer(0.8, () => {                                                                       // spinning: whatever hit it bounces off
+    for (let i = 0; i < 5; i++) { const an = -0.4 + i * 0.5; a.curve([[Math.cos(an) * 74, -6 + Math.sin(an) * 74], [Math.cos(an + 0.2) * 80, -6 + Math.sin(an + 0.2) * 80], [Math.cos(an + 0.4) * 74, -6 + Math.sin(an + 0.4) * 74]], 9440 + i, 1.4); }
+    a.at(-100, -52, -0.5, () => { a.poly([[-10, -8], [12, 0], [-10, 8]], '#c62828', 9450, 1.8); a.line([[-22, 0], [-10, 0]], 9451, 3); });
+    vcSay(a, 'BONG', -84, -78, 15, '#8a5a1a', 9460, -0.1);
+  });
+  else a.layer(0.8, () => vcSay(a, 'D 5', 86, -76, 15, '#5a4a2a', 9470, 0.05));
+};
 // @@ART-END
 
 // a card not drawn yet: its silhouette in the art window, so the face is whole (the art is the next pass)

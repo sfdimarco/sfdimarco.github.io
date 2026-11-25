@@ -80,7 +80,8 @@ const ROAD_WHO = { industry: "the Industry road", economy: "the Economy road", s
 const roadCards = Object.entries(KIT_ROLES).flatMap(([k, roles]) => roles.map((r) => `${k}_${r}`));
 // 11-24: the Faulty Tolerance cards go LAST, so no older card's number moves
 const own = Object.keys(C).filter((id) => !id.endsWith("_b") && !C[id].kit);
-const real = [...own.filter((id) => C[id].src !== "ft"), ...roadCards, ...own.filter((id) => C[id].src === "ft")];
+// 11-25: cards marked late (answers.js) go after those, for the same reason
+const real = [...own.filter((id) => C[id].src !== "ft" && !C[id].late), ...roadCards, ...own.filter((id) => C[id].src === "ft"), ...own.filter((id) => C[id].late && C[id].src !== "ft")];
 const cards = real.map((id, i) => {
   const c = plays(id);
   return {
