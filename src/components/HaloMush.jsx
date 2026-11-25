@@ -189,7 +189,7 @@ const STEPS = (art) => [
   { say: ["Your A hits their D. Higher stays. A tie, both go.", "Empty lane? Walk in. Put out a ring."], show: <AttackArt /> },
   { say: ["Some cards reach.", "Next lane. From the back. The one behind."], act: "Everything else hits straight ahead.",
     show: <CardRow items={[["caracole", "FLANK: the lane next door"], ["hwacha", "VOLLEY: fires from any row"], ["corvus", "PIERCE: the card behind"]]} /> },
-  { say: ["Three on three, you're not alone.", "Help them."], act: "Support cards work on a team-mate's planet as well as yours.",
+  { say: ["Three on three, you're not alone.", "Help them."], act: "Support cards come from Poptarts: put them in your deck. They work on a team-mate's planet as well as yours.",
     show: <CardRow items={[["varangian", "ALLY: fights on a mate's square"], ["vittles", "+3 ECON to a mate"], ["testudo", "Shields a mate's rings"], ["carroccio", "BANNER: +1 A, whole team's lane"]]} /> },
   { say: ["Seven roads. Seven different games.", "Each hangs on a ring. Put it out, the road's cut."], show: art.roads, wide: true },
   { say: ["One on one: one treaty wins. Two converts win.", "Three on three, your team-mates' roads count too."], act: "Back the one closest to winning. Their win is yours.", show: <TeamArt /> },

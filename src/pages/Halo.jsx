@@ -86,7 +86,7 @@ function TheGrid() {
 }
 
 const TURN = [
-  { n: 1, t: "Draw and earn", d: "Each lit ring gives you one card and one ECON. ECON you don't spend stays." },
+  { n: 1, t: "Draw and earn", d: "Each lit ring gives you one card and one ECON, and never less than 2 ECON. ECON you don't spend stays." },
   { n: 2, t: "Play", d: "Pay a card's ECON and put it on an empty square of your 3 × 3 grid. It can fight this turn." },
   { n: 3, t: "Attack", d: "The front card of each lane hits once: your A against their D. Higher stays, a tie loses both. Hit an empty lane and you put out one of their rings." },
   { n: 4, t: "Grow", d: "The growth (DEV) on your grid adds up. Enough of it and one dark ring lights again." },
@@ -165,7 +165,7 @@ function Learn({ binder, setBinder }) {
         <h3 className="halo-h3">5 · Alone, or on a team</h3>
         <div className="halo-modes">
           <div><b>1 on 1</b><p>Just you and one rival: one treaty is enough for Politics, two converts for Religion. Cut the ring their road hangs on.</p></div>
-          <div><b>3 on 3</b><p>Your team wins when any of you wins, so team-mates' roads count too. Support cards (ALLY, +ECON, shields, BANNER) work on a team-mate's planet: back the one closest to winning.</p></div>
+          <div><b>3 on 3</b><p>Your team wins when any of you wins, so team-mates' roads count too. Support cards (ALLY, +ECON, shields, BANNER) work on a team-mate's planet: back the one closest to winning. They come from Poptarts, and the show decks hold few or none, so build them into your Draft Night deck.</p></div>
         </div>
       </section>
     </>
@@ -572,7 +572,7 @@ function Bazaar({ binder, setBinder, news }) {
 
       <HaloPath binder={binder} />
       <h2 className="halo-h3">Bounty board</h2>
-      <p className="halo-dim halo-combo-lede"><MushFace size={40} /> Easy ones first. Start with Leo. He's half asleep.</p>
+      <p className="halo-dim halo-combo-lede"><MushFace size={40} /> Easy ones first. Start with The Fhat. Fill all three lanes.</p>
       {!ready && <p className="halo-empty">First build a 40-card deck on <Link to="/halo/deck">Draft Night</Link>, then come back to hunt.</p>}
       <div className="halo-bounties">
         {HALO_BOSSES.map((b) => {

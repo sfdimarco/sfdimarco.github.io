@@ -11116,6 +11116,7 @@ __defs['./picks.js'] = function (module, exports, require) {
 module.exports = {
   peace: 1,          // 🆕 nobody attacks in the first round
   keepEcon: 1,       // 🗣 ECON you do not spend stays
+  floorEcon: 2,      // 🗣 11-25 (playtest reports: at 1 ring a full hand could not be cast): every living planet earns at least 2 ECON a turn
   deckSize: 40,      // 🗣 11-16
   handCap: 10,       // his rulebook draft
   ringsMode: 'feed', // 🗣 11-22 "rings feed you is the winner"
@@ -11548,8 +11549,8 @@ function startScreen() {
   <h2>2 &middot; Pick your seat</h2><div class="seats">${seatsNow().map((s, i) => `<div class="seat ${table === 'team' ? 't' + s.team : ''} ${i === human ? 'on' : ''}" data-a="seat" data-i="${i}"><b>${esc(s.name)}${i === human ? ' &middot; YOU' : ''}</b><span>${glyph('commander')} ${esc(C[DECKS[s.deck].commander].name)}</span><i>seat ${i + 1}${table === 'team' ? ' &middot; team ' + TEAM[s.team] : ''}${DECKS[s.deck].test ? ' &middot; test player' : ''}</i><span class="chg" data-a="deck" data-i="${i}">change player</span></div>`).join('')}</div>
   <div class="row" style="margin-top:10px">${table === 'team' ? '<button data-a="first6">The first six</button><button data-a="test3">Put the three test players in (the Fhat, Tortimer, Leo)</button>' : ''}<button data-a="lib">CARD LIBRARY</button></div>
   <h2>3 &middot; The other ways to win</h2><div class="row">
-    <button class="pick ${opt.wins ? 'on' : ''}" data-a="winson"><b>On</b><span>Buy the win (${(m => m.econWin + ' ECON' + (m.noMarket > 1 ? `, ${m.econWin * m.noMarket} with no card that pays you` : ''))(Object.assign({}, PICKS, PICKS.MODES[mode()]))}) &middot; convert the table &middot; one great machine &middot; the harvest &middot; the crowd &middot; the treaty.</span></button>
-    <button class="pick ${!opt.wins ? 'on' : ''}" data-a="winsoff"><b>Off</b><span>Only the table wins: the last one with a lit planet.</span></button></div>
+    <button class="pick ${opt.wins ? 'on' : ''}" data-a="winson"><b>All seven</b><span>Buy the win (${(m => m.econWin + ' ECON' + (m.noMarket > 1 ? `, ${m.econWin * m.noMarket} with no card that pays you` : ''))(Object.assign({}, PICKS, PICKS.MODES[mode()]))}) &middot; convert the table &middot; one great machine &middot; the harvest &middot; the crowd &middot; the treaty.</span></button>
+    <button class="pick ${!opt.wins ? 'on' : ''}" data-a="winsoff"><b>Fewer</b><span>No buying the win and no great machine. The table, conversion, the harvest, the crowd and the treaty still win.</span></button></div>
   <button class="go primary" data-a="go">PLAY</button>
   <p class="small"><b>Seven roads to a win, each hanging on one ring:</b><br>
   TABLE (Industry) &middot; knock every rival planet out; the last one lit wins.<br>
@@ -11559,11 +11560,11 @@ function startScreen() {
   CROWD (Population ring) &middot; fill all nine squares with units and crowd structures (Burgage).<br>
   RELIGION (Religion ring) &middot; CONVERT enemy units onto your grid (Road to Damascus) and hold ${PICKS.relConv} of them.<br>
   TREATY (Politics ring) &middot; send envoys: a treaty is a PEACE PACT, that rival cannot attack your cards. Hold ${PICKS.polWin} at once (1 one on one).<br>
-  Team-mates help each other: ALLY units can go on a team-mate's grid, Vittles sends ECON, Testudo shields their rings. Hover any card, ring or tracker row to read it.</p>
+  Team-mates can help each other: ALLY units go on a team-mate's grid, Vittles sends ECON, Testudo shields their rings. Those are pack cards: the show decks hold few or none, so bring them in your own Draft Night deck. Hover any card, ring or tracker row to read it.</p>
   <p class="small">Rings feed you (your pick, 11-22). Earlier today: a planet can lose only 2 rings before its next turn &middot; whoever does not move first starts with a little ECON &middot; a conversion can be answered &middot; Finley, Rose and Mush are stronger &middot; Cannon Barrage costs 2.</p></div>`;
 }
 function newGame() {
-  const cfg = Object.assign({}, PICKS, PICKS.MODES[mode()], opt.wins ? {} : { techWin: 0, relWin: 0, econWin: 0, relConv: 0, harvestWin: 0, crowdWin: 0, polWin: 0 }); delete cfg.MODES;   // 11-25: "Off" left conversion, harvest, crowd and treaty wins on
+  const cfg = Object.assign({}, PICKS, PICKS.MODES[mode()], opt.wins ? {} : { techWin: 0, relWin: 0, econWin: 0 }); delete cfg.MODES;   // 🗣 11-25 (Mook): "Fewer" keeps conversion, harvest, crowd and treaty on (all off: 18 of 40 seven-planet bot games ran to the turn limit); the label says so
   match = E.newMatch(Math.floor(Math.random() * 1e9), seatsNow(), cfg); S = E.start(match);
   sel = null; info = ''; fl = {}; err = ''; ask = null; hideResult = false; focus = null; news = S.log.slice(); audio(); step();
 }
@@ -11802,7 +11803,7 @@ function roadLines(id) {
   if (C[id].tags.includes('part') || C[id].tags.includes('core')) t += `<div class="combo"><b>THE GREAT MACHINE</b> &middot; the Core in your middle square and a Part on each of the other eight wins the game. A piece may be built OVER one of your own cards.</div>`;
   return t; }
 const RINGTIP = ['ECONOMY: your income cards pay, and you may buy the win, only while this is lit.', 'Industry.', 'SCIENCE: science cards grow, and the great machine can be finished, only while this is lit.', 'FOOD: every turn one of your rings grows back while this is lit is one harvest. Put it out and the harvest stops.', 'POPULATION: a crowd on all nine squares wins only while this is lit. Units AND crowd structures (Burgage) count; a Burgage grows a Cottar a turn while this is lit. Rivals cannot reach it through a full grid: past-the-grid moves can.', `RELIGION = CONVERSION. Road to Damascus takes an enemy front unit onto YOUR grid if its D is no more than your faith (3 + your faith cards, up to 6). Hold ${PICKS.relConv} converts at the start of your turn with this lit and you win (3 in a free for all). The answer: knock out a convert, or put this ring out.`, `POLITICS: A treaty is a PEACE PACT: the rival cannot attack your cards. They can pay ${PICKS.tearCost} ECON to tear it up, or hurt you past the grid. If YOU hurt them, it is torn. Hold ${PICKS.polWin} at the start of your turn (1 one on one), Politics lit: you win. A rival that puts this ring out stops the treaty win.`];
-function ringInfo(p, k) { return `<b>${cap(RINGS[k])} ring</b> &middot; ${esc(p.name)} &middot; ${p.rings[k] ? 'lit' : 'DARK'}<br>${RINGTIP[k]}<br>Every lit ring is one card and one ECON a turn. All seven dark and the planet is out.${S && S.cfg.ringCap ? ` A planet can lose only ${S.cfg.ringCap} before its next turn.` : ''}`; }
+function ringInfo(p, k) { return `<b>${cap(RINGS[k])} ring</b> &middot; ${esc(p.name)} &middot; ${p.rings[k] ? 'lit' : 'DARK'}<br>${RINGTIP[k]}<br>Every lit ring is one card and one ECON a turn${S && S.cfg.floorEcon ? ` (never less than ${S.cfg.floorEcon} ECON)` : ''}. All seven dark and the planet is out.${S && S.cfg.ringCap ? ` A planet can lose only ${S.cfg.ringCap} before its next turn.` : ''}`; }
 function extra(id, full) {   // full (the card library): the price check and Claude's notes too. At the table: just where the card is from.
   if (!DEV) return roadLines(id);
   const c = C[id], b = BG.budget(id); let t = roadLines(id) + `<div class="tipsrc">From ${SRC[c.src] || c.src}${c.lib ? ' &middot; library card' : ''}.`;

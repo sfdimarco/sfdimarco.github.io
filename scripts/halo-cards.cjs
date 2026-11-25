@@ -106,13 +106,14 @@ let bosses = Object.entries(DECKS).filter(([, d]) => !d.kit).map(([key, d]) => (
 // 11-23: the mixed-deck combos (cards.js MIX_COMBOS), for Draft Night's "combos you can make"
 const combos = E.COMBOS.filter((co) => co.mix).map((co) => ({ makes: co.makes, parts: co.parts }));
 // 11-23: how hard each boss is for a Draft Night deck (_scratch/mixed.js, 2 160 games, bots on both sides). Easy first.
-const TIER = { fhat: 1, gil: 1, leo: 1, mook: 2, mush: 2, bronconius: 2, finley: 3, tortimer: 3, rose: 3,
+// 🗣 11-25 (Mook, from the overnight reports: people beat The Fhat and Gil, nobody beat Leo): The Fhat is "start here"; Leo is Medium. Leo's deck and bot are untouched.
+const TIER = { fhat: 1, gil: 1, leo: 2, mook: 2, mush: 2, bronconius: 2, finley: 3, tortimer: 3, rose: 3,
   // 11-24 FAULTY TOLERANCE (his other show). Tier from _scratch/ft-check.js: win % against the nine show decks (Pell 48, Lo 52, Sill 57, Venn 58, Kip 64)
   ftPell: 2, ftLo: 2, ftVenn: 2, ftSill: 3, ftKip: 3 };
 bosses.forEach((b) => (b.tier = TIER[b.key] || 2));
-const ORDER = ["leo", "fhat", "gil", "mook", "mush", "bronconius", "finley", "tortimer", "rose", "ftPell", "ftLo", "ftVenn", "ftSill", "ftKip"];   // Leo first: half asleep
+const ORDER = ["fhat", "gil", "leo", "mook", "mush", "bronconius", "finley", "tortimer", "rose", "ftPell", "ftLo", "ftVenn", "ftSill", "ftKip"];   // 11-25: The Fhat first
 bosses.forEach((b) => { if (DECKS[b.key].ft) b.show = "Faulty Tolerance"; });
-// the cast first (easy to hard), then the visitors from Faulty Tolerance (easy to hard): a new player still starts on Leo
+// the cast first (easy to hard), then the visitors from Faulty Tolerance (easy to hard): a new player starts on The Fhat (11-25)
 bosses.sort((a, b) => !!a.show - !!b.show || a.tier - b.tier || ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
 
 // 11-23 night 🆕: ROAD STARTERS. Mush asks which road calls you; your FIRST Poptart is that road's commander + seven cards that walk it.
