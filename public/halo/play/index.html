@@ -85,6 +85,7 @@
   .mode { font-size:12px; font-weight:bold; letter-spacing:1px; padding:4px 10px; border-radius:8px; border:2px solid #5a6680; color:#cfd6e4; white-space:nowrap; } .mode.bounty { border-color:var(--gold); color:#1b1e29; background:var(--gold); }
   .modebox { border:2px solid #5a6680; border-radius:12px; padding:10px 16px 12px; margin:10px auto; max-width:620px; text-align:center; } .modebox.bounty { border-color:var(--gold); background:#2a2418; } .modebox h2 { margin:0 0 4px; } .modebox.bounty h2 { color:var(--gold); } .modebox p { margin:4px 0 8px; } button.big { font-size:20px; padding:12px 28px; }
   .danger { background:#b71c1c; color:#fff; padding:4px 10px; border-radius:8px; font-size:14px; font-weight:bold; } .paid { color:var(--gold); font-weight:bold; }
+  .badge.aura { background:#0d47a1; color:#fff; border-radius:8px; padding:2px 8px; font-size:12px; font-weight:bold; cursor:help; }
   .peace { background:#1b5e20; padding:3px 10px; border-radius:8px; font-size:13px; }
   .news { flex:1; min-width:300px; font-size:14px; } .news div { padding:1px 0; }
   .hint { color:#7CFC8A; font-weight:bold; }
@@ -122,7 +123,7 @@
   #tip { position:fixed; display:none; gap:12px; z-index:20; max-width:460px; line-height:1.4; background:#1d2535; color:var(--ink); border:3px solid var(--gold); border-radius:10px; padding:10px 12px; font-size:15px; box-shadow:0 8px 30px rgba(0,0,0,.7); pointer-events:none; }
   #tip.sheet { left:8px !important; right:8px; max-width:none; max-height:46vh; overflow:hidden; } #tip.sheet .tipg { display:none; }
   #tip b { font-size:17px; } .tipg { text-align:center; } .tipfam { font-size:10px; margin-top:2px; white-space:nowrap; color:var(--dim); } .tipsrc { margin-top:6px; padding-top:6px; border-top:1px solid #3a4a66; font-size:13px; color:#c9d0de; }
-  .libr { width:auto; max-width:none; } .lc { cursor:default; } .new { color:#7CFC8A; } .ok { color:#7CFC8A; font-size:13px; } h2 .err { font-size:13px; }
+  .libr { width:auto; max-width:none; } .lc { cursor:help; } .new { color:#7CFC8A; } .ok { color:#7CFC8A; font-size:13px; } h2 .err { font-size:13px; }
   .rtag { display:inline-block; font-size:10px; font-weight:bold; color:#111; padding:1px 7px; border-radius:9px; white-space:nowrap; }
   .road { margin-top:6px; font-size:13px; } .combo { margin-top:5px; font-size:13px; padding:5px 7px; border-left:3px solid var(--gold); background:rgba(246,199,68,.1); }
   .ways { background:var(--panel); border:2px solid var(--line); border-radius:10px; padding:8px 10px; font-size:12px; }
@@ -11212,7 +11213,7 @@ const TABLES = { team: ['3 ON 3', 'Two teams of three. Seats alternate round the
 function startScreen() {
   clearTimeout(timer); S = null; const R = window.__modes && window.__modes[table];
   $('app').innerHTML = `<div class="start"><h1>HALO ALIQUID NIHIL</h1><p class="sub">Playtest table &middot; seven planets round a sun &middot; you play one, bots play the rest</p>
-  ${DRAFT ? `<div class="modebox ${bountyOn() ? 'bounty' : ''}">${bountyOn() ? `<h2>&#9733; BOUNTY: ${esc(DECKS[BOSS].who)}</h2><p>Beat ${esc(DECKS[BOSS].who)} 1 on 1 and the bounty board pays you.</p><button class="primary big" data-a="go">FIGHT ${esc(DECKS[BOSS].who).toUpperCase()} &#9656;</button>` : `<h2>SCRIMMAGE</h2><p>A practice table. It pays no points. ${BOSS ? `You changed the table, so this is no longer the bounty on ${esc(DECKS[BOSS].who)}.` : 'For points, pick a face on the bounty board.'}</p><button data-a="bazaar">To the bounty board</button>`}<p class="small">Your Draft Night deck is in seat 1: <b>${esc(DRAFT.who)}</b>, led by ${esc(C[DRAFT.commander].name)}.</p></div>` : ''}
+  ${DRAFT ? `<div class="modebox ${bountyOn() ? 'bounty' : ''}">${bountyOn() ? `<h2>&#9733; BOUNTY: ${esc(DECKS[BOSS].who)}</h2><p>Beat ${esc(DECKS[BOSS].who)} 1 on 1 and the bounty board pays you.</p><button class="primary big" data-a="go">FIGHT ${esc(DECKS[BOSS].who).toUpperCase()} &#9656;</button>` : `<h2>SCRIMMAGE</h2><p>A practice table. It pays no points. ${BOSS ? `You changed the table, so this is no longer the bounty on ${esc(DECKS[BOSS].who)}.` : 'For points, pick a face on the bounty board.'}</p><button data-a="bazaar">To the bounty board</button>`}<p class="small">Your Draft Night deck is in seat 1: <b>${esc(DRAFT.who)}</b>, led by ${esc(C[DRAFT.commander].name)}.<br>At the table your 20 cards are doubled to a 40-card deck. Every deck also gets the table's traps (Burrow, Brumation, The Harbour Boom) and a Siege, so you will draw a few cards you did not pick.</p></div>` : ''}
   <h2>1 &middot; The table</h2><div class="row">${Object.keys(TABLES).map(k => `<button class="pick ${k === table ? 'on' : ''}" data-a="table" data-k="${k}"><b>${TABLES[k][0].replace('·', '&middot;')}</b><span>${TABLES[k][1]}</span></button>`).join('')}</div>
   ${R ? `<p class="small">Bot test of this table: about ${R.rounds} rounds &middot; no winner ${R.none} % &middot; win by seat ${R.seat.join(' / ')} %.</p>` : ''}
   <h2>2 &middot; Pick your seat</h2><div class="seats">${seatsNow().map((s, i) => `<div class="seat ${table === 'team' ? 't' + s.team : ''} ${i === human ? 'on' : ''}" data-a="seat" data-i="${i}"><b>${esc(s.name)}${i === human ? ' &middot; YOU' : ''}</b><span>${glyph('commander')} ${esc(C[DECKS[s.deck].commander].name)}</span><i>seat ${i + 1}${table === 'team' ? ' &middot; team ' + TEAM[s.team] : ''}${DECKS[s.deck].test ? ' &middot; test player' : ''}</i><span class="chg" data-a="deck" data-i="${i}">change player</span></div>`).join('')}</div>
@@ -11482,13 +11483,18 @@ function libCard(id, k) { const c = C[id], b = BG.budget(id);
 function libraryScreen() {
   const R = window.__report, deck = k => { const d = DECKS[k], cnt = {}; d.cards.forEach(id => { id = REBAL[id] || id; cnt[id] = (cnt[id] || 0) + 1; }); (E.LIB[k] || []).forEach(id => cnt[id] = cnt[id] || 0);
     const t = R && R.table[k]; return `<h2>${esc(d.who)}${d.test ? ' &middot; test player' : ''}${t ? ` <span class="${t.pass ? 'ok' : 'err'}">&middot; table check ${t.pass ? 'PASS' : 'FAIL'} (${t.delta >= 0 ? '+' : ''}${t.delta} points, out first ${t.outFirst} %)</span>` : ''}</h2><div class="hand libr">${libCard(d.commander)}${Object.keys(cnt).map(id => libCard(id, cnt[id])).join('')}</div>`; };
-  $('app').innerHTML = `<div class="start" style="max-width:1100px"><button data-a="back">&larr; Back</button><h1 style="margin-top:14px">CARD LIBRARY</h1>
-  <p class="sub">Hover a card to read it. &times;N = copies in the 20-card list (decks are scaled to 40). "new" = added 11-22. "cheap" / "dear" = its cost is more than 1 ECON off the price line.</p>
-  <p class="small">Price line, fitted to the first six decks: fair cost = ${BG.fit.a.toFixed(2)} &times; A + ${BG.fit.d.toFixed(2)} &times; D + ${BG.fit.e.toFixed(2)} &times; DEV ${BG.fit.k < 0 ? '&minus;' : '+'} ${Math.abs(BG.fit.k).toFixed(2)}, plus a price for each keyword.${R ? ` Table check: ${R.games} bot games a row, ${R.date}; first six decks Poptarts ${R.baseWin.P} % &middot; Smite ${R.baseWin.S} %.` : ''}</p>
-  ${Object.keys(DECKS).map(deck).join('')}
+  const main = `${Object.keys(DECKS).map(deck).join('')}
   <h2>Combos &middot; three in a line fuse into one</h2>${E.COMBOS.map(co => `<div class="hand libr" style="align-items:center;margin-bottom:14px">${co.parts.map(id => libCard(id)).join('<b>+</b>')}<b style="font-size:24px">&rarr;</b>${libCard(co.makes)}</div>`).join('')}
   <h2>In every deck</h2><div class="hand libr">${['burrow', 'brumation', 'pasttrap', 'siege'].map(id => libCard(id, 2)).join('')}</div>
-  <h2>Nobody's deck (the library's cards, and Rose's machine)</h2><div class="hand libr">${['lucy', 'ikaros', 'gw150914', 'gravdrive', 'part', 'core'].map(id => libCard(id)).join('')}</div></div>`;
+  <h2>Nobody's deck (the library's cards, and Rose's machine)</h2><div class="hand libr">${['lucy', 'ikaros', 'gw150914', 'gravdrive', 'part', 'core'].map(id => libCard(id)).join('')}</div>`;
+  // every card the sections above did not show (pack cards, road cards, ring-breakers): nothing in the game is unreadable
+  const shown = new Set([...main.matchAll(/data-id="([^"]+)"/g)].map(m => m[1])), RN = { industry: 'Industry', economy: 'Economy', science: 'Science', food: 'Food', pop: 'Population', religion: 'Religion', politics: 'Politics' };
+  const rest = Object.keys(C).filter(id => !shown.has(id)), byRoad = {}; rest.forEach(id => (byRoad[C[id].road || ''] = byRoad[C[id].road || ''] || []).push(id));
+  const restHtml = Object.keys(byRoad).sort().map(r => `<h2>From the packs &middot; ${RN[r] ? RN[r] + ' road' : 'any road'}</h2><div class="hand libr">${byRoad[r].sort((a, b) => C[a].name.localeCompare(C[b].name)).map(id => libCard(id)).join('')}</div>`).join('');
+  $('app').innerHTML = `<div class="start" style="max-width:1100px"><button data-a="back">&larr; Back</button><h1 style="margin-top:14px">CARD LIBRARY</h1>
+  <p class="sub">Point at a card, click it or tap it to read it. All ${Object.keys(C).length} cards are on this page. &times;N = copies in the 20-card list (decks are scaled to 40). "new" = added 11-22. "cheap" / "dear" = its cost is more than 1 ECON off the price line.</p>
+  <p class="small">Price line, fitted to the first six decks: fair cost = ${BG.fit.a.toFixed(2)} &times; A + ${BG.fit.d.toFixed(2)} &times; D + ${BG.fit.e.toFixed(2)} &times; DEV ${BG.fit.k < 0 ? '&minus;' : '+'} ${Math.abs(BG.fit.k).toFixed(2)}, plus a price for each keyword.${R ? ` Table check: ${R.games} bot games a row, ${R.date}; first six decks Poptarts ${R.baseWin.P} % &middot; Smite ${R.baseWin.S} %.` : ''}</p>
+  ${main}${restHtml}</div>`;
 }
 
 // ----- drawing
@@ -11545,7 +11551,7 @@ function halo(p, rel) {
 }
 function planet(p) {
   const meT = S.players[human].team, rel = p.id === human ? 'me' : p.team === meT ? 'ally' : 'enemy', cmd = C[p.cmd.id];
-  const pacts = treatyNames(p).map(n => `<span class="badge pact" data-tip="A peace pact: neither side's cards can be attacked by the other. Tear it for ${S.cfg.tearCost} ECON, or hurt them past the grid.">&#129309; treaty with ${esc(n)}</span>`).join('') + (E.converts(p) ? `<span class="badge conv">&#10013; ${E.converts(p)} converted</span>` : '');
+  const pacts = treatyNames(p).map(n => `<span class="badge pact" data-tip="A peace pact: neither side's cards can be attacked by the other. Tear it for ${S.cfg.tearCost} ECON, or hurt them past the grid.">&#129309; treaty with ${esc(n)}</span>`).join('') + (E.converts(p) ? `<span class="badge conv">&#10013; ${E.converts(p)} converted</span>` : '') + auras(p);
   const badges = [p.out ? 'OUT' : '', p.canopy ? 'CANOPY' : '', p.pink ? 'MOOD: PINK' : '', p.league ? 'HOLY LEAGUE' : '', p.parlay !== null && p.parlay !== undefined ? 'PARLAY vs ' + S.players[p.parlay].name : '', !p.out && E.capped(S, p) ? 'HALO HOLDS' : '', !p.out && (p.relCount || 0) > 0 ? 'CONVERTING' : ''].filter(Boolean).map(b => `<span class="badge ${b === 'CONVERTING' ? 'warn' : ''}">${b}</span>`).join('') + pacts;
   const rings = p.rings.map((on, k) => `<span class="ring ${on ? 'on' : 'off'} ${curT['r:' + p.id + ':' + k] ? 'target' : ''} ${fl['r:' + p.id + ':' + k] ? 'fl-ring' : ''}" data-a="ring" data-pid="${p.id}" data-k="${k}">${RSHORT[k]}</span>`).join('');
   let g = ''; for (const r of (p.id === human ? [0, 1, 2] : [2, 1, 0])) { g += `<div class="rl">${['FRONT', 'mid', 'back'][r]}</div>`; for (let l = 0; l < 3; l++) g += cell(p, r * 3 + l); }
@@ -11598,7 +11604,7 @@ function moon(N) {
 // one side of the duel: name, rings and commander, then its grid (yours front-row-up, theirs front-row-down: the lanes meet in the middle)
 function sideHead(p) {
   const rel = relOf(p), cmd = C[p.cmd.id];
-  const pacts = treatyNames(p).map(n => `<span class="badge pact" data-tip="A peace pact: neither side's cards can be attacked by the other. Tear it for ${S.cfg.tearCost} ECON, or hurt them past the grid.">&#129309; treaty with ${esc(n)}</span>`).join('') + (E.converts(p) ? `<span class="badge conv">&#10013; ${E.converts(p)} converted</span>` : '');
+  const pacts = treatyNames(p).map(n => `<span class="badge pact" data-tip="A peace pact: neither side's cards can be attacked by the other. Tear it for ${S.cfg.tearCost} ECON, or hurt them past the grid.">&#129309; treaty with ${esc(n)}</span>`).join('') + (E.converts(p) ? `<span class="badge conv">&#10013; ${E.converts(p)} converted</span>` : '') + auras(p);
   const badges = [p.out ? 'OUT' : '', p.canopy ? 'CANOPY' : '', p.pink ? 'MOOD: PINK' : '', p.league ? 'HOLY LEAGUE' : '', p.parlay !== null && p.parlay !== undefined ? 'PARLAY vs ' + S.players[p.parlay].name : '', !p.out && E.capped(S, p) ? 'HALO HOLDS' : '', !p.out && (p.relCount || 0) > 0 ? 'CONVERTING' : ''].filter(Boolean).map(b => `<span class="badge ${b === 'CONVERTING' ? 'warn' : ''}">${b}</span>`).join('') + pacts;
   const rings = p.rings.map((on, k) => `<span class="ring ${on ? 'on' : 'off'} ${curT['r:' + p.id + ':' + k] ? 'target' : ''} ${fl['r:' + p.id + ':' + k] ? 'fl-ring' : ''}" data-a="ring" data-pid="${p.id}" data-k="${k}">${RSHORT[k]}</span>`).join('');
   const usable = p.id === human && myTurn() && curL.some(m => m.t === 'deploy');
@@ -11632,6 +11638,14 @@ function danger() {
   const lit = me.rings.filter(Boolean).length, open = [0, 1, 2].filter(l => !E.front(me, l) && enemiesOf(me).some(q => E.front(q, l)));
   if (!open.length || lit > Math.max(2, open.length)) return '';
   return `<div class="danger">&#9888; ${lit === 1 ? 'YOUR LAST RING' : 'ONLY ' + lit + ' RINGS LEFT'} &middot; lane ${open.map(l => l + 1).join(' and ')} ${open.length > 1 ? 'are' : 'is'} open. Put a card there.</div>`;
+}
+// what is in force on a planet until its next turn (11-24 report: "used CANOPY and could not tell what it did")
+function auras(p) {
+  const b = (t, tip) => `<span class="badge aura" data-tip="${tip}">${t}</span>`; let h = '';
+  if (p.canopy) h += b('&#9730; CANOPY', `<b>CANOPY</b><br>${esc(p.name)}'s rings cannot go dark until ${esc(p.name)}'s next turn.`);
+  if (p.pink) h += b('&#9829; MOOD: PINK', `<b>MOOD: PINK</b><br>${esc(p.name)}'s cards cannot be attacked until ${esc(p.name)}'s next turn.`);
+  if (p.league) h += b('&#9876; HOLY LEAGUE', `<b>HOLY LEAGUE</b><br>${esc(p.name)}'s attackers have +2 A this turn.`);
+  return h;
 }
 function coach() {
   if (!coachOn || !S || S.result || !myTurn()) return '';
@@ -11698,7 +11712,7 @@ function render() {
     <div class="bar">${modeTag()}<div class="who ${mine ? 'mine' : ''}">${who}</div>${mine ? `<div class="econ">ECON ${me.econ}${S.cfg.econWin ? `<span class="small"> of ${E.winPrice(S, me)} buys the win</span>` : ''}</div>` : ''}${peace && !S.result ? '<div class="peace">PEACE ROUND &middot; nobody may attack yet</div>' : ''}${danger()}
       <div class="news">${err ? `<div class="err">${esc(err)}</div>` : ''}${mine && sel ? `<div class="hint">${hint()}</div>` : ''}${news.filter(l => !/^(t\d+ )?RESULT/.test(l)).slice(-3).map(l => `<div>${esc(l.replace(/^t\d+ /, ''))}</div>`).join('')}</div></div>
     <div class="arena">${moon(N)}${duel(me, them)}</div>
-    <div class="handw"><div class="btns"><button class="primary" data-a="end" ${mine ? '' : 'disabled'}>END TURN</button><button data-a="big" ${bigOK ? '' : 'disabled'}>BIG MOVE: ${bigName(me.cmd.id)}</button>${buyOK ? `<button class="primary" data-a="buy">BUY THE WIN (${E.winPrice(S, me)} ECON)</button>` : ''}${mine ? curL.filter(m => m.t === 'tear').map(m => `<button data-a="tear" data-pid="${m.tp}" data-tip="Their treaty with you stops your cards attacking theirs. Tear it and you can fight them again.">&#129309;&#10007; Tear up the treaty with ${esc(S.players[m.tp].name)} &middot; ${S.cfg.tearCost} ECON</button>`).join('') : ''}<span class="handt">YOUR HAND (${me.hand.length} of ${S.cfg.handCap || 'any'})</span></div>
+    <div class="handw"><div class="btns"><button class="primary" data-a="end" ${mine ? '' : 'disabled'}>END TURN</button><span data-tip="<b>BIG MOVE &middot; once a game</b><br>${esc(E.BIG[C[me.cmd.id].big])}."><button data-a="big" ${bigOK ? '' : 'disabled'}>BIG MOVE: ${bigName(me.cmd.id)}</button></span>${buyOK ? `<button class="primary" data-a="buy">BUY THE WIN (${E.winPrice(S, me)} ECON)</button>` : ''}${mine ? curL.filter(m => m.t === 'tear').map(m => `<button data-a="tear" data-pid="${m.tp}" data-tip="Their treaty with you stops your cards attacking theirs. Tear it and you can fight them again.">&#129309;&#10007; Tear up the treaty with ${esc(S.players[m.tp].name)} &middot; ${S.cfg.tearCost} ECON</button>`).join('') : ''}<span class="handt">YOUR HAND (${me.hand.length} of ${S.cfg.handCap || 'any'})</span></div>
       <div class="hand fan">${hand || '<span class="small">(empty)</span>'}</div></div>
     <div class="side2">${ways()}${coach()}<div class="info">${info || how}${nowBtn}</div>
       <div class="sidec"><div class="btns"><button data-a="skip" ${!S.result && !mine && !(S.pending && S.pending.responder === human) ? '' : 'disabled'}>Skip to my turn</button><button data-a="speed">Bots: ${speed >= 1200 ? 'slow' : speed >= 600 ? 'normal' : 'fast'}</button><button data-a="mute">Sound: ${muted ? 'off' : 'on'}</button><button data-a="coach">Mush: ${coachOn ? 'on' : 'off'}</button><button data-a="save">Save</button><button data-a="new">New game</button>${S.result ? '<button data-a="unlook">Result</button>' : ''}</div>
@@ -11738,7 +11752,7 @@ document.addEventListener('click', ev => {
   if (a === 'first6' || a === 'test3') { lineup = (a === 'first6' ? FIRST6 : TEST3).slice(); return startScreen(); }
   if (a === 'lib') { hideTip(); return libraryScreen(); }
   if (a === 'back') { hideTip(); return startScreen(); }
-  if (a === 'libcard') return;
+  if (a === 'libcard') { const t = tipFor(el); if (t) { tipEl = el; showTip(el, t[0], t[1]); } return; }
   if (a === 'seat') { human = +el.dataset.i; return startScreen(); }
   if (a === 'feed' || a === 'life') { opt.life = a === 'life'; return startScreen(); }
   if (a === 'winson' || a === 'winsoff') { opt.wins = a === 'winson'; return startScreen(); }

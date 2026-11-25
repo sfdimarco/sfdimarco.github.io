@@ -397,6 +397,21 @@ function DraftNight({ binder, setBinder }) {
   const add = (id) => { if (!full && (BY_ID[id].rarity === "basic" || (used[id] || 0) < binder.owned[id])) setDeck({ ...deck, cards: [...deck.cards, id] }); };
   const remove = (i) => setDeck({ ...deck, cards: deck.cards.filter((_, k) => k !== i) });
   const sorted = deck.cards.map((id, i) => ({ id, i })).sort((a, b) => (BY_ID[a.id].no || 99) - (BY_ID[b.id].no || 99));
+  // 11-24 playtest ("hover showed nothing, so the tester built blind"): the card under the pointer, or the one just tapped, is read out
+  const [readId, setReadId] = useState(null);
+  const reads = (id) => ({ onMouseOver: () => setReadId(id), onFocus: () => setReadId(id), onClickCapture: () => setReadId(id), style: { display: "contents" } });
+  const rc = readId && BY_ID[readId], rr = rc && rc.road && ROAD_BY[rc.road];
+  const readBox = (
+    <div className="halo-read" aria-live="polite">
+      {rc ? (
+        <>
+          <p className="halo-read-name"><b>{rc.name.replace(" (no name yet)", "")}</b> <span className="halo-dim">{rc.type}{rc.cost != null ? ` · costs ${rc.cost} ECON` : ""}{rc.A != null ? ` · A ${rc.A} · D ${rc.D}` : ""}</span></p>
+          <p>{rc.text || "A plain card: it fights with its A and blocks with its D."}</p>
+          {rr && <p className="halo-dim"><i className="halo-ring" style={{ background: rr.color }} aria-hidden="true" />{rr.ring} road</p>}
+        </>
+      ) : <p className="halo-dim">Point at a card, or tap it, to read it here.</p>}
+    </div>
+  );
 
   if (!binder.packsOpened) {
     return <section className="halo-empty"><h1 className="halo-page-head">Draft Night</h1><p>Open your starter Poptarts first: your deck is built from what you pull. <Link to="/halo/packs">Open them</Link>.</p></section>;
@@ -405,7 +420,7 @@ function DraftNight({ binder, setBinder }) {
     <section aria-labelledby="halo-deck-title">
       <header className="halo-page-head">
         <h1 id="halo-deck-title">Draft Night</h1>
-        <p>Three packs each, no trades. Pick a commander you pulled, then twenty cards: any you own, and as many basics as you like. The table doubles the list to forty.</p>
+        <p>Three packs each, no trades. Pick a commander you pulled, then twenty cards: any you own, and as many basics as you like. At the table your twenty are doubled to a forty-card deck, and every deck also gets the table's own traps (Burrow, Brumation, The Harbour Boom) and a Siege, so you will draw a few cards you did not pick.</p>
       </header>
       <div className="halo-myroad" style={myRoad ? { "--ring": myRoad.color } : undefined}>
         {myRoad ? (
@@ -421,7 +436,7 @@ function DraftNight({ binder, setBinder }) {
           <h2>1 · Your commander</h2>
           <div className="halo-row">
             {commanders.map((c) => (
-              <HaloCard key={c.id} id={c.id} finish={bestFinish(binder, c.id)} className={deck.cmd === c.id ? "hc-picked" : ""} onClick={() => setDeck({ ...deck, cmd: c.id })} />
+              <span key={c.id} {...reads(c.id)}><HaloCard id={c.id} finish={bestFinish(binder, c.id)} className={deck.cmd === c.id ? "hc-picked" : ""} onClick={() => setDeck({ ...deck, cmd: c.id })} /></span>
             ))}
             {!commanders.length && <p>No commander pulled yet.</p>}
           </div>
@@ -436,7 +451,7 @@ function DraftNight({ binder, setBinder }) {
             {mine.map((c) => {
               const left = binder.owned[c.id] - (used[c.id] || 0), r = c.road && ROAD_BY[c.road];
               return (
-                <span key={c.id} className="halo-rcard">
+                <span key={c.id} className="halo-rcard" {...reads(c.id)} style={undefined}>
                   <HaloCard id={c.id} finish={bestFinish(binder, c.id)} count={left} className={left <= 0 || full ? "hc-spent" : ""} onClick={() => add(c.id)} />
                   {r && <span className={`halo-rtag ${c.road === binder.road ? "is-mine" : ""}`} style={{ "--ring": r.color }} title={`${r.ring} road`}>{r.ring}</span>}
                 </span>
@@ -446,16 +461,17 @@ function DraftNight({ binder, setBinder }) {
           </div>
           <h2>3 · Basics <small>every planet has them, as many as you like</small></h2>
           <div className="halo-row">
-            {HALO_BASICS.map((c) => <HaloCard key={c.id} id={c.id} className={full ? "hc-spent" : ""} onClick={() => add(c.id)} />)}
+            {HALO_BASICS.map((c) => <span key={c.id} {...reads(c.id)}><HaloCard id={c.id} className={full ? "hc-spent" : ""} onClick={() => add(c.id)} /></span>)}
           </div>
           <Combos deck={deck} binder={binder} />
         </div>
         <aside className="halo-deck-list" aria-label="Your deck">
+          {readBox}
           <h2>Your deck <span className={deck.cards.length === DECK_SIZE ? "ok" : ""}>{deck.cards.length}/{DECK_SIZE}</span></h2>
           <p className="halo-dim">Commander: <b>{deck.cmd ? BY_ID[deck.cmd].name : "none yet"}</b></p>
           <ul>
             {sorted.map(({ id, i }) => (
-              <li key={i}><button onClick={() => remove(i)} aria-label={`Take ${BY_ID[id].name} out`}><span>{BY_ID[id].name.replace(" (no name yet)", "")}</span><small>{BY_ID[id].A != null ? `A ${BY_ID[id].A} · D ${BY_ID[id].D}` : BY_ID[id].type}</small><b aria-hidden="true">×</b></button></li>
+              <li key={i} onMouseOver={() => setReadId(id)}><button onClick={() => remove(i)} aria-label={`Take ${BY_ID[id].name} out`}><span>{BY_ID[id].name.replace(" (no name yet)", "")}</span><small>{BY_ID[id].A != null ? `A ${BY_ID[id].A} · D ${BY_ID[id].D}` : BY_ID[id].type}</small><b aria-hidden="true">×</b></button></li>
             ))}
           </ul>
           <div className="halo-deck-actions">
@@ -467,6 +483,7 @@ function DraftNight({ binder, setBinder }) {
           {!problems.length && <p className="halo-dim" style={{ marginTop: ".6rem" }}>Or <Link to="/halo/bazaar">hunt a bounty</Link>: beat the cast for points to spend on packs.</p>}
         </aside>
       </div>
+      <div className="halo-read-bar">{readBox}</div>
       <div className="halo-deck-bar" aria-hidden="true">
         <span className={deck.cards.length === DECK_SIZE ? "ok" : ""}>{deck.cards.length}/{DECK_SIZE}</span>
         <span>{deck.cmd ? BY_ID[deck.cmd].name : "pick a commander"}</span>

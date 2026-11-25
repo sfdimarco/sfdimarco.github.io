@@ -227,6 +227,10 @@
 .halo-deck-actions { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:.6rem; }
 .halo-deck-list .halo-button { display:block; text-align:center; margin-top:.4rem; }
 .halo-deck-bar { display:none; }
+/* the card you point at or tap, read out (11-24 playtest: "building blind") */
+.halo-read { background:#1b1e29; border:1px solid #f6c744; padding:.6rem .7rem; margin-bottom:.9rem; min-height:5.4rem; font-size:.95rem; line-height:1.4; }
+.halo-read p { margin:0 0 .3rem; } .halo-read-name b { font-size:1.05rem; } .halo-read .halo-ring { margin-right:.35rem; }
+.halo-read-bar { display:none; }
 
 @media (max-width:760px) {
   .halo-spread { grid-template-columns:repeat(4, minmax(0,1fr)); row-gap:2rem; }
@@ -234,7 +238,9 @@
   .halo-hit-tag, .halo-new-tag { font-size:.55rem; letter-spacing:0; padding:.1rem .2rem; }
   .halo-builder { grid-template-columns:1fr; }
   .halo-deck-list { position:static; }
-  .halo-deck-bar { display:flex; position:sticky; bottom:0; z-index:5; gap:.8rem; align-items:center; background:#22263a; border:1px solid #f6c744; padding:.5rem .8rem; margin-top:1rem; }
+  .halo-deck-list .halo-read { display:none; }
+  .halo-read-bar { display:block; position:sticky; bottom:3.4rem; z-index:5; margin-top:1rem; } .halo-read-bar .halo-read { margin:0; min-height:0; box-shadow:0 -6px 18px rgba(8,9,14,.7); }
+  .halo-deck-bar { display:flex; position:sticky; bottom:0; z-index:5; gap:.8rem; align-items:center; background:#22263a; border:1px solid #f6c744; padding:.5rem .8rem; margin-top:0; min-height:3.1rem; box-sizing:border-box; }
   .halo-deck-bar span:first-child { font-weight:800; color:#ef6c00; }
   .halo-deck-bar span.ok { color:#8bc34a; }
   .halo-deck-bar span:nth-child(2) { flex:1; color:#d6d3c6; font-size:.9rem; }
