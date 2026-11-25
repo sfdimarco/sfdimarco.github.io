@@ -237,7 +237,7 @@ export function pathSteps(binder) {
     { key: "learn", t: "Learn with Mush", done: !!binder.learned, to: "/halo", reward: "Ten short steps. He keeps it quick." },
     { key: "road", t: road ? `Road: ${road.ring}` : "Choose your road", done: !!road, to: "/halo/packs", reward: "Your first Poptart becomes that road's starter: its commander and seven cards.", color: road?.color },
     { key: "packs", t: "Open 3 Poptarts", done: binder.packsOpened >= 3 || (binder.packsOpened > 0 && binder.packsLeft === 0), to: "/halo/packs", reward: "Twenty-four cards for your binder." },
-    { key: "deck", t: "Build a deck", done: deckOK, to: "/halo/deck", reward: "A 20-card deck the table will play, road perks and all." },
+    { key: "deck", t: "Build a deck", done: deckOK, to: "/halo/deck", reward: "A 40-card deck the table will play, road perks and all." },
     { key: "bounty", t: `First bounty${first && !beaten ? `: ${first.who}` : ""}`, done: beaten > 0, to: "/halo/bazaar", reward: `+${WIN_POINTS + BOUNTY} points. ${PACK_PRICE} buy a Poptart.`, ...hunt },
     { key: "roadwin", t: road ? `Win once by ${road.ring}` : "Win once by your road", done: !!(road && (binder.roadWins || {})[binder.road]), to: "/halo/bazaar", reward: road ? `${road.how.split(".")[0]}.` : "Pick a road first.", color: road?.color, ...hunt },
     { key: "cast", t: `Beat the cast ${beaten}/${cast}`, done: beaten >= cast, to: "/halo/bazaar", reward: `+${WIN_POINTS + BOUNTY} points for every new face.`, ...hunt },

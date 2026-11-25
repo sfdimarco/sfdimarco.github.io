@@ -420,7 +420,7 @@ function DraftNight({ binder, setBinder }) {
     <section aria-labelledby="halo-deck-title">
       <header className="halo-page-head">
         <h1 id="halo-deck-title">Draft Night</h1>
-        <p>Three packs each, no trades. Pick a commander you pulled, then twenty cards: any you own, and as many basics as you like. At the table your twenty are doubled to a forty-card deck, and every deck also gets the table's own traps (Burrow, Brumation, The Harbour Boom) and a Siege, so you will draw a few cards you did not pick.</p>
+        <p>Three packs each, no trades. Pick a commander you pulled, then forty cards: any you own, and as many basics as you like. Your forty play as you built them. Every deck also gets the table's own traps (Burrow, Brumation, The Harbour Boom) and Sieges, and they take the place of your basics, so you will draw a few cards you did not pick.</p>
       </header>
       <div className="halo-myroad" style={myRoad ? { "--ring": myRoad.color } : undefined}>
         {myRoad ? (
@@ -574,7 +574,7 @@ function Bazaar({ binder, setBinder, news }) {
       <HaloPath binder={binder} />
       <h2 className="halo-h3">Bounty board</h2>
       <p className="halo-dim halo-combo-lede"><MushFace size={40} /> Easy ones first. Start with Leo. He's half asleep.</p>
-      {!ready && <p className="halo-empty">First build a 20-card deck on <Link to="/halo/deck">Draft Night</Link>, then come back to hunt.</p>}
+      {!ready && <p className="halo-empty">First build a 40-card deck on <Link to="/halo/deck">Draft Night</Link>, then come back to hunt.</p>}
       <div className="halo-bounties">
         {HALO_BOSSES.map((b) => {
           const wins = (binder.beaten || {})[b.key] || 0, next = HALO_BOSSES.find((x) => !(binder.beaten || {})[x.key])?.key === b.key;

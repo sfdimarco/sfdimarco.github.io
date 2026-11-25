@@ -4,7 +4,7 @@ import { HALO_CARDS, HALO_BASICS, HALO_COMBOS, HALO_STARTERS, HALO_BREAKERS } fr
 
 export const BY_ID = Object.fromEntries([...HALO_CARDS, ...HALO_BASICS].map((c) => [c.id, c]));
 export const SET_SIZE = HALO_CARDS.length;
-export const DECK_SIZE = 20; // the game's 20-card list; the table scales it to 40 like every deck
+export const DECK_SIZE = 40; // 11-24 (Mook): a whole 40-card deck, played card for card (was 20, doubled at the table)
 const KEY = "halo-binder-v1";
 
 // 🆕 pack recipe (Claude's, for Mook's tick): 8 cards = 5 common · 2 uncommon · 1 hit (rare or commander).
@@ -139,7 +139,7 @@ export const bestFinish = (b, id) => {
   return f.includes("first") ? "first" : f.includes("lenticular") ? "lenticular" : "laminate";
 };
 
-// ----- Draft Night deck: { cmd, cards: [20 ids] } from owned cards (up to the copies owned) + unlimited basics
+// ----- Draft Night deck: { cmd, cards: [40 ids] } from owned cards (up to the copies owned) + unlimited basics
 export function deckProblems(b, deck) {
   const out = [];
   if (!deck || !deck.cmd || !b.owned[deck.cmd]) out.push("Pick a commander you own.");
@@ -167,11 +167,11 @@ export function comboStatus(cards, owned = {}) {
   });
 }
 
-// fill the empty places with basics. First the basic each READY combo needs (three of it, so it turns up), then the
+// fill the empty places with basics. First the basic each READY combo needs (six of it, so it turns up), then the
 // grunt / soldier / wall / heavy mix of every planet (4 · 4 · 2 · 1)
 export function fillWithBasics(cards) {
   const out = cards.slice();
-  for (const co of comboStatus(out)) if (co.ready) for (let k = out.filter((x) => x === co.basic).length; k < 3 && out.length < DECK_SIZE; k++) out.push(co.basic);
+  for (const co of comboStatus(out)) if (co.ready) for (let k = out.filter((x) => x === co.basic).length; k < 6 && out.length < DECK_SIZE; k++) out.push(co.basic);
   const mix = ["kInd_grunt", "kInd_soldier", "kInd_grunt", "kInd_soldier", "kInd_wall", "kInd_grunt", "kInd_soldier", "kInd_heavy", "kInd_grunt", "kInd_soldier", "kInd_wall"];
   for (let i = 0; out.length < DECK_SIZE; i++) out.push(mix[i % mix.length]);
   return out;

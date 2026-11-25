@@ -9872,6 +9872,13 @@ function buildDeck(key, cfg) {
   if (cfg.lib && LIB[key]) extra.push(...LIB[key]);
   if (cfg.v3 && LIB3[key]) extra.push(...LIB3[key]);
   if (key === 'rose' && cfg.roseV1 && cfg.roseMachine !== 0) { const k = size / 20 * (cfg.roseMachine === undefined ? 1 : cfg.roseMachine); extra.push(...n('part', Math.round(5 * k)), ...n('core', Math.max(1, Math.round(k))), 'lucy', 'ikaros', 'gw150914'); }
+  // 11-24 (Mook: players hated the 20-card list auto-filled): a Draft Night deck built at full size plays card for card.
+  // The table's own cards (traps, Siege) take the place of its basics first, so nothing the player owns is cut.
+  if (DECKS[key].draft && base.length === size) {
+    const out = base.slice();
+    for (const x of extra) { let k = out.findIndex(id => /^kInd_/.test(id)); if (k < 0) k = out.length - 1; out.splice(k, 1); }
+    return out.concat(extra).map(id => (cfg.bal && REBAL[id]) || id);
+  }
   const cnt = {}; base.forEach(id => cnt[id] = (cnt[id] || 0) + 1);
   const ids = Object.keys(cnt), want = Math.max(ids.length, size - extra.length), out = []; let acc = 0, made = 0;
   ids.forEach((id, i) => { acc += cnt[id] * want / base.length; const m = i === ids.length - 1 ? want - made : Math.round(acc) - made; made += m; out.push(...n(id, m)); });
@@ -11214,7 +11221,7 @@ const TABLES = { team: ['3 ON 3', 'Two teams of three. Seats alternate round the
 function startScreen() {
   clearTimeout(timer); S = null; const R = window.__modes && window.__modes[table];
   $('app').innerHTML = `<div class="start"><h1>HALO ALIQUID NIHIL</h1><p class="sub">Playtest table &middot; seven planets round a sun &middot; you play one, bots play the rest</p>
-  ${DRAFT ? `<div class="modebox ${bountyOn() ? 'bounty' : ''}">${bountyOn() ? `<h2>&#9733; BOUNTY: ${esc(DECKS[BOSS].who)}</h2><p>Beat ${esc(DECKS[BOSS].who)} 1 on 1 and the bounty board pays you.</p><button class="primary big" data-a="go">FIGHT ${esc(DECKS[BOSS].who).toUpperCase()} &#9656;</button>` : `<h2>SCRIMMAGE</h2><p>A practice table. It pays no points. ${BOSS ? `You changed the table, so this is no longer the bounty on ${esc(DECKS[BOSS].who)}.` : 'For points, pick a face on the bounty board.'}</p><button data-a="bazaar">To the bounty board</button>`}<p class="small">Your Draft Night deck is in seat 1: <b>${esc(DRAFT.who)}</b>, led by ${esc(C[DRAFT.commander].name)}.<br>At the table your 20 cards are doubled to a 40-card deck. Every deck also gets the table's traps (Burrow, Brumation, The Harbour Boom) and a Siege, so you will draw a few cards you did not pick.</p></div>` : ''}
+  ${DRAFT ? `<div class="modebox ${bountyOn() ? 'bounty' : ''}">${bountyOn() ? `<h2>&#9733; BOUNTY: ${esc(DECKS[BOSS].who)}</h2><p>Beat ${esc(DECKS[BOSS].who)} 1 on 1 and the bounty board pays you.</p><button class="primary big" data-a="go">FIGHT ${esc(DECKS[BOSS].who).toUpperCase()} &#9656;</button>` : `<h2>SCRIMMAGE</h2><p>A practice table. It pays no points. ${BOSS ? `You changed the table, so this is no longer the bounty on ${esc(DECKS[BOSS].who)}.` : 'For points, pick a face on the bounty board.'}</p><button data-a="bazaar">To the bounty board</button>`}<p class="small">Your Draft Night deck is in seat 1: <b>${esc(DRAFT.who)}</b>, led by ${esc(C[DRAFT.commander].name)}.<br>${DRAFT.cards.length === 40 ? 'Your 40 cards play as you built them. The traps on every table (Burrow, Brumation, The Harbour Boom) and Sieges take the place of your basics, so you will draw a few cards you did not pick.' : 'This is an old 20-card list: the table doubles it to 40. Build a full 40 on Draft Night to play your own cards.'}</p></div>` : ''}
   <h2>1 &middot; The table</h2><div class="row">${Object.keys(TABLES).map(k => `<button class="pick ${k === table ? 'on' : ''}" data-a="table" data-k="${k}"><b>${TABLES[k][0].replace('·', '&middot;')}</b><span>${TABLES[k][1]}</span></button>`).join('')}</div>
   ${R ? `<p class="small">Bot test of this table: about ${R.rounds} rounds &middot; no winner ${R.none} % &middot; win by seat ${R.seat.join(' / ')} %.</p>` : ''}
   <h2>2 &middot; Pick your seat</h2><div class="seats">${seatsNow().map((s, i) => `<div class="seat ${table === 'team' ? 't' + s.team : ''} ${i === human ? 'on' : ''}" data-a="seat" data-i="${i}"><b>${esc(s.name)}${i === human ? ' &middot; YOU' : ''}</b><span>${glyph('commander')} ${esc(C[DECKS[s.deck].commander].name)}</span><i>seat ${i + 1}${table === 'team' ? ' &middot; team ' + TEAM[s.team] : ''}${DECKS[s.deck].test ? ' &middot; test player' : ''}</i><span class="chg" data-a="deck" data-i="${i}">change player</span></div>`).join('')}</div>
@@ -11831,7 +11838,7 @@ function reportResult() {
     const m = /[#&]draft=([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return;
     const b = m[1].replace(/-/g, '+').replace(/_/g, '/'), d = JSON.parse(decodeURIComponent(escape(atob(b + '==='.slice((b.length + 3) % 4)))));
     const okCard = id => C[id] && C[id].type !== 'commander' && !(C[id].tags || []).includes('fused') && !/_b$/.test(id);
-    if (!d || !C[d.cmd] || C[d.cmd].type !== 'commander' || !Array.isArray(d.cards) || d.cards.length !== 20 || !d.cards.every(okCard)) throw new Error('not a 20-card draft deck');
+    if (!d || !C[d.cmd] || C[d.cmd].type !== 'commander' || !Array.isArray(d.cards) || ![20, 40].includes(d.cards.length) || !d.cards.every(okCard)) throw new Error('not a 20- or 40-card draft deck');
     DECKS.draft = { who: String(d.who || 'Your Draft deck').slice(0, 28), commander: d.cmd, cards: d.cards.slice(), draft: true };
     const BOTROAD = { industry: 'table', economy: 'econ', science: 'science', food: 'food', pop: 'pop', religion: 'religion', politics: 'politics' };   // v3: the engine gives road perks by DECKS[key].road
     if (d.road && BOTROAD[d.road]) { DECKS.draft.road = d.road; DECKS.draft.botRoad = BOTROAD[d.road]; }
