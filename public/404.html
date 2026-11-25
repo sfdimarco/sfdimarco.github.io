@@ -1,0 +1,9 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Sean DiMarco</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The site's pages live behind the # (a hash router). A link typed without it, like /halo/bazaar, lands here and is sent on to /#/halo/bazaar. -->
+<script>
+  location.replace("/#" + location.pathname.replace(/\/+$/, "") + location.search);
+</script>
+<p><a href="/">Back to the site</a></p>

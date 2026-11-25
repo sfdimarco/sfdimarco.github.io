@@ -405,7 +405,7 @@ function DraftNight({ binder, setBinder }) {
     <div className="halo-read" aria-live="polite">
       {rc ? (
         <>
-          <p className="halo-read-name"><b>{rc.name.replace(" (no name yet)", "")}</b> <span className="halo-dim">{rc.type}{rc.cost != null ? ` · costs ${rc.cost} ECON` : ""}{rc.A != null ? ` · A ${rc.A} · D ${rc.D}` : ""}</span></p>
+          <p className="halo-read-name"><b>{rc.name.replace(" (no name yet)", "")}</b> <span className="halo-dim">{rc.role ? `the ${rc.role} basic · ` : ""}{rc.type}{rc.cost != null ? ` · costs ${rc.cost} ECON` : ""}{rc.A != null ? ` · A ${rc.A} · D ${rc.D}` : ""}</span></p>
           <p>{rc.text || "A plain card: it fights with its A and blocks with its D."}</p>
           {rr && <p className="halo-dim"><i className="halo-ring" style={{ background: rr.color }} aria-hidden="true" />{rr.ring} road</p>}
         </>
@@ -471,7 +471,7 @@ function DraftNight({ binder, setBinder }) {
           <p className="halo-dim">Commander: <b>{deck.cmd ? BY_ID[deck.cmd].name : "none yet"}</b></p>
           <ul>
             {sorted.map(({ id, i }) => (
-              <li key={i} onMouseOver={() => setReadId(id)}><button onClick={() => remove(i)} aria-label={`Take ${BY_ID[id].name} out`}><span>{BY_ID[id].name.replace(" (no name yet)", "")}</span><small>{BY_ID[id].A != null ? `A ${BY_ID[id].A} · D ${BY_ID[id].D}` : BY_ID[id].type}</small><b aria-hidden="true">×</b></button></li>
+              <li key={i} onMouseOver={() => setReadId(id)}><button onClick={() => remove(i)} aria-label={`Take ${BY_ID[id].name} out`}><span>{BY_ID[id].name.replace(" (no name yet)", "")}{BY_ID[id].role ? ` (${BY_ID[id].role})` : ""}</span><small>{BY_ID[id].A != null ? `A ${BY_ID[id].A} · D ${BY_ID[id].D}` : BY_ID[id].type}</small><b aria-hidden="true">×</b></button></li>
             ))}
           </ul>
           <div className="halo-deck-actions">
@@ -493,7 +493,7 @@ function DraftNight({ binder, setBinder }) {
 }
 
 // 11-23: the mixed-deck combos. Two cards from two decks + one free basic, three in a line on the table = one big card.
-const bn = (id) => (BY_ID[id].rarity === "basic" ? `${BY_ID[id].name} (basic)` : BY_ID[id].name);
+const bn = (id) => (BY_ID[id].rarity === "basic" ? `${BY_ID[id].name} (the ${BY_ID[id].role || "basic"} basic)` : BY_ID[id].name);
 function Combos({ deck, binder }) {
   const list = comboStatus(deck.cards, binder.owned).sort((a, b) => b.ready - a.ready || b.canBuild - a.canBuild || b.own.length - a.own.length);
   return (
@@ -521,7 +521,7 @@ function Combos({ deck, binder }) {
 
 // which road each of the cast walks (the bots' goals, .geo/halo/bots.js ROAD) and how to beat them
 const BOSS_ROAD = {
-  leo: ["industry", "Big swings, then he naps: Snooze lights his rings again. Keep all three lanes blocked and hit him twice in a row. His front cards have D 4: bring Heavies (A 5), or have two cards attack together. He also saves ECON, and at 50 he buys the win.", "runBank"],   // third: a card to bring that his road tag does not name (he banks, though his road is Industry)
+  leo: ["industry", "Big swings, then he naps: Snooze lights his rings again. Keep all three lanes blocked and hit him twice in a row. His front cards have D 4, and a tie loses both cards: bring Great Michaels (the Heavy basic, A 5), or have two cards attack together. He also saves ECON, and at 50 he buys the win.", "runBank"],   // third: a card to bring that his road tag does not name (he banks, though his road is Industry)
   fhat: ["industry", "His rabbits run at empty lanes. Fill all three. That face-down card is a Burrow: don't swing into it."],
   gil: ["pop", "The rats fill his grid. Knock out his front row before all nine squares are his: a full grid still has to hold a round."],
   mook: ["industry", "Ships and broadsides. Broadside needs a ship on his grid, so sink the ships first."],
@@ -588,7 +588,7 @@ function Bazaar({ binder, setBinder, news }) {
                 {tip && <p className="halo-bounty-tip">{tip}</p>}
                 {alsoBring && BY_ID[alsoBring] && <p className="halo-bounty-bring">Bring <b>{BY_ID[alsoBring].name}</b> in your deck: {BY_ID[alsoBring].text ? BY_ID[alsoBring].text.replace(/\.$/, "") : "it answers his plan"}.{" "}{(binder.owned || {})[alsoBring] ? <span className="halo-same">You have {binder.owned[alsoBring]}.</span> : <span className="halo-dim">Not in your binder yet.</span>}</p>}
                 {rk && breakerFor(rk) && <p className="halo-bounty-bring">Bring <b>{BY_ID[breakerFor(rk)].name}</b> in your deck: {rk === "economy" ? `it halves ${b.who}'s ECON.` : `it puts out ${b.who}'s ${r.ring} ring.`}{" "}{(binder.owned || {})[breakerFor(rk)] ? <span className="halo-same">You have it.</span> : <span className="halo-dim">Not in your binder yet.</span>}</p>}
-                <p className="halo-dim">{wins ? `Beaten ${wins}×. A win pays ${WIN_POINTS}.` : `Bounty: ${WIN_POINTS + BOUNTY} points`}</p>
+                <p className="halo-dim">{wins ? `Beaten ${wins}×. A win pays ${WIN_POINTS}.` : `Bounty: ${WIN_POINTS + BOUNTY} points`}{(binder.lostTo || {})[b.key] ? ` · ${b.who} has beaten you ${binder.lostTo[b.key]}×` : ""}</p>
                 {ready
                   ? <a className="halo-button" href={playLink(playRoot, deck, "Your Draft deck", b.key, binder.road)}>Hunt ▸</a>
                   : <span className="halo-dim">Needs a deck</span>}

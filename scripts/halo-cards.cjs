@@ -97,7 +97,8 @@ const cards = real.map((id, i) => {
 });
 const basics = ["grunt", "soldier", "wall", "heavy"].map((r) => {
   const c = C["kInd_" + r];
-  return { id: c.id, no: null, name: cap(r), type: c.type, A: c.A, D: c.D, cost: c.econ, rarity: "basic", who: "every planet", deckable: true, tags: [], fused: false, text: words(c), noName: false };
+  // 11-25 (playtest report): the card's own name, as its art and the table print it (Kern, Gallowglass, Hesco Bastion, Great Michael); `role` is the plain word (Grunt, Soldier, Wall, Heavy)
+  return { id: c.id, no: null, name: c.name, role: cap(r), type: c.type, A: c.A, D: c.D, cost: c.econ, rarity: "basic", who: "every planet", deckable: true, tags: [], fused: false, text: words(c), noName: false };
 });
 // the cast as bosses for the bounty board: every show deck (not the kit test decks), with its commander
 let bosses = Object.entries(DECKS).filter(([, d]) => !d.kit).map(([key, d]) => ({ key, who: d.who, cmd: d.commander }));

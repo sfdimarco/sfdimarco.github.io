@@ -65,18 +65,19 @@ export const WIN_POINTS = 2, BOUNTY = 3, PACK_PRICE = 3;
 export function claimResults(b) {
   let list = [];
   try { list = JSON.parse(window.localStorage.getItem("halo-results-v1") || "[]"); } catch { return [b, []]; }
-  const claimed = new Set(b.claimed || []), beaten = { ...(b.beaten || {}) }, roadWins = { ...(b.roadWins || {}) }, news = [];
+  const claimed = new Set(b.claimed || []), beaten = { ...(b.beaten || {}) }, lostTo = { ...(b.lostTo || {}) }, roadWins = { ...(b.roadWins || {}) }, news = [];
   let points = b.points || 0;
   for (const r of Array.isArray(list) ? list : []) {
     if (!r || claimed.has(r.seed)) continue;
     claimed.add(r.seed);
-    if (!r.won) { news.push({ boss: r.boss, won: false, got: 0 }); continue; }
+    // 11-25 (playtest report: "nothing moved after a loss"): a loss still pays 0, but the board keeps the count
+    if (!r.won) { lostTo[r.boss] = (lostTo[r.boss] || 0) + 1; news.push({ boss: r.boss, won: false, got: 0 }); continue; }
     const first = !beaten[r.boss], got = WIN_POINTS + (first ? BOUNTY : 0), road = HOW_ROAD[r.how] || "industry";
     beaten[r.boss] = (beaten[r.boss] || 0) + 1; points += got; roadWins[road] = (roadWins[road] || 0) + 1;
     news.push({ boss: r.boss, won: true, got, first, road });
   }
   if (!news.length) return [b, []];
-  return [{ ...b, points, beaten, roadWins, claimed: [...claimed].slice(-200) }, news];
+  return [{ ...b, points, beaten, lostTo, roadWins, claimed: [...claimed].slice(-200) }, news];
 }
 
 export const buyPack = (b) => ((b.points || 0) < PACK_PRICE ? b : { ...b, points: b.points - PACK_PRICE, packsLeft: b.packsLeft + 1 });
