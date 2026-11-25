@@ -522,7 +522,7 @@ function Combos({ deck, binder }) {
 
 // which road each of the cast walks (the bots' goals, .geo/halo/bots.js ROAD) and how to beat them
 const BOSS_ROAD = {
-  leo: ["industry", "Big swings, then he naps: Snooze lights his rings again. Keep all three lanes blocked and hit him twice in a row."],
+  leo: ["industry", "Big swings, then he naps: Snooze lights his rings again. Keep all three lanes blocked and hit him twice in a row. His front cards have D 4: bring Heavies (A 5), or have two cards attack together. He also saves ECON, and at 50 he buys the win."],
   fhat: ["industry", "His rabbits run at empty lanes. Fill all three. That face-down card is a Burrow: don't swing into it."],
   gil: ["pop", "The rats fill his grid. Knock out his front row before all nine squares are his: a full grid still has to hold a round."],
   mook: ["industry", "Ships and broadsides. Broadside needs a ship on his grid, so sink the ships first."],
