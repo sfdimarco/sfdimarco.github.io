@@ -522,7 +522,7 @@ function Combos({ deck, binder }) {
 
 // which road each of the cast walks (the bots' goals, .geo/halo/bots.js ROAD) and how to beat them
 const BOSS_ROAD = {
-  leo: ["industry", "Big swings, then he naps: Snooze lights his rings again. Keep all three lanes blocked and hit him twice in a row. His front cards have D 4: bring Heavies (A 5), or have two cards attack together. He also saves ECON, and at 50 he buys the win."],
+  leo: ["industry", "Big swings, then he naps: Snooze lights his rings again. Keep all three lanes blocked and hit him twice in a row. His front cards have D 4: bring Heavies (A 5), or have two cards attack together. He also saves ECON, and at 50 he buys the win.", "runBank"],   // third: a card to bring that his road tag does not name (he banks, though his road is Industry)
   fhat: ["industry", "His rabbits run at empty lanes. Fill all three. That face-down card is a Burrow: don't swing into it."],
   gil: ["pop", "The rats fill his grid. Knock out his front row before all nine squares are his: a full grid still has to hold a round."],
   mook: ["industry", "Ships and broadsides. Broadside needs a ship on his grid, so sink the ships first."],
@@ -578,7 +578,7 @@ function Bazaar({ binder, setBinder, news }) {
       <div className="halo-bounties">
         {HALO_BOSSES.map((b) => {
           const wins = (binder.beaten || {})[b.key] || 0, next = HALO_BOSSES.find((x) => !(binder.beaten || {})[x.key])?.key === b.key;
-          const [rk, tip] = BOSS_ROAD[b.key] || [null, ""], r = rk && ROAD_BY[rk];
+          const [rk, tip, alsoBring] = BOSS_ROAD[b.key] || [null, ""], r = rk && ROAD_BY[rk];
           return (
             <div key={b.key} className={`halo-bounty ${wins ? "is-beaten" : ""} ${next ? "is-next" : ""}`}>
               <HaloCard id={b.cmd} finish={wins ? "laminate" : "lenticular"} />
@@ -587,6 +587,7 @@ function Bazaar({ binder, setBinder, news }) {
                 <span className={`halo-tier t${b.tier}`}>{["", "Easy", "Medium", "Hard"][b.tier]}{next ? " · start here" : ""}</span>
                 {r && <p className="halo-bounty-road"><i className="halo-ring" style={{ background: r.color }} aria-hidden="true" /><b>{r.ring}</b>{rk === binder.road && <span className="halo-same"> · your road</span>}</p>}
                 {tip && <p className="halo-bounty-tip">{tip}</p>}
+                {alsoBring && BY_ID[alsoBring] && <p className="halo-bounty-bring">Bring <b>{BY_ID[alsoBring].name}</b> in your deck: {BY_ID[alsoBring].text ? BY_ID[alsoBring].text.replace(/\.$/, "") : "it answers his plan"}.{" "}{(binder.owned || {})[alsoBring] ? <span className="halo-same">You have {binder.owned[alsoBring]}.</span> : <span className="halo-dim">Not in your binder yet.</span>}</p>}
                 {rk && breakerFor(rk) && <p className="halo-bounty-bring">Bring <b>{BY_ID[breakerFor(rk)].name}</b> in your deck: {rk === "economy" ? `it halves ${b.who}'s ECON.` : `it puts out ${b.who}'s ${r.ring} ring.`}{" "}{(binder.owned || {})[breakerFor(rk)] ? <span className="halo-same">You have it.</span> : <span className="halo-dim">Not in your binder yet.</span>}</p>}
                 <p className="halo-dim">{wins ? `Beaten ${wins}×. A win pays ${WIN_POINTS}.` : `Bounty: ${WIN_POINTS + BOUNTY} points`}</p>
                 {ready
