@@ -5,7 +5,7 @@ import { MushTalk, HaloPath, MushFace, HaloCheer, pathSteps } from "../component
 import { HALO_CARDS, HALO_BASICS, HALO_BOSSES, HALO_STARTERS, HALO_BREAKERS } from "../content/haloCards.js";
 import {
   BY_ID, SET_SIZE, DECK_SIZE, STARTER_PACKS, loadBinder, saveBinder, openPack, bestFinish,
-  deckProblems, fillWithBasics, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE, comboStatus, ROADS, ROAD_BY,
+  deckProblems, playLink, claimResults, buyPack, WIN_POINTS, BOUNTY, PACK_PRICE, comboStatus, ROADS, ROAD_BY,
   nextIsCounter, breakerFor, resetBinder,
 } from "../lib/haloBinder.js";
 import { useHaloArt, mountCard, loadHaloArt } from "../lib/haloArt.js";
@@ -420,7 +420,7 @@ function DraftNight({ binder, setBinder }) {
     <section aria-labelledby="halo-deck-title">
       <header className="halo-page-head">
         <h1 id="halo-deck-title">Draft Night</h1>
-        <p>Three packs each, no trades. Pick a commander you pulled, then forty cards: any you own, and as many basics as you like. Your forty play as you built them. Every deck also gets the table's own traps (Burrow, Brumation, The Harbour Boom) and Sieges, and they take the place of your basics, so you will draw a few cards you did not pick.</p>
+        <p>Three packs each, no trades. Pick a commander you pulled, then forty cards: any you own, and as many basics as you like. Your forty play exactly as you built them. Nothing is added and nothing is filled in. Traps and Sieges are cards like any other: put in the ones you own.</p>
       </header>
       <div className="halo-myroad" style={myRoad ? { "--ring": myRoad.color } : undefined}>
         {myRoad ? (
@@ -475,7 +475,6 @@ function DraftNight({ binder, setBinder }) {
             ))}
           </ul>
           <div className="halo-deck-actions">
-            <button className="halo-link" disabled={full} onClick={() => setDeck({ ...deck, cards: fillWithBasics(deck.cards) })}>Fill the rest with basics</button>
             <button className="halo-link" disabled={!deck.cards.length} onClick={() => setDeck({ ...deck, cards: [] })}>Clear</button>
           </div>
           {problems.length ? <p className="halo-dim">{problems[0]}</p> : null}

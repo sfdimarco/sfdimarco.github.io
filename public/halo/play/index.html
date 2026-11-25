@@ -87,6 +87,8 @@
   .danger { background:#b71c1c; color:#fff; padding:4px 10px; border-radius:8px; font-size:14px; font-weight:bold; } .paid { color:var(--gold); font-weight:bold; }
   .badge.aura { background:#0d47a1; color:#fff; border-radius:8px; padding:2px 8px; font-size:12px; font-weight:bold; cursor:help; }
   .trapnote { margin-top:8px; padding:6px 8px; border:2px solid #f6c744; border-radius:8px; background:#2a2418; font-size:14px; }
+  .skipped { max-height:190px; overflow:auto; font-size:13px; margin-top:4px; } .skipped div { padding:2px 0; border-bottom:1px solid #2c3850; }
+  .bigwhy { font-size:12px; color:#f6c744; }
   .peace { background:#1b5e20; padding:3px 10px; border-radius:8px; font-size:13px; }
   .news { flex:1; min-width:300px; font-size:14px; } .news div { padding:1px 0; }
   .hint { color:#7CFC8A; font-weight:bold; }
@@ -9873,7 +9875,10 @@ function buildDeck(key, cfg) {
   if (cfg.v3 && LIB3[key]) extra.push(...LIB3[key]);
   if (key === 'rose' && cfg.roseV1 && cfg.roseMachine !== 0) { const k = size / 20 * (cfg.roseMachine === undefined ? 1 : cfg.roseMachine); extra.push(...n('part', Math.round(5 * k)), ...n('core', Math.max(1, Math.round(k))), 'lucy', 'ikaros', 'gw150914'); }
   // 11-24 (Mook: players hated the 20-card list auto-filled): a Draft Night deck built at full size plays card for card.
-  // The table's own cards (traps, Siege) take the place of its basics first, so nothing the player owns is cut.
+  // 11-25 (Mook: "players need control of what goes in their deck no auto fill"): NOTHING is added. Traps and Sieges are
+  // cards like any other: in the deck only if the player owns them and put them in. (DRAFT_TABLE_CARDS=1 in Node brings back
+  // the 11-24 rule, the table's cards in place of basics, for a before/after in _scratch/leo-gaps.js.)
+  if (DECKS[key].draft && base.length === size && !(typeof process !== 'undefined' && process.env && process.env.DRAFT_TABLE_CARDS)) return base.map(id => (cfg.bal && REBAL[id]) || id);
   if (DECKS[key].draft && base.length === size) {
     const out = base.slice();
     for (const x of extra) { let k = out.findIndex(id => /^kInd_/.test(id)); if (k < 0) k = out.length - 1; out.splice(k, 1); }
@@ -9891,7 +9896,7 @@ COMBOS.push(...MIX_COMBOS);   // after kits.js: the basics (kInd_*) exist now
 for (const co of MIX_COMBOS) for (const [k, d] of Object.entries(DECKS)) { const all = new Set([...d.cards, ...(d.duel || []), ...(d.ffa || []), ...(LIB[k] || [])]);
   if (co.parts.filter(x => all.has(x)).length >= 2) throw new Error(`mix combo ${co.makes}: deck ${k} holds two of its parts`); }
 require('./counters.js');   // 11-24: ring-breakers (Claude's, not ticked)
-require('./ft.js');   // 11-24: Faulty Tolerance, the other show's five decks (ft.js)
+require('./ft.js');
 
 };
 __defs['./kits.js'] = function (module, exports, require) {
@@ -10282,6 +10287,7 @@ const whole = (S, p) => p.grid.every((c, i) => c && !c.down && card(c).tags.incl
 function beginTurn(S) {
   const p = S.players[S.cur]; S.turnNo++; S.active = false;
   p.canopy = false; p.pink = false; p.parlay = null; p.league = false; p.lost = 0;       // "until your next turn" effects end
+  for (const q of S.players) if (q.frostBy === p.id) q.frostBy = undefined;   // 11-25: a Hard Frost lasts one round
   for (const c of p.grid) if (c) { c.attacked = false; if (c.frozen) c.frozen--; if (card(c).move === 'smite') c.charge = Math.min(2, (c.charge || 0) + 1); }
   if (S.cfg.harvestWin && (p.harvest || 0) >= S.cfg.harvestWin && p.rings[FOOD]) { say(S, `${p.name} brings in the harvest`); return finish(S, { type: 'win', team: p.team, how: 'food' }); }
   if (S.cfg.polWin && p.rings[POLITICS] && sealedAll(S, p)) { say(S, `${p.name} holds its treaties: the table is at peace on ${p.name}'s terms`); return finish(S, { type: 'win', team: p.team, how: 'politics' }); }
@@ -10345,8 +10351,8 @@ function legal(S) {
     if (cd.type === 'action') {
       if (peace && (cd.fx === 'barrage' || cd.fx === 'takeover' || cd.fx === 'pollen' || cd.fx === 'siege' || cd.fx === 'smash')) continue;
       if (cd.fx === 'absorb') o.push({ t: 'play', card: id });
-      if (cd.fx === 'seed' && !p.rings[FOOD] && FOOD < S.cfg.rings) o.push({ t: 'play', card: id });   // 🗣 11-22 night (his pick B): a Food-only relight
-      if ((cd.fx === 'snooze' || cd.fx === 'spring' || cd.fx === 'sprout') && p.rings.some((on, k) => !on && k < S.cfg.rings)) o.push({ t: 'play', card: id });
+      if (cd.fx === 'seed' && !frosted(p) && !p.rings[FOOD] && FOOD < S.cfg.rings) o.push({ t: 'play', card: id });   // 🗣 11-22 night (his pick B): a Food-only relight
+      if ((cd.fx === 'snooze' || cd.fx === 'spring' || cd.fx === 'sprout') && !frosted(p) && p.rings.some((on, k) => !on && k < S.cfg.rings)) o.push({ t: 'play', card: id });
       if (cd.fx === 'smash') for (const q of enemies(S, p)) if (!capped(S, q)) o.push({ t: 'play', card: id, tp: q.id });
       if (cd.fx === 'siege') for (const q of enemies(S, p)) for (let l = 0; l < 3; l++) { const f = front(q, l); if (f && !q.pink && !f.cell.down && Dof(f.cell) >= S.cfg.siegeD) o.push({ t: 'play', card: id, tp: q.id, lane: l }); }
       if (cd.fx === 'gain3' || cd.fx === 'gain2') o.push({ t: 'play', card: id });
@@ -10354,10 +10360,12 @@ function legal(S) {
       if (cd.fx === 'envoy' && !peace) for (const q of enemies(S, p)) if (!(p.seals || []).includes(q.id)) o.push({ t: 'play', card: id, tp: q.id });   // not in the peace round: the rival must get a turn to answer
       if (cd.fx === 'sigil') { if (!peace) for (const q of enemies(S, p)) if (q.rings[RELIGION] && !capped(S, q)) o.push({ t: 'play', card: id, tp: q.id }); }
       if (cd.fx === 'takeover') for (const q of enemies(S, p)) if (q.rings[0] && !capped(S, q)) o.push({ t: 'play', card: id, tp: q.id });
+      if (cd.fx === 'flip' && !peace) for (const q of enemies(S, p)) q.grid.forEach((c, sq) => { if (c && c.down) o.push({ t: 'play', card: id, tp: q.id, fsq: sq }); });   // 11-25 answers.js: spring a face-down card
+      if (cd.fx === 'frost' && !peace) for (const q of enemies(S, p)) if (!q.frostBy && q.frostBy !== 0 && q.rings.some((on, k) => !on && k < S.cfg.rings)) o.push({ t: 'play', card: id, tp: q.id });   // 11-25 answers.js: dark rings stay dark for a round
       if (cd.fx === 'drain' && !peace) for (const q of enemies(S, p)) if (q.econ >= 2) o.push({ t: 'play', card: id, tp: q.id });   // 11-24 Run on the Bank
       if (cd.fx === 'snuff' && !peace) for (const q of enemies(S, p)) if (q.rings[cd.ring] && !capped(S, q)) o.push({ t: 'play', card: id, tp: q.id, ring: cd.ring });   // 11-24 ring-breakers (counters.js)
       if (cd.fx === 'pollen') for (const q of enemies(S, p)) if (!capped(S, q)) q.rings.forEach((on, k) => { if (on) o.push({ t: 'play', card: id, tp: q.id, ring: k }); });
-      if (cd.fx === 'relight') for (const q of S.players) if (q.team === p.team && (!q.out || q.cmd.where !== 'out')) q.rings.forEach((on, k) => { if (!on && k < S.cfg.rings) o.push({ t: 'play', card: id, tp: q.id, ring: k }); });
+      if (cd.fx === 'relight') for (const q of S.players) if (q.team === p.team && !frosted(q) && (!q.out || q.cmd.where !== 'out')) q.rings.forEach((on, k) => { if (!on && k < S.cfg.rings) o.push({ t: 'play', card: id, tp: q.id, ring: k }); });
       if (cd.fx === 'supply') for (const q of S.players) if (q.team === p.team && !q.out) o.push({ t: 'play', card: id, tp: q.id });
       if (cd.fx === 'testudo') for (const q of S.players) if (q.team === p.team && !q.out && !q.canopy) o.push({ t: 'play', card: id, tp: q.id });
       if (cd.fx === 'convert' && !peace && empty.length) for (const q of enemies(S, p)) if (!q.pink) for (let l = 0; l < 3; l++) { const f = front(q, l); if (f && !f.cell.down && !f.cell.isCmd && card(f.cell).type === 'unit' && Dof(f.cell) <= faithOf(p)) o.push({ t: 'play', card: id, tp: q.id, lane: l }); }
@@ -10457,7 +10465,8 @@ function checkCombos(S, p) {
   }
 }
 
-const HOSTILE_FX = ['barrage', 'siege', 'takeover', 'pollen', 'smash', 'sigil', 'convert', 'snuff', 'drain'];
+const HOSTILE_FX = ['barrage', 'siege', 'takeover', 'pollen', 'smash', 'sigil', 'convert', 'snuff', 'drain', 'flip', 'frost'];
+const frosted = p => p.frostBy !== undefined && p.frostBy !== null;
 const hostile = a => a.t === 'attack' || a.t === 'gang' || a.t === 'smite' || (a.t === 'big' && a.tp !== undefined) || (a.t === 'play' && HOSTILE_FX.includes(C[a.card].fx));
 function sameAction(a, b) { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => a[k] === b[k]); }
 
@@ -10488,7 +10497,9 @@ function apply(S, a) {
     if (cd.fx === 'gain3' || cd.fx === 'gain2') say(S, `${p.name} plays ${cd.name}: +${cd.fx === 'gain3' ? 3 : 2} ECON`);
     if (cd.fx === 'barrage') { const f = front(q, a.lane); say(S, `${p.name}'s Cannon Barrage knocks out ${card(f.cell).name}`); knock(S, q, f.sq); }
     if (cd.fx === 'siege') { const f = front(q, a.lane); say(S, `${p.name}'s SIEGE breaks ${card(f.cell).name}`); knock(S, q, f.sq); }
-    if (cd.fx === 'takeover') past(S, q, [0], 'Hostile Takeover');
+    if (cd.fx === 'takeover') past(S, q, [0], cd.name);
+    if (cd.fx === 'flip') { const c = q.grid[a.fsq]; say(S, `${p.name} plays ${cd.name}: ${q.name}'s face-down ${card(c).name} is sprung and lost`); q.grid[a.fsq] = null; }
+    if (cd.fx === 'frost') { q.frostBy = p.id; say(S, `${p.name} plays ${cd.name}: ${q.name}'s dark rings stay dark until ${p.name}'s next turn`); }
     if (cd.fx === 'drain') { const lost = Math.floor(q.econ / 2); q.econ -= lost; say(S, `${p.name} plays ${cd.name}: ${q.name} loses ${lost} ECON`); }
     if (cd.fx === 'snuff') { say(S, `${p.name} plays ${cd.name} on ${q.name}`); past(S, q, [cd.ring], cd.name); }
     if (cd.fx === 'envoy') { (p.seals = p.seals || []).push(q.id); say(S, `${p.name} sends an envoy: a treaty with ${q.name} (${treaties(S, p)} of ${Math.min(enemies(S, p).length, S.cfg.polWin || 99)})`); }
@@ -10569,7 +10580,7 @@ function finish(S, r) { S.result = r; say(S, 'RESULT ' + JSON.stringify(r)); }
 function endTurn(S) {
   const p = S.players[S.cur];
   const food = S.cfg.harvestWin && roadOf(p) === 'food', cap = S.cfg.relightCap * (food ? S.cfg.foodCap : 1);   // 11-22 night: a Food planet may grow back more rings
-  if (S.cfg.dev === 'relight') { p.devPool += devSum(p); while (p.devPool >= S.cfg.devStep) { const threat = S.cfg.relWin > 1 && !p.rings[RELIGION] && S.players.some(q => !q.out && q.team !== p.team && (q.relCount || 0) > 0); const k = threat ? RELIGION : food && !p.rings[FOOD] ? FOOD : p.rings.findIndex((on, i) => !on && i < S.cfg.rings); if (k < 0 || (!threat && cap && p.relit >= cap)) { p.devPool = S.cfg.devStep; break; } p.rings[k] = true; if (!threat) p.relit++; p.devPool -= S.cfg.devStep; say(S, `${p.name}'s planet grows: the ${RINGS[k]} ring relights`); reap(S, p, 1); } }
+  if (S.cfg.dev === 'relight') { p.devPool += devSum(p); while (p.devPool >= S.cfg.devStep) { if (frosted(p)) { p.devPool = S.cfg.devStep; break; } const threat = S.cfg.relWin > 1 && !p.rings[RELIGION] && S.players.some(q => !q.out && q.team !== p.team && (q.relCount || 0) > 0); const k = threat ? RELIGION : food && !p.rings[FOOD] ? FOOD : p.rings.findIndex((on, i) => !on && i < S.cfg.rings); if (k < 0 || (!threat && cap && p.relit >= cap)) { p.devPool = S.cfg.devStep; break; } p.rings[k] = true; if (!threat) p.relit++; p.devPool -= S.cfg.devStep; say(S, `${p.name}'s planet grows: the ${RINGS[k]} ring relights`); reap(S, p, 1); } }
   if (S.cfg.polWin && p.rings[POLITICS] && sealedAll(S, p)) say(S, `${p.name} HOLDS ENOUGH TREATIES: a rival with a treaty must hurt ${p.name} (a ring out, a card knocked out), or put out ${p.name}'s Politics ring, before ${p.name}'s next turn`);
   if (S.cfg.relConv && p.rings[RELIGION] && converts(p) >= S.cfg.relConv) say(S, `${p.name} HOLDS ${converts(p)} CONVERTS: knock one out or put out ${p.name}'s Religion ring before ${p.name}'s next turn`);
   if (S.cfg.econHold) { p.banked = !!S.cfg.econWin && p.econ >= winPrice(S, p) && ringOK(S, p, ECONOMY);   // 11-24 dial econHold: Economy warns like every other road
@@ -10604,7 +10615,7 @@ function describe0(S, a) {
   return { offer: 'offer a handshake (an amiable draw)', accept: 'shake hands (accept the draw)', end: 'end your turn', pass: 'do not answer' }[a.t];
 }
 const TRIG = { attacked: 'flips when it is attacked: what attacked falls in', ringdark: 'flips when one of your rings would go dark: the ring stays lit and the attacker\'s front cards freeze for a turn', pastgrid: 'flips when a move goes past your grid (AUDIT, BROADSIDE, The Pollen, Hostile Takeover, PAPAL SMITE): the move is stopped' };
-const FX = { seed: 'your FOOD ring relights (only Food: a harvest card, not a heal)', sprout: 'one of your own dark rings relights (Food first, on a Food planet)', siege: 'knock out one enemy front card with D 6 or more', barrage: 'knock out one enemy front card with low D', takeover: "put out one enemy's ECONOMY ring, past the grid", pollen: 'put out one enemy ring, past the grid', drain: 'a rival loses half their ECON', snuff: 'put out the named ring of one enemy, past the grid (a ring-breaker)', relight: "relight one dark ring, yours or a team-mate's", gain3: '+3 ECON this turn', gain2: '+2 ECON this turn', absorb: 'your rings cannot go dark until your next turn', snooze: 'up to five of your own dark rings relight', spring: 'up to two of your own dark rings relight', smash: 'two rings of one enemy go dark, past the grid', sigil: "put out one enemy's RELIGION ring, past the grid", envoy: 'seal a treaty with one rival: a PEACE PACT, they cannot attack your cards (they can pay to tear it up, or hurt you past the grid)', supply: 'you or a team-mate gains 3 ECON', testudo: "you or a team-mate: rings cannot go dark until that planet's next turn", convert: "CONVERT: an enemy front unit with low D leaves their grid and joins yours" };
+const FX = { flip: 'spring one enemy face-down card: it is turned over and lost, and does nothing', frost: "one enemy's dark rings stay dark until your next turn: no card and no growth relights them", seed: 'your FOOD ring relights (only Food: a harvest card, not a heal)', sprout: 'one of your own dark rings relights (Food first, on a Food planet)', siege: 'knock out one enemy front card with D 6 or more', barrage: 'knock out one enemy front card with low D', takeover: "put out one enemy's ECONOMY ring, past the grid", pollen: 'put out one enemy ring, past the grid', drain: 'a rival loses half their ECON', snuff: 'put out the named ring of one enemy, past the grid (a ring-breaker)', relight: "relight one dark ring, yours or a team-mate's", gain3: '+3 ECON this turn', gain2: '+2 ECON this turn', absorb: 'your rings cannot go dark until your next turn', snooze: 'up to five of your own dark rings relight', spring: 'up to two of your own dark rings relight', smash: 'two rings of one enemy go dark, past the grid', sigil: "put out one enemy's RELIGION ring, past the grid", envoy: 'seal a treaty with one rival: a PEACE PACT, they cannot attack your cards (they can pay to tear it up, or hurt you past the grid)', supply: 'you or a team-mate gains 3 ECON', testudo: "you or a team-mate: rings cannot go dark until that planet's next turn", convert: "CONVERT: an enemy front unit with low D leaves their grid and joins yours" };
 const BIG = { broadside: 'BROADSIDE: needs a ship on your grid; one enemy ring goes dark, past the grid', audit: 'AUDIT: one enemy ring per Army of Auditors on your grid (max 3), past the grid', canopy: 'CANOPY: your rings cannot go dark until your next turn', holyleague: 'HOLY LEAGUE: your attackers get +2 A this turn', moodpink: 'MOOD: PINK: your cards cannot be attacked until your next turn', parlay: 'PARLAY: one enemy cannot attack you until your next turn', multiply: 'MULTIPLY: one of your cards becomes one in every empty square of its row (the copies cannot attack this turn)', none: 'no big move' };
 function view(S, pid) {
   const me = S.players[pid], out = [];
@@ -10622,7 +10633,7 @@ function view(S, pid) {
 }
 
 const toMove = S => S.pending ? S.pending.responder : S.cur;
-module.exports = { second, attackerOf, defenderOf, faithOf, converts, incomeOf, shielded, tagged, ADJ, treaties, sealedAll, crowd,pays, market, winPrice, whole, capped, ringOK, baseId, COMBOS, LIB: require('./cards.js').LIB, TRIG, FX, BIG, Dof, atk, costOf, toMove, DEFAULTS, newMatch, start, replay, legal, apply, view, describe, lit, front, RINGS, C, DECKS };
+module.exports = { frosted, second, attackerOf, defenderOf, faithOf, converts, incomeOf, shielded, tagged, ADJ, treaties, sealedAll, crowd,pays, market, winPrice, whole, capped, ringOK, baseId, COMBOS, LIB: require('./cards.js').LIB, TRIG, FX, BIG, Dof, atk, costOf, toMove, DEFAULTS, newMatch, start, replay, legal, apply, view, describe, lit, front, RINGS, C, DECKS };
 
 };
 __defs['./bots.js'] = function (module, exports, require) {
@@ -10653,6 +10664,8 @@ function score(S, a, me, style, r) {
   if (a.t === 'big') return a.tp !== undefined ? 8 + (ffa(S) ? want(S, S.players[a.tp], style) : 7 - E.lit(S.players[a.tp])) : (E.lit(p) <= 3 ? 7 : -1);
   if (a.t === 'deploy') return S.cfg.ringCap || S.cfg.lib ? -1 : (style.bold && S.turnNo > 12 ? 1 : -1);   // 2026-11-22: with the new dials a bot never puts its commander on the grid. Even the "last stand in the back row" was suicide: 61 of 133 Gil knock-outs in a free for all were his commander, the turn after it came down
   if (a.t === 'play' && C[a.card].fx === 'seed') return 9;
+  if (a.t === 'play' && C[a.card].fx === 'flip') return 6;   // 11-25: spring a trap before the real hit
+  if (a.t === 'play' && C[a.card].fx === 'frost') { const q = S.players[a.tp], dark = q.rings.filter((on, k) => !on && k < S.cfg.rings).length; return dark >= 3 ? 14 : dark >= 2 ? 6 : -3; }   // 11-25: hold what you have put out
   if (a.t === 'play' && C[a.card].fx === 'snuff') return -3;
   if (a.t === 'play' && C[a.card].fx === 'drain') { const q = S.players[a.tp], f = S.cfg.econWin ? q.econ / E.winPrice(S, q) : 0; return f >= 0.8 ? 50 : f >= 0.55 ? 10 : -3; }   // 11-24: drain a bank that is close to the price   // 11-24: keep it for the turn a rival's road is close (road() adds that)
   // ── v3 (11-23 night)
@@ -11221,7 +11234,7 @@ const TABLES = { team: ['3 ON 3', 'Two teams of three. Seats alternate round the
 function startScreen() {
   clearTimeout(timer); S = null; const R = window.__modes && window.__modes[table];
   $('app').innerHTML = `<div class="start"><h1>HALO ALIQUID NIHIL</h1><p class="sub">Playtest table &middot; seven planets round a sun &middot; you play one, bots play the rest</p>
-  ${DRAFT ? `<div class="modebox ${bountyOn() ? 'bounty' : ''}">${bountyOn() ? `<h2>&#9733; BOUNTY: ${esc(DECKS[BOSS].who)}</h2><p>Beat ${esc(DECKS[BOSS].who)} 1 on 1 and the bounty board pays you.</p><button class="primary big" data-a="go">FIGHT ${esc(DECKS[BOSS].who).toUpperCase()} &#9656;</button>` : `<h2>SCRIMMAGE</h2><p>A practice table. It pays no points. ${BOSS ? `You changed the table, so this is no longer the bounty on ${esc(DECKS[BOSS].who)}.` : 'For points, pick a face on the bounty board.'}</p><button data-a="bazaar">To the bounty board</button>`}<p class="small">Your Draft Night deck is in seat 1: <b>${esc(DRAFT.who)}</b>, led by ${esc(C[DRAFT.commander].name)}.<br>${DRAFT.cards.length === 40 ? 'Your 40 cards play as you built them. The traps on every table (Burrow, Brumation, The Harbour Boom) and Sieges take the place of your basics, so you will draw a few cards you did not pick.' : 'This is an old 20-card list: the table doubles it to 40. Build a full 40 on Draft Night to play your own cards.'}</p></div>` : ''}
+  ${DRAFT ? `<div class="modebox ${bountyOn() ? 'bounty' : ''}">${bountyOn() ? `<h2>&#9733; BOUNTY: ${esc(DECKS[BOSS].who)}</h2><p>Beat ${esc(DECKS[BOSS].who)} 1 on 1 and the bounty board pays you.</p><button class="primary big" data-a="go">FIGHT ${esc(DECKS[BOSS].who).toUpperCase()} &#9656;</button>` : `<h2>SCRIMMAGE</h2><p>A practice table. It pays no points. ${BOSS ? `You changed the table, so this is no longer the bounty on ${esc(DECKS[BOSS].who)}.` : 'For points, pick a face on the bounty board.'}</p><button data-a="bazaar">To the bounty board</button>`}<p class="small">Your Draft Night deck is in seat 1: <b>${esc(DRAFT.who)}</b>, led by ${esc(C[DRAFT.commander].name)}.<br>${DRAFT.cards.length === 40 ? 'Your 40 cards play exactly as you built them. Nothing is added: traps and Sieges are in your deck only if you put them there.' : 'This is an old 20-card list: the table doubles it to 40. Build a full 40 on Draft Night to play your own cards.'}</p></div>` : ''}
   <h2>1 &middot; The table</h2><div class="row">${Object.keys(TABLES).map(k => `<button class="pick ${k === table ? 'on' : ''}" data-a="table" data-k="${k}"><b>${TABLES[k][0].replace('·', '&middot;')}</b><span>${TABLES[k][1]}</span></button>`).join('')}</div>
   ${R ? `<p class="small">Bot test of this table: about ${R.rounds} rounds &middot; no winner ${R.none} % &middot; win by seat ${R.seat.join(' / ')} %.</p>` : ''}
   <h2>2 &middot; Pick your seat</h2><div class="seats">${seatsNow().map((s, i) => `<div class="seat ${table === 'team' ? 't' + s.team : ''} ${i === human ? 'on' : ''}" data-a="seat" data-i="${i}"><b>${esc(s.name)}${i === human ? ' &middot; YOU' : ''}</b><span>${glyph('commander')} ${esc(C[DECKS[s.deck].commander].name)}</span><i>seat ${i + 1}${table === 'team' ? ' &middot; team ' + TEAM[s.team] : ''}${DECKS[s.deck].test ? ' &middot; test player' : ''}</i><span class="chg" data-a="deck" data-i="${i}">change player</span></div>`).join('')}</div>
@@ -11305,7 +11318,9 @@ function step() { render(); const hold = bannerHold; bannerHold = 0; if (S.resul
 function skip() {
   clearTimeout(timer); const before = snap(), n = S.log.length; let k = 0;
   while (!S.result && E.toMove(S) !== human && k++ < 5000) { const a = botPick(); E.apply(S, a); match.moves.push(a); }
-  news = S.log.slice(n).slice(-8); diff(before); moments(S.log.slice(n).filter(l => /OUT|CONVERTING|HARVEST IS IN|CROWD FILLS|HOLDS ENOUGH TREATIES|RESULT/.test(l)), true); bannerHold = 0; step();
+  news = S.log.slice(n).slice(-8); diff(before); moments(S.log.slice(n).filter(l => /OUT|CONVERTING|HARVEST IS IN|CROWD FILLS|HOLDS ENOUGH TREATIES|RESULT/.test(l)), true); bannerHold = 0;
+  { const did = S.log.slice(n).filter(l => !/^(t\d+ )?RESULT/.test(l)).map(l => esc(l.replace(/^t\d+ /, ''))); if (did.length) info = `<b>While you skipped</b><div class="skipped">${did.map(l => `<div>${l}</div>`).join('')}</div>`; }
+  step();
 }
 
 // ----- what can be clicked for the thing that is selected
@@ -11337,7 +11352,7 @@ function hint() {
   if (!sel) return '';
   if (sel.k === 'hand') { const c = C[sel.card], t = c.type; return curT.now ? 'Press PLAY IT in the box on the right.' : c.fx === 'supply' || c.fx === 'testudo' ? 'Click your own planet, or a team-mate\'s (glowing green).' : c.fx === 'convert' ? 'Click the glowing enemy front unit to convert it onto your grid.' : t === 'action' ? 'Click the glowing green target.' : t === 'trap' ? 'Click a glowing square on your grid to set it face down.' : c.tags.includes('ally') ? 'Click a glowing square: on your grid, or on a team-mate\'s (tap their planet on the board to see their grid).' : 'Click a glowing square on your grid.'; }
   if (sel.k === 'cmd') return 'Click a glowing square to put your commander on the grid. (They are safe at your shoulder.)';
-  if (sel.k === 'big') return curT.now ? 'Press USE IT in the box on the right.' : C[S.players[human].cmd.id].big === 'multiply' ? 'Click the glowing card on your grid to copy.' : 'Click the glowing green target of your big move.';
+  if (sel.k === 'big') return curT.now ? 'Press USE IT in the box on the right.' : C[S.players[human].cmd.id].big === 'multiply' ? 'Click the glowing card on your grid to copy.' : (curL.some(m => m.t === 'big' && m.ring !== undefined) ? 'Click one of their RING chips (ECON, IND, SCI ...) to put that ring out. Tap a planet on the board to face it first.' : 'Click the glowing green target of your big move.');
   if (sel.k === 'smite') return 'Click a glowing enemy ring to smite it.';
   if (sel.k === 'atk' && sel.sq !== undefined) return 'VOLLEY: this card fires from behind the front, straight across its lane. Click a glowing enemy card (or a glowing ring if the lane is empty).';
   if (sel.k === 'atk' && sel.lanes.length === 1) { const f = E.front(S.players[human], sel.lanes[0]), tg = f ? C[f.cell.card].tags : [];
@@ -11671,6 +11686,16 @@ function regrowth(me, N) {
   }
   return null;
 }
+// why the big move cannot be used right now, in words (11-24 report B3)
+function bigWhy(me, ok) {
+  if (ok) return ''; const big = C[me.cmd.id].big, has = t => me.grid.some(c => c && !c.down && C[c.card].tags.includes(t));
+  if (big === 'none') return ''; if (me.cmd.used) return '<br>Used: once a game.';
+  if (!myTurn()) return '<br>Wait for your turn.';
+  if (S.turnNo <= S.cfg.peace * S.players.length) return '<br>Not in the peace round.';
+  if (big === 'broadside' && !has('ship')) return '<br>Needs a SHIP on your grid. Play one first.';
+  if (big === 'audit' && !has('auditor')) return '<br>Needs an Army of Auditors on your grid. Play one first.';
+  return '<br>No target right now.';
+}
 function coach() {
   if (!coachOn || !S || S.result || !myTurn()) return '';
   const me = S.players[human], N = S.players.length, peace = S.turnNo <= S.cfg.peace * N, say = (t, sub) => `<div class="coach"><b class="mush">🍄 Mush:</b> ${t}${sub ? `<div class="small">${sub}</div>` : ''}</div>`;
@@ -11742,7 +11767,7 @@ function render() {
     <div class="bar">${modeTag()}<div class="who ${mine ? 'mine' : ''}">${who}</div>${mine ? `<div class="econ">ECON ${me.econ}${S.cfg.econWin ? `<span class="small"> of ${E.winPrice(S, me)} buys the win</span>` : ''}</div>` : ''}${peace && !S.result ? '<div class="peace">PEACE ROUND &middot; nobody may attack yet</div>' : ''}${danger()}
       <div class="news">${err ? `<div class="err">${esc(err)}</div>` : ''}${mine && sel ? `<div class="hint">${hint()}</div>` : ''}${news.filter(l => !/^(t\d+ )?RESULT/.test(l)).slice(-3).map(l => `<div>${esc(l.replace(/^t\d+ /, ''))}</div>`).join('')}</div></div>
     <div class="arena">${moon(N)}${duel(me, them)}</div>
-    <div class="handw"><div class="btns"><button class="primary" data-a="end" ${mine ? '' : 'disabled'}>END TURN</button><span data-tip="<b>BIG MOVE &middot; once a game</b><br>${esc(E.BIG[C[me.cmd.id].big])}."><button data-a="big" ${bigOK ? '' : 'disabled'}>BIG MOVE: ${bigName(me.cmd.id)}</button></span>${buyOK ? `<button class="primary" data-a="buy">BUY THE WIN (${E.winPrice(S, me)} ECON)</button>` : ''}${mine ? curL.filter(m => m.t === 'tear').map(m => `<button data-a="tear" data-pid="${m.tp}" data-tip="Their treaty with you stops your cards attacking theirs. Tear it and you can fight them again.">&#129309;&#10007; Tear up the treaty with ${esc(S.players[m.tp].name)} &middot; ${S.cfg.tearCost} ECON</button>`).join('') : ''}<span class="handt">YOUR HAND (${me.hand.length} of ${S.cfg.handCap || 'any'})</span></div>
+    <div class="handw"><div class="btns"><button class="primary" data-a="end" ${mine ? '' : 'disabled'}>END TURN</button><span data-tip="<b>BIG MOVE &middot; once a game</b><br>${esc(E.BIG[C[me.cmd.id].big])}.${bigWhy(me, bigOK)}"><button data-a="big" ${bigOK ? '' : 'disabled'}>BIG MOVE: ${bigName(me.cmd.id)}</button></span>${mine && !bigOK && !me.cmd.used && C[me.cmd.id].big !== 'none' ? `<span class="bigwhy">${bigWhy(me, bigOK).replace(/^<br>/, '')}</span>` : ''}${buyOK ? `<button class="primary" data-a="buy">BUY THE WIN (${E.winPrice(S, me)} ECON)</button>` : ''}${mine ? curL.filter(m => m.t === 'tear').map(m => `<button data-a="tear" data-pid="${m.tp}" data-tip="Their treaty with you stops your cards attacking theirs. Tear it and you can fight them again.">&#129309;&#10007; Tear up the treaty with ${esc(S.players[m.tp].name)} &middot; ${S.cfg.tearCost} ECON</button>`).join('') : ''}<span class="handt">YOUR HAND (${me.hand.length} of ${S.cfg.handCap || 'any'})</span></div>
       <div class="hand fan">${hand || '<span class="small">(empty)</span>'}</div></div>
     <div class="side2">${ways()}${coach()}<div class="info">${info || how}${nowBtn}</div>
       <div class="sidec"><div class="btns"><button data-a="skip" ${!S.result && !mine && !(S.pending && S.pending.responder === human) ? '' : 'disabled'}>Skip to my turn</button><button data-a="speed">Bots: ${speed >= 1200 ? 'slow' : speed >= 600 ? 'normal' : 'fast'}</button><button data-a="mute">Sound: ${muted ? 'off' : 'on'}</button><button data-a="coach">Mush: ${coachOn ? 'on' : 'off'}</button><button data-a="save">Save</button><button data-a="new">New game</button>${S.result ? '<button data-a="unlook">Result</button>' : ''}</div>
@@ -11803,7 +11828,7 @@ document.addEventListener('click', ev => {
   if (a === 'ring') { const m = curT['r:' + pid + ':' + el.dataset.k]; if (m) return act(m); if (planetClick(pid)) return; info = ringInfo(S.players[pid], +el.dataset.k); return render(); }
   if (a === 'way') { info = WAYTIP[el.dataset.k]; return render(); }
   if (a === 'planet') { planetClick(pid); return; }
-  if (a === 'orb') { if (planetClick(pid)) return; focus = pid; return render(); }
+  if (a === 'orb') { if (planetClick(pid)) return; focus = pid; if (sel && Object.keys(curT).some(k => k.startsWith('r:' + pid + ':'))) info = `<b>Now pick a ring</b><br>You are facing ${esc(S.players[pid].name)}. Click one of the glowing ring chips under their name (ECON, IND, SCI ...) to put that ring out.`; return render(); }
   if (a === 'cmd') { if (planetClick(pid)) return; info = cmdInfo(S.players[pid]); sel = pid === human && myTurn() && curL.some(m => m.t === 'deploy') ? { k: 'cmd' } : null; return render(); }
   if (!myTurn()) { if (a === 'hand') { const id = S.players[human].hand[+el.dataset.i]; info = handInfo(id) + (touchy ? extra(id) : ''); render(); } return; }
   if (a === 'hand') { const i = +el.dataset.i, id = S.players[human].hand[i]; info = handInfo(id) + (touchy ? extra(id) : ''); sel = curL.some(m => m.t === 'play' && m.card === id) ? (sel && sel.k === 'hand' && sel.i === i ? null : { k: 'hand', i, card: id }) : null; return render(); }
